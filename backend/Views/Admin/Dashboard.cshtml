@@ -1,0 +1,394 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<style>
+    .dashboard-container {
+        padding: 20px;
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+    
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .dashboard-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 300;
+    }
+    
+    .dashboard-header p {
+        margin: 10px 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card.users { border-left-color: #4CAF50; }
+    .stat-card.providers { border-left-color: #2196F3; }
+    .stat-card.vendors { border-left-color: #FF9800; }
+    .stat-card.services { border-left-color: #9C27B0; }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 0;
+        color: #333;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 1rem;
+        margin: 5px 0 0 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-icon {
+        float: right;
+        font-size: 2rem;
+        opacity: 0.3;
+        margin-top: -10px;
+    }
+    
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .action-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .action-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+    
+    .action-header h3 {
+        margin: 0;
+        font-size: 1.3rem;
+    }
+    
+    .action-body {
+        padding: 20px;
+    }
+    
+    .action-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .action-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .action-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .action-list a {
+        color: #333;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: color 0.3s ease;
+    }
+    
+    .action-list a:hover {
+        color: #667eea;
+    }
+    
+    .action-list i {
+        margin-right: 10px;
+        width: 20px;
+        color: #667eea;
+    }
+    
+    .recent-activity {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .recent-activity h3 {
+        margin: 0 0 20px 0;
+        color: #333;
+        font-size: 1.5rem;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.2rem;
+        color: white;
+    }
+    
+    .activity-icon.user { background: #4CAF50; }
+    .activity-icon.service { background: #2196F3; }
+    .activity-icon.vendor { background: #FF9800; }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-title {
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 5px 0;
+    }
+    
+    .activity-time {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    @@media (max-width: 768px) {
+        .dashboard-container {
+            padding: 10px;
+        }
+        
+        .dashboard-header {
+            padding: 20px;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1><i class="fas fa-crown"></i> Admin Dashboard</h1>
+        <p>Welcome back, @ViewBag.AdminName! Here's what's happening with ServConnect today.</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card users">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h2 class="stat-number">@ViewBag.TotalUsers</h2>
+            <p class="stat-label">Total Users</p>
+        </div>
+        
+        <div class="stat-card providers">
+            <div class="stat-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <h2 class="stat-number">@ViewBag.ServiceProviders</h2>
+            <p class="stat-label">Service Providers</p>
+        </div>
+        
+        <div class="stat-card vendors">
+            <div class="stat-icon">
+                <i class="fas fa-store"></i>
+            </div>
+            <h2 class="stat-number">@ViewBag.Vendors</h2>
+            <p class="stat-label">Vendors</p>
+        </div>
+        
+        <div class="stat-card services">
+            <div class="stat-icon">
+                <i class="fas fa-concierge-bell"></i>
+            </div>
+            <h2 class="stat-number">@ViewBag.RegularUsers</h2>
+            <p class="stat-label">Regular Users</p>
+        </div>
+    </div>
+
+    <!-- Action Cards -->
+    <div class="action-grid">
+        <div class="action-card">
+            <div class="action-header">
+                <h3><i class="fas fa-users-cog"></i> User Management</h3>
+            </div>
+            <div class="action-body">
+                <ul class="action-list">
+                    <li><a href="#"><i class="fas fa-user-plus"></i> Add New User</a></li>
+                    <li><a href="#"><i class="fas fa-users"></i> View All Users</a></li>
+                    <li><a href="#"><i class="fas fa-user-shield"></i> Manage Roles</a></li>
+                    <li><a href="#"><i class="fas fa-ban"></i> Suspended Users</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-header">
+                <h3><i class="fas fa-cogs"></i> System Management</h3>
+            </div>
+            <div class="action-body">
+                <ul class="action-list">
+                    <li><a href="#"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+                    <li><a href="#"><i class="fas fa-database"></i> Database Status</a></li>
+                    <li><a href="#"><i class="fas fa-shield-alt"></i> Security Logs</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> System Settings</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-header">
+                <h3><i class="fas fa-handshake"></i> Service Management</h3>
+            </div>
+            <div class="action-body">
+                <ul class="action-list">
+                    <li><a href="#"><i class="fas fa-list"></i> All Services</a></li>
+                    <li><a href="#"><i class="fas fa-clock"></i> Pending Approvals</a></li>
+                    <li><a href="#"><i class="fas fa-star"></i> Featured Services</a></li>
+                    <li><a href="#"><i class="fas fa-flag"></i> Reported Services</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-header">
+                <h3><i class="fas fa-chart-line"></i> Reports & Analytics</h3>
+            </div>
+            <div class="action-body">
+                <ul class="action-list">
+                    <li><a href="#"><i class="fas fa-chart-pie"></i> Usage Statistics</a></li>
+                    <li><a href="#"><i class="fas fa-dollar-sign"></i> Revenue Reports</a></li>
+                    <li><a href="#"><i class="fas fa-download"></i> Export Data</a></li>
+                    <li><a href="#"><i class="fas fa-calendar"></i> Monthly Reports</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+        <h3><i class="fas fa-history"></i> Recent Activity</h3>
+        
+        <div class="activity-item">
+            <div class="activity-icon user">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="activity-content">
+                <p class="activity-title">New user registered: John Smith</p>
+                <p class="activity-time">2 minutes ago</p>
+            </div>
+        </div>
+        
+        <div class="activity-item">
+            <div class="activity-icon service">
+                <i class="fas fa-tools"></i>
+            </div>
+            <div class="activity-content">
+                <p class="activity-title">Service provider "QuickFix" submitted new service</p>
+                <p class="activity-time">15 minutes ago</p>
+            </div>
+        </div>
+        
+        <div class="activity-item">
+            <div class="activity-icon vendor">
+                <i class="fas fa-store"></i>
+            </div>
+            <div class="activity-content">
+                <p class="activity-title">Vendor "TechStore" updated product catalog</p>
+                <p class="activity-time">1 hour ago</p>
+            </div>
+        </div>
+        
+        <div class="activity-item">
+            <div class="activity-icon user">
+                <i class="fas fa-flag"></i>
+            </div>
+            <div class="activity-content">
+                <p class="activity-title">Service reported by user for review</p>
+                <p class="activity-time">2 hours ago</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add some interactivity
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stat numbers on load
+        const statNumbers = document.querySelectorAll('.stat-number');
+        statNumbers.forEach(stat => {
+            const finalNumber = parseInt(stat.textContent.replace(',', ''));
+            let currentNumber = 0;
+            const increment = finalNumber / 50;
+            
+            const timer = setInterval(() => {
+                currentNumber += increment;
+                if (currentNumber >= finalNumber) {
+                    stat.textContent = finalNumber.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    stat.textContent = Math.floor(currentNumber).toLocaleString();
+                }
+            }, 30);
+        });
+    });
+</script>

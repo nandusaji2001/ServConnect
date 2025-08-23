@@ -1,0 +1,240 @@
+﻿@using ServConnect.ViewModels;
+@using ServConnect.Models; @* For RoleTypes *@
+@model RegisterViewModel;
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<div class="account-container">
+    <div class="account-box">
+        <h2 class="text-center mb-4">Create Account</h2>
+        <form asp-action="Register" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Existing Fields -->
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Full Name</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label">Phone Number <small class="text-muted">(Optional)</small></label>
+                <input asp-for="PhoneNumber" class="form-control" placeholder="e.g., +1234567890, 9744892806, or leave empty" />
+                <small class="form-text text-muted">
+                    phone number
+                </small>
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label">Address</label>
+                <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter your full address"></textarea>
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                <input asp-for="ConfirmPassword" class="form-control" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <!-- Role Selection -->
+            <div class="mb-3">
+                <label asp-for="Role" class="form-label">Account Type</label>
+                <select asp-for="Role" class="form-control">
+                    <option value="@RoleTypes.User">Regular User</option>
+                    <option value="@RoleTypes.ServiceProvider">Service Provider</option>
+                    <option value="@RoleTypes.Vendor">Vendor (Product Seller)</option>
+                </select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </div>
+
+            <input type="submit" value="Register" class="btn btn-success w-100 p-2" />
+        </form>
+        
+        <div class="text-center my-3">
+            <span class="text-muted">or</span>
+        </div>
+        
+        <!-- Firebase Google Sign-Up -->
+        <button type="button" id="googleSignUpBtn" class="btn btn-google w-100 mb-3">
+            <i class="fab fa-google"></i>
+            <span>Sign up with Google</span>
+        </button>
+        
+        <!-- Firebase Email/Password Registration -->
+        <div class="text-center my-3">
+            <span class="text-muted">or</span>
+        </div>
+        
+        <div class="mb-3">
+            <button type="button" id="firebaseEmailRegisterBtn" class="btn btn-outline-success w-100">
+                <i class="fas fa-envelope"></i>
+                <span>Register with Firebase Email</span>
+            </button>
+        </div>
+
+        <p class="text-center mt-2">
+            Already have an account? <a asp-controller="Account" asp-action="Login" class="text-decoration-none">Login</a>
+        </p>
+        <div class="text-center">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none mt-3">Back to Home</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="~/js/firebase-auth.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const googleSignUpBtn = document.getElementById('googleSignUpBtn');
+            const firebaseEmailRegisterBtn = document.getElementById('firebaseEmailRegisterBtn');
+            const returnUrl = '@ViewData["ReturnUrl"]';
+            
+            // Check if we have Firebase user data from login redirect
+            const firebaseUserData = sessionStorage.getItem('firebaseUserData');
+            if (firebaseUserData && new URLSearchParams(window.location.search).get('firebase') === 'true') {
+                const userData = JSON.parse(firebaseUserData);
+                document.getElementById('Name').value = userData.name || '';
+                document.getElementById('Email').value = userData.email || '';
+                sessionStorage.removeItem('firebaseUserData');
+            }
+            
+            // Google Sign-Up with Firebase
+            googleSignUpBtn.addEventListener('click', async function() {
+                try {
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing up...';
+                    
+                    const result = await window.FirebaseAuth.signInWithGoogle();
+                    
+                    if (result.success) {
+                        // Get form data
+                        const userData = {
+                            name: result.user.displayName || document.getElementById('Name').value,
+                            email: result.user.email,
+                            phoneNumber: document.getElementById('PhoneNumber').value || null,
+                            address: document.getElementById('Address').value || null,
+                            role: document.getElementById('Role').value,
+                            returnUrl: returnUrl
+                        };
+                        
+                        // Send to server for registration
+                        const serverResult = await window.FirebaseAuth.registerWithServer(result.idToken, userData);
+                        
+                        if (serverResult.success) {
+                            window.location.href = serverResult.redirectUrl;
+                        } else {
+                            alert('Registration failed: ' + serverResult.message);
+                        }
+                    } else {
+                        alert('Google sign-up failed: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Google sign-up error:', error);
+                    alert('An error occurred during sign-up. Please try again.');
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fab fa-google"></i> Sign up with Google';
+                }
+            });
+            
+            // Firebase Email/Password Registration
+            firebaseEmailRegisterBtn.addEventListener('click', async function() {
+                const name = document.getElementById('Name').value;
+                const email = document.getElementById('Email').value;
+                const password = document.getElementById('Password').value;
+                const confirmPassword = document.getElementById('ConfirmPassword').value;
+                const phoneNumber = document.getElementById('PhoneNumber').value.trim();
+                const address = document.getElementById('Address').value.trim();
+                const role = document.getElementById('Role').value;
+                
+                // Basic validation
+                if (!name || !email || !password || !confirmPassword) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Validate phone number if provided
+                if (phoneNumber && phoneNumber.length > 0) {
+                    const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
+                    if (!/^(\+?\d{7,15})$/.test(cleanPhone)) {
+                        alert('Please enter a valid phone number or leave it empty');
+                        return;
+                    }
+                }
+                
+                if (password !== confirmPassword) {
+                    alert('Passwords do not match');
+                    return;
+                }
+                
+                try {
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+                    
+                    const result = await window.FirebaseAuth.registerWithEmail(email, password);
+                    
+                    if (result.success) {
+                        // Update user profile
+                        await result.user.updateProfile({
+                            displayName: name
+                        });
+                        
+                        // Get fresh token
+                        const idToken = await result.user.getIdToken();
+                        
+                        // Send to server for registration
+                        const userData = {
+                            name: name,
+                            email: email,
+                            phoneNumber: phoneNumber || null,
+                            address: address || null,
+                            role: role,
+                            returnUrl: returnUrl
+                        };
+                        
+                        const serverResult = await window.FirebaseAuth.registerWithServer(idToken, userData);
+                        
+                        if (serverResult.success) {
+                            window.location.href = serverResult.redirectUrl;
+                        } else {
+                            alert('Registration failed: ' + serverResult.message);
+                        }
+                    } else {
+                        alert('Firebase registration failed: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Firebase email registration error:', error);
+                    alert('An error occurred during registration. Please try again.');
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-envelope"></i> Register with Firebase Email';
+                }
+            });
+        });
+    </script>
+}

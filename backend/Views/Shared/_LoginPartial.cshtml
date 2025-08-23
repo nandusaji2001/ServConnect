@@ -1,0 +1,58 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using ServConnect.Models
+@inject SignInManager<Users> SignInManager
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        @if (User.IsInRole(RoleTypes.Admin))
+        {
+            <li class="nav-item">
+                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Dashboard">
+                    <i class="bi bi-speedometer2"></i> Admin Dashboard
+                </a>
+            </li>
+        }
+        @if (User.IsInRole(RoleTypes.ServiceProvider))
+        {
+            <li class="nav-item">
+                <a class="nav-link text-dark" asp-controller="ServiceProvider" asp-action="Dashboard">
+                    <i class="bi bi-briefcase"></i> Service Dashboard
+                </a>
+            </li>
+        }
+        @if (User.IsInRole(RoleTypes.Vendor))
+        {
+            <li class="nav-item">
+                <a class="nav-link text-dark" asp-controller="Vendor" asp-action="Dashboard">
+                    <i class="bi bi-shop"></i> Vendor Dashboard
+                </a>
+            </li>
+        }
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Profile">
+                <i class="bi bi-person"></i> Profile
+            </a>
+        </li>
+        <li class="nav-item">
+            <form class="form-inline" asp-controller="Account" asp-action="Logout">
+                <button type="submit" class="nav-link btn btn-link text-dark">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">
+                <i class="bi bi-person-plus"></i> Register
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </a>
+        </li>
+    }
+</ul>

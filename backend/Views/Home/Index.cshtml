@@ -1,0 +1,544 @@
+﻿@{
+    ViewData["Title"] = "ServConnect - Your Service Marketplace";
+}
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 0;
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    
+    .hero-section h1 {
+        font-size: 3.5rem;
+        font-weight: 300;
+        margin-bottom: 20px;
+    }
+    
+    .hero-section p {
+        font-size: 1.3rem;
+        margin-bottom: 30px;
+        opacity: 0.9;
+    }
+    
+    .search-container {
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 15px 60px 15px 20px;
+        border: none;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .search-btn {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        bottom: 5px;
+        background: #ff6b6b;
+        border: none;
+        border-radius: 50px;
+        padding: 0 25px;
+        color: white;
+        font-weight: 500;
+        transition: background 0.3s ease;
+    }
+    
+    .search-btn:hover {
+        background: #ff5252;
+    }
+    
+    .features-section {
+        padding: 50px 0;
+        background: #f8f9fa;
+    }
+    
+    .feature-card {
+        background: white;
+        padding: 40px 30px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 30px;
+        height: 100%;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .feature-card h3 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+    }
+    
+    .feature-card p {
+        color: #666;
+        line-height: 1.6;
+    }
+    
+    .services-section {
+        padding: 50px 0;
+    }
+    
+    .section-title {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    
+    .section-title h2 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .section-title p {
+        font-size: 1.2rem;
+        color: #666;
+    }
+    
+    .service-category {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+        cursor: pointer;
+    }
+    
+    .service-category:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .service-category.home-services {
+        border-top: 4px solid #4CAF50;
+    }
+    
+    .service-category.tech-services {
+        border-top: 4px solid #2196F3;
+    }
+    
+    .service-category.beauty-services {
+        border-top: 4px solid #E91E63;
+    }
+    
+    .service-category.business-services {
+        border-top: 4px solid #FF9800;
+    }
+    
+    .service-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+    }
+    
+    .service-category.home-services .service-icon {
+        color: #4CAF50;
+    }
+    
+    .service-category.tech-services .service-icon {
+        color: #2196F3;
+    }
+    
+    .service-category.beauty-services .service-icon {
+        color: #E91E63;
+    }
+    
+    .service-category.business-services .service-icon {
+        color: #FF9800;
+    }
+    
+    .service-category h4 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 1.3rem;
+    }
+    
+    .service-category p {
+        color: #666;
+        margin-bottom: 15px;
+    }
+    
+    .service-count {
+        background: #f8f9fa;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        color: #666;
+        display: inline-block;
+    }
+    
+    .cta-section {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+        color: white;
+        padding: 80px 0;
+        text-align: center;
+    }
+    
+    .cta-section h2 {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        font-weight: 300;
+    }
+    
+    .cta-section p {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+        opacity: 0.9;
+    }
+    
+    .cta-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .cta-btn {
+        padding: 15px 30px;
+        border: 2px solid white;
+        border-radius: 50px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .cta-btn:hover {
+        background: white;
+        color: #ff6b6b;
+        text-decoration: none;
+    }
+    
+    .stats-section {
+        padding: 50px 0;
+        background: #f8f9fa;
+    }
+    
+    .stat-item {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 10px;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    @@media (max-width: 768px) {
+        .hero-section h1 {
+            font-size: 2.5rem;
+        }
+        
+        .hero-section p {
+            font-size: 1.1rem;
+        }
+        
+        .search-input {
+            font-size: 1rem;
+            padding: 12px 50px 12px 15px;
+        }
+        
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .section-title h2 {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <h1>Find the Perfect Service</h1>
+        <p>Connect with trusted service providers and vendors in your area</p>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="What service are you looking for?">
+            <button class="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="features-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Trusted Providers</h3>
+                    <p>All service providers are verified and rated by real customers to ensure quality and reliability.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Quick Booking</h3>
+                    <p>Book services instantly with our easy-to-use platform. Get confirmed appointments in minutes.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h3>Best Prices</h3>
+                    <p>Compare prices from multiple providers and choose the best deal that fits your budget.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Services Section -->
+<div class="services-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>Popular Service Categories</h2>
+            <p>Discover the services you need from trusted professionals</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 col-lg-3">
+                <div class="service-category home-services">
+                    <div class="service-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h4>Home Services</h4>
+                    <p>Cleaning, plumbing, electrical, and more</p>
+                    <span class="service-count">150+ services</span>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="service-category tech-services">
+                    <div class="service-icon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <h4>Tech Services</h4>
+                    <p>Computer repair, web design, IT support</p>
+                    <span class="service-count">80+ services</span>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="service-category beauty-services">
+                    <div class="service-icon">
+                        <i class="fas fa-cut"></i>
+                    </div>
+                    <h4>Beauty & Wellness</h4>
+                    <p>Hair, makeup, massage, fitness</p>
+                    <span class="service-count">120+ services</span>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="service-category business-services">
+                    <div class="service-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h4>Business Services</h4>
+                    <p>Accounting, legal, marketing, consulting</p>
+                    <span class="service-count">90+ services</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">10,000+</div>
+                    <div class="stat-label">Happy Customers</div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Service Providers</div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">50,000+</div>
+                    <div class="stat-label">Services Completed</div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">4.8</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-section">
+    <div class="container">
+        <h2>Ready to Get Started?</h2>
+        <p>Join thousands of satisfied customers and service providers</p>
+        
+        <div class="cta-buttons">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a href="#" class="cta-btn">
+                    <i class="fas fa-search"></i>
+                    Browse Services
+                </a>
+                <a href="/Account/Profile" class="cta-btn">
+                    <i class="fas fa-user"></i>
+                    My Account
+                </a>
+            }
+            else
+            {
+                <a href="/Account/Register" class="cta-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Sign Up Now
+                </a>
+                <a href="/Account/Login" class="cta-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stats on scroll
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px 0px -100px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const statNumbers = entry.target.querySelectorAll('.stat-number');
+                    statNumbers.forEach(stat => {
+                        const text = stat.textContent;
+                        const hasPlus = text.includes('+');
+                        const isDecimal = text.includes('.');
+                        
+                        if (isDecimal) {
+                            // Handle decimal numbers like 4.8
+                            const finalNumber = parseFloat(text);
+                            let currentNumber = 0;
+                            const increment = finalNumber / 30;
+                            
+                            const timer = setInterval(() => {
+                                currentNumber += increment;
+                                if (currentNumber >= finalNumber) {
+                                    stat.textContent = finalNumber.toFixed(1);
+                                    clearInterval(timer);
+                                } else {
+                                    stat.textContent = currentNumber.toFixed(1);
+                                }
+                            }, 50);
+                        } else {
+                            // Handle regular numbers
+                            const finalNumber = parseInt(text.replace(/[^0-9]/g, ''));
+                            let currentNumber = 0;
+                            const increment = finalNumber / 50;
+                            
+                            const timer = setInterval(() => {
+                                currentNumber += increment;
+                                if (currentNumber >= finalNumber) {
+                                    stat.textContent = finalNumber.toLocaleString() + (hasPlus ? '+' : '');
+                                    clearInterval(timer);
+                                } else {
+                                    stat.textContent = Math.floor(currentNumber).toLocaleString() + (hasPlus ? '+' : '');
+                                }
+                            }, 30);
+                        }
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+        
+        // Search functionality
+        const searchInput = document.querySelector('.search-input');
+        const searchBtn = document.querySelector('.search-btn');
+        
+        searchBtn.addEventListener('click', function() {
+            const query = searchInput.value.trim();
+            if (query) {
+                // Implement search functionality here
+                alert('Searching for: ' + query);
+            }
+        });
+        
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchBtn.click();
+            }
+        });
+    });
+</script>

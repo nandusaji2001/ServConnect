@@ -1,0 +1,1058 @@
+﻿using AspNetCore.Identity.MongoDbCore.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using ServConnect.Models;
+using ServConnect.ViewModels;
+using ServConnect.Services;
+
+namespace ServConnect.Controllers
+{
+    public class AccountController : Controller
+{
+    private readonly UserManager<Users> _userManager;
+    private readonly SignInManager<Users> _signInManager;
+    private readonly RoleManager<MongoIdentityRole> _roleManager;
+    private readonly IWebHostEnvironment _env;
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<AccountController> _logger;
+    private readonly ISmsService _smsService;
+    private readonly IOtpService _otpService;
+    private readonly IFirebaseAuthService _firebaseAuthService;
+
+    public AccountController(
+        UserManager<Users> userManager,
+        SignInManager<Users> signInManager,
+        RoleManager<MongoIdentityRole> roleManager,
+        IWebHostEnvironment env,
+        IConfiguration configuration,
+        ILogger<AccountController> logger,
+        ISmsService smsService,
+        IOtpService otpService,
+        IFirebaseAuthService firebaseAuthService)
+    {
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _roleManager = roleManager;
+        _env = env;
+        _configuration = configuration;
+        _logger = logger;
+        _smsService = smsService;
+        _otpService = otpService;
+        _firebaseAuthService = firebaseAuthService;
+    }
+
+    #region Registration
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Register(RegisterViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            // Prevent admin registration through the form
+            if (model.Role == RoleTypes.Admin)
+            {
+                ModelState.AddModelError(string.Empty, "Admin accounts cannot be created through registration.");
+                return View(model);
+            }
+
+            // Format phone number to E.164 format
+            var formattedPhoneNumber = FormatPhoneNumber(model.PhoneNumber);
+
+            var user = new Users
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FullName = model.Name,
+                PhoneNumber = formattedPhoneNumber,
+                Address = model.Address
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
+            {
+                // Create role if it doesn't exist
+                if (!await _roleManager.RoleExistsAsync(model.Role))
+                {
+                    await _roleManager.CreateAsync(new MongoIdentityRole(model.Role));
+                }
+
+                // Assign role to user
+                await _userManager.AddToRoleAsync(user, model.Role);
+
+                // Redirect to login page after successful registration
+                TempData["SuccessMessage"] = "Registration successful! Please login with your credentials.";
+                return RedirectToAction("Login");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+        }
+
+        // If we got this far, something failed, redisplay form
+        return View(model);
+    }
+
+
+    #endregion
+
+    #region Login/Logout
+    [HttpGet]
+    public IActionResult Login(string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+
+        if (ModelState.IsValid)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user != null)
+            {
+                // Check if user is locked out
+                if (await _userManager.IsLockedOutAsync(user))
+                {
+                    ModelState.AddModelError(string.Empty, "Account temporarily locked. Try again later.");
+                    return View(model);
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(
+                    model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+
+                if (result.Succeeded)
+                {
+                    // Get user roles
+                    var roles = await _userManager.GetRolesAsync(user);
+
+                    // Role-based redirection
+                    return roles switch
+                    {
+                        var r when r.Contains(RoleTypes.Admin) => RedirectToLocal(returnUrl)
+                            ?? RedirectToAction("Dashboard", "Admin"),
+                        var r when r.Contains(RoleTypes.ServiceProvider) => RedirectToLocal(returnUrl)
+                            ?? RedirectToAction("Dashboard", "ServiceProvider"),
+                        var r when r.Contains(RoleTypes.Vendor) => RedirectToLocal(returnUrl)
+                            ?? RedirectToAction("Dashboard", "Vendor"),
+                        _ => RedirectToLocal(returnUrl) ?? RedirectToAction("Index", "Home")
+                    };
+                }
+
+                if (result.RequiresTwoFactor)
+                {
+                    return RedirectToAction("LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                }
+
+                if (result.IsLockedOut)
+                {
+                    return RedirectToAction("Lockout");
+                }
+            }
+
+            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+        }
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Index", "Home");
+    }
+
+
+    #endregion
+
+    #region Helper Methods
+    private IActionResult RedirectToLocal(string? returnUrl)
+    {
+        if (Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+        return RedirectToAction("Index", "Home");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> IsEmailAvailable(string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        return Json(user == null);
+    }
+    #endregion
+
+    #region Additional Actions
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Profile()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        var model = new ProfileViewModel
+        {
+            Name = user.FullName,
+            Email = user.Email
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Profile(ProfileViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        // Update user properties
+        user.FullName = model.Name;
+        user.Email = model.Email;
+        user.UserName = model.Email;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (result.Succeeded)
+        {
+            // Handle password change if provided
+            if (!string.IsNullOrEmpty(model.NewPassword) && !string.IsNullOrEmpty(model.CurrentPassword))
+            {
+                var passwordResult = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+                if (!passwordResult.Succeeded)
+                {
+                    foreach (var error in passwordResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                    return View(model);
+                }
+            }
+
+            TempData["SuccessMessage"] = "Profile updated successfully!";
+            return RedirectToAction("Profile");
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult Lockout()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult GoogleAuthDiagnostic()
+    {
+        var clientId = _configuration["Authentication:Google:ClientId"];
+        var clientSecret = _configuration["Authentication:Google:ClientSecret"];
+        var hasClientId = !string.IsNullOrEmpty(clientId) && clientId != "YOUR_NEW_CLIENT_ID_HERE";
+        var hasClientSecret = !string.IsNullOrEmpty(clientSecret) && clientSecret != "YOUR_NEW_CLIENT_SECRET_HERE";
+        
+        var diagnosticInfo = new
+        {
+            ClientIdConfigured = hasClientId,
+            ClientSecretConfigured = hasClientSecret,
+            ClientIdValue = hasClientId ? $"{clientId[..10]}..." : "Not configured",
+            ExpectedRedirectUris = new[]
+            {
+                "https://localhost:7213/signin-google",
+                "http://localhost:5227/signin-google"
+            },
+            CurrentUrl = $"{Request.Scheme}://{Request.Host}",
+            GoogleCallbackPath = "/signin-google"
+        };
+        
+        return Json(diagnosticInfo);
+    }
+    #endregion
+
+    #region Forgot Password & OTP Reset
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        // Format the input phone number to match the stored format
+        var formattedInputNumber = FormatPhoneNumber(model.PhoneNumber);
+        _logger.LogInformation("Looking for user with phone number: {InputNumber} (formatted: {FormattedNumber})", 
+            model.PhoneNumber, formattedInputNumber);
+        
+        var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == formattedInputNumber);
+        if (user == null)
+        {
+            _logger.LogWarning("No user found with phone number: {FormattedNumber}", formattedInputNumber);
+            // Don't reveal that the user does not exist
+            TempData["SuccessMessage"] = "If a user with this phone number exists, an OTP has been sent.";
+            return RedirectToAction("ResetPassword");
+        }
+        
+        _logger.LogInformation("Found user: {UserId} with phone number: {PhoneNumber}", user.Id, user.PhoneNumber);
+
+        // Check if user has requested OTP recently (rate limiting)
+        if (user.LastOtpRequestTime.HasValue && 
+            DateTime.UtcNow.Subtract(user.LastOtpRequestTime.Value).TotalMinutes < 1)
+        {
+            ModelState.AddModelError(string.Empty, "Please wait at least 1 minute before requesting another OTP.");
+            return View(model);
+        }
+
+        // Generate OTP
+        var otp = _otpService.GenerateOtp();
+        var expiryTime = _otpService.GetOtpExpiryTime();
+
+        // Update user with OTP details
+        user.PasswordResetOtp = otp;
+        user.OtpExpiryTime = expiryTime;
+        user.OtpAttempts = 0;
+        user.LastOtpRequestTime = DateTime.UtcNow;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            ModelState.AddModelError(string.Empty, "Failed to generate OTP. Please try again.");
+            return View(model);
+        }
+
+        // Debug logging
+        _logger.LogInformation("OTP stored in database for user {UserId}: {Otp}, Expiry: {ExpiryTime}", 
+            user.Id, otp, expiryTime);
+
+        // Send OTP via SMS
+        _logger.LogInformation("Attempting to send OTP to phone number: {PhoneNumber}", model.PhoneNumber);
+        
+        // Format phone number for SMS
+        var formattedPhoneNumber = FormatPhoneNumber(model.PhoneNumber);
+        _logger.LogInformation("Formatted phone number for SMS: {FormattedPhoneNumber}", formattedPhoneNumber);
+        
+        var smsResult = await _smsService.SendOtpAsync(formattedPhoneNumber, otp);
+        if (!smsResult)
+        {
+            _logger.LogError("Failed to send OTP SMS to {PhoneNumber} (formatted: {FormattedPhoneNumber})", model.PhoneNumber, formattedPhoneNumber);
+            ModelState.AddModelError(string.Empty, "Failed to send OTP. Please try again.");
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = "OTP has been sent to your phone number.";
+        return RedirectToAction("ResetPassword", new { phoneNumber = model.PhoneNumber });
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPassword(string phoneNumber = "")
+    {
+        var model = new ResetPasswordViewModel
+        {
+            PhoneNumber = phoneNumber
+        };
+        return View(model);
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
+        if (user == null)
+        {
+            // Try with formatted phone number as fallback
+            var formattedPhoneNumber = FormatPhoneNumber(model.PhoneNumber);
+            user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == formattedPhoneNumber);
+            
+            if (user == null)
+            {
+                _logger.LogWarning("User not found with phone number: {PhoneNumber} or formatted: {FormattedPhoneNumber}", 
+                    model.PhoneNumber, formattedPhoneNumber);
+                ModelState.AddModelError(string.Empty, "Invalid phone number or OTP.");
+                return View(model);
+            }
+        }
+        
+        _logger.LogInformation("Found user {UserId} with phone number: {PhoneNumber} for OTP verification", 
+            user.Id, user.PhoneNumber);
+
+        // Check OTP attempts (max 3 attempts)
+        if (user.OtpAttempts >= 3)
+        {
+            ModelState.AddModelError(string.Empty, "Too many failed attempts. Please request a new OTP.");
+            return View(model);
+        }
+
+        // Validate OTP - try database first, then Fast2SMS cache as fallback
+        bool isOtpValid = _otpService.ValidateOtp(model.Otp, user.PasswordResetOtp, user.OtpExpiryTime);
+        
+        // If database OTP validation fails, try Fast2SMS cache (for simulation mode)
+        if (!isOtpValid && _smsService is Fast2SmsOtpService fast2SmsService)
+        {
+            var formattedPhoneNumber = FormatPhoneNumber(model.PhoneNumber);
+            isOtpValid = fast2SmsService.VerifyOtp(formattedPhoneNumber, model.Otp);
+            _logger.LogInformation("Tried Fast2SMS cache validation for {PhoneNumber}: {IsValid}", formattedPhoneNumber, isOtpValid);
+        }
+        
+        if (!isOtpValid)
+        {
+            user.OtpAttempts++;
+            await _userManager.UpdateAsync(user);
+            
+            var remainingAttempts = 3 - user.OtpAttempts;
+            if (remainingAttempts > 0)
+            {
+                ModelState.AddModelError(string.Empty, $"Invalid OTP. {remainingAttempts} attempts remaining.");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Too many failed attempts. Please request a new OTP.");
+            }
+            
+            // Debug logging
+            _logger.LogWarning("OTP validation failed for user {UserId}. Provided: {ProvidedOtp}, Stored: {StoredOtp}, Expiry: {ExpiryTime}", 
+                user.Id, model.Otp, user.PasswordResetOtp, user.OtpExpiryTime);
+            
+            return View(model);
+        }
+
+        // Reset password
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+
+        if (result.Succeeded)
+        {
+            // Clear OTP data
+            user.PasswordResetOtp = null;
+            user.OtpExpiryTime = null;
+            user.OtpAttempts = 0;
+            user.LastOtpRequestTime = null;
+            await _userManager.UpdateAsync(user);
+
+            TempData["SuccessMessage"] = "Password has been reset successfully. Please login with your new password.";
+            return RedirectToAction("Login");
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResendOtp(string phoneNumber)
+    {
+        if (string.IsNullOrEmpty(phoneNumber))
+        {
+            return Json(new { success = false, message = "Phone number is required." });
+        }
+
+        // Format the input phone number to match the stored format
+        var formattedInputNumber = FormatPhoneNumber(phoneNumber);
+        _logger.LogInformation("Looking for user to resend OTP: {InputNumber} (formatted: {FormattedNumber})", 
+            phoneNumber, formattedInputNumber);
+        
+        var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == formattedInputNumber);
+        if (user == null)
+        {
+            _logger.LogWarning("No user found for resend OTP with phone number: {FormattedNumber}", formattedInputNumber);
+            return Json(new { success = false, message = "User not found." });
+        }
+
+        // Check rate limiting
+        if (user.LastOtpRequestTime.HasValue && 
+            DateTime.UtcNow.Subtract(user.LastOtpRequestTime.Value).TotalMinutes < 1)
+        {
+            return Json(new { success = false, message = "Please wait at least 1 minute before requesting another OTP." });
+        }
+
+        // Generate new OTP
+        var otp = _otpService.GenerateOtp();
+        var expiryTime = _otpService.GetOtpExpiryTime();
+
+        // Update user
+        user.PasswordResetOtp = otp;
+        user.OtpExpiryTime = expiryTime;
+        user.OtpAttempts = 0;
+        user.LastOtpRequestTime = DateTime.UtcNow;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            return Json(new { success = false, message = "Failed to generate OTP." });
+        }
+
+        // Send OTP
+        _logger.LogInformation("Attempting to resend OTP to phone number: {PhoneNumber}", phoneNumber);
+        
+        // Format phone number for SMS
+        var formattedPhoneNumber = FormatPhoneNumber(phoneNumber);
+        _logger.LogInformation("Formatted phone number for SMS: {FormattedPhoneNumber}", formattedPhoneNumber);
+        
+        var smsResult = await _smsService.SendOtpAsync(formattedPhoneNumber, otp);
+        if (!smsResult)
+        {
+            _logger.LogError("Failed to resend OTP SMS to {PhoneNumber} (formatted: {FormattedPhoneNumber})", phoneNumber, formattedPhoneNumber);
+            return Json(new { success = false, message = "Failed to send OTP." });
+        }
+
+        return Json(new { success = true, message = "New OTP has been sent." });
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> TestFast2SMS(string phoneNumber = "+919876543210")
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            // Format phone number using the comprehensive formatter
+            phoneNumber = FormatPhoneNumber(phoneNumber);
+            
+            // Log the test attempt
+            _logger.LogInformation("Testing Fast2SMS OTP with phone number: {PhoneNumber}", phoneNumber);
+            
+            // Generate a test OTP
+            var testOtp = _otpService.GenerateOtp();
+            var result = await _smsService.SendOtpAsync(phoneNumber, testOtp);
+            
+            var response = new { 
+                success = result, 
+                message = result ? "Test OTP sent successfully via Fast2SMS! Check your phone." : "Failed to send test OTP. Check logs for details.",
+                phoneNumber = phoneNumber,
+                testOtp = result ? testOtp : "N/A", // Include OTP in response for testing
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                service = "Fast2SMS OTP Service"
+            };
+            
+            _logger.LogInformation("Fast2SMS test result: {Result}, OTP: {Otp}", result, testOtp);
+            return Json(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error testing Fast2SMS OTP");
+            return Json(new { 
+                success = false, 
+                message = $"Error: {ex.Message}",
+                phoneNumber = phoneNumber,
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                service = "Fast2SMS OTP Service"
+            });
+        }
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> TestFast2SMSSimple()
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            // Test with a hardcoded number
+            var phoneNumber = "+919744892806";
+            
+            _logger.LogInformation("Testing Fast2SMS OTP with hardcoded phone number: {PhoneNumber}", phoneNumber);
+            
+            // Generate a test OTP
+            var testOtp = _otpService.GenerateOtp();
+            var result = await _smsService.SendOtpAsync(phoneNumber, testOtp);
+            
+            var response = new { 
+                success = result, 
+                message = result ? "Test OTP sent successfully via Fast2SMS! Check your phone." : "Failed to send test OTP. Check logs for details.",
+                phoneNumber = phoneNumber,
+                testOtp = result ? testOtp : "N/A", // Include OTP in response for testing
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                service = "Fast2SMS OTP Service"
+            };
+            
+            _logger.LogInformation("Fast2SMS test result: {Result}, OTP: {Otp}", result, testOtp);
+            return Json(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error testing Fast2SMS OTP");
+            return Json(new { 
+                success = false, 
+                message = $"Error: {ex.Message}",
+                phoneNumber = "+919744892806",
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                service = "Fast2SMS OTP Service"
+            });
+        }
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult TestPhoneFormatting(string phoneNumber = "9744892806")
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        var formatted = FormatPhoneNumber(phoneNumber);
+        
+        // Also check if a user exists with this formatted number
+        var userExists = _userManager.Users.Any(u => u.PhoneNumber == formatted);
+        
+        return Json(new { 
+            original = phoneNumber,
+            formatted = formatted,
+            userExists = userExists,
+            timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+        });
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult TestUserLookup(string phoneNumber = "9744892806")
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        var formatted = FormatPhoneNumber(phoneNumber);
+        var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == formatted);
+        
+        return Json(new { 
+            inputNumber = phoneNumber,
+            formattedNumber = formatted,
+            userFound = user != null,
+            storedPhoneNumber = user?.PhoneNumber,
+            userEmail = user?.Email,
+            timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+        });
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult TestOtpVerification(string phoneNumber = "9744892806", string otp = "")
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            var formattedPhoneNumber = FormatPhoneNumber(phoneNumber);
+            var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == formattedPhoneNumber);
+            
+            if (user == null)
+            {
+                return Json(new { 
+                    success = false,
+                    message = "User not found",
+                    phoneNumber = phoneNumber,
+                    formattedPhoneNumber = formattedPhoneNumber,
+                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                });
+            }
+
+            // Check database OTP
+            bool dbOtpValid = !string.IsNullOrEmpty(otp) && 
+                             _otpService.ValidateOtp(otp, user.PasswordResetOtp, user.OtpExpiryTime);
+
+            // Check Fast2SMS cache OTP
+            bool cacheOtpValid = false;
+            if (!dbOtpValid && !string.IsNullOrEmpty(otp) && _smsService is Fast2SmsOtpService fast2SmsService)
+            {
+                cacheOtpValid = fast2SmsService.VerifyOtp(formattedPhoneNumber, otp);
+            }
+
+            return Json(new { 
+                success = dbOtpValid || cacheOtpValid,
+                message = dbOtpValid ? "Database OTP valid" : (cacheOtpValid ? "Cache OTP valid" : "OTP invalid or not provided"),
+                phoneNumber = phoneNumber,
+                formattedPhoneNumber = formattedPhoneNumber,
+                userFound = true,
+                storedOtp = user.PasswordResetOtp,
+                otpExpiry = user.OtpExpiryTime,
+                providedOtp = otp,
+                dbOtpValid = dbOtpValid,
+                cacheOtpValid = cacheOtpValid,
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { 
+                success = false,
+                message = $"Error: {ex.Message}",
+                phoneNumber = phoneNumber,
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            });
+        }
+    }
+    #endregion
+
+    #region Helper Methods
+    
+    /// <summary>
+    /// Formats phone number to E.164 format for international SMS
+    /// </summary>
+    /// <param name="phoneNumber">Input phone number</param>
+    /// <returns>Formatted phone number in E.164 format</returns>
+    private string FormatPhoneNumber(string? phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return phoneNumber ?? string.Empty;
+
+        // Clean the phone number - remove spaces, dashes, parentheses
+        var cleaned = phoneNumber.Trim()
+            .Replace(" ", "")
+            .Replace("-", "")
+            .Replace("(", "")
+            .Replace(")", "")
+            .Replace(".", "");
+
+        // If already in E.164 format (starts with +), return as is
+        if (cleaned.StartsWith("+"))
+        {
+            return cleaned;
+        }
+
+        // Remove leading zeros or country exit codes
+        cleaned = cleaned.TrimStart('0');
+        if (cleaned.StartsWith("00"))
+        {
+            cleaned = cleaned.Substring(2);
+        }
+
+        // Indian numbers (10 digits, can start with 6, 7, 8, 9)
+        if (cleaned.Length == 10 && (cleaned.StartsWith("6") || cleaned.StartsWith("7") || 
+                                     cleaned.StartsWith("8") || cleaned.StartsWith("9")))
+        {
+            return "+91" + cleaned;
+        }
+
+        // US/Canada numbers (10 digits, typically start with 2-9)
+        if (cleaned.Length == 10 && char.IsDigit(cleaned[0]) && cleaned[0] >= '2')
+        {
+            return "+1" + cleaned;
+        }
+
+        // US/Canada numbers with country code (11 digits starting with 1)
+        if (cleaned.Length == 11 && cleaned.StartsWith("1"))
+        {
+            return "+" + cleaned;
+        }
+
+        // UK numbers (10-11 digits)
+        if (cleaned.Length >= 10 && cleaned.Length <= 11 && 
+            (cleaned.StartsWith("44") || cleaned.Length == 10))
+        {
+            if (cleaned.StartsWith("44"))
+                return "+" + cleaned;
+            else
+                return "+44" + cleaned;
+        }
+
+        // Australia numbers (9 digits starting with 4)
+        if (cleaned.Length == 9 && cleaned.StartsWith("4"))
+        {
+            return "+61" + cleaned;
+        }
+
+        // Germany numbers (10-12 digits)
+        if (cleaned.Length >= 10 && cleaned.Length <= 12 && 
+            (cleaned.StartsWith("49") || cleaned.StartsWith("1") || cleaned.StartsWith("3")))
+        {
+            if (cleaned.StartsWith("49"))
+                return "+" + cleaned;
+            else
+                return "+49" + cleaned;
+        }
+
+        // France numbers (9-10 digits)
+        if (cleaned.Length >= 9 && cleaned.Length <= 10 && 
+            (cleaned.StartsWith("33") || cleaned.StartsWith("1") || cleaned.StartsWith("6") || cleaned.StartsWith("7")))
+        {
+            if (cleaned.StartsWith("33"))
+                return "+" + cleaned;
+            else
+                return "+33" + cleaned;
+        }
+
+        // If we can't determine the country, assume it's already in international format
+        // or add + if it looks like an international number
+        if (cleaned.Length >= 10 && cleaned.Length <= 15)
+        {
+            return "+" + cleaned;
+        }
+
+        // Return original if we can't format it
+        _logger?.LogWarning("Could not format phone number: {PhoneNumber}", phoneNumber);
+        return phoneNumber;
+    }
+    
+    #endregion
+
+    #region Firebase Authentication
+    
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> FirebaseLogin([FromBody] FirebaseLoginViewModel model)
+    {
+        try
+        {
+            _logger.LogInformation("Firebase login attempt started");
+            
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                _logger.LogWarning("Firebase login model validation failed: {Errors}", string.Join(", ", errors));
+                return Json(new { success = false, message = "Invalid request data: " + string.Join(", ", errors) });
+            }
+
+            _logger.LogInformation("Verifying Firebase token...");
+            // Verify Firebase token
+            var decodedToken = await _firebaseAuthService.VerifyTokenAsync(model.IdToken);
+            _logger.LogInformation("Firebase token verified for email: {Email}", decodedToken.Claims["email"]);
+            
+            // Check if user exists in our system
+            var userEmail = decodedToken.Claims["email"].ToString();
+            var user = await _userManager.FindByEmailAsync(userEmail);
+            _logger.LogInformation("User lookup result for {Email}: {Found}", userEmail, user != null ? "Found" : "Not Found");
+            
+            if (user == null)
+            {
+                // User doesn't exist, return registration required
+                _logger.LogInformation("User not found, requiring registration for: {Email}", userEmail);
+                return Json(new { 
+                    success = false, 
+                    requiresRegistration = true, 
+                    email = userEmail,
+                    name = decodedToken.Claims.ContainsKey("name") ? decodedToken.Claims["name"].ToString() : "",
+                    message = "Account not found. Please complete registration." 
+                });
+            }
+
+            // Sign in the user
+            _logger.LogInformation("Signing in user: {Email}", userEmail);
+            await _signInManager.SignInAsync(user, isPersistent: false);
+            
+            // Get user roles for redirection
+            var roles = await _userManager.GetRolesAsync(user);
+            _logger.LogInformation("User roles for {Email}: {Roles}", userEmail, string.Join(", ", roles));
+            
+            string redirectUrl;
+            
+            if (roles.Contains(RoleTypes.Admin))
+            {
+                redirectUrl = "/Admin/Dashboard";
+            }
+            else if (roles.Contains(RoleTypes.ServiceProvider))
+            {
+                redirectUrl = "/ServiceProvider/Dashboard";
+            }
+            else if (roles.Contains(RoleTypes.Vendor))
+            {
+                redirectUrl = "/Vendor/Dashboard";
+            }
+            else if (!string.IsNullOrEmpty(model.ReturnUrl))
+            {
+                redirectUrl = model.ReturnUrl;
+            }
+            else
+            {
+                redirectUrl = "/";
+            }
+
+            _logger.LogInformation("Firebase login successful for {Email}, redirecting to: {RedirectUrl}", userEmail, redirectUrl);
+            return Json(new { success = true, redirectUrl = redirectUrl });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Firebase login failed with exception");
+            return Json(new { success = false, message = "Authentication failed. Please try again. Error: " + ex.Message });
+        }
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> FirebaseRegister([FromBody] FirebaseRegisterViewModel model)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = string.Join(", ", errors) });
+            }
+
+            // Prevent admin registration through Firebase
+            if (model.Role == RoleTypes.Admin)
+            {
+                return Json(new { success = false, message = "Admin accounts cannot be created through registration." });
+            }
+
+            // Verify Firebase token
+            var decodedToken = await _firebaseAuthService.VerifyTokenAsync(model.IdToken);
+            
+            // Check if user already exists
+            var existingUser = await _userManager.FindByEmailAsync(model.Email);
+            if (existingUser != null)
+            {
+                return Json(new { success = false, message = "An account with this email already exists." });
+            }
+
+            // Format phone number
+            var formattedPhoneNumber = !string.IsNullOrEmpty(model.PhoneNumber) 
+                ? FormatPhoneNumber(model.PhoneNumber) 
+                : null;
+
+            // Create user in our system
+            var user = new Users
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FullName = model.Name,
+                PhoneNumber = formattedPhoneNumber,
+                Address = model.Address,
+                EmailConfirmed = true, // Firebase handles email verification
+                FirebaseUid = decodedToken.Uid // Store Firebase UID for future reference
+            };
+
+            var result = await _userManager.CreateAsync(user);
+
+            if (result.Succeeded)
+            {
+                // Create role if it doesn't exist
+                if (!await _roleManager.RoleExistsAsync(model.Role))
+                {
+                    await _roleManager.CreateAsync(new MongoIdentityRole(model.Role));
+                }
+
+                // Assign role to user
+                await _userManager.AddToRoleAsync(user, model.Role);
+
+                // Sign in the user
+                await _signInManager.SignInAsync(user, isPersistent: false);
+
+                string redirectUrl;
+                
+                if (model.Role == RoleTypes.ServiceProvider)
+                {
+                    redirectUrl = "/ServiceProvider/Dashboard";
+                }
+                else if (model.Role == RoleTypes.Vendor)
+                {
+                    redirectUrl = "/Vendor/Dashboard";
+                }
+                else if (!string.IsNullOrEmpty(model.ReturnUrl))
+                {
+                    redirectUrl = model.ReturnUrl;
+                }
+                else
+                {
+                    redirectUrl = "/";
+                }
+
+                return Json(new { success = true, redirectUrl = redirectUrl });
+            }
+
+            var errorMessages = result.Errors.Select(e => e.Description);
+            return Json(new { success = false, message = string.Join(", ", errorMessages) });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Firebase registration failed");
+            return Json(new { success = false, message = "Registration failed. Please try again." });
+        }
+    }
+
+    [HttpGet]
+    public IActionResult GetFirebaseConfig()
+    {
+        var config = new
+        {
+            apiKey = _configuration["Firebase:WebApiKey"],
+            authDomain = _configuration["Firebase:AuthDomain"],
+            projectId = _configuration["Firebase:ProjectId"],
+            storageBucket = _configuration["Firebase:StorageBucket"],
+            messagingSenderId = _configuration["Firebase:MessagingSenderId"],
+            appId = _configuration["Firebase:AppId"],
+            measurementId = _configuration["Firebase:MeasurementId"]
+        };
+        
+        return Json(config);
+    }
+    
+    [HttpGet]
+    public IActionResult FirebaseTest()
+    {
+        return View();
+    }
+    
+    #endregion
+    }
+}

@@ -1,0 +1,218 @@
+﻿@using ServConnect.ViewModels;
+@model LoginViewModel;
+
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<div class="account-container">
+    <div class="account-box">
+        <h2 class="text-center mb-4">Login</h2>
+        
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+        
+        @if (Context.Request.Query.ContainsKey("error"))
+        {
+            <div class="alert alert-danger">
+                @if (Context.Request.Query["error"] == "google_auth_failed")
+                {
+                    <text>Google authentication failed. Please try again or use email/password login.</text>
+                }
+                else
+                {
+                    <text>An error occurred during authentication. Please try again.</text>
+                }
+            </div>
+        }
+        
+        <form asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="float-end">
+                <a asp-controller="Account" asp-action="ForgotPassword" class="text-decoration-none">
+                    Forgot password?
+                </a>
+            </div>
+            <div class="form-check mb-3">
+                <label class="form-check-label">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    @Html.DisplayNameFor(a=> a.RememberMe)
+                </label>
+            </div>
+            <input type="submit" value="Login" class="btn btn-success w-100 p-2" />
+        </form>
+        
+        <div class="text-center my-3">
+            <span class="text-muted">or</span>
+        </div>
+        
+        <!-- Firebase Google Sign-In -->
+        <button type="button" id="googleSignInBtn" class="btn btn-google w-100 mb-3">
+            <i class="fab fa-google"></i>
+            <span>Continue with Google</span>
+        </button>
+        
+        <!-- Firebase Email/Password Login -->
+        <div class="text-center my-3">
+            <span class="text-muted">or</span>
+        </div>
+        
+        <div class="mb-3">
+            <button type="button" id="firebaseEmailLoginBtn" class="btn btn-outline-primary w-100">
+                <i class="fas fa-envelope"></i>
+                <span>Login with Firebase Email</span>
+            </button>
+        </div>
+        
+        <p class="text-center mt-2">
+            Don't have an account? <a asp-controller="Account" asp-action="Register" class="text-decoration-none">Register</a>
+        </p>
+        <div class="text-center">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none mt-3">Back</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial.cshtml");
+    }
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="~/js/firebase-auth.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const googleSignInBtn = document.getElementById('googleSignInBtn');
+            const firebaseEmailLoginBtn = document.getElementById('firebaseEmailLoginBtn');
+            const returnUrl = '@ViewData["ReturnUrl"]';
+            
+            // Google Sign-In with Firebase
+            googleSignInBtn.addEventListener('click', async function() {
+                try {
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+                    
+                    console.log('Attempting Google sign-in...');
+                    const result = await window.FirebaseAuth.signInWithGoogle();
+                    console.log('Google sign-in result:', result);
+                    
+                    if (result.success) {
+                        console.log('Google sign-in successful, sending to server...');
+                        // Send token to server for verification and login
+                        const serverResult = await window.FirebaseAuth.loginWithServer(result.idToken, returnUrl);
+                        console.log('Server login result:', serverResult);
+                        
+                        if (serverResult.success) {
+                            console.log('Server login successful, redirecting to:', serverResult.redirectUrl);
+                            // Small delay to ensure login is processed, then redirect
+                            setTimeout(() => {
+                                if (serverResult.redirectUrl) {
+                                    window.location.replace(serverResult.redirectUrl);
+                                } else {
+                                    window.location.replace('/');
+                                }
+                            }, 500);
+                        } else if (serverResult.requiresRegistration) {
+                            console.log('Registration required, redirecting to registration...');
+                            // Redirect to registration with pre-filled data
+                            sessionStorage.setItem('firebaseUserData', JSON.stringify({
+                                email: serverResult.email,
+                                name: serverResult.name,
+                                idToken: result.idToken
+                            }));
+                            window.location.href = '/Account/Register?firebase=true';
+                        } else {
+                            console.error('Server login failed:', serverResult.message);
+                            alert('Login failed: ' + serverResult.message);
+                        }
+                    } else {
+                        console.error('Google sign-in failed:', result.error);
+                        alert('Google sign-in failed: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Google sign-in error:', error);
+                    alert('An error occurred during sign-in. Please try again. Error: ' + error.message);
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+                }
+            });
+            
+            // Firebase Email/Password Login
+            firebaseEmailLoginBtn.addEventListener('click', async function() {
+                const email = document.getElementById('Email').value;
+                const password = document.getElementById('Password').value;
+                
+                console.log('Firebase email login attempt for:', email);
+                
+                if (!email || !password) {
+                    alert('Please enter both email and password');
+                    return;
+                }
+                
+                try {
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+                    
+                    console.log('Attempting Firebase sign-in...');
+                    const result = await window.FirebaseAuth.signInWithEmail(email, password);
+                    console.log('Firebase sign-in result:', result);
+                    
+                    if (result.success) {
+                        console.log('Firebase sign-in successful, sending to server...');
+                        // Send token to server for verification and login
+                        const serverResult = await window.FirebaseAuth.loginWithServer(result.idToken, returnUrl);
+                        console.log('Server login result:', serverResult);
+                        
+                        if (serverResult.success) {
+                            console.log('Server login successful, redirecting to:', serverResult.redirectUrl);
+                            // Small delay to ensure login is processed, then redirect
+                            setTimeout(() => {
+                                if (serverResult.redirectUrl) {
+                                    window.location.replace(serverResult.redirectUrl);
+                                } else {
+                                    window.location.replace('/');
+                                }
+                            }, 500);
+                        } else if (serverResult.requiresRegistration) {
+                            console.log('Registration required for user');
+                            alert('Account not found. Please register first.');
+                            window.location.href = '/Account/Register';
+                        } else {
+                            console.error('Server login failed:', serverResult.message);
+                            alert('Login failed: ' + serverResult.message);
+                        }
+                    } else {
+                        console.error('Firebase sign-in failed:', result.error);
+                        alert('Firebase login failed: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Firebase email login error:', error);
+                    alert('An error occurred during sign-in. Please try again. Error: ' + error.message);
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-envelope"></i> Login with Firebase Email';
+                }
+            });
+        });
+    </script>
+}
