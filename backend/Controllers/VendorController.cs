@@ -29,7 +29,6 @@ namespace ServConnect.Controllers
 
         public IActionResult Products()
         {
-            // Placeholder for managing products
             return View();
         }
 

@@ -46,6 +46,7 @@ builder.Services.AddHttpClient<Fast2SmsOtpService>();
 builder.Services.AddScoped<ISmsService, Fast2SmsOtpService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
+builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

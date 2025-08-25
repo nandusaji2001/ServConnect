@@ -295,13 +295,23 @@
         <p>Connect with trusted service providers and vendors in your area</p>
         
         <div class="search-container">
-            <input type="text" class="search-input" placeholder="What service are you looking for?">
-            <button class="search-btn">
+            <input id="homeSearch" type="text" class="search-input" placeholder="What service are you looking for?">
+            <a class="search-btn" href="/Home/Items" onclick="sessionStorage.setItem('browse_q', document.getElementById('homeSearch').value)">
                 <i class="fas fa-search"></i>
-            </button>
+            </a>
         </div>
     </div>
 </div>
+
+<script>
+    // Pre-fill search on browse page
+    document.addEventListener('DOMContentLoaded', () => {
+        const q = sessionStorage.getItem('browse_q');
+        if(q){
+            sessionStorage.removeItem('browse_q');
+        }
+    });
+</script>
 
 <!-- Features Section -->
 <div class="features-section">

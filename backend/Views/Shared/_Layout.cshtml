@@ -12,9 +12,9 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark mb-3" style="background: linear-gradient(135deg,#667eea,#764ba2);">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <a class="navbar-brand text-white" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-diagram-3-fill"></i> ServConnect
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -24,17 +24,29 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-white" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-white" asp-controller="Home" asp-action="Items">Browse</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
 
                         @if (User.Identity.IsAuthenticated)
                         {
+                            <!-- Role-aware Dashboard link -->
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="@(User.IsInRole(RoleTypes.Admin) ? "Admin" : (User.IsInRole(RoleTypes.Vendor) ? "Vendor" : (User.IsInRole(RoleTypes.ServiceProvider) ? "ServiceProvider" : "Home")))"
+                                   asp-action="Dashboard">
+                                    <i class="bi bi-grid"></i> Dashboard
+                                </a>
+                            </li>
+
                             <!-- Common Authenticated Links -->
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Profile">
+                                <a class="nav-link text-white" asp-controller="Account" asp-action="Profile">
                                     <i class="bi bi-person-circle"></i> Profile
                                 </a>
                             </li>
@@ -43,12 +55,12 @@
                             @if (User.IsInRole(RoleTypes.Admin))
                             {
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <a class="nav-link dropdown-toggle text-white" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-shield-lock"></i> Admin
                                     </a>
                                     <ul class="dropdown-menu" aria-labelledby="adminDropdown">
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageUsers"><i class="bi bi-people"></i> Manage Users</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users"><i class="bi bi-people"></i> Manage Users</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Settings"><i class="bi bi-gear"></i> Settings</a></li>
                                     </ul>
@@ -58,15 +70,31 @@
                             <!-- Service Provider-Specific Links -->
                             @if (User.IsInRole(RoleTypes.ServiceProvider))
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="ServiceProvider" asp-action="Dashboard">
-                                        <i class="bi bi-briefcase"></i> Provider Portal
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-white" href="#" id="providerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-briefcase"></i> Provider
                                     </a>
+                                    <ul class="dropdown-menu" aria-labelledby="providerDropdown">
+                                        <li><a class="dropdown-item" asp-controller="ServiceProvider" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                                        <li><a class="dropdown-item" asp-controller="ServiceProvider" asp-action="Services"><i class="bi bi-list-task"></i> My Services</a></li>
+                                        <li><a class="dropdown-item" href="/Home/Items?role=ServiceProvider"><i class="bi bi-shop"></i> Browse Services</a></li>
+                                    </ul>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="ServiceProvider" asp-action="MyServices">
-                                        <i class="bi bi-list-task"></i> My Services
+                            }
+
+                            <!-- Vendor-Specific Links -->
+                            @if (User.IsInRole(RoleTypes.Vendor))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-white" href="#" id="vendorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-bag"></i> Vendor
                                     </a>
+                                    <ul class="dropdown-menu" aria-labelledby="vendorDropdown">
+                                        <li><a class="dropdown-item" asp-controller="Vendor" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Vendor" asp-action="Products"><i class="bi bi-box-seam"></i> My Products</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Vendor" asp-action="Orders"><i class="bi bi-receipt"></i> Orders</a></li>
+                                        <li><a class="dropdown-item" href="/Home/Items?role=Vendor"><i class="bi bi-shop"></i> Browse Sellers</a></li>
+                                    </ul>
                                 </li>
                             }
                         }
@@ -82,9 +110,25 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; @DateTime.Now.Year - ServConnect - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="mt-5">
+        <div class="py-4" style="background: linear-gradient(135deg,#667eea,#764ba2); color:#fff;">
+            <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-diagram-3-fill fs-4"></i>
+                    <div>
+                        <div class="fw-semibold">ServConnect</div>
+                        <small class="opacity-75">Connecting users with trusted providers and vendors</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-3">
+                    <a class="text-white text-decoration-none" asp-controller="Home" asp-action="Items"><i class="bi bi-bag"></i> Marketplace</a>
+                    <a class="text-white text-decoration-none" asp-controller="Home" asp-action="Privacy"><i class="bi bi-shield-lock"></i> Privacy</a>
+                    <a class="text-white text-decoration-none" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> Profile</a>
+                </div>
+                <div class="text-end">
+                    <small class="opacity-75">&copy; @DateTime.Now.Year • ServConnect</small>
+                </div>
+            </div>
         </div>
     </footer>
 

@@ -135,20 +135,23 @@ namespace ServConnect.Controllers
 
                 if (result.Succeeded)
                 {
-                    // Get user roles
-                    var roles = await _userManager.GetRolesAsync(user);
-
-                    // Role-based redirection
-                    return roles switch
+                    // If a valid local returnUrl is provided, honor it
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
-                        var r when r.Contains(RoleTypes.Admin) => RedirectToLocal(returnUrl)
-                            ?? RedirectToAction("Dashboard", "Admin"),
-                        var r when r.Contains(RoleTypes.ServiceProvider) => RedirectToLocal(returnUrl)
-                            ?? RedirectToAction("Dashboard", "ServiceProvider"),
-                        var r when r.Contains(RoleTypes.Vendor) => RedirectToLocal(returnUrl)
-                            ?? RedirectToAction("Dashboard", "Vendor"),
-                        _ => RedirectToLocal(returnUrl) ?? RedirectToAction("Index", "Home")
-                    };
+                        return Redirect(returnUrl);
+                    }
+
+                    // Get user roles and redirect to role dashboards by default
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.Contains(RoleTypes.Admin))
+                        return RedirectToAction("Dashboard", "Admin");
+                    if (roles.Contains(RoleTypes.ServiceProvider))
+                        return RedirectToAction("Dashboard", "ServiceProvider");
+                    if (roles.Contains(RoleTypes.Vendor))
+                        return RedirectToAction("Dashboard", "Vendor");
+
+                    // Regular users go to the user dashboard view
+                    return RedirectToAction("Dashboard", "Home");
                 }
 
                 if (result.RequiresTwoFactor)

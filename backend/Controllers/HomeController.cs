@@ -19,8 +19,25 @@ namespace ServConnect.Controllers
             return View();
         }
 
+        // Role-aware dashboard: only regular users see this dashboard
+        [Authorize]
+        public IActionResult Dashboard()
+        {
+            if (User.IsInRole(RoleTypes.Admin)) return RedirectToAction("Dashboard", "Admin");
+            if (User.IsInRole(RoleTypes.Vendor)) return RedirectToAction("Dashboard", "Vendor");
+            if (User.IsInRole(RoleTypes.ServiceProvider)) return RedirectToAction("Dashboard", "ServiceProvider");
+            return View();
+        }
+
         [Authorize]
         public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        // Public browse page for all active items (consumes /api/items)
+        [AllowAnonymous]
+        public IActionResult Items()
         {
             return View();
         }

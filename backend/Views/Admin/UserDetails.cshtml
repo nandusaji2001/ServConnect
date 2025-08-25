@@ -1,0 +1,82 @@
+@model ServConnect.ViewModels.AdminUserDetailsViewModel
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">User Details</h2>
+        <a asp-controller="Admin" asp-action="Users" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Users
+        </a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-2"><strong>Name:</strong> @Model.User.FullName</div>
+                    <div class="mb-2"><strong>Email:</strong> @Model.User.Email</div>
+                    <div class="mb-2"><strong>Phone:</strong> @Model.User.PhoneNumber</div>
+                    <div class="mb-2"><strong>Roles:</strong> @(string.Join(", ", Model.Roles))</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-2"><strong>Business Name:</strong> @Model.User.BusinessName</div>
+                    <div class="mb-2"><strong>Business Reg No:</strong> @Model.User.BusinessRegistrationNumber</div>
+                    <div class="mb-2"><strong>Address:</strong> @Model.User.Address</div>
+                    <div class="mb-2"><strong>License No:</strong> @Model.User.LicenseNumber</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-box me-2"></i> Items</span>
+        </div>
+        <div class="card-body">
+            @if (Model.Items == null || Model.Items.Count == 0)
+            {
+                <div class="text-muted">No items found for this user.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:80px;">Image</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var i in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(i.ImageUrl))
+                                    {
+                                        <img src="@i.ImageUrl" alt="img" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />
+                                    }
+                                </td>
+                                <td>@i.Title</td>
+                                <td>@i.Category</td>
+                                <td>@i.Price.ToString("C")</td>
+                                <td>@i.Stock</td>
+                                <td>
+                                    @if (i.IsActive) { <span class="badge bg-success">Active</span>; }
+                                    else { <span class="badge bg-secondary">Inactive</span>; }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
