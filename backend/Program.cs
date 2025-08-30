@@ -47,6 +47,10 @@ builder.Services.AddScoped<ISmsService, Fast2SmsOtpService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
 builder.Services.AddScoped<IItemService, ItemService>();
+// New service catalog for service-provider linking
+builder.Services.AddScoped<IServiceCatalog, ServiceCatalog>();
+// Local directory for public services (hospitals, police, petrol, etc.)
+builder.Services.AddScoped<ILocalDirectory, LocalDirectory>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

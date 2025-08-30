@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ServConnect.Models;
+using ServConnect.Services;
 
 namespace ServConnect.Controllers
 {
@@ -9,10 +10,12 @@ namespace ServConnect.Controllers
     public class ServiceProviderController : Controller
     {
         private readonly UserManager<Users> _userManager;
+        private readonly IItemService _itemService;
 
-        public ServiceProviderController(UserManager<Users> userManager)
+        public ServiceProviderController(UserManager<Users> userManager, IItemService itemService)
         {
             _userManager = userManager;
+            _itemService = itemService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -23,7 +26,10 @@ namespace ServConnect.Controllers
                 return NotFound();
             }
 
+            var myItems = await _itemService.GetByOwnerAsync(user.Id);
             ViewBag.UserName = user.FullName;
+            ViewBag.TotalServices = myItems?.Count ?? 0;
+            ViewBag.ActiveServices = myItems?.Count(i => i.IsActive) ?? 0;
             return View();
         }
 

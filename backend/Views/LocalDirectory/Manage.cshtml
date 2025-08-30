@@ -1,0 +1,157 @@
+@{
+    ViewData["Title"] = "Manage Local Services";
+    var cats = (IEnumerable<ServConnect.Models.LocalCategory>)ViewBag.Categories;
+}
+<div class="container py-4">
+    <h2 class="mb-3">Local Directory (Admin)</h2>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">Add Category</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Category Name</label>
+                        <input id="catName" class="form-control" placeholder="e.g., Hospitals">
+                    </div>
+                    <button class="btn btn-primary" onclick="addCategory()">Add</button>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">Categories</div>
+                <ul class="list-group list-group-flush" id="categoriesList">
+                    @foreach (var c in cats)
+                    {
+                        <li class="list-group-item">@c.Name <span class="text-muted small">(@c.Slug)</span></li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">Add Local Service</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Name</label>
+                            <input id="svcName" class="form-control" placeholder="e.g., City Hospital">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Category</label>
+                            <select id="svcCategory" class="form-select">
+                                @foreach (var c in cats)
+                                {
+                                    <option value="@c.Name">@c.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Google Maps Link (optional)</label>
+                            <input id="mapUrl" class="form-control" placeholder="Paste Google Maps share link here">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Address (optional)</label>
+                            <input id="address" class="form-control" placeholder="e.g., 123 Main St">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Phone (optional)</label>
+                            <input id="phone" class="form-control" placeholder="e.g., +1 555-1234">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <button class="btn btn-success" onclick="addService()">Save Service</button>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Browse Services</span>
+                    <div class="d-flex gap-2">
+                        <select id="filterCat" class="form-select">
+                            <option value="">All Categories</option>
+                            @foreach (var c in cats){<option value="@c.Slug">@c.Name</option>}
+                        </select>
+                        <input id="q" class="form-control" placeholder="Search by name/address">
+                        <button class="btn btn-outline-primary" onclick="loadServices()"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <ul class="list-group list-group-flush" id="svcList">
+                    <li class="list-group-item text-muted">Use filters and search to load results.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+    async function addCategory(){
+        const name = document.getElementById('catName').value.trim();
+        if(!name) return alert('Enter category name');
+        try{
+            const res = await fetch('/api/local/categories', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name }) });
+            if(!res.ok) throw 0;
+            location.reload();
+        }catch{ alert('Failed to add category'); }
+    }
+
+    async function addService(){
+        const name = document.getElementById('svcName').value.trim();
+        const catName = document.getElementById('svcCategory').value;
+        const mapUrl = document.getElementById('mapUrl').value.trim();
+        const address = document.getElementById('address').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        if(!name || !catName) return alert('Name and Category are required');
+        try{
+            const res = await fetch('/api/local/services', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name, categoryName: catName, mapUrl, address, phone }) });
+            if(!res.ok) throw 0;
+            alert('Service created');
+            document.getElementById('svcName').value='';
+            document.getElementById('mapUrl').value='';
+            document.getElementById('address').value='';
+            document.getElementById('phone').value='';
+            await loadServices();
+        }catch{ alert('Failed to create service'); }
+    }
+
+    async function loadServices(){
+        const q = document.getElementById('q').value.trim();
+        const cat = document.getElementById('filterCat').value;
+        const url = new URL(location.origin + '/api/local/services');
+        if(q) url.searchParams.set('q', q);
+        if(cat) url.searchParams.set('categorySlug', cat);
+        const ul = document.getElementById('svcList');
+        ul.innerHTML = '<li class="list-group-item text-muted">Loading...</li>';
+        try{
+            const res = await fetch(url);
+            const data = await res.json();
+            if(!data || data.length === 0){ ul.innerHTML = '<li class="list-group-item text-muted">No results.</li>'; return; }
+            ul.innerHTML = '';
+            data.forEach(s => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `<div>
+                    <div><strong>${s.name}</strong> <span class="badge bg-secondary ms-2">${s.categoryName}</span></div>
+                    <div class="text-muted small">${s.address || ''}</div>
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-primary" href="/local/services/${s.id}/map" target="_blank" ${s.mapUrl ? '' : 'disabled'}><i class="fas fa-map-marker-alt"></i> Map</a>
+                    <button class="btn btn-outline-danger" onclick="del('${s.id}')"><i class="fas fa-trash"></i></button>
+                </div>`;
+                ul.appendChild(li);
+            });
+        }catch{ ul.innerHTML = '<li class="list-group-item text-danger">Failed to load.</li>'; }
+    }
+
+    async function del(id){
+        if(!confirm('Delete this service?')) return;
+        try{
+            const res = await fetch(`/api/local/services/${id}`, { method: 'DELETE' });
+            if(res.status === 204) await loadServices(); else alert('Delete failed');
+        }catch{ alert('Delete failed'); }
+    }
+</script>

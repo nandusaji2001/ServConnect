@@ -371,32 +371,32 @@
             <div class="stat-icon">
                 <i class="fas fa-box"></i>
             </div>
-            <h2 class="stat-number">156</h2>
-            <p class="stat-label">Total Products</p>
+            <h2 class="stat-number">@ViewBag.TotalItems</h2>
+            <p class="stat-label">Total Items</p>
         </div>
         
         <div class="stat-card orders">
             <div class="stat-icon">
-                <i class="fas fa-shopping-cart"></i>
+                <i class="fas fa-toggle-on"></i>
             </div>
-            <h2 class="stat-number">89</h2>
-            <p class="stat-label">Orders This Month</p>
+            <h2 class="stat-number">@ViewBag.ActiveItems</h2>
+            <p class="stat-label">Active Items</p>
         </div>
         
         <div class="stat-card revenue">
             <div class="stat-icon">
-                <i class="fas fa-dollar-sign"></i>
+                <i class="fas fa-box-open"></i>
             </div>
-            <h2 class="stat-number">$4,567</h2>
-            <p class="stat-label">Monthly Revenue</p>
+            <h2 class="stat-number">@((ViewBag.TotalItems ?? 0) - (ViewBag.ActiveItems ?? 0))</h2>
+            <p class="stat-label">Inactive Items</p>
         </div>
         
         <div class="stat-card customers">
             <div class="stat-icon">
-                <i class="fas fa-users"></i>
+                <i class="fas fa-clock"></i>
             </div>
-            <h2 class="stat-number">234</h2>
-            <p class="stat-label">Total Customers</p>
+            <h2 class="stat-number">@DateTime.UtcNow.ToString("MMM yyyy")</h2>
+            <p class="stat-label">Updated</p>
         </div>
     </div>
 
@@ -445,52 +445,44 @@
 
     <!-- Main Content Grid -->
     <div class="content-grid">
-        <!-- Recent Orders -->
+        <!-- Items Summary -->
         <div class="main-content">
             <h3 class="section-title">
-                <i class="fas fa-shopping-cart"></i>
-                Recent Orders
+                <i class="fas fa-boxes"></i>
+                My Items Snapshot
             </h3>
-            
-            <div class="order-item">
-                <div class="order-info">
-                    <h4>Order #12345</h4>
-                    <p>Customer: John Smith • 3 items • $89.99</p>
+            <div class="row g-3">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card products">
+                        <div class="stat-icon"><i class="fas fa-box"></i></div>
+                        <h2 class="stat-number">@ViewBag.TotalItems</h2>
+                        <p class="stat-label">Total Items</p>
+                    </div>
                 </div>
-                <span class="order-status status-processing">Processing</span>
-            </div>
-            
-            <div class="order-item">
-                <div class="order-info">
-                    <h4>Order #12344</h4>
-                    <p>Customer: Sarah Johnson • 1 item • $45.50</p>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card orders">
+                        <div class="stat-icon"><i class="fas fa-toggle-on"></i></div>
+                        <h2 class="stat-number">@ViewBag.ActiveItems</h2>
+                        <p class="stat-label">Active</p>
+                    </div>
                 </div>
-                <span class="order-status status-shipped">Shipped</span>
-            </div>
-            
-            <div class="order-item">
-                <div class="order-info">
-                    <h4>Order #12343</h4>
-                    <p>Customer: Mike Davis • 2 items • $67.25</p>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card revenue">
+                        <div class="stat-icon"><i class="fas fa-toggle-off"></i></div>
+                        <h2 class="stat-number">@((ViewBag.TotalItems ?? 0) - (ViewBag.ActiveItems ?? 0))</h2>
+                        <p class="stat-label">Inactive</p>
+                    </div>
                 </div>
-                <span class="order-status status-delivered">Delivered</span>
-            </div>
-            
-            <div class="order-item">
-                <div class="order-info">
-                    <h4>Order #12342</h4>
-                    <p>Customer: Lisa Brown • 5 items • $156.80</p>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card customers">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <h2 class="stat-number">@DateTime.UtcNow.ToString("dd MMM")</h2>
+                        <p class="stat-label">As of</p>
+                    </div>
                 </div>
-                <span class="order-status status-pending">Pending</span>
             </div>
-            
-            <!-- Sales Chart -->
-            <h3 class="section-title" style="margin-top: 30px;">
-                <i class="fas fa-chart-line"></i>
-                Sales Overview
-            </h3>
-            <div class="chart-container">
-                <p>📈 Sales chart will be displayed here</p>
+            <div class="mt-3">
+                <a href="/Vendor/Products" class="btn btn-primary"><i class="fas fa-plus"></i> Manage Items</a>
             </div>
         </div>
 

@@ -294,11 +294,38 @@
         <h1>Find the Perfect Service</h1>
         <p>Connect with trusted service providers and vendors in your area</p>
         
-        <div class="search-container">
-            <input id="homeSearch" type="text" class="search-input" placeholder="What service are you looking for?">
-            <a class="search-btn" href="/Home/Items" onclick="sessionStorage.setItem('browse_q', document.getElementById('homeSearch').value)">
-                <i class="fas fa-search"></i>
-            </a>
+        <div class="container mt-4">
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-3">
+                    <a href="/Services/Browse" class="btn btn-light w-100 py-3">
+                        <i class="fas fa-calendar-check me-2"></i> Book Service
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <a href="/LocalDirectory/Discover" class="btn btn-light w-100 py-3">
+                        <i class="fas fa-search-location me-2"></i> Search Local Service
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <a href="/Home/Items?role=Vendor" class="btn btn-light w-100 py-3">
+                            <i class="fas fa-store me-2"></i> Vendor Items
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Home/Items?role=Vendor" class="btn btn-light w-100 py-3">
+                            <i class="fas fa-store me-2"></i> Vendor Items
+                        </a>
+                    }
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <a href="#" class="btn btn-light w-100 py-3" onclick="alert('Subscriptions coming soon');return false;">
+                        <i class="fas fa-sync-alt me-2"></i> Daily Essentials
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

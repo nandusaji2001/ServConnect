@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "Discover Local Services";
+}
+<div class="container py-4">
+    <h2 class="mb-3">Services near you</h2>
+    <div class="card">
+        <div class="card-header d-flex gap-2 align-items-center">
+            <select id="cat" class="form-select w-auto"></select>
+            <input id="q" class="form-control" placeholder="Search by name/address">
+            <button class="btn btn-primary" onclick="loadList()"><i class="fas fa-search"></i></button>
+        </div>
+        <div id="tileGrid" class="p-3">
+            <div class="text-muted">Loading categories...</div>
+        </div>
+        <ul class="list-group list-group-flush d-none" id="list">
+            <li class="list-group-item text-muted">Loading...</li>
+        </ul>
+    </div>
+</div>
+<script>
+    function renderTiles(cats){
+        const grid = document.getElementById('tileGrid');
+        grid.innerHTML = '';
+        const row = document.createElement('div');
+        row.className = 'row g-3';
+        cats.forEach(c => {
+            const col = document.createElement('div');
+            col.className = 'col-12 col-sm-6 col-lg-4';
+            col.innerHTML = `<div class="card h-100 tile" data-slug="${c.slug}">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-geo-alt-fill me-2 text-primary"></i>
+                        <h5 class="card-title mb-0">${c.name}</h5>
+                    </div>
+                    <p class="card-text text-muted small">Click to view services</p>
+                    <div class="mt-auto text-end">
+                        <button class="btn btn-outline-primary btn-sm">View</button>
+                    </div>
+                </div>
+            </div>`;
+            row.appendChild(col);
+        });
+        grid.appendChild(row);
+        grid.querySelectorAll('.tile').forEach(tile => {
+            tile.addEventListener('click', ()=>{
+                const slug = tile.getAttribute('data-slug');
+                document.getElementById('cat').value = slug;
+                loadList();
+            });
+        });
+    }
+
+    async function loadCats(){
+        const sel = document.getElementById('cat');
+        sel.innerHTML = '<option value="">All Categories</option>';
+        try{
+            const res = await fetch('/api/local/categories');
+            const cats = await res.json();
+            cats.forEach(c => {
+                const o = document.createElement('option');
+                o.value = c.slug;
+                o.textContent = c.name;
+                sel.appendChild(o);
+            });
+            renderTiles(cats);
+        }catch{ document.getElementById('tileGrid').innerHTML = '<div class="text-danger">Failed to load categories.</div>'; }
+    }
+
+    async function loadList(){
+        // Hide tiles, show list
+        document.getElementById('tileGrid').classList.add('d-none');
+        const ul = document.getElementById('list');
+        ul.classList.remove('d-none');
+        ul.innerHTML = '<li class="list-group-item text-muted">Loading...</li>';
+
+        const q = document.getElementById('q').value.trim();
+        const cat = document.getElementById('cat').value;
+        const url = new URL(location.origin + '/api/local/services');
+        if(q) url.searchParams.set('q', q);
+        if(cat) url.searchParams.set('categorySlug', cat);
+        try{
+            const res = await fetch(url);
+            const data = await res.json();
+            if(!data || data.length === 0){ ul.innerHTML = '<li class="list-group-item text-muted">No results.</li>'; return; }
+            ul.innerHTML = '';
+            data.forEach(s => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `<div>
+                    <div><strong>${s.name}</strong> <span class='badge bg-secondary ms-2'>${s.categoryName}</span></div>
+                    <div class="text-muted small">${s.address || ''}</div>
+                </div>
+                <a class="btn btn-sm btn-outline-primary" href="/local/services/${s.id}/map" target="_blank" ${s.mapUrl ? '' : 'disabled'}><i class="fas fa-map-marker-alt"></i> Map</a>`;
+                ul.appendChild(li);
+            });
+        }catch{ ul.innerHTML = '<li class="list-group-item text-danger">Failed to load.</li>'; }
+    }
+
+    document.addEventListener('DOMContentLoaded', async ()=>{ await loadCats(); });
+</script>

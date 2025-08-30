@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark mb-3" style="background: linear-gradient(135deg,#667eea,#764ba2);">
             <div class="container">
@@ -26,23 +26,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-controller="Home" asp-action="Items">Browse</a>
-                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
 
                         @if (User.Identity.IsAuthenticated)
                         {
-                            <!-- Role-aware Dashboard link -->
-                            <li class="nav-item">
-                                <a class="nav-link text-white"
-                                   asp-controller="@(User.IsInRole(RoleTypes.Admin) ? "Admin" : (User.IsInRole(RoleTypes.Vendor) ? "Vendor" : (User.IsInRole(RoleTypes.ServiceProvider) ? "ServiceProvider" : "Home")))"
-                                   asp-action="Dashboard">
-                                    <i class="bi bi-grid"></i> Dashboard
-                                </a>
-                            </li>
+                            <!-- Removed Dashboard link per requirement -->
 
                             <!-- Common Authenticated Links -->
                             <li class="nav-item">
@@ -61,6 +52,7 @@
                                     <ul class="dropdown-menu" aria-labelledby="adminDropdown">
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users"><i class="bi bi-people"></i> Manage Users</a></li>
+                                        <li><a class="dropdown-item" asp-controller="LocalDirectory" asp-action="Manage"><i class="bi bi-geo"></i> Local Services</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Settings"><i class="bi bi-gear"></i> Settings</a></li>
                                     </ul>
@@ -75,9 +67,10 @@
                                         <i class="bi bi-briefcase"></i> Provider
                                     </a>
                                     <ul class="dropdown-menu" aria-labelledby="providerDropdown">
-                                        <li><a class="dropdown-item" asp-controller="ServiceProvider" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
-                                        <li><a class="dropdown-item" asp-controller="ServiceProvider" asp-action="Services"><i class="bi bi-list-task"></i> My Services</a></li>
-                                        <li><a class="dropdown-item" href="/Home/Items?role=ServiceProvider"><i class="bi bi-shop"></i> Browse Services</a></li>
+                                        <!-- Dashboard link removed -->
+                                        <li><a class="dropdown-item" asp-controller="ServiceProvider" asp-action="Services"><i class="bi bi-list-task"></i> My Items</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Services" asp-action="Manage"><i class="bi bi-gear"></i> Manage My Services</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Services" asp-action="Browse"><i class="bi bi-shop"></i> Book Service</a></li>
                                     </ul>
                                 </li>
                             }
@@ -90,7 +83,7 @@
                                         <i class="bi bi-bag"></i> Vendor
                                     </a>
                                     <ul class="dropdown-menu" aria-labelledby="vendorDropdown">
-                                        <li><a class="dropdown-item" asp-controller="Vendor" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                                        <!-- Dashboard link removed -->
                                         <li><a class="dropdown-item" asp-controller="Vendor" asp-action="Products"><i class="bi bi-box-seam"></i> My Products</a></li>
                                         <li><a class="dropdown-item" asp-controller="Vendor" asp-action="Orders"><i class="bi bi-receipt"></i> Orders</a></li>
                                         <li><a class="dropdown-item" href="/Home/Items?role=Vendor"><i class="bi bi-shop"></i> Browse Sellers</a></li>
@@ -104,13 +97,13 @@
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container flex-fill">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="mt-5">
+    <footer class="mt-auto">
         <div class="py-4" style="background: linear-gradient(135deg,#667eea,#764ba2); color:#fff;">
             <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div class="d-flex align-items-center gap-2">

@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "Book Service";
+}
+<div class="container py-4">
+    <h2 class="mb-3">Book Service</h2>
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-list"></i> Services</span>
+                    <input id="search" class="form-control w-auto" placeholder="Search..." style="min-width: 220px;">
+                </div>
+                <ul class="list-group list-group-flush" id="servicesList">
+                    <li class="list-group-item text-muted">Loading...</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header"><span id="selectedServiceTitle">Select a service</span></div>
+                <div class="card-body">
+                    <ul class="list-group" id="providersList">
+                        <li class="list-group-item text-muted">No service selected.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const toSlug = (t) => (t||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-');
+    let allServices = [];
+
+    function renderServices(list){
+        const ul = document.getElementById('servicesList');
+        if(!list || list.length === 0){
+            ul.innerHTML = '<li class="list-group-item text-muted">No services available.</li>';
+            return;
+        }
+        ul.innerHTML = '';
+        list.forEach(name => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item list-group-item-action';
+            li.style.cursor = 'pointer';
+            li.textContent = name;
+            li.onclick = () => selectService(name);
+            ul.appendChild(li);
+        });
+    }
+
+    function renderProviders(providers){
+        const ul = document.getElementById('providersList');
+        if(!providers || providers.length === 0){
+            ul.innerHTML = '<li class="list-group-item text-muted">No providers for this service yet.</li>';
+            return;
+        }
+        ul.innerHTML = '';
+        providers.forEach(p => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `<div>
+                <div><strong>${p.serviceName}</strong></div>
+                <div class="text-muted small">ProviderId: ${p.providerId}</div>
+            </div>
+            <a class="btn btn-sm btn-primary" href="#" onclick="alert('Booking flow placeholder\nProvider: '+p.providerId)">Book</a>`;
+            ul.appendChild(li);
+        });
+    }
+
+    async function selectService(name){
+        document.getElementById('selectedServiceTitle').textContent = name;
+        const slug = toSlug(name);
+        const ul = document.getElementById('providersList');
+        ul.innerHTML = '<li class="list-group-item text-muted">Loading...</li>';
+        try{
+            const res = await fetch(`/api/services/${slug}/providers`);
+            const data = await res.json();
+            renderProviders(data);
+        }catch{ ul.innerHTML = '<li class="list-group-item text-danger">Failed to load.</li>'; }
+    }
+
+    async function loadServices(){
+        const ul = document.getElementById('servicesList');
+        ul.innerHTML = '<li class="list-group-item text-muted">Loading...</li>';
+        try{
+            const res = await fetch('/api/services/all');
+            allServices = await res.json();
+            renderServices(allServices);
+        }catch{ ul.innerHTML = '<li class="list-group-item text-danger">Failed to load.</li>'; }
+    }
+
+    document.getElementById('search').addEventListener('input', (e)=>{
+        const q = e.target.value.toLowerCase();
+        renderServices(allServices.filter(x => x.toLowerCase().includes(q)));
+    });
+
+    document.addEventListener('DOMContentLoaded', loadServices);
+</script>
