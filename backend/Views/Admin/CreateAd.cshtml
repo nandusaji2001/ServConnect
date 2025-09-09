@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Upload Advertisement";
+}
+<div class="container py-4" style="max-width:720px;">
+    <h3 class="mb-3">Upload Advertisement</h3>
+    <p class="text-muted">Any image will be automatically cropped/resized to 728x90.</p>
+
+    <form asp-controller="Admin" asp-action="CreateAd" method="post" enctype="multipart/form-data" class="card p-3">
+        <div class="mb-3">
+            <label for="image" class="form-label">Ad Image (auto-cropped to 728x90)</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*" required />
+            <span class="text-danger">@Html.ValidationMessage("image")</span>
+        </div>
+        <div class="mb-3">
+            <label for="targetUrl" class="form-label">Destination URL (e.g., Google Maps link)</label>
+            <input type="url" class="form-control" id="targetUrl" name="targetUrl" placeholder="https://maps.google.com/..." />
+            <span class="text-muted">Optional. If provided, clicking the banner will open this link in a new tab.</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-upload"></i> Upload</button>
+            <a class="btn btn-secondary" asp-controller="Admin" asp-action="Advertisements">Cancel</a>
+        </div>
+    </form>
+</div>

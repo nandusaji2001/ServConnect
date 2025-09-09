@@ -53,6 +53,8 @@
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users"><i class="bi bi-people"></i> Manage Users</a></li>
                                         <li><a class="dropdown-item" asp-controller="LocalDirectory" asp-action="Manage"><i class="bi bi-geo"></i> Local Services</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Advertisements"><i class="bi bi-image"></i> Advertisements</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="CreateAd"><i class="bi bi-cloud-upload"></i> Upload Ad</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Settings"><i class="bi bi-gear"></i> Settings</a></li>
                                     </ul>
@@ -97,6 +99,7 @@
             </div>
         </nav>
     </header>
+    @await Component.InvokeAsync("AdvertisementBanner")
     <div class="container flex-fill">
         <main role="main" class="pb-3">
             @RenderBody()

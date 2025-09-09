@@ -1,0 +1,40 @@
+@model List<ServConnect.Models.Advertisement>
+@if (Model != null && Model.Count > 0 && !User.IsInRole(ServConnect.Models.RoleTypes.Admin))
+{
+    var carouselId = "adCarousel";
+    <div class="container mb-3">
+        <div id="@carouselId" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+            <div class="carousel-inner">
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var ad = Model[i];
+                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                        <div class="d-flex justify-content-center">
+                            @if (!string.IsNullOrWhiteSpace(ad.TargetUrl))
+                            {
+                                <a href="@ad.TargetUrl" target="_blank" rel="noopener noreferrer">
+                                    <img src="@ad.ImageUrl" alt="Advertisement @i" width="728" height="90" style="object-fit:cover; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,.1);" />
+                                </a>
+                            }
+                            else
+                            {
+                                <img src="@ad.ImageUrl" alt="Advertisement @i" width="728" height="90" style="object-fit:cover; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,.1);" />
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            @if (Model.Count > 1)
+            {
+                <button class="carousel-control-prev" type="button" data-bs-target="#@carouselId" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#@carouselId" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            }
+        </div>
+    </div>
+}

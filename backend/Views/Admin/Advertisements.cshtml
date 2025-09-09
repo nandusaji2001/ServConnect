@@ -1,0 +1,57 @@
+@model List<ServConnect.Models.Advertisement>
+@{
+    ViewData["Title"] = "Advertisements";
+}
+<div class="container py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Advertisements</h3>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="CreateAd"><i class="bi bi-cloud-upload"></i> Upload Ad</a>
+    </div>
+
+    @if (TempData["AdMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["AdMessage"]</div>
+    }
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="alert alert-info">No advertisements found.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Preview</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th style="width:160px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var ad in Model)
+                {
+                    <tr>
+                        <td>
+                            <img src="@ad.ImageUrl" alt="ad" width="364" height="45" style="object-fit:cover;border-radius:4px;" />
+                        </td>
+                        <td>@ad.CreatedAt.ToLocalTime().ToString("g")</td>
+                        <td>
+                            @if (ad.IsActive) { <span class="badge bg-success">Active</span>; } else { <span class="badge bg-secondary">Inactive</span>; }
+                        </td>
+                        <td>
+                            <form asp-controller="Admin" asp-action="DeleteAd" method="post">
+                                <input type="hidden" name="id" value="@ad.Id" />
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this ad?')">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
