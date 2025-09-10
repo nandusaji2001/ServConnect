@@ -252,6 +252,54 @@
         <svg preserveAspectRatio="none" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0,0V46.29c47.79,22.2,103.59,29,158,17C289.09,36,348.06-1.72,413,0c60.66,1.6,114.22,34.08,172,48,118.91,28.73,228.91-23.19,332-31,88.8-6.79,171.06,16.13,283,36V0Z" opacity=".25" fill="#667eea"></path><path d="M0,0V15.81C13,36.92,27.64,56.39,47.69,72.05,99.41,112.19,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8C438.17,19.86,512.34,6.09,583,22.75c59.68,14.15,113.73,46.41,173,60.45,70.05,16.71,136.87,1.93,200-22.45,33-13.16,63.74-31.21,94-49.9V0Z" opacity=".5" fill="#667eea"></path><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46C739.57,4.16,784.39,6.3,828,18.31c110.76,30.42,221.61,3.93,372-18.31V0Z" fill="#667eea"></path></svg>
     </div>
 
+    <!-- Quick Tiles -->
+    <div class="container-narrow mb-4">
+        <div class="tile-grid">
+            <a class="tile" asp-controller="Admin" asp-action="Users">
+                <div class="tile-icon" style="background:#6366f1"><i class="fas fa-users"></i></div>
+                <div>
+                    <div class="tile-title">Manage Users</div>
+                    <div class="tile-sub">View, roles, actions</div>
+                </div>
+            </a>
+            <a class="tile" asp-controller="Admin" asp-action="CreateAd">
+                <div class="tile-icon" style="background:#f59e0b"><i class="fas fa-cloud-upload-alt"></i></div>
+                <div>
+                    <div class="tile-title">Upload Ad</div>
+                    <div class="tile-sub">Add new banner</div>
+                </div>
+            </a>
+            <a class="tile" asp-controller="Admin" asp-action="Advertisements">
+                <div class="tile-icon" style="background:#10b981"><i class="fas fa-images"></i></div>
+                <div>
+                    <div class="tile-title">Advertisements</div>
+                    <div class="tile-sub">Review and delete</div>
+                </div>
+            </a>
+            <a class="tile" asp-controller="LocalDirectory" asp-action="Manage">
+                <div class="tile-icon" style="background:#3b82f6"><i class="fas fa-map-marked-alt"></i></div>
+                <div>
+                    <div class="tile-title">Local Services</div>
+                    <div class="tile-sub">Hospitals, police, fuel</div>
+                </div>
+            </a>
+            <a class="tile" asp-controller="Services" asp-action="Manage">
+                <div class="tile-icon" style="background:#8b5cf6"><i class="fas fa-clipboard-list"></i></div>
+                <div>
+                    <div class="tile-title">Service Catalog</div>
+                    <div class="tile-sub">Create and manage</div>
+                </div>
+            </a>
+            <a class="tile" asp-controller="Admin" asp-action="Settings">
+                <div class="tile-icon" style="background:#ef4444"><i class="fas fa-gear"></i></div>
+                <div>
+                    <div class="tile-title">Settings</div>
+                    <div class="tile-sub">System preferences</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
     <!-- Statistics Cards -->
     <div class="stats-grid">
         <div class="stat-card users">

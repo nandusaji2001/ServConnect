@@ -5,23 +5,26 @@
     <h2 class="mb-3">Book Service</h2>
 
     <div class="row">
-        <div class="col-md-5">
-            <div class="card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-list"></i> Services</span>
-                    <input id="search" class="form-control w-auto" placeholder="Search..." style="min-width: 220px;">
+        <div class="col-md-5 mb-3 mb-md-0">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                    <span class="fw-semibold"><i class="fas fa-th-large me-2"></i> Browse Services</span>
+                    <input id="search" class="form-control w-auto flex-grow-1" placeholder="Search services..." style="min-width: 220px;">
                 </div>
-                <ul class="list-group list-group-flush" id="servicesList">
-                    <li class="list-group-item text-muted">Loading...</li>
-                </ul>
+                <div class="card-body p-3">
+                    <!-- Services grid -->
+                    <div id="servicesList" class="service-grid">
+                        <div class="text-muted">Loading...</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-7">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-header"><span id="selectedServiceTitle">Select a service</span></div>
                 <div class="card-body">
-                    <ul class="list-group" id="providersList">
-                        <li class="list-group-item text-muted">No service selected.</li>
+                    <ul class="list-unstyled mb-0" id="providersList">
+                        <li class="text-muted">No service selected.</li>
                     </ul>
                 </div>
             </div>
@@ -29,42 +32,133 @@
     </div>
 </div>
 
+<style>
+    /* Responsive grid for service tiles */
+    .service-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+    @@media (min-width: 768px) {
+        .service-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    }
+
+    /* Service tile design */
+    .service-tile {
+        border-radius: 12px;
+        padding: 14px;
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 1px 2px rgba(0,0,0,.04);
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        cursor: pointer;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .service-tile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+        border-color: #dfe3e6;
+    }
+    .service-tile:focus-visible {
+        outline: 3px solid rgba(13,110,253,.35);
+        outline-offset: 2px;
+    }
+    .service-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #eff3ff, #f7f9ff);
+        color: #0d6efd;
+        font-size: 18px;
+    }
+    .service-name { font-weight: 600; color: #212529; line-height: 1.2; }
+    .service-meta { color: #6c757d; font-size: .85rem; }
+    .chevron { margin-left: auto; color: #adb5bd; transition: transform .2s, color .2s; }
+    .service-tile:hover .chevron { color: #6c757d; transform: translateX(2px); }
+
+    /* Provider cards */
+    #providersList { list-style: none; padding-left: 0; }
+    #providersList .provider-card {
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0,0,0,.03);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+    #providersList .provider-title { font-weight: 600; color: #212529; }
+    #providersList .provider-sub { color: #6c757d; font-size: .85rem; }
+</style>
+
 <script>
     const toSlug = (t) => (t||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-');
     let allServices = [];
 
+    function getServiceIcon(name){
+        const n = (name||'').toLowerCase();
+        if(n.includes('clean')) return 'fa-broom';
+        if(n.includes('plumb')) return 'fa-wrench';
+        if(n.includes('electri')) return 'fa-bolt';
+        if(n.includes('paint')) return 'fa-paint-roller';
+        if(n.includes('carp')) return 'fa-hammer';
+        if(n.includes('ac') || n.includes('air')) return 'fa-fan';
+        if(n.includes('beauty') || n.includes('salon')) return 'fa-spa';
+        if(n.includes('repair') || n.includes('tech') || n.includes('mobile')) return 'fa-tools';
+        return 'fa-concierge-bell';
+    }
+
     function renderServices(list){
-        const ul = document.getElementById('servicesList');
+        const container = document.getElementById('servicesList');
         if(!list || list.length === 0){
-            ul.innerHTML = '<li class="list-group-item text-muted">No services available.</li>';
+            container.innerHTML = '<div class="text-muted">No services available.</div>';
             return;
         }
-        ul.innerHTML = '';
+        container.innerHTML = '';
         list.forEach(name => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item list-group-item-action';
-            li.style.cursor = 'pointer';
-            li.textContent = name;
-            li.onclick = () => selectService(name);
-            ul.appendChild(li);
+            const tile = document.createElement('div');
+            tile.className = 'service-tile';
+            tile.tabIndex = 0;
+            tile.setAttribute('role', 'button');
+            tile.onclick = () => selectService(name);
+            tile.onkeypress = (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectService(name); } };
+            tile.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="service-icon me-2"><i class="fas ${getServiceIcon(name)}"></i></div>
+                    <div class="flex-grow-1">
+                        <div class="service-name">${name}</div>
+                        <div class="service-meta">Tap to explore providers</div>
+                    </div>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>`;
+            container.appendChild(tile);
         });
     }
 
     function renderProviders(providers){
         const ul = document.getElementById('providersList');
         if(!providers || providers.length === 0){
-            ul.innerHTML = '<li class="list-group-item text-muted">No providers for this service yet.</li>';
+            ul.innerHTML = '<li class="text-muted">No providers for this service yet.</li>';
             return;
         }
         ul.innerHTML = '';
         providers.forEach(p => {
             const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center';
-            li.innerHTML = `<div>
-                <div><strong>${p.serviceName}</strong></div>
-                <div class="text-muted small">ProviderId: ${p.providerId}</div>
-            </div>
-            <a class="btn btn-sm btn-primary" href="#" onclick="alert('Booking flow placeholder\nProvider: '+p.providerId)">Book</a>`;
+            li.className = 'provider-card';
+            li.innerHTML = `
+                <div class="provider-info">
+                    <div class="provider-title">${p.serviceName}</div>
+                    <div class="provider-sub">ProviderId: ${p.providerId}</div>
+                </div>
+                <a class="btn btn-sm btn-primary" href="#" onclick="event.preventDefault(); alert('Booking flow placeholder\nProvider: '+${JSON.stringify(''+(p.providerId??''))});">Book</a>`;
             ul.appendChild(li);
         });
     }
@@ -73,27 +167,31 @@
         document.getElementById('selectedServiceTitle').textContent = name;
         const slug = toSlug(name);
         const ul = document.getElementById('providersList');
-        ul.innerHTML = '<li class="list-group-item text-muted">Loading...</li>';
+        ul.innerHTML = '<li class="text-muted">Loading...</li>';
         try{
             const res = await fetch(`/api/services/${slug}/providers`);
             const data = await res.json();
             renderProviders(data);
-        }catch{ ul.innerHTML = '<li class="list-group-item text-danger">Failed to load.</li>'; }
+        }catch{
+            ul.innerHTML = '<li class="text-danger">Failed to load.</li>';
+        }
     }
 
     async function loadServices(){
-        const ul = document.getElementById('servicesList');
-        ul.innerHTML = '<li class="list-group-item text-muted">Loading...</li>';
+        const container = document.getElementById('servicesList');
+        container.innerHTML = '<div class="text-muted">Loading...</div>';
         try{
             const res = await fetch('/api/services/all');
             allServices = await res.json();
             renderServices(allServices);
-        }catch{ ul.innerHTML = '<li class="list-group-item text-danger">Failed to load.</li>'; }
+        }catch{
+            container.innerHTML = '<div class="text-danger">Failed to load.</div>';
+        }
     }
 
     document.getElementById('search').addEventListener('input', (e)=>{
         const q = e.target.value.toLowerCase();
-        renderServices(allServices.filter(x => x.toLowerCase().includes(q)));
+        renderServices(allServices.filter(x => (x||'').toLowerCase().includes(q)));
     });
 
     document.addEventListener('DOMContentLoaded', loadServices);

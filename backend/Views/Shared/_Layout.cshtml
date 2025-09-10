@@ -4,8 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ServConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ServConnect.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -33,63 +37,17 @@
 
                         @if (User.Identity.IsAuthenticated)
                         {
-                            <!-- Removed Dashboard link per requirement -->
-
-                            <!-- Common Authenticated Links -->
+                            <!-- Minimal navbar: move feature links to dashboards -->
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-controller="Account" asp-action="Profile">
-                                    <i class="bi bi-person-circle"></i> Profile
-                                </a>
+                                <a class="nav-link text-white" asp-controller="Services" asp-action="Browse"><i class="bi bi-compass"></i> Explore</a>
                             </li>
-
-                            <!-- Admin-Specific Links -->
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="Account" asp-action="Profile"><i class="bi bi-person-circle"></i> Profile</a>
+                            </li>
                             @if (User.IsInRole(RoleTypes.Admin))
                             {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-white" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-shield-lock"></i> Admin
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users"><i class="bi bi-people"></i> Manage Users</a></li>
-                                        <li><a class="dropdown-item" asp-controller="LocalDirectory" asp-action="Manage"><i class="bi bi-geo"></i> Local Services</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Advertisements"><i class="bi bi-image"></i> Advertisements</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="CreateAd"><i class="bi bi-cloud-upload"></i> Upload Ad</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Settings"><i class="bi bi-gear"></i> Settings</a></li>
-                                    </ul>
-                                </li>
-                            }
-
-                            <!-- Service Provider-Specific Links -->
-                            @if (User.IsInRole(RoleTypes.ServiceProvider))
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-white" href="#" id="providerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-briefcase"></i> Provider
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="providerDropdown">
-                                        <!-- Dashboard link removed -->
-                                        <li><a class="dropdown-item" asp-controller="ServiceProvider" asp-action="Services"><i class="bi bi-list-task"></i> My Items</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Services" asp-action="Manage"><i class="bi bi-gear"></i> Manage My Services</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Services" asp-action="Browse"><i class="bi bi-shop"></i> Book Service</a></li>
-                                    </ul>
-                                </li>
-                            }
-
-                            <!-- Vendor-Specific Links -->
-                            @if (User.IsInRole(RoleTypes.Vendor))
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-white" href="#" id="vendorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-bag"></i> Vendor
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="vendorDropdown">
-                                        <!-- Dashboard link removed -->
-                                        <li><a class="dropdown-item" asp-controller="Vendor" asp-action="Products"><i class="bi bi-box-seam"></i> My Products</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Vendor" asp-action="Orders"><i class="bi bi-receipt"></i> Orders</a></li>
-                                        <li><a class="dropdown-item" href="/Home/Items?role=Vendor"><i class="bi bi-shop"></i> Browse Sellers</a></li>
-                                    </ul>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
                                 </li>
                             }
                         }
