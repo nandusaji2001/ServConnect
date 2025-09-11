@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ServConnect.Models;
 using ServConnect.Services;
+using ServConnect.ViewModels;
 
 namespace ServConnect.Controllers
 {
@@ -23,6 +24,22 @@ namespace ServConnect.Controllers
         public IActionResult Browse()
         {
             return View();
+        }
+
+        // User-facing: page to view providers for a selected service (by slug)
+        [HttpGet("/services/providers/{slug}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Providers(string slug)
+        {
+            var providers = await _catalog.GetProviderLinksBySlugAsync(slug);
+            var def = await _catalog.GetBySlugAsync(slug);
+            var vm = new ServiceProvidersViewModel
+            {
+                ServiceName = def?.Name ?? slug.Replace('-', ' '),
+                ServiceSlug = slug,
+                Providers = providers
+            };
+            return View(vm);
         }
 
         // API: all services (predefined + custom discovered via provider links)

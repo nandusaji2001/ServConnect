@@ -4,29 +4,15 @@
 <div class="container py-4">
     <h2 class="mb-3">Book Service</h2>
 
-    <div class="row">
-        <div class="col-md-5 mb-3 mb-md-0">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
-                    <span class="fw-semibold"><i class="fas fa-th-large me-2"></i> Browse Services</span>
-                    <input id="search" class="form-control w-auto flex-grow-1" placeholder="Search services..." style="min-width: 220px;">
-                </div>
-                <div class="card-body p-3">
-                    <!-- Services grid -->
-                    <div id="servicesList" class="service-grid">
-                        <div class="text-muted">Loading...</div>
-                    </div>
-                </div>
-            </div>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
+            <span class="fw-semibold"><i class="fas fa-th-large me-2"></i> Browse Services</span>
+            <input id="search" class="form-control w-auto flex-grow-1" placeholder="Search services..." style="min-width: 220px;">
         </div>
-        <div class="col-md-7">
-            <div class="card h-100">
-                <div class="card-header"><span id="selectedServiceTitle">Select a service</span></div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0" id="providersList">
-                        <li class="text-muted">No service selected.</li>
-                    </ul>
-                </div>
+        <div class="card-body p-3">
+            <!-- Services grid -->
+            <div id="servicesList" class="service-grid">
+                <div class="text-muted">Loading...</div>
             </div>
         </div>
     </div>
@@ -81,22 +67,7 @@
     .chevron { margin-left: auto; color: #adb5bd; transition: transform .2s, color .2s; }
     .service-tile:hover .chevron { color: #6c757d; transform: translateX(2px); }
 
-    /* Provider cards */
-    #providersList { list-style: none; padding-left: 0; }
-    #providersList .provider-card {
-        border: 1px solid #e9ecef;
-        border-radius: 12px;
-        padding: 12px 14px;
-        background: #fff;
-        box-shadow: 0 1px 2px rgba(0,0,0,.03);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 10px;
-    }
-    #providersList .provider-title { font-weight: 600; color: #212529; }
-    #providersList .provider-sub { color: #6c757d; font-size: .85rem; }
+    /* Full-width layout: grid already spans container */
 </style>
 
 <script>
@@ -128,8 +99,8 @@
             tile.className = 'service-tile';
             tile.tabIndex = 0;
             tile.setAttribute('role', 'button');
-            tile.onclick = () => selectService(name);
-            tile.onkeypress = (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectService(name); } };
+            tile.onclick = () => navigateToProviders(name);
+            tile.onkeypress = (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateToProviders(name); } };
             tile.innerHTML = `
                 <div class="d-flex align-items-center">
                     <div class="service-icon me-2"><i class="fas ${getServiceIcon(name)}"></i></div>
@@ -143,38 +114,9 @@
         });
     }
 
-    function renderProviders(providers){
-        const ul = document.getElementById('providersList');
-        if(!providers || providers.length === 0){
-            ul.innerHTML = '<li class="text-muted">No providers for this service yet.</li>';
-            return;
-        }
-        ul.innerHTML = '';
-        providers.forEach(p => {
-            const li = document.createElement('li');
-            li.className = 'provider-card';
-            li.innerHTML = `
-                <div class="provider-info">
-                    <div class="provider-title">${p.serviceName}</div>
-                    <div class="provider-sub">ProviderId: ${p.providerId}</div>
-                </div>
-                <a class="btn btn-sm btn-primary" href="#" onclick="event.preventDefault(); alert('Booking flow placeholder\nProvider: '+${JSON.stringify(''+(p.providerId??''))});">Book</a>`;
-            ul.appendChild(li);
-        });
-    }
-
-    async function selectService(name){
-        document.getElementById('selectedServiceTitle').textContent = name;
+    function navigateToProviders(name){
         const slug = toSlug(name);
-        const ul = document.getElementById('providersList');
-        ul.innerHTML = '<li class="text-muted">Loading...</li>';
-        try{
-            const res = await fetch(`/api/services/${slug}/providers`);
-            const data = await res.json();
-            renderProviders(data);
-        }catch{
-            ul.innerHTML = '<li class="text-danger">Failed to load.</li>';
-        }
+        window.location.href = `/services/providers/${slug}`;
     }
 
     async function loadServices(){
