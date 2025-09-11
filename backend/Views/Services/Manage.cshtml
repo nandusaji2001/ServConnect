@@ -36,17 +36,15 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">Choose Service</label>
+                    <label class="form-label">Choose Category</label>
                     <select class="form-select" id="serviceSelect" onchange="toggleOther()">
                         <option value="" selected disabled>-- Select --</option>
-                        @foreach (var s in predefined!) {
-                            <option value="@s">@s</option>
-                        }
+                        <!-- Options will be loaded dynamically from /api/services/all to match Browse -->
                         <option value="__other__">Other</option>
                     </select>
                 </div>
                 <div class="mb-3" id="otherWrap" style="display:none;">
-                    <label class="form-label">Enter Service Name</label>
+                    <label class="form-label">Enter Category Name</label>
                     <input class="form-control" id="otherName" placeholder="e.g., AC Repair">
                 </div>
             </div>
@@ -63,10 +61,38 @@
         const v = document.getElementById('serviceSelect').value;
         document.getElementById('otherWrap').style.display = (v === '__other__') ? '' : 'none';
     }
+
+    async function loadCategories(){
+        const select = document.getElementById('serviceSelect');
+        const current = select.value;
+        // Keep the first placeholder and last Other option
+        // Rebuild options between them
+        const head = '<option value="" selected disabled>-- Select --</option>';
+        const tail = '<option value="__other__">Other</option>';
+        select.innerHTML = head + tail;
+        try{
+            const res = await fetch('/api/services/all');
+            const names = await res.json();
+            // Insert before the last option (Other)
+            const other = select.querySelector('option[value="__other__"]');
+            names.forEach(n => {
+                const opt = document.createElement('option');
+                opt.value = n;
+                opt.textContent = n;
+                select.insertBefore(opt, other);
+            });
+            // restore selection if available
+            if(current && [...select.options].some(o => o.value === current)) select.value = current;
+        }catch{
+            // silently ignore; keeps existing predefined if any
+        }
+    }
     function openLink(){
         document.getElementById('serviceSelect').value = '';
         document.getElementById('otherName').value = '';
         toggleOther();
+        // refresh categories when opening modal
+        loadCategories();
     }
 
     async function loadLinks(){
@@ -93,7 +119,7 @@
     async function saveLink(){
         const sel = document.getElementById('serviceSelect').value;
         const name = sel === '__other__' ? document.getElementById('otherName').value.trim() : sel;
-        if(!name){ alert('Please select or enter a service name.'); return; }
+        if(!name){ alert('Please select or enter a category name.'); return; }
         try{
             const res = await fetch('/api/services/link', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },

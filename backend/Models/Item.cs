@@ -8,7 +8,7 @@ namespace ServConnect.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = null!;
+        public string? Id { get; set; }
 
         // Owner of the item (ServiceProvider or Vendor)
         [BsonRepresentation(BsonType.String)]

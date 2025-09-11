@@ -8,7 +8,7 @@ namespace ServConnect.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = null!;
+        public string? Id { get; set; }
 
         // Display name (e.g., "AC Repair")
         public string Name { get; set; } = string.Empty;

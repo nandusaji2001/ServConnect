@@ -63,6 +63,18 @@
                         <label class="form-label">Description</label>
                         <textarea class="form-control" id="description" rows="3"></textarea>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" id="categorySelect" onchange="toggleCategoryOther()">
+                            <option value="" selected disabled>-- Select --</option>
+                            <!-- options loaded dynamically from /api/services/all -->
+                            <option value="__other__">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="categoryOtherWrap" style="display:none;">
+                        <label class="form-label">Enter Category Name</label>
+                        <input class="form-control" id="categoryOtherName" placeholder="e.g., AC Repair">
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -92,6 +104,34 @@
 
 <script>
     let itemsCache = [];
+
+    // Show/hide 'Other' category input
+    function toggleCategoryOther(){
+        const v = document.getElementById('categorySelect').value;
+        document.getElementById('categoryOtherWrap').style.display = (v === '__other__') ? '' : 'none';
+    }
+
+    // Load categories from /api/services/all into the select
+    async function loadCategoriesForItem(){
+        const select = document.getElementById('categorySelect');
+        if(!select) return;
+        const current = select.value;
+        const head = '<option value="" selected disabled>-- Select --</option>';
+        const tail = '<option value="__other__">Other</option>';
+        select.innerHTML = head + tail;
+        try{
+            const res = await fetch('/api/services/all');
+            const names = await res.json();
+            const other = select.querySelector('option[value="__other__"]');
+            names.forEach(n => {
+                const opt = document.createElement('option');
+                opt.value = n;
+                opt.textContent = n;
+                select.insertBefore(opt, other);
+            });
+            if(current && [...select.options].some(o => o.value === current)) select.value = current;
+        }catch{}
+    }
 
     function fmtPrice(v){
         try { return new Intl.NumberFormat(undefined, {style:'currency', currency:'INR'}).format(v); } catch { return v; }
@@ -143,6 +183,10 @@
         document.getElementById('description').value = '';
         document.getElementById('price').value = '';
         document.getElementById('isActive').value = 'true';
+        document.getElementById('categorySelect').value = '';
+        document.getElementById('categoryOtherName').value = '';
+        toggleCategoryOther();
+        loadCategoriesForItem();
     }
 
     function openEdit(i){
@@ -152,17 +196,57 @@
         document.getElementById('description').value = i.description || '';
         document.getElementById('price').value = i.price || 0;
         document.getElementById('isActive').value = String(!!i.isActive);
+        // try load categories then set selection if available
+        loadCategoriesForItem().then(() => {
+            if(i.category){
+                const select = document.getElementById('categorySelect');
+                if([...select.options].some(o => o.value === i.category)) select.value = i.category;
+                else { select.value = '__other__'; document.getElementById('categoryOtherName').value = i.category; }
+                toggleCategoryOther();
+            }
+        });
         const modal = new bootstrap.Modal(document.getElementById('itemModal'));
         modal.show();
     }
 
+    function toggleCategoryOther(){
+        const v = document.getElementById('categorySelect').value;
+        document.getElementById('categoryOtherWrap').style.display = (v === '__other__') ? '' : 'none';
+    }
+    async function loadCategoriesForItem(){
+        const select = document.getElementById('categorySelect');
+        const current = select.value;
+        const head = '<option value="" selected disabled>-- Select --</option>';
+        const tail = '<option value="__other__">Other</option>';
+        select.innerHTML = head + tail;
+        try{
+            const res = await fetch('/api/services/all');
+            const names = await res.json();
+            const other = select.querySelector('option[value="__other__"]');
+            names.forEach(n => {
+                const opt = document.createElement('option');
+                opt.value = n;
+                opt.textContent = n;
+                select.insertBefore(opt, other);
+            });
+            if(current && [...select.options].some(o => o.value === current)) select.value = current;
+        }catch{}
+    }
+
     async function saveItem(){
         const id = document.getElementById('itemId').value;
+        const selected = document.getElementById('categorySelect').value;
+        const category = selected === '__other__' ? document.getElementById('categoryOtherName').value.trim() : selected;
+        if(!category){
+            alert('Please choose a category or enter one under Other.');
+            return;
+        }
         const payload = {
             title: document.getElementById('title').value,
             description: document.getElementById('description').value,
             price: parseFloat(document.getElementById('price').value || '0'),
-            isActive: document.getElementById('isActive').value === 'true'
+            isActive: document.getElementById('isActive').value === 'true',
+            category: category
         };
         const opts = {
             method: id ? 'PUT' : 'POST',
@@ -175,11 +259,23 @@
         btn.disabled = true;
         try{
             const res = await fetch(url, opts);
-            if(!res.ok) throw new Error();
+            if(!res.ok){
+                const msg = await res.text();
+                throw new Error(msg || 'Request failed');
+            }
+            // Also ensure this category appears in Browse by linking it for this provider
+            try{
+                await fetch('/api/services/link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ serviceName: category })
+                });
+            }catch{ /* ignore */ }
             bootstrap.Modal.getInstance(document.getElementById('itemModal'))?.hide();
             await loadMine();
-        }catch{
-            alert('Save failed');
+        }catch(err){
+            alert('Save failed: ' + (err?.message || 'Unknown error'));
         }finally{ btn.disabled = false; }
     }
 

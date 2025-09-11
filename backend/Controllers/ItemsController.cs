@@ -48,13 +48,19 @@ namespace ServConnect.Controllers
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
 
+            if (string.IsNullOrWhiteSpace(input.Title))
+                return BadRequest("Title is required");
+            if (input.Price < 0)
+                return BadRequest("Price must be greater than or equal to 0");
+
             input.Id = null!; // let Mongo assign
             input.OwnerId = me.Id;
             var roles = await _userManager.GetRolesAsync(me);
             input.OwnerRole = roles.Contains(RoleTypes.Vendor) ? RoleTypes.Vendor : RoleTypes.ServiceProvider;
             input.CreatedAt = DateTime.UtcNow;
             input.UpdatedAt = DateTime.UtcNow;
-            input.IsActive = true;
+            // Respect requested activation state (default to true if unspecified)
+            input.IsActive = input.IsActive;
 
             var created = await _itemService.CreateAsync(input);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
@@ -85,6 +91,8 @@ namespace ServConnect.Controllers
             existing.Description = input.Description;
             existing.Price = input.Price;
             existing.IsActive = input.IsActive;
+            // allow updating category too
+            existing.Category = input.Category;
 
             var ok = await _itemService.UpdateAsync(existing);
             return ok ? NoContent() : StatusCode(500, "Update failed");

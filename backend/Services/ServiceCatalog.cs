@@ -130,10 +130,22 @@ namespace ServConnect.Services
 
         public async Task<List<string>> GetAllAvailableServiceNamesAsync()
         {
+            // Names from active provider links
             var activeLinks = await _providerLinks.Find(x => x.IsActive).ToListAsync();
             var linkNames = activeLinks.Select(x => x.ServiceName);
-            var names = _predefined.Concat(linkNames).Distinct(StringComparer.OrdinalIgnoreCase)
-                                   .OrderBy(x => x).ToList();
+
+            // Also include all custom service definitions (in case no active links yet)
+            var customDefs = await _customServices
+                .Find(Builders<ServiceDefinition>.Filter.Empty)
+                .Project(x => x.Name)
+                .ToListAsync();
+
+            var names = _predefined
+                .Concat(customDefs)
+                .Concat(linkNames)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(x => x)
+                .ToList();
             return names;
         }
     }
