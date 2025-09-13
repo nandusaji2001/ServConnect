@@ -43,7 +43,7 @@ body {
 
 /* Modern gradient navbar */
 .app-navbar {
-  background: linear-gradient(135deg, var(--sc-primary) 0%, var(--sc-primary-2) 100%);
+  background: hwb(116 6% 70%);
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 .app-navbar .navbar-brand {

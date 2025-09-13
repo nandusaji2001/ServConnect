@@ -3,7 +3,7 @@
   /* Neutrals */
   --bg-page: #F5F5F5;     /* light gray background */
   --bg-surface: #FFFFFF;  /* white cards */
-  --header-bg: #1F1F1F;   /* dark gray header/nav */
+  --header-bg: #1F1F1F;   /* legacy dark gray header/nav (unused now) */
   --text-primary: #111111;/* near-black text */
   --text-secondary: #4B5563; /* gray text */
   --border: #E5E7EB;      /* light border */
@@ -19,6 +19,28 @@
   --shadow-md: 0 10px 25px rgba(0,0,0,0.08);
 }
 
+/* Navbar specific color */
+.app-navbar.navbar {
+  background: linear-gradient(135deg, #063e1cdb 0%, #165830db 100%) !important; /* Dribbble green */
+  box-shadow: var(--shadow-md);
+}
+
+/* Navbar links remain readable */
+.app-navbar .nav-link,
+.app-navbar .navbar-brand {
+  color: #ffffff !important;
+}
+
+/* Navbar link hover effect */
+.app-navbar .nav-link:hover {
+  color: #d1fae5 !important; /* lighter green for contrast */
+}
+
+/* Mobile toggler icon (hamburger) */
+.app-navbar .navbar-toggler-icon {
+  filter: invert(1); /* makes icon white */
+}
+
 /* Base */
 html,body{
   font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -28,19 +50,6 @@ html,body{
 
 .container, .container-fluid {
   color: var(--text-primary);
-}
-
-/* Header/Nav */
-.app-navbar.navbar{
-  background-color: var(--header-bg) !important;
-  box-shadow: var(--shadow-md);
-}
-.app-navbar .navbar-brand,
-.app-navbar .nav-link{
-  color: #fff !important;
-}
-.app-navbar .nav-link:hover{
-  color: #e5e7eb !important;
 }
 
 /* Links */
