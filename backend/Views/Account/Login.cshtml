@@ -1,22 +1,141 @@
-﻿@using ServConnect.ViewModels;
-@model LoginViewModel;
+﻿@using ServConnect.ViewModels
+@model LoginViewModel
 
 @{
     ViewData["Title"] = "Login";
     Layout = "~/Views/Shared/_AccountLayout.cshtml";
 }
 
+<style>
+    /* === Login Page Styling === */
+    .account-container {
+        background: url('/images/login_register.png') center/cover no-repeat;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        min-height: 100vh;
+        padding: 2rem 2rem 0 2rem;
+        position: relative;
+    }
+
+    .account-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1;
+    }
+
+    .account-box {
+        background: rgba(240, 253, 244, 0.95);
+        padding: 40px;
+        border-radius: 20px;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        max-width: 450px;
+        width: 100%;
+        margin-left: 5%;
+        position: relative;
+        z-index: 2;
+        backdrop-filter: blur(10px);
+    }
+
+    .form-control {
+        background: #fff;
+        color: #1f2937;
+        border: 2px solid #d1fae5;
+        border-radius: 12px;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+        outline: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+
+    .form-label {
+        color: #1f2937;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    h2 {
+        color: #1f2937;
+        font-weight: 700;
+        margin-bottom: 30px;
+    }
+
+    a {
+        color: #10b981;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    a:hover {
+        color: #059669;
+    }
+
+    /* Google Sign-in Button */
+    .btn-google {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #fff;
+        color: #1f1f1f;
+        border: 1px solid #e6e6e6;
+        padding: .65rem 1rem;
+        border-radius: .5rem;
+        transition: box-shadow .2s ease, transform .06s ease;
+        width: 100%;
+    }
+
+    .btn-google i {
+        color: #EA4335;
+    }
+
+    .btn-google:hover {
+        box-shadow: 0 10px 18px rgba(0, 0, 0, .06);
+    }
+
+    .btn-google:active {
+        transform: translateY(1px);
+    }
+</style>
+
 <div class="account-container">
     <div class="account-box">
         <h2 class="text-center mb-4">Login</h2>
-        
+
+        @* Success Message *@
         @if (TempData["SuccessMessage"] != null)
         {
             <div class="alert alert-success">
                 @TempData["SuccessMessage"]
             </div>
         }
-        
+
+        @* Error Message *@
         @if (Context.Request.Query.ContainsKey("error"))
         {
             <div class="alert alert-danger">
@@ -30,58 +149,48 @@
                 }
             </div>
         }
-        
+
+        @* Login Form *@
         <form asp-action="Login" method="post">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="mb-3">
                 <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" />
+                <input asp-for="Email" class="form-control" placeholder="you@example.com" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
+
             <div class="mb-3">
                 <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" />
+                <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
-            <div class="float-end">
-                <a asp-controller="Account" asp-action="ForgotPassword" class="text-decoration-none">
-                    Forgot password?
-                </a>
-            </div>
-            <div class="form-check mb-3">
-                <label class="form-check-label">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
                     <input asp-for="RememberMe" class="form-check-input" />
-                    @Html.DisplayNameFor(a=> a.RememberMe)
-                </label>
+                    <label class="form-check-label" for="RememberMe">@Html.DisplayNameFor(a => a.RememberMe)</label>
+                </div>
+                <a asp-controller="Account" asp-action="ForgotPassword" class="text-decoration-none">Forgot password?</a>
             </div>
-            <input type="submit" value="Login" class="btn btn-success w-100 p-2" />
+
+            <input type="submit" value="Login" class="btn btn-primary w-100 p-2" />
         </form>
-        
+
         <div class="text-center my-3">
             <span class="text-muted">or</span>
         </div>
-        
+
         <!-- Firebase Google Sign-In -->
-        <button type="button" id="googleSignInBtn" class="btn btn-google w-100 mb-3">
+        <button type="button" id="googleSignInBtn" class="btn btn-google mb-3">
             <i class="fab fa-google"></i>
             <span>Continue with Google</span>
         </button>
-        
-        <!-- Firebase Email/Password Login -->
-        <div class="text-center my-3">
-            <span class="text-muted">or</span>
-        </div>
-        
-        <div class="mb-3">
-            <button type="button" id="firebaseEmailLoginBtn" class="btn btn-outline-primary w-100">
-                <i class="fas fa-envelope"></i>
-                <span>Login with Firebase Email</span>
-            </button>
-        </div>
-        
+
         <p class="text-center mt-2">
-            Don't have an account? <a asp-controller="Account" asp-action="Register" class="text-decoration-none">Register</a>
+            Don't have an account? 
+            <a asp-controller="Account" asp-action="Register" class="text-decoration-none">Register</a>
         </p>
         <div class="text-center">
             <a asp-controller="Home" asp-action="Index" class="text-decoration-none mt-3">Back</a>
@@ -89,51 +198,34 @@
     </div>
 </div>
 
-@section Scripts{
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial.cshtml");
-    }
-    
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial.cshtml")
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="~/js/firebase-auth.js"></script>
-    
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const googleSignInBtn = document.getElementById('googleSignInBtn');
-            const firebaseEmailLoginBtn = document.getElementById('firebaseEmailLoginBtn');
             const returnUrl = '@ViewData["ReturnUrl"]';
-            
-            // Google Sign-In with Firebase
-            googleSignInBtn.addEventListener('click', async function() {
+
+            googleSignInBtn.addEventListener('click', async function () {
                 try {
                     this.disabled = true;
                     this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
-                    
-                    console.log('Attempting Google sign-in...');
+
                     const result = await window.FirebaseAuth.signInWithGoogle();
-                    console.log('Google sign-in result:', result);
-                    
+
                     if (result.success) {
-                        console.log('Google sign-in successful, sending to server...');
-                        // Send token to server for verification and login
                         const serverResult = await window.FirebaseAuth.loginWithServer(result.idToken, returnUrl);
-                        console.log('Server login result:', serverResult);
-                        
+
                         if (serverResult.success) {
-                            console.log('Server login successful, redirecting to:', serverResult.redirectUrl);
-                            // Small delay to ensure login is processed, then redirect
                             setTimeout(() => {
-                                if (serverResult.redirectUrl) {
-                                    window.location.replace(serverResult.redirectUrl);
-                                } else {
-                                    window.location.replace('/');
-                                }
+                                window.location.replace(serverResult.redirectUrl || '/');
                             }, 500);
                         } else if (serverResult.requiresRegistration) {
-                            console.log('Registration required, redirecting to registration...');
-                            // Redirect to registration with pre-filled data
                             sessionStorage.setItem('firebaseUserData', JSON.stringify({
                                 email: serverResult.email,
                                 name: serverResult.name,
@@ -141,76 +233,16 @@
                             }));
                             window.location.href = '/Account/Register?firebase=true';
                         } else {
-                            console.error('Server login failed:', serverResult.message);
                             alert('Login failed: ' + serverResult.message);
                         }
                     } else {
-                        console.error('Google sign-in failed:', result.error);
                         alert('Google sign-in failed: ' + result.error);
                     }
                 } catch (error) {
-                    console.error('Google sign-in error:', error);
-                    alert('An error occurred during sign-in. Please try again. Error: ' + error.message);
+                    alert('An error occurred during sign-in: ' + error.message);
                 } finally {
                     this.disabled = false;
                     this.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
-                }
-            });
-            
-            // Firebase Email/Password Login
-            firebaseEmailLoginBtn.addEventListener('click', async function() {
-                const email = document.getElementById('Email').value;
-                const password = document.getElementById('Password').value;
-                
-                console.log('Firebase email login attempt for:', email);
-                
-                if (!email || !password) {
-                    alert('Please enter both email and password');
-                    return;
-                }
-                
-                try {
-                    this.disabled = true;
-                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
-                    
-                    console.log('Attempting Firebase sign-in...');
-                    const result = await window.FirebaseAuth.signInWithEmail(email, password);
-                    console.log('Firebase sign-in result:', result);
-                    
-                    if (result.success) {
-                        console.log('Firebase sign-in successful, sending to server...');
-                        // Send token to server for verification and login
-                        const serverResult = await window.FirebaseAuth.loginWithServer(result.idToken, returnUrl);
-                        console.log('Server login result:', serverResult);
-                        
-                        if (serverResult.success) {
-                            console.log('Server login successful, redirecting to:', serverResult.redirectUrl);
-                            // Small delay to ensure login is processed, then redirect
-                            setTimeout(() => {
-                                if (serverResult.redirectUrl) {
-                                    window.location.replace(serverResult.redirectUrl);
-                                } else {
-                                    window.location.replace('/');
-                                }
-                            }, 500);
-                        } else if (serverResult.requiresRegistration) {
-                            console.log('Registration required for user');
-                            alert('Account not found. Please register first.');
-                            window.location.href = '/Account/Register';
-                        } else {
-                            console.error('Server login failed:', serverResult.message);
-                            alert('Login failed: ' + serverResult.message);
-                        }
-                    } else {
-                        console.error('Firebase sign-in failed:', result.error);
-                        alert('Firebase login failed: ' + result.error);
-                    }
-                } catch (error) {
-                    console.error('Firebase email login error:', error);
-                    alert('An error occurred during sign-in. Please try again. Error: ' + error.message);
-                } finally {
-                    this.disabled = false;
-                    this.innerHTML = '<i class="fas fa-envelope"></i> Login with Firebase Email';
                 }
             });
         });

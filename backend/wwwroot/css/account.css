@@ -1,95 +1,155 @@
-﻿.account-container {
-    background-image: url('../images/account-bg.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: repeat-y;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 2rem 0;
+﻿.account-container{ 
+    background: url('/images/login_register.png') center/cover no-repeat !important; 
+    display:flex !important; 
+    justify-content:flex-start !important; 
+    align-items:center !important; 
+    min-height:100vh !important; 
+    padding: 2rem !important; 
+    position: relative !important;
+}
+.account-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+.account-container.neutral-login{ 
+    background: url('/images/login_register.png') center/cover no-repeat !important; 
+}
+.account-box{ 
+    background: rgba(240, 253, 244, 0.95) !important; 
+    padding: 40px !important; 
+    border-radius: 20px !important; 
+    border: 1px solid rgba(34, 197, 94, 0.2) !important; 
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important; 
+    max-width: 450px !important; 
+    width: 100% !important; 
+    margin-left: 5% !important;
+    position: relative !important;
+    z-index: 2 !important;
+    backdrop-filter: blur(10px) !important;
 }
 
-.account-box {
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
-    width: 100%;
-    opacity: .9;
+/* Light Green Theme Styling - High Specificity */
+body .account-container .account-box .form-label{ 
+    color: #1f2937 !important; 
+    font-weight: 600 !important; 
+    margin-bottom: 8px !important;
+}
+
+body .account-container .account-box .form-control{ 
+    background: #fff !important; 
+    color: #1f2937 !important; 
+    border: 2px solid #d1fae5 !important; 
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    transition: all 0.3s ease !important;
+}
+.form-control:focus{ 
+    border-color: #10b981; 
+    box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25); 
+    outline: none;
+}
+.form-control:hover {
+    border-color: #34d399;
+}
+
+/* Button Styling - High Specificity */
+body .account-container .account-box .btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 12px 24px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+.btn-primary:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+/* Headings */
+h2 {
+    color: #1f2937;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+/* Links */
+a {
+    color: #10b981;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+a:hover {
+    color: #059669;
+}
+
+/* Alert Styling */
+.alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #047857;
+    border-radius: 12px;
+}
+
+.alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #dc2626;
+    border-radius: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .account-container {
+        padding: 1rem;
+        justify-content: center;
+    }
+    
+    .account-box {
+        margin-left: 0;
+        max-width: 100%;
+        padding: 30px 20px;
+    }
+    
+    .form-control {
+        padding: 10px 14px;
+    }
+    
+    .btn-primary, .btn-success {
+        padding: 10px 20px;
+    }
 }
 
 /* Google Button Styling */
-.btn-google {
-    background-color: #4285f4;
-    border-color: #4285f4;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    padding: 12px 16px;
-}
-
-.btn-google:hover {
-    background-color: #3367d6;
-    border-color: #3367d6;
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
-}
-
-.btn-google:focus {
-    background-color: #3367d6;
-    border-color: #3367d6;
-    color: white;
-    box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25);
-}
-
-.btn-google:active {
-    background-color: #2d5aa0;
-    border-color: #2d5aa0;
-    color: white;
-}
-
-.btn-google .fab {
-    font-size: 18px;
-    margin-right: 8px;
-}
+.btn-google { background-color: #4285f4; border-color: #4285f4; color: white; display:flex; align-items:center; justify-content:center; font-weight:500; transition: all 0.3s ease; border-radius: 8px; padding: 12px 16px; }
+.btn-google:hover { background-color: #3367d6; border-color: #3367d6; color: white; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3); }
+.btn-google:focus { background-color: #3367d6; border-color: #3367d6; color: white; box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25); }
+.btn-google:active { background-color: #2d5aa0; border-color: #2d5aa0; color: white; }
+.btn-google .fab { font-size: 18px; margin-right: 8px; }
 
 /* Alternative Google button with white background */
-.btn-google-white {
-    background-color: white;
-    border: 2px solid #dadce0;
-    color: #3c4043;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    padding: 12px 16px;
-}
-
-.btn-google-white:hover {
-    background-color: #f8f9fa;
-    border-color: #dadce0;
-    color: #3c4043;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.btn-google-white:focus {
-    background-color: #f8f9fa;
-    border-color: #4285f4;
-    color: #3c4043;
-    box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25);
-}
-
-.btn-google-white .fab {
-    font-size: 18px;
-    margin-right: 8px;
-    color: #4285f4;
-}
+.btn-google-white { background-color: white; border: 2px solid #dadce0; color: #3c4043; display:flex; align-items:center; justify-content:center; font-weight:500; transition: all 0.3s ease; border-radius: 8px; padding: 12px 16px; }
+.btn-google-white:hover { background-color: #f8f9fa; border-color: #dadce0; color: #3c4043; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+.btn-google-white:focus { background-color: #f8f9fa; border-color: #4285f4; color: #3c4043; box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25); }
+.btn-google-white .fab { font-size: 18px; margin-right: 8px; color: #4285f4; }

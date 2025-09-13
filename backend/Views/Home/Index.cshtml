@@ -3,106 +3,238 @@
 }
 
 <style>
+    body, html {
+        margin: 0;
+        padding: 0;
+    }
+    
     .hero-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
         color: white;
-        padding: 80px 0;
-        text-align: center;
-        margin-bottom: 50px;
+        padding: 0;
+        text-align: left;
+        margin: 0;
+        background: url('@Url.Content("~/images/hero-bg.png")') center/cover no-repeat;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+    }
+    .hero-section:before{
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.6) 100%);
+    }
+    .hero-section > .container{ 
+        position: relative; 
+        z-index: 1; 
+        margin: 0 auto;
+        padding: 0 15px;
     }
     
     .hero-section h1 {
-        font-size: 3.5rem;
-        font-weight: 300;
-        margin-bottom: 20px;
+        font-size: 4rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 24px;
+        line-height: 1.1;
     }
     
     .hero-section p {
-        font-size: 1.3rem;
-        margin-bottom: 30px;
+        font-size: 1.25rem;
+        margin-bottom: 40px;
         opacity: 0.9;
-    }
-    
-    .search-container {
-        max-width: 600px;
-        margin: 0 auto;
-        position: relative;
-    }
-    
-    .search-input {
-        width: 100%;
-        padding: 15px 60px 15px 20px;
-        border: none;
-        border-radius: 50px;
-        font-size: 1.1rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-    
-    .search-btn {
-        position: absolute;
-        right: 5px;
-        top: 5px;
-        bottom: 5px;
-        background: #ff6b6b;
-        border: none;
-        border-radius: 50px;
-        padding: 0 25px;
-        color: white;
-        font-weight: 500;
-        transition: background 0.3s ease;
-    }
-    
-    .search-btn:hover {
-        background: #ff5252;
-    }
-    
-    .features-section {
-        padding: 50px 0;
-        background: #f8f9fa;
-    }
-    
-    .feature-card {
-        background: white;
-        padding: 40px 30px;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        margin-bottom: 30px;
-        height: 100%;
-    }
-    
-    .feature-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    }
-    
-    .feature-icon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 20px;
-        font-size: 2rem;
-        color: white;
-    }
-    
-    .feature-card h3 {
-        color: #333;
-        margin-bottom: 15px;
-        font-size: 1.5rem;
-    }
-    
-    .feature-card p {
-        color: #666;
+        font-weight: 400;
         line-height: 1.6;
     }
     
+    .search-container {
+        max-width: 100%;
+        margin: 0;
+        position: relative;
+    }
+    
+    .search-wrap {
+        background: #fff;
+        border-radius: 16px;
+        padding: 12px;
+        display: grid;
+        grid-template-columns: 180px 1fr 60px;
+        gap: 12px;
+        box-shadow: 0 20px 50px rgba(0,0,0,.15);
+        align-items: center;
+        max-width: 600px;
+    }
+    .search-select{ 
+        border: 1px solid #e5e7eb; 
+        border-radius: 12px; 
+        padding: 16px 20px; 
+        font-weight: 500; 
+        font-size: 1rem;
+        background: #fff;
+    }
+    .search-input {
+        width: 100%;
+        padding: 16px 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        background: #fff;
+    }
+    
+    .search-btn {
+        background: #10B981;
+        border: none;
+        border-radius: 12px;
+        padding: 16px 20px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .search-btn:hover { 
+        background: #059669; 
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+
+    .highlight-badge { 
+        background: #10B981; 
+        color: #fff; 
+        padding: 8px 16px; 
+        border-radius: 8px; 
+        font-weight: 600; 
+        display: inline-block;
+        margin-left: 8px;
+    }
+
+    .category-chips { 
+        display:flex; 
+        gap:12px; 
+        flex-wrap:wrap; 
+        justify-content:flex-start; 
+        margin-top:32px; 
+    }
+    .category-chip { 
+        background: rgba(255,255,255,0.1); 
+        color: #fff; 
+        border: 1px solid rgba(255,255,255,0.2); 
+        padding: 12px 20px; 
+        border-radius: 50px; 
+        font-size: 0.95rem; 
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    .category-chip:hover{ 
+        background: rgba(255,255,255,0.2); 
+        color: #fff; 
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    /* Action buttons styling */
+    .action-buttons {
+        margin-top: 48px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    .action-btn {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 24px 20px;
+        text-decoration: none;
+        color: #1f2937;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .action-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        color: #1f2937;
+        text-decoration: none;
+    }
+    .action-btn i {
+        font-size: 1.25rem;
+        color: #10B981;
+    }
+
+    /* Staggered reveal for cards */
+    .section-stagger .stagger-item { opacity: 0; transform: translateY(14px); }
+    .section-stagger.revealed .stagger-item { animation: sc-fade-up .6s ease forwards; }
+    .section-stagger.revealed .stagger-item:nth-child(1) { animation-delay: .05s; }
+    .section-stagger.revealed .stagger-item:nth-child(2) { animation-delay: .15s; }
+    .section-stagger.revealed .stagger-item:nth-child(3) { animation-delay: .25s; }
+    .section-stagger.revealed .stagger-item:nth-child(4) { animation-delay: .35s; }
+    
+    .features-section {
+        padding: 80px 0;
+        background: #f8fafc;
+    }
+    
+    .feature-card {
+        background: #fff;
+        padding: 48px 32px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+        height: 100%;
+        border: 1px solid #f1f5f9;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+        border-color: #e2e8f0;
+    }
+    
+    .feature-icon {
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        font-size: 1.75rem;
+        color: white;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+    }
+    
+    .feature-card h3 {
+        color: #1f2937;
+        margin-bottom: 16px;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .feature-card p {
+        color: #6b7280;
+        line-height: 1.6;
+        font-size: 1rem;
+    }
+    
     .services-section {
-        padding: 50px 0;
+        padding: 80px 0;
+        background: #fff;
     }
     
     .section-title {
@@ -111,46 +243,50 @@
     }
     
     .section-title h2 {
-        font-size: 2.5rem;
-        color: #333;
-        margin-bottom: 15px;
+        font-size: 2.75rem;
+        color: #1f2937;
+        margin-bottom: 16px;
+        font-weight: 700;
     }
     
     .section-title p {
-        font-size: 1.2rem;
-        color: #666;
+        font-size: 1.25rem;
+        color: #6b7280;
+        font-weight: 400;
     }
     
     .service-category {
-        background: white;
-        border-radius: 15px;
-        padding: 30px;
+        background: #fff;
+        border-radius: 20px;
+        padding: 40px 32px;
         text-align: center;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
         margin-bottom: 30px;
         cursor: pointer;
+        border: 1px solid #f1f5f9;
     }
     
     .service-category:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+        border-color: #e2e8f0;
     }
     
     .service-category.home-services {
-        border-top: 4px solid #4CAF50;
+        border-top: 4px solid #10B981;
     }
     
     .service-category.tech-services {
-        border-top: 4px solid #2196F3;
+        border-top: 4px solid #3B82F6;
     }
     
     .service-category.beauty-services {
-        border-top: 4px solid #E91E63;
+        border-top: 4px solid #EC4899;
     }
     
     .service-category.business-services {
-        border-top: 4px solid #FF9800;
+        border-top: 4px solid #F59E0B;
     }
     
     .service-icon {
@@ -159,58 +295,62 @@
     }
     
     .service-category.home-services .service-icon {
-        color: #4CAF50;
+        color: #10B981;
     }
     
     .service-category.tech-services .service-icon {
-        color: #2196F3;
+        color: #3B82F6;
     }
     
     .service-category.beauty-services .service-icon {
-        color: #E91E63;
+        color: #EC4899;
     }
     
     .service-category.business-services .service-icon {
-        color: #FF9800;
+        color: #F59E0B;
     }
     
     .service-category h4 {
-        color: #333;
-        margin-bottom: 10px;
-        font-size: 1.3rem;
+        color: #1f2937;
+        margin-bottom: 12px;
+        font-size: 1.375rem;
+        font-weight: 600;
     }
     
     .service-category p {
-        color: #666;
-        margin-bottom: 15px;
+        color: #6b7280;
+        margin-bottom: 20px;
+        font-size: 1rem;
     }
     
     .service-count {
-        background: #f8f9fa;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        color: #666;
+        background: #f1f5f9;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        color: #64748b;
         display: inline-block;
+        font-weight: 500;
     }
     
     .cta-section {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         color: white;
         padding: 80px 0;
         text-align: center;
     }
     
     .cta-section h2 {
-        font-size: 2.5rem;
+        font-size: 2.75rem;
         margin-bottom: 20px;
-        font-weight: 300;
+        font-weight: 700;
     }
     
     .cta-section p {
-        font-size: 1.2rem;
-        margin-bottom: 30px;
+        font-size: 1.25rem;
+        margin-bottom: 40px;
         opacity: 0.9;
+        font-weight: 400;
     }
     
     .cta-buttons {
@@ -221,27 +361,31 @@
     }
     
     .cta-btn {
-        padding: 15px 30px;
-        border: 2px solid white;
-        border-radius: 50px;
-        color: white;
+        padding: 16px 32px;
+        border: 2px solid #10B981;
+        border-radius: 12px;
+        color: #10B981;
+        background: transparent;
         text-decoration: none;
-        font-weight: 500;
+        font-weight: 600;
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        font-size: 1rem;
     }
     
     .cta-btn:hover {
-        background: white;
-        color: #ff6b6b;
+        background: #10B981;
+        color: white;
         text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
     }
     
     .stats-section {
-        padding: 50px 0;
-        background: #f8f9fa;
+        padding: 80px 0;
+        background: #f8fafc;
     }
     
     .stat-item {
@@ -250,17 +394,18 @@
     }
     
     .stat-number {
-        font-size: 3rem;
-        font-weight: bold;
-        color: #667eea;
-        margin-bottom: 10px;
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: #10B981;
+        margin-bottom: 12px;
     }
     
     .stat-label {
-        color: #666;
-        font-size: 1.1rem;
+        color: #6b7280;
+        font-size: 1.125rem;
         text-transform: uppercase;
         letter-spacing: 1px;
+        font-weight: 500;
     }
     
     @@media (max-width: 768px) {
@@ -272,9 +417,23 @@
             font-size: 1.1rem;
         }
         
-        .search-input {
-            font-size: 1rem;
-            padding: 12px 50px 12px 15px;
+        .search-wrap {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .search-select, .search-input, .search-btn {
+            padding: 14px 16px;
+        }
+        
+        .category-chips {
+            justify-content: center;
+            margin-top: 24px;
+        }
+        
+        .action-buttons {
+            grid-template-columns: 1fr;
+            margin-top: 32px;
         }
         
         .cta-buttons {
@@ -291,38 +450,76 @@
 <!-- Hero Section -->
 <div class="hero-section">
     <div class="container">
-        <h1>Find the Perfect Service</h1>
-        <p>Connect with trusted service providers and vendors in your area</p>
-        
-        <div class="container mt-4">
-            <div class="row g-3">
-                <div class="col-md-6 col-lg-3">
-                    <a href="/Services/Browse" class="btn btn-light w-100 py-3">
-                        <i class="fas fa-calendar-check me-2"></i> Book Service
-                    </a>
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <p class="mb-3 text-white-50">Order any service, anytime from anywhere</p>
+                <h1 class="text-white mb-4">Find the Perfect <span class="highlight-badge">Service</span> for Your Needs</h1>
+                <p class="text-white-50 mb-5">Connect with trusted service providers and vendors in your area. Get quality services delivered right to your doorstep.</p>
+
+                <div class="search-container">
+                    <div class="search-wrap">
+                        <select class="form-select search-select" id="searchLocation">
+                            <option selected>New York</option>
+                            <option>Los Angeles</option>
+                            <option>Chicago</option>
+                            <option>Mumbai</option>
+                        </select>
+                        <input class="search-input" id="searchInput" placeholder="What are you looking for?" />
+                        <button class="search-btn" id="searchBtn"><i class="bi bi-search"></i></button>
+                    </div>
                 </div>
-                <div class="col-md-6 col-lg-3">
-                    <a href="/LocalDirectory/Discover" class="btn btn-light w-100 py-3">
-                        <i class="fas fa-search-location me-2"></i> Search Local Service
-                    </a>
+
+                <div class="category-chips">
+                    <a href="/Services/Browse?q=Plumber" class="category-chip">Plumber</a>
+                    <a href="/Services/Browse?q=Electrician" class="category-chip">Electrician</a>
+                    <a href="/Services/Browse?q=Cleaner" class="category-chip">Cleaner</a>
+                    <a href="/Services/Browse?q=Painting" class="category-chip">Painting</a>
+                    <a href="/Services/Browse?q=Salon" class="category-chip">Salon</a>
+                    <a href="/Services/Browse" class="category-chip">+ More</a>
                 </div>
-                <div class="col-md-6 col-lg-3">
+            </div>
+            <div class="col-lg-6">
+                <div class="action-buttons">
+                    <a href="/Services/Browse" class="action-btn">
+                        <i class="fas fa-calendar-check"></i>
+                        <div>
+                            <div class="fw-bold">Book Service</div>
+                            <small class="text-muted">Schedule appointments</small>
+                        </div>
+                    </a>
+                    <a href="/LocalDirectory/Discover" class="action-btn">
+                        <i class="fas fa-search-location"></i>
+                        <div>
+                            <div class="fw-bold">Search Local Service</div>
+                            <small class="text-muted">Find nearby providers</small>
+                        </div>
+                    </a>
                     @if (User.Identity?.IsAuthenticated ?? false)
                     {
-                        <a href="/Home/Items?role=Vendor" class="btn btn-light w-100 py-3">
-                            <i class="fas fa-store me-2"></i> Vendor Items
+                        <a href="/Home/Items?role=Vendor" class="action-btn">
+                            <i class="fas fa-store"></i>
+                            <div>
+                                <div class="fw-bold">Vendor Items</div>
+                                <small class="text-muted">Browse products</small>
+                            </div>
                         </a>
                     }
                     else
                     {
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Home/Items?role=Vendor" class="btn btn-light w-100 py-3">
-                            <i class="fas fa-store me-2"></i> Vendor Items
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Home/Items?role=Vendor" class="action-btn">
+                            <i class="fas fa-store"></i>
+                            <div>
+                                <div class="fw-bold">Vendor Items</div>
+                                <small class="text-muted">Browse products</small>
+                            </div>
                         </a>
                     }
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <a href="#" class="btn btn-light w-100 py-3" onclick="alert('Subscriptions coming soon');return false;">
-                        <i class="fas fa-sync-alt me-2"></i> Daily Essentials
+                    <a href="#" class="action-btn" onclick="alert('Subscriptions coming soon');return false;">
+                        <i class="fas fa-sync-alt"></i>
+                        <div>
+                            <div class="fw-bold">Daily Essentials</div>
+                            <small class="text-muted">Regular deliveries</small>
+                        </div>
                     </a>
                 </div>
             </div>
@@ -341,11 +538,11 @@
 </script>
 
 <!-- Features Section -->
-<div class="features-section">
+<div class="features-section reveal section-stagger">
     <div class="container">
         <div class="row">
-            <div class="col-md-4">
-                <div class="feature-card">
+            <div class="col-md-4 stagger-item">
+                <div class="feature-card card-hover">
                     <div class="feature-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
@@ -354,8 +551,8 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="feature-card">
+            <div class="col-md-4 stagger-item">
+                <div class="feature-card card-hover">
                     <div class="feature-icon">
                         <i class="fas fa-clock"></i>
                     </div>
@@ -364,8 +561,8 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="feature-card">
+            <div class="col-md-4 stagger-item">
+                <div class="feature-card card-hover">
                     <div class="feature-icon">
                         <i class="fas fa-dollar-sign"></i>
                     </div>
@@ -378,7 +575,7 @@
 </div>
 
 <!-- Services Section -->
-<div class="services-section">
+<div class="services-section reveal section-stagger">
     <div class="container">
         <div class="section-title">
             <h2>Popular Service Categories</h2>
@@ -386,8 +583,8 @@
         </div>
         
         <div class="row">
-            <div class="col-md-6 col-lg-3">
-                <div class="service-category home-services">
+            <div class="col-md-6 col-lg-3 stagger-item">
+                <div class="service-category home-services card-hover">
                     <div class="service-icon">
                         <i class="fas fa-home"></i>
                     </div>
@@ -397,8 +594,8 @@
                 </div>
             </div>
             
-            <div class="col-md-6 col-lg-3">
-                <div class="service-category tech-services">
+            <div class="col-md-6 col-lg-3 stagger-item">
+                <div class="service-category tech-services card-hover">
                     <div class="service-icon">
                         <i class="fas fa-laptop"></i>
                     </div>
@@ -408,8 +605,8 @@
                 </div>
             </div>
             
-            <div class="col-md-6 col-lg-3">
-                <div class="service-category beauty-services">
+            <div class="col-md-6 col-lg-3 stagger-item">
+                <div class="service-category beauty-services card-hover">
                     <div class="service-icon">
                         <i class="fas fa-cut"></i>
                     </div>
@@ -419,8 +616,8 @@
                 </div>
             </div>
             
-            <div class="col-md-6 col-lg-3">
-                <div class="service-category business-services">
+            <div class="col-md-6 col-lg-3 stagger-item">
+                <div class="service-category business-services card-hover">
                     <div class="service-icon">
                         <i class="fas fa-briefcase"></i>
                     </div>
@@ -434,7 +631,7 @@
 </div>
 
 <!-- Stats Section -->
-<div class="stats-section">
+<div class="stats-section reveal">
     <div class="container">
         <div class="row">
             <div class="col-md-3 col-sm-6">
@@ -555,24 +752,32 @@
             });
         }, observerOptions);
         
-        const statsSection = document.querySelector('.stats-section');
-        if (statsSection) {
-            observer.observe(statsSection);
-        }
+        const revealSections = document.querySelectorAll('.reveal');
+        revealSections.forEach(sec => {
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add('revealed');
+                        obs.unobserve(e.target);
+                    }
+                });
+            }, {threshold: 0.15});
+            obs.observe(sec);
+        });
         
-        // Search functionality
-        const searchInput = document.querySelector('.search-input');
-        const searchBtn = document.querySelector('.search-btn');
+        // Search functionality - route to Browse like the reference
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
         
         searchBtn.addEventListener('click', function() {
             const query = searchInput.value.trim();
             if (query) {
-                // Implement search functionality here
-                alert('Searching for: ' + query);
+                sessionStorage.setItem('browse_q', query);
+                window.location.href = '/Services/Browse';
             }
         });
         
-        searchInput.addEventListener('keypress', function(e) {
+        searchInput?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 searchBtn.click();
             }

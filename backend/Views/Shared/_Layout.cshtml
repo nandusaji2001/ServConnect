@@ -13,12 +13,14 @@
     <link rel="stylesheet" href="~/ServConnect.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/site.css" />
+
 </head>
 <body class="d-flex flex-column min-vh-100">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark mb-3" style="background: linear-gradient(135deg,#667eea,#764ba2);">
+        <nav class="navbar app-navbar navbar-expand-sm navbar-toggleable-sm navbar-dark mb-3">
             <div class="container">
-                <a class="navbar-brand text-white" asp-area="" asp-controller="Home" asp-action="Index">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-diagram-3-fill"></i> ServConnect
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -28,26 +30,26 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-white" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link text-white" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
 
                         @if (User.Identity.IsAuthenticated)
                         {
                             <!-- Minimal navbar: move feature links to dashboards -->
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-controller="Services" asp-action="Browse"><i class="bi bi-compass"></i> Explore</a>
+                                <a class="nav-link" asp-controller="Services" asp-action="Browse"><i class="bi bi-compass"></i> Explore</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-controller="Account" asp-action="Profile"><i class="bi bi-person-circle"></i> Profile</a>
+                                <a class="nav-link" asp-controller="Account" asp-action="Profile"><i class="bi bi-person-circle"></i> Profile</a>
                             </li>
                             @if (User.IsInRole(RoleTypes.Admin))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                                    <a class="nav-link" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
                                 </li>
                             }
                         }
@@ -57,34 +59,14 @@
             </div>
         </nav>
     </header>
-    @await Component.InvokeAsync("AdvertisementBanner")
     <div class="container flex-fill">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="mt-auto">
-        <div class="py-4" style="background: linear-gradient(135deg,#667eea,#764ba2); color:#fff;">
-            <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-diagram-3-fill fs-4"></i>
-                    <div>
-                        <div class="fw-semibold">ServConnect</div>
-                        <small class="opacity-75">Connecting users with trusted providers and vendors</small>
-                    </div>
-                </div>
-                <div class="d-flex gap-3">
-                    <a class="text-white text-decoration-none" asp-controller="Home" asp-action="Items"><i class="bi bi-bag"></i> Marketplace</a>
-                    <a class="text-white text-decoration-none" asp-controller="Home" asp-action="Privacy"><i class="bi bi-shield-lock"></i> Privacy</a>
-                    <a class="text-white text-decoration-none" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> Profile</a>
-                </div>
-                <div class="text-end">
-                    <small class="opacity-75">&copy; @DateTime.Now.Year • ServConnect</small>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @await Component.InvokeAsync("AdvertisementBanner")
+
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

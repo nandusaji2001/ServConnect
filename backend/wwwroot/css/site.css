@@ -1,6 +1,14 @@
 html {
   font-size: 14px;
 }
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  height: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
 
 @media (min-width: 768px) {
   html {
@@ -19,4 +27,138 @@ html {
 
 body {
   margin-bottom: 60px;
+}
+
+/* ---- ServConnect Pro UI Enhancements ---- */
+:root {
+  --sc-primary: #111827; /* near-black */
+  --sc-primary-2: #374151; /* gray-700 */
+  --sc-accent: #10B981; /* green */
+  --sc-accent-2: #4F46E5; /* indigo alternative */
+  --sc-surface: #ffffff;
+  --sc-surface-2: #f3f4f6; /* light gray background */
+  --sc-muted: #6b7280; /* gray-500 */
+  --sc-text: #111827; /* black headings */
+}
+
+/* Modern gradient navbar */
+.app-navbar {
+  background: linear-gradient(135deg, var(--sc-primary) 0%, var(--sc-primary-2) 100%);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+.app-navbar .navbar-brand {
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+.app-navbar .nav-link {
+  color: rgba(255,255,255,.9) !important;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.app-navbar .nav-link:hover {
+  transform: translateY(-1px);
+  opacity: 1;
+}
+
+/* Card hover utility */
+.card-hover {
+  transition: transform .3s ease, box-shadow .3s ease;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+  border-radius: 16px;
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0,0,0,.10);
+}
+
+/* Soft reveal animation */
+@keyframes sc-fade-up {
+  from {opacity: 0; transform: translateY(14px)}
+  to {opacity: 1; transform: translateY(0)}
+}
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+}
+.reveal.revealed {
+  animation: sc-fade-up .6s ease forwards;
+}
+
+/* CTA buttons */
+.cta-btn {
+  backdrop-filter: saturate(140%) blur(2px);
+}
+
+/* Google button style for Login */
+.btn-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #fff;
+  color: #1f1f1f;
+  border: 1px solid #e6e6e6;
+  padding: .65rem 1rem;
+  border-radius: .5rem;
+  transition: box-shadow .2s ease, transform .06s ease;
+}
+.btn-google i {
+  color: #EA4335;
+}
+.btn-google:hover {
+  box-shadow: 0 10px 18px rgba(0,0,0,.06);
+}
+.btn-google:active {
+  transform: translateY(1px);
+}
+
+/* Neutral account surfaces */
+.neutral-login .account-box {
+  box-shadow: 0 20px 50px rgba(0,0,0,.08);
+  border-radius: 16px;
+}
+
+/* Containers */
+main.pb-3 {
+  padding-bottom: 2.5rem !important;
+}
+
+/* --- Minimalist theme helpers --- */
+.bg-surface { background: var(--sc-surface); }
+.bg-surface-2 { background: var(--sc-surface-2); }
+.text-heading { color: var(--sc-text); }
+.text-muted-700 { color: var(--sc-muted); }
+.btn-accent { background: var(--sc-accent); color:#fff; border:none; }
+.btn-accent:hover { background:#0ea371; color:#fff; }
+.btn-indigo { background: var(--sc-accent-2); color:#fff; border:none; }
+.btn-indigo:hover { background:#4338ca; color:#fff; }
+.chip { padding:6px 12px; border-radius:999px; border:1px solid #e5e7eb; color:#111827; background:#fff; transition: all .2s ease; }
+.chip:hover { box-shadow: 0 8px 18px rgba(0,0,0,.06); transform: translateY(-1px); }
+
+/* Buttons general hover depth */
+.btn { transition: box-shadow .2s ease, transform .06s ease; }
+.btn:hover { box-shadow: 0 10px 20px rgba(0,0,0,.08); }
+.btn:active { transform: translateY(1px); }
+
+/* ---- Account Form Styles ---- */
+.account-box-wrapper {
+  position: relative;
+  z-index: 2;
+  height: 100%;        /* Fill container */
+  overflow-y: auto;    /* Scroll only when content exceeds */
+  padding: 2rem 10px;  /* Add padding so form doesn’t stick to top */
+  display: flex;
+  justify-content: flex-start; /* Left align */
+}
+
+.account-box {
+  background: rgba(240, 253, 244, 0.95);
+  padding: 30px 40px;    /* Slightly smaller padding */
+  border-radius: 20px;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 560px !important;       /* Unified width */
+  margin-left: 5%;        /* Align left */
+  flex-shrink: 0;         /* Prevent shrinking */
+  backdrop-filter: blur(10px);
 }
