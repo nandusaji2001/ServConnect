@@ -13,7 +13,7 @@ namespace ServConnect.Services
         Task<List<ServiceDefinition>> GetAllCustomAsync();
 
         // Provider links
-        Task<ProviderService> LinkProviderAsync(Guid providerId, string serviceName);
+        Task<ProviderService> LinkProviderAsync(Guid providerId, string serviceName, string description = "", decimal price = 0, string priceUnit = "per service", string currency = "USD", List<string> availableDays = null, string availableHours = "9:00 AM - 6:00 PM");
         Task<List<ProviderService>> GetProviderLinksBySlugAsync(string slug);
         Task<List<ProviderService>> GetProviderLinksByProviderAsync(Guid providerId);
         Task<bool> UnlinkAsync(string linkId, Guid providerId);

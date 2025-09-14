@@ -9,6 +9,7 @@ namespace ServConnect.Services
     {
         private readonly IMongoCollection<ServiceDefinition> _customServices;
         private readonly IMongoCollection<ProviderService> _providerLinks;
+        private readonly IMongoCollection<Users> _users;
         private readonly List<string> _predefined;
 
         public ServiceCatalog(IConfiguration config)
@@ -19,6 +20,7 @@ namespace ServConnect.Services
             var db = client.GetDatabase(dbName);
             _customServices = db.GetCollection<ServiceDefinition>("ServiceDefinitions");
             _providerLinks = db.GetCollection<ProviderService>("ProviderServices");
+            _users = db.GetCollection<Users>("Users");
 
             // Example predefined list; you can move to appsettings later if you want
             _predefined = new List<string>
@@ -67,7 +69,7 @@ namespace ServConnect.Services
                                         .SortBy(x => x.Name).ToListAsync();
         }
 
-        public async Task<ProviderService> LinkProviderAsync(Guid providerId, string serviceName)
+        public async Task<ProviderService> LinkProviderAsync(Guid providerId, string serviceName, string description = "", decimal price = 0, string priceUnit = "per service", string currency = "USD", List<string> availableDays = null, string availableHours = "9:00 AM - 6:00 PM")
         {
             var slug = ToSlug(serviceName);
             // If serviceName is not in predefined, ensure it exists as custom
@@ -75,6 +77,9 @@ namespace ServConnect.Services
             {
                 await EnsureCustomAsync(serviceName, providerId);
             }
+
+            // Get provider details
+            var provider = await _users.Find(x => x.Id == providerId).FirstOrDefaultAsync();
 
             // Upsert-like behavior (avoid duplicate link for same provider+service)
             var existing = await _providerLinks.Find(x => x.ProviderId == providerId && x.ServiceSlug == slug)
@@ -99,6 +104,16 @@ namespace ServConnect.Services
                 ProviderId = providerId,
                 ServiceName = serviceName.Trim(),
                 ServiceSlug = slug,
+                Description = description,
+                Price = price,
+                PriceUnit = priceUnit,
+                Currency = currency,
+                AvailableDays = availableDays ?? new List<string>(),
+                AvailableHours = availableHours,
+                ProviderName = provider?.FullName ?? "Unknown Provider",
+                ProviderEmail = provider?.Email ?? "",
+                ProviderPhone = provider?.PhoneNumber ?? "",
+                ProviderAddress = provider?.Address ?? "",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -109,8 +124,23 @@ namespace ServConnect.Services
 
         public async Task<List<ProviderService>> GetProviderLinksBySlugAsync(string slug)
         {
-            return await _providerLinks.Find(x => x.ServiceSlug == slug && x.IsActive)
-                                       .ToListAsync();
+            var providerServices = await _providerLinks.Find(x => x.ServiceSlug == slug && x.IsActive)
+                                                       .ToListAsync();
+            
+            // Enrich with current user details
+            foreach (var service in providerServices)
+            {
+                var provider = await _users.Find(x => x.Id == service.ProviderId).FirstOrDefaultAsync();
+                if (provider != null)
+                {
+                    service.ProviderName = provider.FullName ?? "Unknown Provider";
+                    service.ProviderEmail = provider.Email ?? "";
+                    service.ProviderPhone = provider.PhoneNumber ?? "";
+                    service.ProviderAddress = provider.Address ?? "";
+                }
+            }
+            
+            return providerServices;
         }
 
         public async Task<List<ProviderService>> GetProviderLinksByProviderAsync(Guid providerId)

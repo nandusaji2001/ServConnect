@@ -2,40 +2,243 @@
 @{
     ViewData["Title"] = $"Providers - {Model.ServiceName}";
 }
+
+<style>
+    .provider-card {
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #f1f5f9;
+        transition: all 0.3s ease;
+    }
+    .provider-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .avatar-circle {
+        width: 60px; 
+        height: 60px; 
+        border-radius: 50%; 
+        display: grid; 
+        place-items: center;
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+    }
+    .price-tag {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    .rating-stars {
+        color: #F59E0B;
+    }
+    .contact-info {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 12px;
+    }
+    .service-description {
+        color: #6b7280;
+        line-height: 1.6;
+    }
+    .availability-badge {
+        background: #10B981;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    .unavailable-badge {
+        background: #ef4444;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+</style>
+
 <div class="container py-4">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-        <h2 class="mb-0">@Model.ServiceName</h2>
-        <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Browse", "Services")">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+        <div>
+            <h2 class="mb-1">@Model.ServiceName</h2>
+            <p class="text-muted mb-0">Find trusted service providers in your area</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="@Url.Action("Browse", "Services")">
             <i class="fas fa-arrow-left me-1"></i> Back to Services
         </a>
     </div>
 
     @if (Model.Providers == null || !Model.Providers.Any())
     {
-        <div class="alert alert-info">No providers available for this service yet.</div>
+        <div class="alert alert-info text-center py-4">
+            <i class="fas fa-info-circle me-2"></i>
+            No providers available for this service yet. Check back later!
+        </div>
     }
     else
     {
-        <div class="row g-3">
+        <div class="row g-4">
             @foreach (var p in Model.Providers)
             {
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-lg-6">
                     <div class="card h-100 provider-card">
-                        <div class="card-body d-flex flex-column gap-2">
-                            <div class="d-flex align-items-start gap-2">
-                                <div class="avatar-circle bg-light text-primary">
+                        <div class="card-body p-4">
+                            <!-- Header with Avatar and Basic Info -->
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <div class="avatar-circle">
                                     <i class="fas fa-user"></i>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <div class="fw-semibold">@(!string.IsNullOrWhiteSpace(p.ServiceName) ? p.ServiceName : Model.ServiceName)</div>
-                                    <div class="text-muted small">ProviderId: @p.ProviderId</div>
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <h5 class="mb-0">@(!string.IsNullOrWhiteSpace(p.ProviderName) ? p.ProviderName : "Service Provider")</h5>
+                                        @if (p.IsAvailable)
+                                        {
+                                            <span class="availability-badge">Available</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="unavailable-badge">Unavailable</span>
+                                        }
+                                    </div>
+                                    <div class="text-muted small mb-2">
+                                        <i class="fas fa-tag me-1"></i>@(!string.IsNullOrWhiteSpace(p.ServiceName) ? p.ServiceName : Model.ServiceName)
+                                    </div>
+                                    @if (p.Rating > 0)
+                                    {
+                                        <div class="d-flex align-items-center gap-1 mb-2">
+                                            <div class="rating-stars">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= Math.Floor(p.Rating))
+                                                    {
+                                                        <i class="fas fa-star"></i>
+                                                    }
+                                                    else if (i - 0.5 <= p.Rating)
+                                                    {
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star"></i>
+                                                    }
+                                                }
+                                            </div>
+                                            <span class="text-muted small">@p.Rating.ToString("F1") (@p.ReviewCount reviews)</span>
+                                        </div>
+                                    }
                                 </div>
                             </div>
-                            <div class="mt-auto d-flex align-items-center justify-content-between">
-                                <div class="price fw-semibold">Price on request</div>
-                                <a class="btn btn-primary btn-sm" href="#" onclick="event.preventDefault(); alert('Booking flow placeholder\\nProvider: @p.ProviderId');">
-                                    Book
-                                </a>
+
+                            <!-- Service Description -->
+                            @if (!string.IsNullOrWhiteSpace(p.Description))
+                            {
+                                <div class="service-description mb-3">
+                                    @p.Description
+                                </div>
+                            }
+
+                            <!-- Contact Information -->
+                            <div class="contact-info mb-3">
+                                <div class="row g-2">
+                                    @if (!string.IsNullOrWhiteSpace(p.ProviderPhone))
+                                    {
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Phone</small>
+                                            <div class="fw-medium">@p.ProviderPhone</div>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(p.ProviderEmail))
+                                    {
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Email</small>
+                                            <div class="fw-medium">@p.ProviderEmail</div>
+                                        </div>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(p.ProviderAddress))
+                                {
+                                    <div class="mt-2">
+                                        <small class="text-muted d-block">Address</small>
+                                        <div class="fw-medium">@p.ProviderAddress</div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Availability -->
+                            @if (p.AvailableDays.Any() || !string.IsNullOrWhiteSpace(p.AvailableHours))
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Availability</small>
+                                    @if (p.AvailableDays.Any())
+                                    {
+                                        <div class="mb-1">
+                                            <span class="badge bg-light text-dark me-1">@string.Join(", ", p.AvailableDays)</span>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(p.AvailableHours))
+                                    {
+                                        <div class="text-muted small">@p.AvailableHours</div>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Price and Action -->
+                            <div class="d-flex align-items-center justify-content-between mt-auto">
+                                <div>
+                                    @if (p.Price > 0)
+                                    {
+                                        <div class="price-tag">
+                                            @p.Currency @p.Price.ToString("F2") @p.PriceUnit
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted">Price on request</div>
+                                    }
+                                </div>
+                                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#bookModal-@p.Id">
+                                    <i class="fas fa-calendar-check me-1"></i> Book Now
+                                </button>
+
+                                <!-- Modal -->
+                                <div class="modal fade" id="bookModal-@p.Id" tabindex="-1" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title">Book @p.ServiceName with @p.ProviderName</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                        <form id="bookForm-@p.Id" onsubmit="return submitBooking('@p.Id', '@p.ProviderId', '@(p.ProviderName ?? "Provider")', '@(p.ServiceName ?? Model.ServiceName)')">
+                                          <div class="mb-3">
+                                            <label class="form-label">Preferred Date & Time</label>
+                                            <input required class="form-control" type="datetime-local" name="serviceDateTime" />
+                                          </div>
+                                          <div class="mb-3">
+                                            <label class="form-label">Phone Number</label>
+                                            <input required class="form-control" type="tel" name="contactPhone" />
+                                          </div>
+                                          <div class="mb-3">
+                                            <label class="form-label">Address</label>
+                                            <textarea required class="form-control" name="address" rows="2"></textarea>
+                                          </div>
+                                          <div class="mb-3">
+                                            <label class="form-label">Note (optional)</label>
+                                            <textarea class="form-control" name="note" rows="2" placeholder="Any additional details"></textarea>
+                                          </div>
+                                          <input type="hidden" name="providerServiceId" value="@p.Id" />
+                                          <button class="btn btn-primary" type="submit">Send Request</button>
+                                        </form>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -45,11 +248,41 @@
     }
 </div>
 
-<style>
-    .avatar-circle {
-        width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
-        box-shadow: inset 0 0 0 1px #e9ecef;
+@section Scripts {
+<script>
+async function submitBooking(providerServiceId, providerId, providerName, serviceName) {
+    const form = document.getElementById(`bookForm-${providerServiceId}`);
+    const dtLocal = form.serviceDateTime.value; // yyyy-MM-ddTHH:mm
+    if (!dtLocal) { alert('Please select date & time'); return false; }
+    const serviceDateTime = new Date(dtLocal);
+    const payload = {
+        providerServiceId: providerServiceId,
+        providerId: providerId,
+        providerName: providerName,
+        serviceName: serviceName,
+        serviceDateTime: serviceDateTime.toISOString(),
+        contactPhone: form.contactPhone.value,
+        address: form.address.value,
+        note: form.note.value
+    };
+
+    const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+        // Close modal and notify
+        const modalEl = document.getElementById(`bookModal-${providerServiceId}`);
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.hide();
+        alert('Booking request sent! You will be notified here when provider responds.');
+    } else {
+        const text = await res.text();
+        alert('Failed to create booking: ' + text);
     }
-    .provider-card { border-radius: 12px; }
-    .price { color: #0d6efd; }
-</style>
+    return false;
+}
+</script>
+}

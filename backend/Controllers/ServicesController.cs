@@ -76,7 +76,7 @@ namespace ServConnect.Controllers
             if (string.IsNullOrWhiteSpace(req.ServiceName)) return BadRequest("Service name required");
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
-            var link = await _catalog.LinkProviderAsync(me.Id, req.ServiceName);
+            var link = await _catalog.LinkProviderAsync(me.Id, req.ServiceName, req.Description, req.Price, req.PriceUnit, req.Currency, req.AvailableDays, req.AvailableHours);
             return Ok(link);
         }
 
@@ -105,6 +105,12 @@ namespace ServConnect.Controllers
         public class LinkRequest
         {
             public string ServiceName { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
+            public decimal Price { get; set; } = 0;
+            public string PriceUnit { get; set; } = "per service";
+            public string Currency { get; set; } = "USD";
+            public List<string> AvailableDays { get; set; } = new();
+            public string AvailableHours { get; set; } = "9:00 AM - 6:00 PM";
         }
     }
 }

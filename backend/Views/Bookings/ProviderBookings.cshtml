@@ -1,0 +1,97 @@
+@model List<ServConnect.Models.Booking>
+@{
+    ViewData["Title"] = "Incoming Bookings";
+}
+<div class="container py-4">
+    <h2 class="mb-3">Incoming Bookings</h2>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">No booking requests yet.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Contact</th>
+                        <th>Address</th>
+                        <th>Service</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@b.UserName</div>
+                                <div class="text-muted small">@b.UserEmail</div>
+                            </td>
+                            <td>@b.ContactPhone</td>
+                            <td>@b.Address</td>
+                            <td>
+                                <div class="fw-semibold">@b.ServiceName</div>
+                                <div class="text-muted small">Req: @b.RequestedAtUtc.ToLocalTime().ToString("g")</div>
+                            </td>
+                            <td>@b.ServiceDateTime.ToLocalTime().ToString("f")</td>
+                            <td>
+                                @switch (b.Status)
+                                {
+                                    case ServConnect.Models.BookingStatus.Pending:
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                        break;
+                                    case ServConnect.Models.BookingStatus.Accepted:
+                                        <span class="badge bg-success">Accepted</span>
+                                        break;
+                                    case ServConnect.Models.BookingStatus.Rejected:
+                                        <span class="badge bg-danger">Rejected</span>
+                                        break;
+                                }
+                                @if (!string.IsNullOrWhiteSpace(b.ProviderMessage))
+                                {
+                                    <div class="small text-muted">"@b.ProviderMessage"</div>
+                                }
+                            </td>
+                            <td>
+                                @if (b.Status == ServConnect.Models.BookingStatus.Pending)
+                                {
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-success" onclick="decide('@b.Id', true)"><i class="fas fa-check me-1"></i>Accept</button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="decide('@b.Id', false)"><i class="fas fa-times me-1"></i>Reject</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">No actions</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+async function decide(bookingId, accept) {
+    const message = prompt(accept ? 'Optional message to user (Accept):' : 'Optional message to user (Reject):') || '';
+    const res = await fetch('/api/bookings/decision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, accept, message })
+    });
+    if (res.ok) {
+        location.reload();
+    } else {
+        alert('Failed to update booking.');
+    }
+}
+</script>
+}

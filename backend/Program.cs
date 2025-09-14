@@ -50,6 +50,8 @@ builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IAdvertisementService, AdvertisementService>();
 // New service catalog for service-provider linking
 builder.Services.AddScoped<IServiceCatalog, ServiceCatalog>();
+// Booking service
+builder.Services.AddScoped<IBookingService, BookingService>();
 // Local directory for public services (hospitals, police, petrol, etc.)
 builder.Services.AddScoped<ILocalDirectory, LocalDirectory>();
 builder.Services.AddMemoryCache();

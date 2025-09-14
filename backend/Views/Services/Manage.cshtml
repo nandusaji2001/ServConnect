@@ -28,29 +28,118 @@
 
 <!-- Link Modal -->
 <div class="modal fade" id="linkModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Add Service</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Choose Category</label>
-                    <select class="form-select" id="serviceSelect" onchange="toggleOther()">
-                        <option value="" selected disabled>-- Select --</option>
-                        <!-- Options will be loaded dynamically from /api/services/all to match Browse -->
-                        <option value="__other__">Other</option>
-                    </select>
-                </div>
-                <div class="mb-3" id="otherWrap" style="display:none;">
-                    <label class="form-label">Enter Category Name</label>
-                    <input class="form-control" id="otherName" placeholder="e.g., AC Repair">
-                </div>
+                <form id="serviceForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Service Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="serviceSelect" onchange="toggleOther()" required>
+                                    <option value="" selected disabled>-- Select --</option>
+                                    <!-- Options will be loaded dynamically from /api/services/all to match Browse -->
+                                    <option value="__other__">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3" id="otherWrap" style="display:none;">
+                                <label class="form-label">Enter Category Name <span class="text-danger">*</span></label>
+                                <input class="form-control" id="otherName" placeholder="e.g., AC Repair">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Service Description</label>
+                        <textarea class="form-control" id="description" rows="3" placeholder="Describe your service, experience, and what makes you unique..."></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Price</label>
+                                <input type="number" class="form-control" id="price" min="0" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Price Unit</label>
+                                <select class="form-select" id="priceUnit">
+                                    <option value="per service">Per Service</option>
+                                    <option value="per hour">Per Hour</option>
+                                    <option value="per day">Per Day</option>
+                                    <option value="per job">Per Job</option>
+                                    <option value="per square foot">Per Square Foot</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Currency</label>
+                                <select class="form-select" id="currency">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="INR">INR (₹)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Available Days</label>
+                                <div class="form-check-group">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="monday" value="Monday">
+                                        <label class="form-check-label" for="monday">Monday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="tuesday" value="Tuesday">
+                                        <label class="form-check-label" for="tuesday">Tuesday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="wednesday" value="Wednesday">
+                                        <label class="form-check-label" for="wednesday">Wednesday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="thursday" value="Thursday">
+                                        <label class="form-check-label" for="thursday">Thursday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="friday" value="Friday">
+                                        <label class="form-check-label" for="friday">Friday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="saturday" value="Saturday">
+                                        <label class="form-check-label" for="saturday">Saturday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sunday" value="Sunday">
+                                        <label class="form-check-label" for="sunday">Sunday</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Available Hours</label>
+                                <input type="text" class="form-control" id="availableHours" placeholder="e.g., 9:00 AM - 6:00 PM" value="9:00 AM - 6:00 PM">
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveLink()">Save</button>
+                <button type="button" class="btn btn-primary" onclick="saveLink()">Save Service</button>
             </div>
         </div>
     </div>
@@ -90,6 +179,16 @@
     function openLink(){
         document.getElementById('serviceSelect').value = '';
         document.getElementById('otherName').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('price').value = '';
+        document.getElementById('priceUnit').value = 'per service';
+        document.getElementById('currency').value = 'USD';
+        document.getElementById('availableHours').value = '9:00 AM - 6:00 PM';
+        
+        // Clear all day checkboxes
+        const dayCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="monday"], input[type="checkbox"][id^="tuesday"], input[type="checkbox"][id^="wednesday"], input[type="checkbox"][id^="thursday"], input[type="checkbox"][id^="friday"], input[type="checkbox"][id^="saturday"], input[type="checkbox"][id^="sunday"]');
+        dayCheckboxes.forEach(cb => cb.checked = false);
+        
         toggleOther();
         // refresh categories when opening modal
         loadCategories();
@@ -108,9 +207,28 @@
             ul.innerHTML = '';
             links.forEach(l => {
                 const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                li.innerHTML = `<span>${l.serviceName} ${l.isActive ? '' : '<span class=\'badge bg-secondary ms-2\'>Inactive</span>'}</span>
-                    <button class="btn btn-sm btn-outline-danger" onclick="unlink('${l.id}')"><i class="fas fa-unlink"></i> Unlink</button>`;
+                li.className = 'list-group-item';
+                
+                const priceText = l.price > 0 ? `${l.currency} ${l.price} ${l.priceUnit}` : 'Price on request';
+                const ratingText = l.rating > 0 ? `⭐ ${l.rating.toFixed(1)} (${l.reviewCount} reviews)` : '';
+                const availabilityText = l.isAvailable ? '<span class="badge bg-success">Available</span>' : '<span class="badge bg-secondary">Unavailable</span>';
+                
+                li.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">${l.serviceName} ${l.isActive ? '' : '<span class="badge bg-secondary ms-2">Inactive</span>'}</h6>
+                            ${l.description ? `<p class="text-muted small mb-2">${l.description}</p>` : ''}
+                            <div class="d-flex align-items-center gap-3">
+                                <small class="text-primary fw-medium">${priceText}</small>
+                                ${ratingText ? `<small class="text-warning">${ratingText}</small>` : ''}
+                                ${availabilityText}
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger" onclick="unlink('${l.id}')">
+                            <i class="fas fa-unlink"></i> Unlink
+                        </button>
+                    </div>
+                `;
                 ul.appendChild(li);
             });
         }catch{ ul.innerHTML = '<li class="list-group-item text-danger">Failed to load.</li>'; }
@@ -120,10 +238,29 @@
         const sel = document.getElementById('serviceSelect').value;
         const name = sel === '__other__' ? document.getElementById('otherName').value.trim() : sel;
         if(!name){ alert('Please select or enter a category name.'); return; }
+        
+        // Get selected days
+        const selectedDays = [];
+        const dayCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="monday"], input[type="checkbox"][id^="tuesday"], input[type="checkbox"][id^="wednesday"], input[type="checkbox"][id^="thursday"], input[type="checkbox"][id^="friday"], input[type="checkbox"][id^="saturday"], input[type="checkbox"][id^="sunday"]');
+        dayCheckboxes.forEach(cb => {
+            if(cb.checked) selectedDays.push(cb.value);
+        });
+        
+        const payload = {
+            serviceName: name,
+            description: document.getElementById('description').value.trim(),
+            price: parseFloat(document.getElementById('price').value) || 0,
+            priceUnit: document.getElementById('priceUnit').value,
+            currency: document.getElementById('currency').value,
+            availableDays: selectedDays,
+            availableHours: document.getElementById('availableHours').value.trim()
+        };
+        
         try{
             const res = await fetch('/api/services/link', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ serviceName: name })
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
             if(!res.ok) throw new Error();
             bootstrap.Modal.getInstance(document.getElementById('linkModal'))?.hide();

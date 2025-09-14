@@ -361,7 +361,7 @@
             <span>Add Service</span>
         </a>
         
-        <a href="#" class="quick-action-btn">
+        <a href="/provider/bookings" class="quick-action-btn">
             <i class="fas fa-calendar-alt"></i>
             <span>View Bookings</span>
         </a>
@@ -478,6 +478,36 @@
                 </div>
             </div>
 
+            <!-- Analytics: Completed Services -->
+            <div class="sidebar-card">
+                <h4 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Analytics: Completed Services
+                </h4>
+                @{ var completedRecent = ViewBag.CompletedRecent as IEnumerable<dynamic>; }
+                @if (completedRecent == null || !completedRecent.Any())
+                {
+                    <div class="text-muted">No completed services yet.</div>
+                }
+                else
+                {
+                    <div>
+                        @foreach (var c in completedRecent)
+                        {
+                            <div class="booking-item" style="padding:10px 0;">
+                                <div class="booking-info">
+                                    <h4 style="margin:0 0 4px 0;">@c.ServiceName</h4>
+                                    <p class="mb-0 text-muted">by @c.UserName • @((c.CompletedAtUtc as DateTime?)?.ToLocalTime().ToString("dd MMM, h:mm tt"))</p>
+                                </div>
+                                <div class="text-end" style="min-width:90px;">
+                                    <span class="badge bg-primary">@((c.UserRating != null ? $"{c.UserRating}/5" : "No rating"))</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
             <!-- Quick Stats -->
             <div class="sidebar-card">
                 <h4 class="section-title">
@@ -487,22 +517,22 @@
                 
                 <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                     <span>This Week:</span>
-                    <strong>8 bookings</strong>
+                    <strong>@(ViewBag.BookingsThisWeek ?? 0) bookings</strong>
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                     <span>Response Rate:</span>
-                    <strong style="color: #4CAF50;">98%</strong>
+                    <strong style="color: #4CAF50;">@((ViewBag.ResponseRatePercent ?? 0.0).ToString("0.0"))%</strong>
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                     <span>Completion Rate:</span>
-                    <strong style="color: #4CAF50;">95%</strong>
+                    <strong style="color: #4CAF50;">@((ViewBag.CompletionRatePercent ?? 0.0).ToString("0.0"))%</strong>
                 </div>
                 
                 <div style="display: flex; justify-content: space-between;">
                     <span>Customer Satisfaction:</span>
-                    <strong style="color: #FF9800;">⭐ 4.8/5</strong>
+                    <strong style="color: #FF9800;">⭐ @((ViewBag.AvgRating ?? 0.0).ToString("0.0"))/5</strong>
                 </div>
             </div>
         </div>

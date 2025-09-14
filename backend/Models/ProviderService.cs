@@ -19,6 +19,27 @@ namespace ServConnect.Models
         // Normalized for lookup/matching
         public string ServiceSlug { get; set; } = string.Empty;
 
+        // Service details
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; } = 0;
+        public string PriceUnit { get; set; } = "per service"; // e.g., "per hour", "per job", "per service"
+        public string Currency { get; set; } = "USD";
+
+        // Provider contact information
+        public string ProviderName { get; set; } = string.Empty;
+        public string ProviderEmail { get; set; } = string.Empty;
+        public string ProviderPhone { get; set; } = string.Empty;
+        public string ProviderAddress { get; set; } = string.Empty;
+
+        // Service availability
+        public bool IsAvailable { get; set; } = true;
+        public List<string> AvailableDays { get; set; } = new(); // e.g., ["Monday", "Tuesday", "Wednesday"]
+        public string AvailableHours { get; set; } = "9:00 AM - 6:00 PM";
+
+        // Rating and reviews
+        public double Rating { get; set; } = 0.0;
+        public int ReviewCount { get; set; } = 0;
+
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
