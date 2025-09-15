@@ -48,6 +48,7 @@ builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IAdvertisementService, AdvertisementService>();
+builder.Services.AddScoped<IComplaintService, ComplaintService>();
 // New service catalog for service-provider linking
 builder.Services.AddScoped<IServiceCatalog, ServiceCatalog>();
 // Booking service

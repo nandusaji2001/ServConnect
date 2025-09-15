@@ -43,7 +43,13 @@
                 try {
                     const res = await fetch('/api/admin/users', { credentials: 'same-origin' });
                     if (!res.ok) throw new Error('Failed to load');
-                    const users = await res.json();
+                    let users = await res.json();
+                    // Apply suspended filter from query if present
+                    const url = new URL(window.location.href);
+                    const suspendedParam = url.searchParams.get('suspended');
+                    if (suspendedParam === 'true') {
+                        users = users.filter(u => u.suspended);
+                    }
                     renderUsers(users);
                 } catch (err) {
                     tbody.innerHTML = `<tr><td colspan="4" class="text-danger text-center">Error loading users</td></tr>`;
@@ -64,18 +70,52 @@
                         <td>${u.email || ''}</td>
                         <td>${u.phoneNumber || ''}</td>
                         <td>
-                            <a class="btn btn-sm btn-outline-primary" href="/Admin/UserDetails/${u.id}">
-                                <i class="fas fa-eye"></i> View
+                            ${u.isAdmin ? '' : `
+                            <a class=\"btn btn-sm btn-outline-primary\" href=\"/Admin/UserDetails/${u.id}\">
+                                <i class=\"fas fa-eye\"></i> View
                             </a>
-                            <button class="btn btn-sm btn-outline-danger" data-id="${u.id}">
-                                <i class="fas fa-trash"></i> Delete
+                            <button class=\"btn btn-sm ${u.suspended ? 'btn-success' : 'btn-warning'} btn-toggle-suspend\" data-id=\"${u.id}\" data-suspended=\"${u.suspended}\">
+                                <i class=\"fas ${u.suspended ? 'fa-unlock' : 'fa-user-slash'}\"></i> ${u.suspended ? 'Unsuspend' : 'Suspend'}
                             </button>
+                            <button class=\"btn btn-sm btn-outline-danger\" data-id=\"${u.id}\">
+                                <i class=\"fas fa-trash\"></i> Delete
+                            </button>
+                            `}
                         </td>`;
                     tbody.appendChild(tr);
                 });
 
+                // Wire suspend/unsuspend buttons
+                tbody.querySelectorAll('.btn-toggle-suspend').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const b = e.currentTarget;
+                        const id = b.getAttribute('data-id');
+                        const suspended = b.getAttribute('data-suspended') === 'true';
+                        b.disabled = true;
+                        try {
+                            const res = await fetch(`/api/admin/users/${id}/suspend?suspend=${!suspended}`, {
+                                method: 'POST',
+                                credentials: 'same-origin'
+                            });
+                            if (res.ok) {
+                                // Toggle UI
+                                b.setAttribute('data-suspended', String(!suspended));
+                                b.classList.toggle('btn-warning', suspended);
+                                b.classList.toggle('btn-success', !suspended);
+                                b.innerHTML = `<i class="fas ${suspended ? 'fa-user-slash' : 'fa-unlock'}"></i> ${suspended ? 'Suspend' : 'Unsuspend'}`;
+                            } else {
+                                alert('Failed to update suspension');
+                            }
+                        } catch {
+                            alert('Failed to update suspension');
+                        } finally {
+                            b.disabled = false;
+                        }
+                    });
+                });
+
                 // Wire delete buttons
-                tbody.querySelectorAll('button[data-id]').forEach(btn => {
+                tbody.querySelectorAll('button[data-id]:not(.btn-toggle-suspend)').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const id = e.currentTarget.getAttribute('data-id');
                         if (!confirm('Delete this user? This action cannot be undone.')) return;
@@ -121,7 +161,12 @@
         try {
             const res = await fetch('/api/admin/users', { credentials: 'same-origin' });
             if (!res.ok) throw new Error('Failed to load');
-            const users = await res.json();
+            let users = await res.json();
+            const url = new URL(window.location.href);
+            const suspendedParam = url.searchParams.get('suspended');
+            if (suspendedParam === 'true') {
+                users = users.filter(u => u.suspended);
+            }
             renderUsers(users);
         } catch (err) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-danger text-center">Error loading users</td></tr>`;
@@ -142,15 +187,48 @@
                 <td>${u.email || ''}</td>
                 <td>${u.phoneNumber || ''}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-danger" data-id="${u.id}">
-                        <i class="fas fa-trash"></i> Delete
+                    ${u.isAdmin ? '' : `
+                    <a class=\"btn btn-sm btn-outline-primary\" href=\"/Admin/UserDetails/${u.id}\">
+                        <i class=\"fas fa-eye\"></i> View
+                    </a>
+                    <button class=\"btn btn-sm ${u.suspended ? 'btn-success' : 'btn-warning'} btn-toggle-suspend\" data-id=\"${u.id}\" data-suspended=\"${u.suspended}\">
+                        <i class=\"fas ${u.suspended ? 'fa-unlock' : 'fa-user-slash'}\"></i> ${u.suspended ? 'Unsuspend' : 'Suspend'}
                     </button>
+                    <button class=\"btn btn-sm btn-outline-danger\" data-id=\"${u.id}\">
+                        <i class=\"fas fa-trash\"></i> Delete
+                    </button>
+                    `}
                 </td>`;
             tbody.appendChild(tr);
         });
 
+        // Wire suspend/unsuspend buttons
+        tbody.querySelectorAll('.btn-toggle-suspend').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const b = e.currentTarget;
+                const id = b.getAttribute('data-id');
+                const suspended = b.getAttribute('data-suspended') === 'true';
+                b.disabled = true;
+                try {
+                    const res = await fetch(`/api/admin/users/${id}/suspend?suspend=${!suspended}`, {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    });
+                    if (res.ok) {
+                        b.setAttribute('data-suspended', String(!suspended));
+                        b.classList.toggle('btn-warning', suspended);
+                        b.classList.toggle('btn-success', !suspended);
+                        b.innerHTML = `<i class=\"fas ${suspended ? 'fa-user-slash' : 'fa-unlock'}\"></i> ${suspended ? 'Suspend' : 'Unsuspend'}`;
+                    }
+                } catch {
+                } finally {
+                    b.disabled = false;
+                }
+            });
+        });
+
         // Wire delete buttons
-        tbody.querySelectorAll('button[data-id]').forEach(btn => {
+        tbody.querySelectorAll('button[data-id]:not(.btn-toggle-suspend)').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const id = e.currentTarget.getAttribute('data-id');
                 if (!confirm('Delete this user? This action cannot be undone.')) return;

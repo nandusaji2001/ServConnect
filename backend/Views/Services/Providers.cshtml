@@ -84,8 +84,11 @@
     else
     {
         <div class="row g-4">
+            @{ var idx = 0; }
             @foreach (var p in Model.Providers)
             {
+                var modalId = $"bookModal-{p.Id}-{idx}";
+                var formId = $"bookForm-{p.Id}-{idx}";
                 <div class="col-12 col-lg-6">
                     <div class="card h-100 provider-card">
                         <div class="card-body p-4">
@@ -202,47 +205,53 @@
                                         <div class="text-muted">Price on request</div>
                                     }
                                 </div>
-                                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#bookModal-@p.Id">
-                                    <i class="fas fa-calendar-check me-1"></i> Book Now
-                                </button>
-
-                                <!-- Modal -->
-                                <div class="modal fade" id="bookModal-@p.Id" tabindex="-1" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title">Book @p.ServiceName with @p.ProviderName</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                      </div>
-                                      <div class="modal-body">
-                                        <form id="bookForm-@p.Id" onsubmit="return submitBooking('@p.Id', '@p.ProviderId', '@(p.ProviderName ?? "Provider")', '@(p.ServiceName ?? Model.ServiceName)')">
-                                          <div class="mb-3">
-                                            <label class="form-label">Preferred Date & Time</label>
-                                            <input required class="form-control" type="datetime-local" name="serviceDateTime" />
-                                          </div>
-                                          <div class="mb-3">
-                                            <label class="form-label">Phone Number</label>
-                                            <input required class="form-control" type="tel" name="contactPhone" />
-                                          </div>
-                                          <div class="mb-3">
-                                            <label class="form-label">Address</label>
-                                            <textarea required class="form-control" name="address" rows="2"></textarea>
-                                          </div>
-                                          <div class="mb-3">
-                                            <label class="form-label">Note (optional)</label>
-                                            <textarea class="form-control" name="note" rows="2" placeholder="Any additional details"></textarea>
-                                          </div>
-                                          <input type="hidden" name="providerServiceId" value="@p.Id" />
-                                          <button class="btn btn-primary" type="submit">Send Request</button>
-                                        </form>
-                                      </div>
-                                    </div>
-                                  </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#@modalId">
+                                        <i class="fas fa-calendar-check me-1"></i> Book Now
+                                    </button>
+                                    <a class="btn btn-outline-danger" href="@Url.Action("Create","Complaints", new { role = ServConnect.Models.RoleTypes.User, providerId = p.ProviderId, providerName = p.ProviderName })">
+                                        <i class="fas fa-flag"></i> Report
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Modal OUTSIDE the card -->
+                <div class="modal fade" id="@modalId" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Book @p.ServiceName with @p.ProviderName</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="@formId" onsubmit="return submitBooking('@formId', '@modalId', '@p.ProviderId', '@(p.ProviderName ?? "Provider")', '@(p.ServiceName ?? Model.ServiceName)')">
+                                    <div class="mb-3">
+                                        <label class="form-label">Preferred Date & Time</label>
+                                        <input required class="form-control" type="datetime-local" name="serviceDateTime" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Phone Number</label>
+                                        <input required class="form-control" type="tel" name="contactPhone" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Address</label>
+                                        <textarea required class="form-control" name="address" rows="2"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Note (optional)</label>
+                                        <textarea class="form-control" name="note" rows="2" placeholder="Any additional details"></textarea>
+                                    </div>
+                                    <input type="hidden" name="providerServiceId" value="@p.Id" />
+                                    <button class="btn btn-primary" type="submit">Send Request</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                idx++;
             }
         </div>
     }
@@ -250,13 +259,23 @@
 
 @section Scripts {
 <script>
-async function submitBooking(providerServiceId, providerId, providerName, serviceName) {
-    const form = document.getElementById(`bookForm-${providerServiceId}`);
-    const dtLocal = form.serviceDateTime.value; // yyyy-MM-ddTHH:mm
-    if (!dtLocal) { alert('Please select date & time'); return false; }
+async function submitBooking(formId, modalId, providerId, providerName, serviceName) {
+    const form = document.getElementById(formId);
+    if (!form) {
+        alert('Form not found!');
+        return false;
+    }
+
+    const dtLocal = form.serviceDateTime.value; 
+    if (!dtLocal) { 
+        alert('Please select date & time'); 
+        return false; 
+    }
+
     const serviceDateTime = new Date(dtLocal);
+
     const payload = {
-        providerServiceId: providerServiceId,
+        providerServiceId: form.querySelector("input[name='providerServiceId']").value,
         providerId: providerId,
         providerName: providerName,
         serviceName: serviceName,
@@ -266,23 +285,27 @@ async function submitBooking(providerServiceId, providerId, providerName, servic
         note: form.note.value
     };
 
-    const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
+    try {
+        const res = await fetch('/api/bookings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-    if (res.ok) {
-        // Close modal and notify
-        const modalEl = document.getElementById(`bookModal-${providerServiceId}`);
-        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.hide();
-        alert('Booking request sent! You will be notified here when provider responds.');
-    } else {
-        const text = await res.text();
-        alert('Failed to create booking: ' + text);
+        if (res.ok) {
+            const modalEl = document.getElementById(modalId);
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.hide();
+            alert('Booking request sent! You will be notified when the provider responds.');
+        } else {
+            const text = await res.text();
+            alert('Failed to create booking: ' + text);
+        }
+    } catch (error) {
+        alert('An error occurred: ' + error.message);
     }
-    return false;
+
+    return false; // prevent form from refreshing the page
 }
 </script>
 }

@@ -1,0 +1,94 @@
+@model List<ServConnect.Models.Complaint>
+@{
+    ViewData["Title"] = "Complaints & Messages";
+}
+
+<style>
+    .filters { display:flex; gap:10px; margin-bottom:15px; }
+    .card-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:15px; }
+    .complaint-card { border:1px solid var(--border); border-radius:12px; background:var(--bg-surface); box-shadow: var(--shadow-sm); }
+    .complaint-card .card-header { padding:12px 16px; display:flex; justify-content:space-between; align-items:center; background:#111; color:#fff; border-top-left-radius:12px; border-top-right-radius:12px; }
+    .complaint-card .card-body { padding:16px; }
+    .badge { padding:4px 10px; border-radius:10px; font-size:0.75rem; }
+    .badge.new { background:#ffc107; color:#111; }
+    .badge.progress { background:#6c757d; color:#fff; }
+    .badge.resolved { background:#28a745; color:#fff; }
+    .meta { color:var(--text-secondary); font-size:0.9rem; }
+    .evidence { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .evidence a { font-size:0.85rem; }
+    .tools { display:flex; gap:8px; }
+</style>
+
+<div class="container py-3">
+    <h2 class="mb-3"><i class="fas fa-inbox"></i> Complaints & Messages</h2>
+
+    <form method="get" class="filters">
+        <select name="status" class="form-select" style="max-width:200px;">
+            <option value="">All Status</option>
+            <option value="New">New</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+        </select>
+        <select name="role" class="form-select" style="max-width:220px;">
+            <option value="">All Roles</option>
+            <option value="User">User</option>
+            <option value="ServiceProvider">Service Provider</option>
+            <option value="Vendor">Vendor</option>
+        </select>
+        <input type="text" name="category" class="form-control" placeholder="Category contains..." style="max-width:260px;" />
+        <button class="btn btn-primary" type="submit">Filter</button>
+    </form>
+
+    <div class="card-grid">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="text-muted">No complaints found.</div>
+        }
+        else
+        {
+            foreach (var c in Model)
+            {
+                var badgeClass = c.Status == ServConnect.Models.ComplaintStatus.New ? "new" : (c.Status == ServConnect.Models.ComplaintStatus.Resolved ? "resolved" : "progress");
+                <div class="complaint-card">
+                    <div class="card-header">
+                        <div>
+                            <strong>@c.Category</strong>
+                            <div class="meta">@c.ComplainantName (@c.ComplainantRole) • @c.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</div>
+                        </div>
+                        <span class="badge @badgeClass">@c.Status</span>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrWhiteSpace(c.ServiceProviderName) || !string.IsNullOrWhiteSpace(c.ServiceType))
+                        {
+                            <div class="meta">Against: <strong>@(c.ServiceProviderName ?? "-")</strong> (@(c.ServiceType ?? "-"))</div>
+                        }
+                        <div class="mt-2">@c.Description</div>
+                        @if (c.EvidenceFiles != null && c.EvidenceFiles.Any())
+                        {
+                            <div class="evidence">
+                                @foreach (var url in c.EvidenceFiles)
+                                {
+                                    <a class="btn btn-sm btn-outline-secondary" href="@url" target="_blank"><i class="fas fa-paperclip"></i> Evidence</a>
+                                }
+                            </div>
+                        }
+                        <div class="mt-3 tools">
+                            <form method="post" asp-action="UpdateComplaintStatus" asp-controller="Admin" class="d-flex gap-2">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                <select name="status" class="form-select form-select-sm" style="max-width:180px;" value="@c.Status">
+                                    <option value="New">New</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                </select>
+                                <input type="text" name="adminNote" class="form-control form-control-sm" placeholder="Admin note" />
+                                <button class="btn btn-sm btn-primary" type="submit">Update</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+

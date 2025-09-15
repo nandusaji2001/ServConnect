@@ -1,0 +1,116 @@
+@model ServConnect.ViewModels.ComplaintCreateViewModel
+@{
+    ViewData["Title"] = "Raise a Complaint";
+}
+
+<h2 class="mb-3">Raise a Complaint</h2>
+
+@if (TempData["ComplaintMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["ComplaintMessage"]</div>
+}
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+    <h5 class="mb-3">Complainant Information</h5>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Name</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Email</label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Phone</label>
+            <input asp-for="Phone" class="form-control" />
+        </div>
+    </div>
+
+    <input type="hidden" asp-for="ComplainantId" />
+
+    <div class="mt-3">
+        <label class="form-label">Your Role</label>
+        <select asp-for="Role" class="form-select">
+            <option value="@ServConnect.Models.RoleTypes.User">User</option>
+            <option value="@ServConnect.Models.RoleTypes.ServiceProvider">Service Provider</option>
+            <option value="@ServConnect.Models.RoleTypes.Vendor">Vendor</option>
+        </select>
+    </div>
+
+    <hr class="my-4" />
+
+    <h5 class="mb-3">Service Provider Details (optional)</h5>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Provider ID</label>
+            <input asp-for="ServiceProviderId" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Provider Name</label>
+            <input asp-for="ServiceProviderName" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Service Type</label>
+            <input asp-for="ServiceType" class="form-control" />
+        </div>
+    </div>
+
+    <hr class="my-4" />
+
+    <h5 class="mb-3">Complaint Category / Type</h5>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Category</label>
+            <select asp-for="Category" class="form-select" id="categorySelect">
+                <option value="Poor Quality of Service">Poor Quality of Service</option>
+                <option value="Unprofessional Behavior">Unprofessional Behavior</option>
+                <option value="Overcharging / Billing Issue">Overcharging / Billing Issue</option>
+                <option value="Delay in Service / No Show">Delay in Service / No Show</option>
+                <option value="Fraudulent Activity / Scam">Fraudulent Activity / Scam</option>
+                <option value="Safety / Security Concern">Safety / Security Concern</option>
+                <option value="Violation of Terms & Conditions">Violation of Terms & Conditions</option>
+                <option value="Others">Others (Specify)</option>
+            </select>
+            <span asp-validation-for="Category" class="text-danger"></span>
+        </div>
+        <div class="col-md-6" id="otherCategoryBox" style="display:none;">
+            <label class="form-label">If Others, specify</label>
+            <input asp-for="OtherCategoryText" class="form-control" />
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h5 class="mb-2">Incident Details</h5>
+        <label class="form-label">Description</label>
+        <textarea asp-for="Description" rows="5" class="form-control" placeholder="Describe what happened with as much detail as possible"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="mt-3">
+        <label class="form-label">Attach Evidence (optional)</label>
+        <input asp-for="EvidenceFiles" type="file" class="form-control" multiple data-val="false" />
+        <small class="text-muted">Screenshots, invoices, etc. You can upload multiple files.</small>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Submit Complaint</button>
+        <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            const select = document.getElementById('categorySelect');
+            const otherBox = document.getElementById('otherCategoryBox');
+            const toggle = () => { otherBox.style.display = (select.value === 'Others') ? 'block' : 'none'; };
+            select.addEventListener('change', toggle);
+            toggle();
+        });
+    </script>
+}

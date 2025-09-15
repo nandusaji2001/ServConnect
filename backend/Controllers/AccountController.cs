@@ -123,11 +123,15 @@ namespace ServConnect.Controllers
 
             if (user != null)
             {
-                // Check if user is locked out
-                if (await _userManager.IsLockedOutAsync(user))
+                // Check if user is suspended (lockout end in the future or MaxValue)
+                if (await _userManager.GetLockoutEnabledAsync(user))
                 {
-                    ModelState.AddModelError(string.Empty, "Account temporarily locked. Try again later.");
-                    return View(model);
+                    var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+                    if (lockoutEnd.HasValue && lockoutEnd.Value > DateTimeOffset.UtcNow)
+                    {
+                        ModelState.AddModelError(string.Empty, "Your account has been suspended by the administrator.");
+                        return View(model);
+                    }
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(
@@ -161,7 +165,8 @@ namespace ServConnect.Controllers
 
                 if (result.IsLockedOut)
                 {
-                    return RedirectToAction("Lockout");
+                    ModelState.AddModelError(string.Empty, "Your account has been suspended by the administrator.");
+                    return View(model);
                 }
             }
 
@@ -897,6 +902,17 @@ namespace ServConnect.Controllers
                     name = decodedToken.Claims.ContainsKey("name") ? decodedToken.Claims["name"].ToString() : "",
                     message = "Account not found. Please complete registration." 
                 });
+            }
+
+            // Block sign-in if account is suspended (lockout end in the future)
+            if (await _userManager.GetLockoutEnabledAsync(user))
+            {
+                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+                if (lockoutEnd.HasValue && lockoutEnd.Value > DateTimeOffset.UtcNow)
+                {
+                    _logger.LogWarning("Firebase login blocked: user {Email} is suspended until {End}", userEmail, lockoutEnd);
+                    return Json(new { success = false, message = "Your account has been suspended by the administrator." });
+                }
             }
 
             // Sign in the user

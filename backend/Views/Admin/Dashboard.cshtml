@@ -139,6 +139,14 @@
             <h2 class="stat-number">@ViewBag.RegularUsers</h2>
             <p class="stat-label">Regular Users</p>
         </div>
+        
+        <div class="stat-card complaints">
+            <div class="stat-icon">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <h2 class="stat-number">@ViewBag.NewComplaints</h2>
+            <p class="stat-label">New Complaints</p>
+        </div>
     </div>
 
     <!-- Action Cards -->
@@ -152,7 +160,7 @@
                     <li><a href="#"><i class="fas fa-user-plus"></i> Add New User</a></li>
                     <li><a asp-controller="Admin" asp-action="Users"><i class="fas fa-users"></i> View All Users</a></li>
                     <li><a href="#"><i class="fas fa-user-shield"></i> Manage Roles</a></li>
-                    <li><a href="#"><i class="fas fa-ban"></i> Suspended Users</a></li>
+                    <li><a asp-controller="Admin" asp-action="Users" asp-route-suspended="true"><i class="fas fa-ban"></i> Suspended Users</a></li>
                 </ul>
             </div>
         </div>
@@ -200,61 +208,45 @@
         </div>
     </div>
 
-    <!-- Recent Activity -->
+    <!-- Recent Complaints / Messages -->
     <div class="recent-activity">
-        <h3><i class="fas fa-history"></i> Recent Activity</h3>
-        
-        <div class="activity-item">
-            <div class="activity-icon user">
-                <i class="fas fa-user-plus"></i>
-            </div>
-            <div class="activity-content">
-                <p class="activity-title">New user registered: John Smith</p>
-                <p class="activity-time">2 minutes ago</p>
-            </div>
-        </div>
-        
-        <div class="activity-item">
-            <div class="activity-icon service">
-                <i class="fas fa-tools"></i>
-            </div>
-            <div class="activity-content">
-                <p class="activity-title">Service provider "QuickFix" submitted new service</p>
-                <p class="activity-time">15 minutes ago</p>
-            </div>
-        </div>
-        
-        <div class="activity-item">
-            <div class="activity-icon vendor">
-                <i class="fas fa-store"></i>
-            </div>
-            <div class="activity-content">
-                <p class="activity-title">Vendor "TechStore" updated product catalog</p>
-                <p class="activity-time">1 hour ago</p>
-            </div>
-        </div>
-        
-        <div class="activity-item">
-            <div class="activity-icon user">
-                <i class="fas fa-flag"></i>
-            </div>
-            <div class="activity-content">
-                <p class="activity-title">Service reported by user for review</p>
-                <p class="activity-time">2 hours ago</p>
-            </div>
-        </div>
-        <div class="dashboard-footer">
-            <div>
-                <strong>Need to manage something quickly?</strong>
-                <div class="text-white-50">Jump to common admin actions.</div>
-            </div>
-            <div class="cta">
-                <a class="btn btn-sm btn-outline-light" asp-controller="Admin" asp-action="Users"><i class="fas fa-users"></i> Users</a>
-                <a class="btn btn-sm btn-outline-light" asp-controller="Home" asp-action="Items"><i class="fas fa-store"></i> Browse</a>
-                <a class="btn btn-sm btn-outline-light" asp-controller="Admin" asp-action="Settings"><i class="fas fa-gear"></i> Settings</a>
-            </div>
+        <h3><i class="fas fa-inbox"></i> Messages / Complaints</h3>
+        <div id="complaintsContainer">Loading...</div>
+        <div class="mt-3">
+            <a class="btn btn-outline-primary btn-sm" href="/Admin/Complaints">View All</a>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function(){
+            const container = document.getElementById('complaintsContainer');
+            try {
+                const res = await fetch('/api/complaints?limit=6');
+                if(!res.ok){ container.textContent = 'Failed to load.'; return; }
+                const list = await res.json();
+                if(!list.length){ container.textContent = 'No messages yet.'; return; }
+                container.innerHTML = '';
+                list.forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'card mb-2';
+                    card.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>${c.category}</strong> - ${c.complainantName} (${c.complainantRole})
+                                    <div class="text-muted small">${new Date(c.createdAt).toLocaleString()}</div>
+                                </div>
+                                <span class="badge bg-${c.status === 'New' ? 'warning' : (c.status === 'Resolved' ? 'success' : 'secondary')}">${c.status}</span>
+                            </div>
+                            <div class="mt-2">${(c.description || '').substring(0, 140)}...</div>
+                        </div>`;
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                container.textContent = 'Error loading messages.';
+            }
+        });
+    </script>
 
 <script>
     // Add some interactivity

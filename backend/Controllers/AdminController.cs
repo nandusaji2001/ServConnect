@@ -18,18 +18,22 @@ namespace ServConnect.Controllers
         private readonly IAdvertisementService _adService;
         private readonly IWebHostEnvironment _env;
 
+        private readonly IComplaintService _complaintService;
+
         public AdminController(
             UserManager<Users> userManager,
             RoleManager<MongoIdentityRole> roleManager,
             IItemService itemService,
             IAdvertisementService adService,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            IComplaintService complaintService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _itemService = itemService;
             _adService = adService;
             _env = env;
+            _complaintService = complaintService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -49,7 +53,59 @@ namespace ServConnect.Controllers
             ViewBag.Vendors = vendors.Count;
             ViewBag.RegularUsers = regularUsers.Count;
 
+            // New complaints count for quick stat
+            try
+            {
+                var allComplaints = await _complaintService.GetAllAsync(status: ServConnect.Models.ComplaintStatus.New);
+                ViewBag.NewComplaints = allComplaints.Count;
+            }
+            catch { ViewBag.NewComplaints = 0; }
+
             return View();
+        }
+
+        // Lightweight API for dashboard cards
+        [HttpGet]
+        [Route("api/complaints")]
+        public async Task<IActionResult> GetComplaints([FromQuery] int? limit = null)
+        {
+            var list = await _complaintService.GetAllAsync();
+            if (limit.HasValue && limit.Value > 0)
+            {
+                list = list.Take(limit.Value).ToList();
+            }
+
+            var shaped = list.Select(c => new
+            {
+                id = c.Id,
+                category = c.Category,
+                complainantName = c.ComplainantName,
+                complainantRole = c.ComplainantRole,
+                createdAt = c.CreatedAt,
+                status = c.Status,
+                description = c.Description
+            }).ToList();
+            return new JsonResult(shaped);
+        }
+
+        // Full complaints/messages page for admin
+        [HttpGet]
+        public async Task<IActionResult> Complaints(string? status, string? role, string? category)
+        {
+            var list = await _complaintService.GetAllAsync(status, role, category);
+            return View(list);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateComplaintStatus(string id, string status, string? adminNote)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(status))
+            {
+                return RedirectToAction(nameof(Complaints));
+            }
+            await _complaintService.UpdateStatusAsync(id, status, adminNote);
+            return RedirectToAction(nameof(Complaints));
         }
 
         public async Task<IActionResult> Users()
@@ -79,12 +135,24 @@ namespace ServConnect.Controllers
         // Admin: view all users as JSON (optional API endpoint)
         [HttpGet]
         [Route("api/admin/users")] 
-        public IActionResult GetAllUsers()
+        public async Task<IActionResult> GetAllUsers()
         {
-            var users = _userManager.Users.Select(u => new {
-                u.Id, u.FullName, u.Email, u.PhoneNumber
-            }).ToList();
-            return new JsonResult(users);
+            var list = _userManager.Users.ToList();
+            var shaped = new List<object>(list.Count);
+            foreach (var u in list)
+            {
+                var roles = await _userManager.GetRolesAsync(u);
+                var isAdmin = roles.Contains(RoleTypes.Admin);
+                shaped.Add(new {
+                    u.Id,
+                    u.FullName,
+                    u.Email,
+                    u.PhoneNumber,
+                    Suspended = u.LockoutEnd.HasValue && u.LockoutEnd.Value > DateTimeOffset.UtcNow,
+                    IsAdmin = isAdmin
+                });
+            }
+            return new JsonResult(shaped);
         }
 
         // Admin: delete a user by id
@@ -97,6 +165,29 @@ namespace ServConnect.Controllers
             var result = await _userManager.DeleteAsync(user);
             if (!result.Succeeded) return StatusCode(500, string.Join("; ", result.Errors.Select(e => e.Description)));
             return NoContent();
+        }
+
+        // Admin: suspend/unsuspend a user
+        [HttpPost]
+        [Route("api/admin/users/{id}/suspend")]
+        public async Task<IActionResult> SuspendUser(Guid id, [FromQuery] bool suspend = true)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null) return NotFound();
+
+            // Ensure lockout is enabled and set lockout end accordingly
+            if (!await _userManager.GetLockoutEnabledAsync(user))
+            {
+                await _userManager.SetLockoutEnabledAsync(user, true);
+            }
+
+            var end = suspend ? DateTimeOffset.MaxValue : (DateTimeOffset?)null;
+            var res = await _userManager.SetLockoutEndDateAsync(user, end);
+            if (!res.Succeeded)
+            {
+                return StatusCode(500, string.Join("; ", res.Errors.Select(e => e.Description)));
+            }
+            return Ok(new { id = user.Id, suspended = suspend });
         }
 
         public async Task<IActionResult> Analytics()
