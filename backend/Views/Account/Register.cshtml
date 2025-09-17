@@ -1,4 +1,4 @@
-﻿@using ServConnect.ViewModels
+@using ServConnect.ViewModels
 @using ServConnect.Models
 @model RegisterViewModel
 
@@ -75,7 +75,7 @@ html, body {
     <div class="account-box">
             <h2 class="text-center mb-4">Create Account</h2>
 
-            <form asp-action="Register" method="post">
+            <form asp-action="Register" method="post" enctype="multipart/form-data">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                 <!-- Name -->
@@ -92,19 +92,7 @@ html, body {
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
-                <!-- Phone -->
-                <div class="mb-3">
-                    <label asp-for="PhoneNumber" class="form-label">Phone Number <small class="text-muted">(Optional)</small></label>
-                    <input asp-for="PhoneNumber" class="form-control" placeholder="e.g., +1234567890" />
-                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                </div>
-
-                <!-- Address -->
-                <div class="mb-3">
-                    <label asp-for="Address" class="form-label">Address</label>
-                    <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter your full address"></textarea>
-                    <span asp-validation-for="Address" class="text-danger"></span>
-                </div>
+                <!-- Profile Image removed; will be completed in profile completion step -->
 
                 <!-- Password -->
                 <div class="mb-3">
@@ -132,6 +120,10 @@ html, body {
                 </div>
 
                 <input type="submit" value="Register" class="btn btn-success w-100 p-2" />
+                <div class="text-center my-3 text-muted">or</div>
+                <button type="button" id="googleRegisterBtn" class="btn btn-outline-dark w-100 p-2">
+                    <i class="bi bi-google"></i> Continue with Google
+                </button>
             </form>
 
             <p class="text-center mt-2">
@@ -146,4 +138,69 @@ html, body {
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial.cshtml")
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="~/js/firebase-auth.js" asp-append-version="true"></script>
+    <script>
+        (function() {
+            const googleBtn = document.getElementById('googleRegisterBtn');
+            if (!googleBtn) return;
+
+            googleBtn.addEventListener('click', async function () {
+                googleBtn.disabled = true;
+                googleBtn.innerText = 'Please wait...';
+                try {
+                    const googleResult = await window.FirebaseAuth.signInWithGoogle();
+                    if (!googleResult.success) {
+                        alert(googleResult.error || 'Google sign-in failed');
+                        return;
+                    }
+
+                    const idToken = googleResult.idToken;
+                    const serverLogin = await window.FirebaseAuth.loginWithServer(idToken);
+
+                    if (serverLogin.success) {
+                        window.location.href = serverLogin.redirectUrl || '/';
+                        return;
+                    }
+
+                    // If account doesn't exist, complete registration via server
+                    if (serverLogin.requiresRegistration) {
+                        const nameInput = document.querySelector('input[name="Name"]');
+                        const emailInput = document.querySelector('input[name="Email"]');
+                        const roleSelect = document.querySelector('select[name="Role"]');
+
+                        // Prefill fields for UX (optional)
+                        if (serverLogin.name && nameInput) nameInput.value = serverLogin.name;
+                        if (serverLogin.email && emailInput) emailInput.value = serverLogin.email;
+
+                        const registerResult = await window.FirebaseAuth.registerWithServer(idToken, {
+                            name: nameInput ? nameInput.value : (serverLogin.name || ''),
+                            email: emailInput ? emailInput.value : (serverLogin.email || ''),
+                            phoneNumber: null,
+                            address: null,
+                            role: roleSelect ? roleSelect.value : '@ServConnect.Models.RoleTypes.User',
+                            returnUrl: null,
+                            photoUrl: googleResult.user?.photoURL || null
+                        });
+
+                        if (registerResult.success) {
+                            window.location.href = registerResult.redirectUrl || '/';
+                        } else {
+                            alert(registerResult.message || 'Registration failed.');
+                        }
+                        return;
+                    }
+
+                    alert(serverLogin.message || 'Login failed.');
+                } catch (e) {
+                    console.error(e);
+                    alert('Something went wrong. Please try again.');
+                } finally {
+                    googleBtn.disabled = false;
+                    googleBtn.innerText = 'Continue with Google';
+                }
+            });
+        })();
+    </script>
 }

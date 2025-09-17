@@ -7,12 +7,20 @@ namespace ServConnect.Models
     public class Users : MongoIdentityUser<Guid>
     {
         public string FullName { get; set; } = string.Empty;
+        public string? ProfileImageUrl { get; set; }
         
         // Firebase Integration
         public string? FirebaseUid { get; set; }
         
         // Contact Information
         public string? Address { get; set; } = string.Empty;
+        public string? IdentityProofUrl { get; set; }
+
+        // Profile completion / verification
+        public bool IsProfileCompleted { get; set; } = false;
+        public bool IsAdminApproved { get; set; } = false;
+        public string? AdminReviewNote { get; set; }
+        public DateTime? AdminReviewedAtUtc { get; set; }
         
         // OTP and Password Reset
         public string? PasswordResetOtp { get; set; }

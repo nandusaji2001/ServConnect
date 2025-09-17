@@ -1,46 +1,87 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using ServConnect.Models
 @inject SignInManager<Users> SignInManager
+@inject UserManager<Users> UserManager
+
+@{
+    var isLoggedIn = SignInManager.IsSignedIn(User);
+    Users? currentUser = null;
+    var displayName = "User";
+    var avatarUrl = string.Empty;
+    if (isLoggedIn)
+    {
+        currentUser = await UserManager.GetUserAsync(User);
+        displayName = currentUser?.FullName ?? currentUser?.Email ?? "User";
+        avatarUrl = !string.IsNullOrWhiteSpace(currentUser?.ProfileImageUrl)
+            ? currentUser.ProfileImageUrl
+            : ($"https://ui-avatars.com/api/?name={Uri.EscapeDataString(displayName)}&background=10b981&color=fff&size=128");
+    }
+}
 
 <ul class="navbar-nav">
-    @if (SignInManager.IsSignedIn(User))
+    @if (isLoggedIn)
     {
-        @if (User.IsInRole(RoleTypes.Admin))
+        if (ViewBag.RestrictNav == true)
         {
+            <!-- Restricted mode: only Logout -->
             <li class="nav-item">
-                <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
-                    <i class="bi bi-speedometer2"></i> Admin Dashboard
-                </a>
+                <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="nav-link btn btn-link text-danger">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
             </li>
         }
-        @if (User.IsInRole(RoleTypes.ServiceProvider))
+        else
         {
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="ServiceProvider" asp-action="Dashboard">
-                    <i class="bi bi-briefcase"></i> Service Dashboard
+            @if (User.IsInRole(RoleTypes.Admin))
+            {
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
+                        <i class="bi bi-speedometer2"></i> Admin Dashboard
+                    </a>
+                </li>
+            }
+            @if (User.IsInRole(RoleTypes.ServiceProvider))
+            {
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="ServiceProvider" asp-action="Dashboard">
+                        <i class="bi bi-briefcase"></i> Service Dashboard
+                    </a>
+                </li>
+            }
+            @if (User.IsInRole(RoleTypes.Vendor))
+            {
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Vendor" asp-action="Dashboard">
+                        <i class="bi bi-shop"></i> Vendor Dashboard
+                    </a>
+                </li>
+            }
+            
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="@avatarUrl" alt="@displayName" class="rounded-circle border" style="width:36px;height:36px;object-fit:cover;" />
                 </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li class="dropdown-header">@displayName</li>
+                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> Profile</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li>
+                        <form class="form-inline px-3" asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="nav-link btn btn-link">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
             </li>
         }
-        @if (User.IsInRole(RoleTypes.Vendor))
-        {
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="Vendor" asp-action="Dashboard">
-                    <i class="bi bi-shop"></i> Vendor Dashboard
-                </a>
-            </li>
-        }
-        <li class="nav-item">
-            <a class="nav-link" asp-controller="Account" asp-action="Profile">
-                <i class="bi bi-person"></i> Profile
-            </a>
-        </li>
-        <li class="nav-item">
-            <form class="form-inline" asp-controller="Account" asp-action="Logout">
-                <button type="submit" class="nav-link btn btn-link">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </button>
-            </form>
-        </li>
     }
     else
     {

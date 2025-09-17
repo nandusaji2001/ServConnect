@@ -205,7 +205,8 @@ window.FirebaseAuth = {
                     phoneNumber: userData.phoneNumber,
                     address: userData.address,
                     role: userData.role,
-                    returnUrl: userData.returnUrl
+                    returnUrl: userData.returnUrl,
+                    photoUrl: userData.photoUrl || null
                 })
             });
 

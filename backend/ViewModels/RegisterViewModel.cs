@@ -13,15 +13,6 @@ namespace ServConnect.ViewModels
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Phone number is required.")]
-        [Phone(ErrorMessage = "Please enter a valid phone number.")]
-        [Display(Name = "Phone Number")]
-        public string PhoneNumber { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Address is required.")]
-        [Display(Name = "Address")]
-        public string Address { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Password is required.")]
         [StringLength(40, MinimumLength = 8, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.")]
         [DataType(DataType.Password)]
@@ -37,6 +28,9 @@ namespace ServConnect.ViewModels
         [Required(ErrorMessage = "Role selection is required.")]
         [Display(Name = "Account Type")]
         public string Role { get; set; } = RoleTypes.User; // Default to User
+
+        [Display(Name = "Profile Image")]
+        public IFormFile? Image { get; set; }
     }
 
     // Custom validation attribute

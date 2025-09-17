@@ -1,0 +1,97 @@
+@model IEnumerable<ServConnect.Models.Users>
+@{
+    ViewData["Title"] = "Verify Users";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0"><i class="fas fa-id-badge"></i> Verify Users</h2>
+        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-user-check me-2"></i> Pending Verification</span>
+            <input id="userSearch" type="text" class="form-control w-auto" placeholder="Search..." style="min-width: 220px;">
+        </div>
+        <div class="card-body">
+            <div id="usersContainer" class="row g-3">
+                @if (Model == null || !Model.Any())
+                {
+                    <div class="col-12 text-center text-muted">No users pending verification.</div>
+                }
+                else
+                {
+                    foreach (var u in Model)
+                    {
+                        <div class="col-12 col-md-6 col-lg-4 user-card" data-name="@u.FullName @u.Email @u.PhoneNumber">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="@(string.IsNullOrWhiteSpace(u.ProfileImageUrl) ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(u.FullName ?? u.Email)}&background=10b981&color=fff&size=128" : u.ProfileImageUrl)" class="rounded-circle border me-3" style="width:56px;height:56px;object-fit:cover;" />
+                                        <div>
+                                            <div class="fw-semibold">@u.FullName</div>
+                                            <div class="text-muted small">@u.Email</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <div class="text-muted small">Phone</div>
+                                        <div>@(u.PhoneNumber ?? "-")</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <div class="text-muted small">Address</div>
+                                        <div>@(u.Address ?? "-")</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="text-muted small">ID Proof</div>
+                                        @if (!string.IsNullOrWhiteSpace(u.IdentityProofUrl))
+                                        {
+                                            <a href="@u.IdentityProofUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-id-card"></i> View ID Proof
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-muted">Not uploaded</div>
+                                        }
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <form asp-controller="Admin" asp-action="ApproveUser" method="post" asp-antiforgery="true">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <button class="btn btn-success btn-sm" type="submit"><i class="fas fa-check"></i> Approve</button>
+                                        </form>
+                                        <form asp-controller="Admin" asp-action="RejectUser" method="post" asp-antiforgery="true" class="d-flex gap-2">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <input name="note" class="form-control form-control-sm" placeholder="Reason (optional)" />
+                                            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="fas fa-times"></i> Reject</button>
+                                        </form>
+                                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Admin" asp-action="UserDetails" asp-route-id="@u.Id">
+                                            <i class="fas fa-eye"></i> Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Client-side filter
+    document.getElementById('userSearch').addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('.user-card');
+        cards.forEach(c => {
+            const t = (c.getAttribute('data-name') || '').toLowerCase();
+            c.style.display = t.includes(q) ? '' : 'none';
+        });
+    });
+</script>

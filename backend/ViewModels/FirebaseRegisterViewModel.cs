@@ -28,6 +28,9 @@ namespace ServConnect.ViewModels
         public string Role { get; set; } = RoleTypes.User;
         
         public string? ReturnUrl { get; set; }
+
+        // Optional photo URL from Firebase client (fallback if token lacks picture claim)
+        public string? PhotoUrl { get; set; }
     }
 
     // Custom validation attribute for optional phone numbers

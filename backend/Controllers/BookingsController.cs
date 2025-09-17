@@ -33,6 +33,7 @@ namespace ServConnect.Controllers
 
         [HttpPost("/api/bookings")] 
         [Authorize] // any logged-in user can request a booking
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
         public async Task<IActionResult> Create([FromBody] CreateBookingRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.ProviderServiceId)) return BadRequest("Provider service is required");
@@ -56,6 +57,7 @@ namespace ServConnect.Controllers
         // Provider view: list bookings
         [HttpGet("/provider/bookings")] 
         [Authorize(Roles = RoleTypes.ServiceProvider)]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
         public async Task<IActionResult> ProviderList()
         {
             var me = await _userManager.GetUserAsync(User);
@@ -74,6 +76,7 @@ namespace ServConnect.Controllers
         // Provider decide accept/reject
         [HttpPost("/api/bookings/decision")] 
         [Authorize(Roles = RoleTypes.ServiceProvider)]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
         public async Task<IActionResult> Decide([FromBody] DecisionRequest req)
         {
             var me = await _userManager.GetUserAsync(User);
@@ -93,6 +96,7 @@ namespace ServConnect.Controllers
 
         [HttpPost("/api/bookings/complete")]
         [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
         public async Task<IActionResult> Complete([FromBody] CompleteRequest req)
         {
             var me = await _userManager.GetUserAsync(User);

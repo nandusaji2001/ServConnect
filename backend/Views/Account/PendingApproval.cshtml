@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "Pending Approval";
+}
+
+<div class="container mt-5">
+    <div class="alert alert-info" role="alert">
+        <h4 class="alert-heading">Your account is pending admin approval</h4>
+        <p>Thank you for completing your profile. An administrator will review your details shortly. You will be notified once your account is approved.</p>
+        <hr />
+        <p class="mb-0">You can update your profile details if needed. Access to other features is restricted until approval.</p>
+    </div>
+
+    <a class="btn btn-primary" href="@Url.Action("Profile", "Account")">Review Profile</a>
+</div>

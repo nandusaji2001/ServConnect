@@ -38,8 +38,15 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Firebase Authentication is handled client-side and verified server-side
 
 builder.Services.AddControllers();       // Adds API controllers
-builder.Services.AddControllersWithViews(); // Adds MVC + Razor views
+builder.Services.AddControllersWithViews(options =>
+{
+    // Enforce profile completion and admin approval for all authenticated users
+    options.Filters.Add<ServConnect.Filters.RequireApprovedUserFilter>();
+}); // Adds MVC + Razor views with global filters
 builder.Services.AddScoped<DatabaseSeeder>();
+
+// Filters
+builder.Services.AddScoped<ServConnect.Filters.RequireApprovedUserFilter>();
 
 // Register custom services
 builder.Services.AddHttpClient<Fast2SmsOtpService>();

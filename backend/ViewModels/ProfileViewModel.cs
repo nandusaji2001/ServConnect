@@ -11,8 +11,20 @@ namespace ServConnect.ViewModels
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; } = string.Empty;
+        [Display(Name = "Phone Number")]
+        public string? PhoneNumber { get; set; }
 
+        [Display(Name = "Complete Address")]
+        public string? Address { get; set; }
 
+        [Display(Name = "Profile Image")]
+        public IFormFile? Image { get; set; }
+
+        [Display(Name = "Identity Proof (PDF or Image)")]
+        public IFormFile? IdentityProof { get; set; }
+
+        public bool IsProfileCompleted { get; set; }
+        public bool IsAdminApproved { get; set; }
 
         // For password change
         [DataType(DataType.Password)]

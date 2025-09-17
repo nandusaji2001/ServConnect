@@ -114,6 +114,16 @@ namespace ServConnect.Controllers
             return View(users);
         }
 
+        // New: Verify Users Card - show users needing admin review with full details
+        [HttpGet]
+        public async Task<IActionResult> VerifyUsers()
+        {
+            var users = _userManager.Users.ToList();
+            // Candidates for verification: profile completed but not yet admin approved
+            var toVerify = users.Where(u => u.IsProfileCompleted && !u.IsAdminApproved).ToList();
+            return View(toVerify);
+        }
+
         // Admin: view user details, including roles and items if vendor/provider
         [HttpGet]
         public async Task<IActionResult> UserDetails(Guid id)
@@ -130,6 +140,33 @@ namespace ServConnect.Controllers
                 Items = items
             };
             return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveUser(Guid id)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null) return NotFound();
+            user.IsAdminApproved = true;
+            user.AdminReviewedAtUtc = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+            TempData["UserMessage"] = "User approved.";
+            return RedirectToAction(nameof(VerifyUsers));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectUser(Guid id, string? note)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null) return NotFound();
+            user.IsAdminApproved = false;
+            user.AdminReviewNote = string.IsNullOrWhiteSpace(note) ? "Rejected" : note;
+            user.AdminReviewedAtUtc = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+            TempData["UserMessage"] = "User rejected.";
+            return RedirectToAction(nameof(VerifyUsers));
         }
 
         // Admin: view all users as JSON (optional API endpoint)

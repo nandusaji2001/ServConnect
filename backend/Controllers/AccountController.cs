@@ -61,17 +61,32 @@ namespace ServConnect.Controllers
                 return View(model);
             }
 
-            // Format phone number to E.164 format
-            var formattedPhoneNumber = FormatPhoneNumber(model.PhoneNumber);
-
             var user = new Users
             {
                 UserName = model.Email,
                 Email = model.Email,
-                FullName = model.Name,
-                PhoneNumber = formattedPhoneNumber,
-                Address = model.Address
+                FullName = model.Name
             };
+
+            // Handle profile image upload if provided
+            if (model.Image != null && model.Image.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "users");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var uniqueFileName = $"user_{Guid.NewGuid()}" + Path.GetExtension(model.Image.FileName);
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.Image.CopyToAsync(fileStream);
+                }
+
+                var relativePath = $"/images/users/{uniqueFileName}";
+                user.ProfileImageUrl = relativePath;
+            }
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
@@ -139,6 +154,16 @@ namespace ServConnect.Controllers
 
                 if (result.Succeeded)
                 {
+                    // Enforce profile completion and admin approval
+                    if (!user.IsProfileCompleted)
+                    {
+                        return RedirectToAction("Profile");
+                    }
+                    if (!user.IsAdminApproved)
+                    {
+                        TempData["SuccessMessage"] = "Your profile is pending admin approval. Some features are disabled until approval.";
+                    }
+
                     // If a valid local returnUrl is provided, honor it
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
@@ -216,10 +241,17 @@ namespace ServConnect.Controllers
             return NotFound();
         }
 
+        // Restrict navigation while profile is incomplete
+        ViewBag.RestrictNav = !user.IsProfileCompleted;
+
         var model = new ProfileViewModel
         {
             Name = user.FullName,
-            Email = user.Email
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Address = user.Address,
+            IsProfileCompleted = user.IsProfileCompleted,
+            IsAdminApproved = user.IsAdminApproved
         };
 
         return View(model);
@@ -230,21 +262,65 @@ namespace ServConnect.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Profile(ProfileViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
             return NotFound();
         }
 
+        // Keep navbar restricted while profile incomplete
+        ViewBag.RestrictNav = !user.IsProfileCompleted;
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
         // Update user properties
         user.FullName = model.Name;
         user.Email = model.Email;
         user.UserName = model.Email;
+        user.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : FormatPhoneNumber(model.PhoneNumber);
+        user.Address = model.Address;
+
+        // Handle profile image upload
+        if (model.Image != null && model.Image.Length > 0)
+        {
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "users");
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+            var uniqueFileName = $"user_{Guid.NewGuid()}" + Path.GetExtension(model.Image.FileName);
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await model.Image.CopyToAsync(fileStream);
+            }
+            user.ProfileImageUrl = $"/images/users/{uniqueFileName}";
+        }
+
+        // Handle identity proof upload
+        if (model.IdentityProof != null && model.IdentityProof.Length > 0)
+        {
+            var proofsFolder = Path.Combine(_env.WebRootPath, "uploads", "identity");
+            if (!Directory.Exists(proofsFolder)) Directory.CreateDirectory(proofsFolder);
+            var ext = Path.GetExtension(model.IdentityProof.FileName);
+            var uniqueProofName = $"proof_{Guid.NewGuid()}{ext}";
+            var proofPath = Path.Combine(proofsFolder, uniqueProofName);
+            using (var proofStream = new FileStream(proofPath, FileMode.Create))
+            {
+                await model.IdentityProof.CopyToAsync(proofStream);
+            }
+            user.IdentityProofUrl = $"/uploads/identity/{uniqueProofName}";
+        }
+
+        // Mark profile completed when mandatory fields present
+        user.IsProfileCompleted = !string.IsNullOrWhiteSpace(user.Address) && !string.IsNullOrWhiteSpace(user.PhoneNumber);
+        // Reset approval on changes requiring re-review
+        if (user.IsProfileCompleted)
+        {
+            user.IsAdminApproved = false;
+            user.AdminReviewNote = null;
+            user.AdminReviewedAtUtc = null;
+        }
 
         var result = await _userManager.UpdateAsync(user);
         if (result.Succeeded)
@@ -286,6 +362,27 @@ namespace ServConnect.Controllers
     [AllowAnonymous]
     public IActionResult Lockout()
     {
+        return View();
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> PendingApproval()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return RedirectToAction("Login");
+        }
+        if (!user.IsProfileCompleted)
+        {
+            return RedirectToAction("Profile");
+        }
+        if (user.IsAdminApproved)
+        {
+            return RedirectToAction("Dashboard", "Home");
+        }
+        ViewBag.RestrictNav = true; // Lock down navigation while pending
         return View();
     }
 
@@ -1000,6 +1097,22 @@ namespace ServConnect.Controllers
                 EmailConfirmed = true, // Firebase handles email verification
                 FirebaseUid = decodedToken.Uid // Store Firebase UID for future reference
             };
+
+            // Try to set profile image from Firebase token claims (picture)
+            string? profilePicture = null;
+            if (decodedToken.Claims.ContainsKey("picture"))
+            {
+                profilePicture = decodedToken.Claims["picture"]?.ToString();
+            }
+            if (string.IsNullOrWhiteSpace(profilePicture))
+            {
+                // Fallback to client-provided PhotoUrl
+                profilePicture = model.PhotoUrl;
+            }
+            if (!string.IsNullOrWhiteSpace(profilePicture))
+            {
+                user.ProfileImageUrl = profilePicture;
+            }
 
             var result = await _userManager.CreateAsync(user);
 

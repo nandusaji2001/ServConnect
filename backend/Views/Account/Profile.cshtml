@@ -19,8 +19,23 @@
                         </div>
                     }
 
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        @if (!Model.IsProfileCompleted)
+                        {
+                            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Please complete your profile to continue using the app.
+                            </div>
+                        }
+                        else if (!Model.IsAdminApproved)
+                        {
+                            <div class="alert alert-info d-flex align-items-center" role="alert">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Your profile is pending admin approval. Some features are disabled until approval.
+                            </div>
+                        }
 
                         <div class="form-group mb-3">
                             <label asp-for="Name" class="form-label"></label>
@@ -34,7 +49,30 @@
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
 
+                        <div class="form-group mb-3">
+                            <label asp-for="PhoneNumber" class="form-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
 
+                        <div class="form-group mb-3">
+                            <label asp-for="Address" class="form-label"></label>
+                            <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Image" class="form-label"></label>
+                            <input asp-for="Image" class="form-control" type="file" accept="image/*" />
+                            <span asp-validation-for="Image" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="IdentityProof" class="form-label"></label>
+                            <input asp-for="IdentityProof" class="form-control" type="file" accept="image/*,.pdf" />
+                            <small class="text-muted">Accepted: images or PDF</small>
+                            <span asp-validation-for="IdentityProof" class="text-danger"></span>
+                        </div>
 
                         <hr class="my-4">
 

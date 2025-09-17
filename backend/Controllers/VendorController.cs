@@ -7,6 +7,7 @@ using ServConnect.Services;
 namespace ServConnect.Controllers
 {
     [Authorize(Roles = RoleTypes.Vendor)]
+    [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
     public class VendorController : Controller
     {
         private readonly UserManager<Users> _userManager;

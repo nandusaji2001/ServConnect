@@ -13,6 +13,25 @@
 
     <div class="card mb-3">
         <div class="card-body">
+            <div class="mb-3">
+                <span class="badge bg-@(Model.User.IsAdminApproved ? "success" : (Model.User.IsProfileCompleted ? "warning" : "secondary"))">
+                    @(Model.User.IsAdminApproved ? "Approved" : (Model.User.IsProfileCompleted ? "Pending Approval" : "Profile Incomplete"))
+                </span>
+                @if (!string.IsNullOrWhiteSpace(Model.User.AdminReviewNote))
+                {
+                    <span class="ms-2 text-muted">@Model.User.AdminReviewNote</span>
+                }
+            </div>
+            <form asp-action="ApproveUser" asp-controller="Admin" method="post" class="d-inline">
+                <input type="hidden" name="id" value="@Model.User.Id" />
+                <button type="submit" class="btn btn-success" @(Model.User.IsAdminApproved ? "disabled" : null)>Approve</button>
+            </form>
+            <form asp-action="RejectUser" asp-controller="Admin" method="post" class="d-inline ms-2">
+                <input type="hidden" name="id" value="@Model.User.Id" />
+                <input type="text" name="note" class="form-control d-inline" style="width:240px" placeholder="Reason (optional)" />
+                <button type="submit" class="btn btn-danger ms-1">Reject</button>
+            </form>
+            <hr />
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-2"><strong>Name:</strong> @Model.User.FullName</div>
