@@ -20,13 +20,16 @@ namespace ServConnect.Controllers
 
         private readonly IComplaintService _complaintService;
 
+        private readonly IAdvertisementRequestService _adReqService;
+
         public AdminController(
             UserManager<Users> userManager,
             RoleManager<MongoIdentityRole> roleManager,
             IItemService itemService,
             IAdvertisementService adService,
             IWebHostEnvironment env,
-            IComplaintService complaintService)
+            IComplaintService complaintService,
+            IAdvertisementRequestService adReqService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -34,6 +37,7 @@ namespace ServConnect.Controllers
             _adService = adService;
             _env = env;
             _complaintService = complaintService;
+            _adReqService = adReqService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -325,6 +329,52 @@ namespace ServConnect.Controllers
 
             TempData["AdMessage"] = "Advertisement uploaded successfully.";
             return RedirectToAction(nameof(Advertisements));
+        }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> AdvertisementRequests()
+        {
+            var list = await _adReqService.GetAllAsync();
+            return View(list);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveAdRequest(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return RedirectToAction(nameof(AdvertisementRequests));
+            var req = await _adReqService.GetByIdAsync(id);
+            if (req == null) return RedirectToAction(nameof(AdvertisementRequests));
+            if (!req.IsPaid)
+            {
+                TempData["AdReqMessage"] = "Cannot approve unpaid request.";
+                return RedirectToAction(nameof(AdvertisementRequests));
+            }
+
+            // On approval, convert to active advertisement
+            var ad = new Advertisement
+            {
+                ImageUrl = req.ImageUrl,
+                TargetUrl = req.TargetUrl,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _adService.CreateAsync(ad);
+            await _adReqService.UpdateStatusAsync(id, AdRequestStatus.Approved);
+            TempData["AdReqMessage"] = "Request approved and published as advertisement.";
+            return RedirectToAction(nameof(AdvertisementRequests));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectAdRequest(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return RedirectToAction(nameof(AdvertisementRequests));
+            await _adReqService.UpdateStatusAsync(id, AdRequestStatus.Rejected);
+            TempData["AdReqMessage"] = "Request rejected.";
+            return RedirectToAction(nameof(AdvertisementRequests));
         }
 
         [HttpPost]

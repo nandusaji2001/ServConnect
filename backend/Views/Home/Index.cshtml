@@ -459,10 +459,10 @@
                 <div class="search-container">
                     <div class="search-wrap">
                         <select class="form-select search-select" id="searchLocation">
-                            <option selected>New York</option>
-                            <option>Los Angeles</option>
-                            <option>Chicago</option>
-                            <option>Mumbai</option>
+                            <option selected>Kattappana</option>
+                            <option>Nedumkandam</option>
+                            <option>Kanjirappally</option>
+                            <option>Kuttikkanam</option>
                         </select>
                         <input class="search-input" id="searchInput" placeholder="What are you looking for?" />
                         <button class="search-btn" id="searchBtn"><i class="bi bi-search"></i></button>
@@ -674,9 +674,13 @@
         <div class="cta-buttons">
             @if (User.Identity.IsAuthenticated)
             {
-                <a href="#" class="cta-btn">
-                    <i class="fas fa-search"></i>
-                    Browse Services
+                <a href="/Advertisements/Submit" class="cta-btn">
+                    <i class="fas fa-bullhorn"></i>
+                    Publish Advertisement
+                </a>
+                <a href="/Advertisements/My" class="cta-btn">
+                    <i class="fas fa-rectangle-list"></i>
+                    My Advertisements
                 </a>
                 <a href="/Account/Profile" class="cta-btn">
                     <i class="fas fa-user"></i>

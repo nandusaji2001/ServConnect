@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Submit Advertisement";
+}
+
+<div class="container py-4" style="max-width:720px;">
+    <h3 class="mb-3">Submit Your Advertisement</h3>
+    <p class="text-muted">Upload your banner image and provide a destination URL (e.g., Google Maps). A fee of Rs.1000 applies.</p>
+
+    <form asp-action="Submit" method="post" enctype="multipart/form-data" class="card p-3">
+        <div class="mb-3">
+            <label for="image" class="form-label">Ad Image</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*" required />
+            <span class="text-danger">@Html.ValidationMessage("image")</span>
+        </div>
+        <div class="mb-3">
+            <label for="targetUrl" class="form-label">Destination URL (Google Maps or website)</label>
+            <input type="url" class="form-control" id="targetUrl" name="targetUrl" placeholder="https://maps.google.com/..." />
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success"><i class="bi bi-send-check"></i> Continue to Payment</button>
+            <a class="btn btn-secondary" asp-controller="Home" asp-action="Index">Cancel</a>
+        </div>
+    </form>
+</div>

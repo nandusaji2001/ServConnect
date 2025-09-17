@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "Pay for Advertisement";
+    var key = (string)(ViewBag.RazorpayKey ?? "");
+    var amount = (int)(ViewBag.AmountInPaise ?? 100000);
+    var reqId = (string)(ViewBag.RequestId ?? "");
+}
+
+<div class="container py-4" style="max-width:720px;">
+    <h3 class="mb-3">Complete Payment</h3>
+
+    <div class="card p-3">
+        <p>Amount: <strong>Rs. 1000</strong></p>
+        <button id="rzp-button" class="btn btn-primary"><i class="bi bi-credit-card"></i> Pay with Razorpay</button>
+        <form id="verifyForm" asp-action="VerifyPayment" method="post" class="d-none">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@reqId" />
+            <input type="hidden" id="razorpay_order_id" name="razorpay_order_id" />
+            <input type="hidden" id="razorpay_payment_id" name="razorpay_payment_id" />
+            <input type="hidden" id="razorpay_signature" name="razorpay_signature" />
+        </form>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    (function(){
+        const options = {
+            key: '@key', // Enter the Key ID generated from the Dashboard
+            amount: @amount, // in paise
+            currency: 'INR',
+            name: 'ServConnect',
+            description: 'Advertisement Fee',
+            image: '/favicon.ico',
+            handler: function (response){
+                document.getElementById('razorpay_order_id').value = response.razorpay_order_id || '';
+                document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id || '';
+                document.getElementById('razorpay_signature').value = response.razorpay_signature || '';
+                document.getElementById('verifyForm').submit();
+            },
+            theme: { color: '#10B981' },
+            modal: { ondismiss: function(){ console.log('Payment popup closed'); } }
+        };
+        const rzp = new Razorpay(options);
+        document.getElementById('rzp-button').onclick = function(e){
+            rzp.open();
+            e.preventDefault();
+        }
+    })();
+</script>

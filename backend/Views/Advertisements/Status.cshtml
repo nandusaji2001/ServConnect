@@ -1,0 +1,32 @@
+@model ServConnect.Models.AdvertisementRequest
+@{
+    ViewData["Title"] = "Advertisement Status";
+    string statusText = Model.Status switch
+    {
+        ServConnect.Models.AdRequestStatus.Pending => "Pending Review",
+        ServConnect.Models.AdRequestStatus.Approved => "Approved (Published)",
+        ServConnect.Models.AdRequestStatus.Rejected => "Rejected",
+        _ => Model.Status.ToString()
+    };
+    string statusClass = Model.Status switch
+    {
+        ServConnect.Models.AdRequestStatus.Pending => "badge bg-warning text-dark",
+        ServConnect.Models.AdRequestStatus.Approved => "badge bg-success",
+        ServConnect.Models.AdRequestStatus.Rejected => "badge bg-danger",
+        _ => "badge bg-secondary"
+    };
+}
+
+<div class="container py-5" style="max-width:600px;">
+    <div class="text-center">
+        <h3 class="mb-4">Advertisement Status</h3>
+        <div class="card p-4">
+            <div class="fs-5 mb-2">Current Status</div>
+            <span class="@statusClass" style="font-size:1rem;padding:.6rem 1rem;">@statusText</span>
+        </div>
+        <div class="mt-4 d-flex justify-content-center gap-2">
+            <a asp-controller="Advertisements" asp-action="My" class="btn btn-primary">My Advertisements</a>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Home</a>
+        </div>
+    </div>
+</div>

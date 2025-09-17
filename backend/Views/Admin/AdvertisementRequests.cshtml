@@ -1,0 +1,86 @@
+@model List<ServConnect.Models.AdvertisementRequest>
+@using ServConnect.Models
+@{
+    ViewData["Title"] = "Advertisement Requests";
+}
+<div class="container py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Advertisement Requests</h3>
+    </div>
+
+    @if (TempData["AdReqMessage"] != null)
+    {
+        <div class="alert alert-info">@TempData["AdReqMessage"]</div>
+    }
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="alert alert-info">No requests found.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Preview</th>
+                        <th>User</th>
+                        <th>Submitted</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th style="width:260px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@r.ImageUrl" alt="ad" width="364" height="45" style="object-fit:cover;border-radius:4px;" />
+                            </td>
+                            <td>@r.RequestedByUserId</td>
+                            <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
+                            <td>@(r.IsPaid ? "Paid" : "Unpaid")</td>
+                            <td>
+                                @switch(r.Status)
+                                {
+                                    case AdRequestStatus.Pending:
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                        break;
+                                    case AdRequestStatus.Approved:
+                                        <span class="badge bg-success">Approved</span>
+                                        break;
+                                    case AdRequestStatus.Rejected:
+                                        <span class="badge bg-danger">Rejected</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <form asp-controller="Admin" asp-action="ApproveAdRequest" method="post">
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <button type="submit" class="btn btn-sm btn-success" @(r.Status == AdRequestStatus.Approved ? "disabled" : null)>
+                                            <i class="bi bi-check2-circle"></i> Accept
+                                        </button>
+                                    </form>
+                                    <form asp-controller="Admin" asp-action="RejectAdRequest" method="post">
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <button type="submit" class="btn btn-sm btn-danger" @(r.Status == AdRequestStatus.Rejected ? "disabled" : null)>
+                                            <i class="bi bi-x-circle"></i> Reject
+                                        </button>
+                                    </form>
+                                    @if (!string.IsNullOrEmpty(r.TargetUrl))
+                                    {
+                                        <a href="@r.TargetUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-geo-alt"></i> Open Link
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

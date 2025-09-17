@@ -127,11 +127,12 @@
     <div class="account-box">
         <h2 class="text-center mb-4">Login</h2>
 
-        @* Success Message *@
-        @if (TempData["SuccessMessage"] != null)
+        @* Success Message (only show registration/reset success on Login page) *@
+        @{ var _loginMsg = TempData["SuccessMessage"] as string; }
+        @if (!string.IsNullOrWhiteSpace(_loginMsg) && (_loginMsg.Contains("Registration successful") || _loginMsg.Contains("Password has been reset")))
         {
             <div class="alert alert-success">
-                @TempData["SuccessMessage"]
+                @_loginMsg
             </div>
         }
 
