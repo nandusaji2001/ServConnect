@@ -5,16 +5,21 @@ namespace ServConnect.ViewModels
     public class ProfileViewModel
     {
         [Required(ErrorMessage = "Name is required")]
+        [RegularExpression("^[A-Za-z\\s]+$", ErrorMessage = "Only alphabets and spaces are allowed.")]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "Full Name must be 3–50 characters.")]
         [Display(Name = "Full Name")]
         public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; } = string.Empty;
+
         [Display(Name = "Phone Number")]
         public string? PhoneNumber { get; set; }
 
         [Display(Name = "Complete Address")]
+        [RegularExpression("^[A-Za-z0-9\\s,\\-.]+$", ErrorMessage = "Use letters, numbers, comma, hyphen, dot only.")]
+        [StringLength(200, MinimumLength = 10, ErrorMessage = "Address must be 10–200 characters.")]
         public string? Address { get; set; }
 
         [Display(Name = "Profile Image")]

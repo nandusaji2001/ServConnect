@@ -15,22 +15,20 @@
         <div class="list-group">
             @foreach (var req in Model)
             {
-                @{
-                    var statusText = req.Status switch
-                    {
-                        ServConnect.Models.AdRequestStatus.Pending => "Pending Review",
-                        ServConnect.Models.AdRequestStatus.Approved => "Approved (Published)",
-                        ServConnect.Models.AdRequestStatus.Rejected => "Rejected",
-                        _ => req.Status.ToString()
-                    };
-                    var statusClass = req.Status switch
-                    {
-                        ServConnect.Models.AdRequestStatus.Pending => "badge bg-warning text-dark",
-                        ServConnect.Models.AdRequestStatus.Approved => "badge bg-success",
-                        ServConnect.Models.AdRequestStatus.Rejected => "badge bg-danger",
-                        _ => "badge bg-secondary"
-                    };
-                }
+                var statusText = req.Status switch
+                {
+                    ServConnect.Models.AdRequestStatus.Pending => "Pending Review",
+                    ServConnect.Models.AdRequestStatus.Approved => "Approved (Published)",
+                    ServConnect.Models.AdRequestStatus.Rejected => "Rejected",
+                    _ => req.Status.ToString()
+                };
+                var statusClass = req.Status switch
+                {
+                    ServConnect.Models.AdRequestStatus.Pending => "badge bg-warning text-dark",
+                    ServConnect.Models.AdRequestStatus.Approved => "badge bg-success",
+                    ServConnect.Models.AdRequestStatus.Rejected => "badge bg-danger",
+                    _ => "badge bg-secondary"
+                };
                 <div class="list-group-item">
                     <div class="d-flex flex-column gap-2">
                         <img src="@req.ImageUrl" alt="Ad" style="height:90px;width:728px;object-fit:cover;border-radius:6px;max-width:100%;" />

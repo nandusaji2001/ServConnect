@@ -28,11 +28,20 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.User.RequireUniqueEmail = true;
 });
 
-// Configure cookie settings
+// Configure cookie settings (enable persistent "Remember Me" cookies)
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    options.Cookie.Name = "ServConnect.Auth";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always; // use HTTPS
+
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
+
+    // Make Remember Me work by setting a long-lived auth cookie
+    options.SlidingExpiration = true;
+    options.ExpireTimeSpan = TimeSpan.FromDays(30); // persist up to 30 days when RememberMe is checked
+    options.ReturnUrlParameter = "returnUrl";
 });
 
 // Firebase Authentication is handled client-side and verified server-side

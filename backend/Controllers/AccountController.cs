@@ -228,6 +228,69 @@ namespace ServConnect.Controllers
         var user = await _userManager.FindByEmailAsync(email);
         return Json(user == null);
     }
+
+    // When editing profile, allow the current user's email to be considered available
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> IsEmailAvailableForEdit(string email)
+    {
+        var current = await _userManager.GetUserAsync(User);
+        if (current == null) return Json(false);
+        var other = await _userManager.FindByEmailAsync(email);
+        var ok = other == null || other.Id == current.Id;
+        return Json(ok);
+    }
+
+    // Phone uniqueness checks
+    [HttpGet]
+    public async Task<IActionResult> IsPhoneAvailable(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone)) return Json(false);
+        var formatted = FormatPhoneNumber(phone);
+        // Identity stores phone in User.PhoneNumber
+        var allUsers = _userManager.Users.ToList();
+        var exists = allUsers.Any(u => !string.IsNullOrEmpty(u.PhoneNumber) && FormatPhoneNumber(u.PhoneNumber) == formatted);
+        return Json(!exists);
+    }
+    #endregion
+
+    #region Password Change (separate from profile)
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return RedirectToAction("Login");
+        var vm = new ChangePasswordViewModel { Email = user.Email ?? string.Empty };
+        return View(vm);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return RedirectToAction("Login");
+
+        // Since this is a dedicated page, do NOT toggle profile approval flags here
+        // Only set the new password using a reset token pathway or ChangePassword with current password if you require it
+        // Here we will generate a reset token and apply it silently for the signed-in user
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return View(model);
+        }
+        TempData["SuccessMessage"] = "Password changed successfully.";
+        return RedirectToAction("Profile");
+    }
+
     #endregion
 
     #region Additional Actions

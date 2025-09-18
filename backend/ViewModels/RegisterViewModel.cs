@@ -6,14 +6,17 @@ namespace ServConnect.ViewModels
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "Name is required.")]
+        [RegularExpression("^[A-Za-z\\s]+$", ErrorMessage = "Only alphabets and spaces are allowed.")]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "Full Name must be 3–50 characters.")]
         [Display(Name = "Full Name")]
         public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email is required.")]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Enter a valid email address.")]
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required.")]
+        [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", ErrorMessage = "Min 8 chars, with upper, lower, number, and special character.")]
         [StringLength(40, MinimumLength = 8, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
