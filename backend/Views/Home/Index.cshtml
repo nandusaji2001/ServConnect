@@ -470,30 +470,62 @@
                 </div>
 
                 <div class="category-chips">
-                    <a href="/Services/Browse?q=Plumber" class="category-chip">Plumber</a>
-                    <a href="/Services/Browse?q=Electrician" class="category-chip">Electrician</a>
-                    <a href="/Services/Browse?q=Cleaner" class="category-chip">Cleaner</a>
-                    <a href="/Services/Browse?q=Painting" class="category-chip">Painting</a>
-                    <a href="/Services/Browse?q=Salon" class="category-chip">Salon</a>
-                    <a href="/Services/Browse" class="category-chip">+ More</a>
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <a href="/Services/Browse?q=Plumber" class="category-chip">Plumber</a>
+                        <a href="/Services/Browse?q=Electrician" class="category-chip">Electrician</a>
+                        <a href="/Services/Browse?q=Cleaner" class="category-chip">Cleaner</a>
+                        <a href="/Services/Browse?q=Painting" class="category-chip">Painting</a>
+                        <a href="/Services/Browse?q=Salon" class="category-chip">Salon</a>
+                        <a href="/Services/Browse" class="category-chip">+ More</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Plumber" class="category-chip">Plumber</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Electrician" class="category-chip">Electrician</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Cleaner" class="category-chip">Cleaner</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Painting" class="category-chip">Painting</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Salon" class="category-chip">Salon</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="category-chip">+ More</a>
+                    }
                 </div>
             </div>
             <div class="col-lg-6">
                 <div class="action-buttons">
-                    <a href="/Services/Browse" class="action-btn">
-                        <i class="fas fa-calendar-check"></i>
-                        <div>
-                            <div class="fw-bold">Book Service</div>
-                            <small class="text-muted">Schedule appointments</small>
-                        </div>
-                    </a>
-                    <a href="/LocalDirectory/Discover" class="action-btn">
-                        <i class="fas fa-search-location"></i>
-                        <div>
-                            <div class="fw-bold">Search Local Service</div>
-                            <small class="text-muted">Find nearby providers</small>
-                        </div>
-                    </a>
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <a href="/Services/Browse" class="action-btn">
+                            <i class="fas fa-calendar-check"></i>
+                            <div>
+                                <div class="fw-bold">Book Service</div>
+                                <small class="text-muted">Schedule appointments</small>
+                            </div>
+                        </a>
+                        <a href="/LocalDirectory/Discover" class="action-btn">
+                            <i class="fas fa-search-location"></i>
+                            <div>
+                                <div class="fw-bold">Search Local Service</div>
+                                <small class="text-muted">Find nearby providers</small>
+                            </div>
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="action-btn">
+                            <i class="fas fa-calendar-check"></i>
+                            <div>
+                                <div class="fw-bold">Book Service</div>
+                                <small class="text-muted">Schedule appointments</small>
+                            </div>
+                        </a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/LocalDirectory/Discover" class="action-btn">
+                            <i class="fas fa-search-location"></i>
+                            <div>
+                                <div class="fw-bold">Search Local Service</div>
+                                <small class="text-muted">Find nearby providers</small>
+                            </div>
+                        </a>
+                    }
                     @if (User.Identity?.IsAuthenticated ?? false)
                     {
                         <a href="/Home/Items?role=Vendor" class="action-btn">
@@ -693,6 +725,7 @@
             }
             else
             {
+                <!-- Unauthenticated: gate complaint link to login -->
                 <a href="/Account/Register" class="cta-btn">
                     <i class="fas fa-user-plus"></i>
                     Sign Up Now
@@ -701,7 +734,7 @@
                     <i class="fas fa-sign-in-alt"></i>
                     Login
                 </a>
-                <a href="/Complaints/Create?role=User" class="cta-btn">
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Complaints/Create?role=User" class="cta-btn">
                     <i class="fas fa-flag"></i>
                     Raise Complaint
                 </a>
@@ -777,15 +810,20 @@
             obs.observe(sec);
         });
         
-        // Search functionality - route to Browse like the reference
+        // Search functionality - route to Browse like the reference, but require login if unauthenticated
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
         
         searchBtn.addEventListener('click', function() {
             const query = searchInput.value.trim();
-            if (query) {
-                sessionStorage.setItem('browse_q', query);
+            if (!query) return;
+            sessionStorage.setItem('browse_q', query);
+            const isAuthed = document.body.getAttribute('data-authed') === 'true';
+            if (isAuthed) {
                 window.location.href = '/Services/Browse';
+            } else {
+                // redirect to login, then back to browse
+                window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent('/Services/Browse');
             }
         });
         

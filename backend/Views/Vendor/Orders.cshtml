@@ -1,118 +1,125 @@
 @{
-    ViewData["Title"] = "Manage Orders";
+    ViewData["Title"] = "Vendor Orders";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <h2 class="mb-4">Manage Orders</h2>
-        </div>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Orders For My Items</h2>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">0</h4>
-                                <p class="text-muted">Pending Orders</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">0</h4>
-                                <p class="text-muted">Processing</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">0</h4>
-                                <p class="text-muted">Shipped</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">0</h4>
-                                <p class="text-muted">Completed</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>User</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Placed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody">
+                        <tr><td colspan="9" class="text-center text-muted">Loading...</td></tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5>Recent Orders</h5>
-                    <div>
-                        <select class="form-select form-select-sm" style="width: auto; display: inline-block;">
-                            <option value="all">All Orders</option>
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Products</th>
-                                    <th>Total</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted">
-                                        No orders found. Orders will appear here when customers purchase your products.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-3">
-        <div class="col-md-12">
-            <a asp-action="Dashboard" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
         </div>
     </div>
 </div>
 
-<!-- Order Details Modal -->
-<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Order details will be loaded here -->
-                <p>Order details will be displayed here when an order is selected.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Update Status</button>
-            </div>
-        </div>
-    </div>
-</div>
+<script>
+function fmtAmount(a){
+  return (a ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'});
+}
+
+function row(o){
+  const created = o.createdAtUtc ? new Date(o.createdAtUtc).toLocaleString() : '';
+  const payBadge = o.paymentStatus === 1 ? 'bg-success' : (o.paymentStatus === 0 ? 'bg-warning text-dark' : 'bg-danger');
+  const statusBadge = {
+    0: 'bg-warning text-dark',
+    1: 'bg-info text-dark',
+    2: 'bg-success',
+    3: 'bg-secondary'
+  }[o.status] || 'bg-secondary';
+
+  const shipDisabled = !(o.paymentStatus === 1 && o.status === 0);
+  const cancelDisabled = o.status !== 0;
+
+  return `<tr data-id="${o.id}">
+    <td><code>${o.id}</code></td>
+    <td>${o.itemTitle}</td>
+    <td>${o.quantity}</td>
+    <td>${fmtAmount(o.totalAmount)}</td>
+    <td>${o.userEmail || ''}</td>
+    <td><span class="badge ${payBadge}">${['Created','Paid','Failed','Refunded'][o.paymentStatus] || ''}</span></td>
+    <td><span class="badge ${statusBadge}">${['Pending','Shipped','Delivered','Cancelled'][o.status] || ''}</span></td>
+    <td>${created}</td>
+    <td class="d-flex gap-2">
+      <button class="btn btn-sm btn-primary ship-btn" ${shipDisabled ? 'disabled' : ''}>Mark Shipped</button>
+      <button class="btn btn-sm btn-outline-secondary track-btn">Set Tracking</button>
+      <button class="btn btn-sm btn-outline-danger cancel-btn" ${cancelDisabled ? 'disabled' : ''}>Cancel</button>
+    </td>
+  </tr>`;
+}
+
+async function load(){
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Loading...</td></tr>`;
+  try {
+    const res = await fetch('/api/orders/vendor', { credentials: 'same-origin' });
+    if(!res.ok) throw new Error('Failed');
+    const list = await res.json();
+    if(!list || list.length === 0){
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No orders yet.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(row).join('');
+    wire();
+  } catch {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Failed to load orders.</td></tr>`;
+  }
+}
+
+function wire(){
+  document.querySelectorAll('.ship-btn').forEach(b => b.addEventListener('click', async (e) => {
+    const tr = e.target.closest('tr');
+    const id = tr.getAttribute('data-id');
+    const trackingUrl = prompt('Optional: enter tracking URL (leave blank to skip)');
+    if(!confirm('Mark this order as shipped?')) return;
+    const res = await fetch('/api/orders/ship', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'same-origin',
+      body: JSON.stringify({ orderId: id, trackingUrl: trackingUrl || null })
+    });
+    if(res.ok){ await load(); } else { alert('Failed to update'); }
+  }));
+  document.querySelectorAll('.track-btn').forEach(b => b.addEventListener('click', async (e) => {
+    const tr = e.target.closest('tr');
+    const id = tr.getAttribute('data-id');
+    const trackingUrl = prompt('Enter tracking URL');
+    if(!trackingUrl) return;
+    const res = await fetch('/api/orders/set-tracking', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'same-origin',
+      body: JSON.stringify({ orderId: id, trackingUrl })
+    });
+    if(res.ok){ await load(); } else { alert('Failed to set tracking'); }
+  }));
+  document.querySelectorAll('.cancel-btn').forEach(b => b.addEventListener('click', async (e) => {
+    const tr = e.target.closest('tr');
+    const id = tr.getAttribute('data-id');
+    if(!confirm('Cancel this order?')) return;
+    const res = await fetch('/api/orders/cancel', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'same-origin',
+      body: JSON.stringify({ orderId: id })
+    });
+    if(res.ok){ await load(); } else { alert('Failed to cancel'); }
+  }));
+}
+
+document.addEventListener('DOMContentLoaded', load);
+</script>

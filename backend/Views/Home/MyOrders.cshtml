@@ -1,0 +1,113 @@
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">My Orders</h2>
+    </div>
+
+    <div id="ordersWrap" class="card">
+        <div class="card-body">
+            <div id="ordersTableWrap" class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Tracking</th>
+                            <th>Placed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersBody">
+                        <tr><td colspan="8" class="text-center text-muted">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadOrders(){
+    const body = document.getElementById('ordersBody');
+    body.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Loading...</td></tr>`;
+    try{
+        const res = await fetch('/api/orders/mine', { credentials: 'same-origin' });
+        if(!res.ok) throw new Error('Failed to load');
+        const list = await res.json();
+        if(!list || list.length === 0){
+            body.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No orders found.</td></tr>`;
+            return;
+        }
+        body.innerHTML = list.map(r => row(r)).join('');
+        wire();
+    }catch{
+        body.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Failed to load orders.</td></tr>`;
+    }
+}
+
+function fmtAmount(a){
+    return (a ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'});
+}
+
+function row(o){
+    const created = o.createdAtUtc ? new Date(o.createdAtUtc).toLocaleString() : '';
+    const payBadge = o.paymentStatus === 1 ? 'bg-success' : (o.paymentStatus === 0 ? 'bg-warning text-dark' : 'bg-danger');
+    const statusBadge = {
+        0: 'bg-warning text-dark', // Pending
+        1: 'bg-info text-dark',    // Shipped
+        2: 'bg-success',           // Delivered
+        3: 'bg-secondary'          // Cancelled
+    }[o.status] || 'bg-secondary';
+
+    const deliverDisabled = !(o.paymentStatus === 1 && o.status === 1);
+    const cancelDisabled = !(o.status === 0);
+
+    const track = o.trackingUrl ? `<a href="${o.trackingUrl}" target="_blank">Track</a>` : '';
+    return `<tr data-id="${o.id}">
+        <td><code>${o.id}</code></td>
+        <td>${o.itemTitle}</td>
+        <td>${o.quantity}</td>
+        <td>${fmtAmount(o.totalAmount)}</td>
+        <td><span class="badge ${payBadge}">${['Created','Paid','Failed','Refunded'][o.paymentStatus] || ''}</span></td>
+        <td><span class="badge ${statusBadge}">${['Pending','Shipped','Delivered','Cancelled'][o.status] || ''}</span></td>
+        <td>${track}</td>
+        <td>${created}</td>
+        <td class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-success deliver-btn" ${deliverDisabled ? 'disabled' : ''}>Confirm Delivery</button>
+            <button class="btn btn-sm btn-outline-danger cancel-btn" ${cancelDisabled ? 'disabled' : ''}>Cancel</button>
+        </td>
+    </tr>`;
+}
+
+function wire(){
+    document.querySelectorAll('.deliver-btn').forEach(b => b.addEventListener('click', async (e) => {
+        const tr = e.target.closest('tr');
+        const id = tr.getAttribute('data-id');
+        if(!confirm('Mark this order as delivered?')) return;
+        const res = await fetch('/api/orders/deliver', {
+            method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'same-origin',
+            body: JSON.stringify({ orderId: id })
+        });
+        if(res.ok){ await loadOrders(); } else { alert('Failed to update'); }
+    }));
+    document.querySelectorAll('.cancel-btn').forEach(b => b.addEventListener('click', async (e) => {
+        const tr = e.target.closest('tr');
+        const id = tr.getAttribute('data-id');
+        if(!confirm('Cancel this order?')) return;
+        const res = await fetch('/api/orders/cancel', {
+            method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'same-origin',
+            body: JSON.stringify({ orderId: id })
+        });
+        if(res.ok){ await loadOrders(); } else { alert('Failed to cancel'); }
+    }));
+}
+
+document.addEventListener('DOMContentLoaded', loadOrders);
+</script>

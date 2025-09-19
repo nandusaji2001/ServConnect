@@ -51,5 +51,23 @@ namespace ServConnect.Services
             var res = await _items.DeleteOneAsync(i => i.Id == id);
             return res.DeletedCount == 1;
         }
+
+        public async Task<bool> ReduceStockAsync(string itemId, int quantity)
+        {
+            if (quantity <= 0) return false;
+            var filter = Builders<Item>.Filter.Where(i => i.Id == itemId && i.Stock >= quantity);
+            var update = Builders<Item>.Update.Inc(i => i.Stock, -quantity).Set(i => i.UpdatedAt, DateTime.UtcNow);
+            var res = await _items.UpdateOneAsync(filter, update);
+            return res.ModifiedCount == 1;
+        }
+
+        public async Task<bool> IncreaseStockAsync(string itemId, int quantity)
+        {
+            if (quantity <= 0) return false;
+            var filter = Builders<Item>.Filter.Eq(i => i.Id, itemId);
+            var update = Builders<Item>.Update.Inc(i => i.Stock, quantity).Set(i => i.UpdatedAt, DateTime.UtcNow);
+            var res = await _items.UpdateOneAsync(filter, update);
+            return res.ModifiedCount == 1;
+        }
     }
 }

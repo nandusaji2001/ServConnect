@@ -59,6 +59,7 @@ builder.Services.AddScoped<ServConnect.Filters.RequireApprovedUserFilter>();
 
 // Register custom services
 builder.Services.AddHttpClient<Fast2SmsOtpService>();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<ISmsService, Fast2SmsOtpService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
@@ -70,8 +71,13 @@ builder.Services.AddScoped<IComplaintService, ComplaintService>();
 builder.Services.AddScoped<IServiceCatalog, ServiceCatalog>();
 // Booking service
 builder.Services.AddScoped<IBookingService, BookingService>();
+
+// Orders & payments
+builder.Services.AddScoped<IOrderService, OrderService>();
 // Local directory for public services (hospitals, police, petrol, etc.)
 builder.Services.AddScoped<ILocalDirectory, LocalDirectory>();
+// Recommendations
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

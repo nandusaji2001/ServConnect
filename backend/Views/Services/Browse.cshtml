@@ -22,55 +22,94 @@
 </div>
 
 <style>
-    /* Responsive grid for service tiles */
-    .service-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 12px;
-    }
-    @@media (min-width: 768px) {
-        .service-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    :root {
+        --tile-bg: #ffffff;
+        --tile-border: #e9ecef;
+        --tile-hover-border: #d0d7de;
+        --tile-shadow: 0 1px 2px rgba(16,24,40,.05);
+        --tile-hover-shadow: 0 8px 24px rgba(16,24,40,.12);
     }
 
-    /* Service tile design */
+    /* Responsive grid for service cards */
+    .service-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 16px;
+    }
+    @@media (min-width: 768px) {
+        .service-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+    }
+
+    /* Service card design */
     .service-tile {
-        border-radius: 12px;
-        padding: 14px;
-        background: #ffffff;
-        border: 1px solid #e9ecef;
-        box-shadow: 0 1px 2px rgba(0,0,0,.04);
-        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        border-radius: 14px;
+        padding: 16px;
+        background: var(--tile-bg);
+        border: 1px solid var(--tile-border);
+        box-shadow: var(--tile-shadow);
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
         cursor: pointer;
         height: 100%;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
     }
     .service-tile:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,.08);
-        border-color: #dfe3e6;
+        transform: translateY(-3px);
+        box-shadow: var(--tile-hover-shadow);
+        border-color: var(--tile-hover-border);
     }
     .service-tile:focus-visible {
         outline: 3px solid rgba(13,110,253,.35);
         outline-offset: 2px;
     }
+
     .service-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 10px;
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
         display: grid;
         place-items: center;
-        background: linear-gradient(135deg, #eff3ff, #f7f9ff);
+        background: linear-gradient(135deg, #eef4ff, #f7faff);
         color: #0d6efd;
-        font-size: 18px;
+        font-size: 22px;
+        box-shadow: inset 0 0 0 1px rgba(13,110,253,.08), 0 2px 6px rgba(13,110,253,.08);
     }
-    .service-name { font-weight: 600; color: #212529; line-height: 1.2; }
-    .service-meta { color: #6c757d; font-size: .85rem; }
-    .chevron { margin-left: auto; color: #adb5bd; transition: transform .2s, color .2s; }
-    .service-tile:hover .chevron { color: #6c757d; transform: translateX(2px); }
 
-    /* Full-width layout: grid already spans container */
+    .service-name {
+        font-weight: 700;
+        color: #212529;
+        line-height: 1.2;
+        font-size: 1.05rem;
+        letter-spacing: .2px;
+    }
+
+    .service-meta { color: #6c757d; font-size: .85rem; }
+
+    .chevron {
+        margin-left: 10px;
+        color: #adb5bd;
+        transition: transform .2s, color .2s, background-color .2s;
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+    }
+    .service-tile:hover .chevron {
+        color: #6c757d;
+        transform: translateX(3px);
+        background-color: #f1f3f5;
+    }
+
+    /* Header polish */
+    .card-header {
+        background: linear-gradient(180deg, rgba(248,249,250,.9), rgba(248,249,250,.7));
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    /* Input style */
+    #search { border-radius: 999px; padding-inline: 14px; }
 </style>
 
 <script>

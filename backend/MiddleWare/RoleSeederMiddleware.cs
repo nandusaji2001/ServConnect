@@ -15,7 +15,7 @@ public class RoleSeederMiddleware
         HttpContext context,
         RoleManager<MongoIdentityRole> roleManager)
     {
-        foreach (var role in new[] { RoleTypes.User, RoleTypes.Admin, RoleTypes.ServiceProvider })
+        foreach (var role in new[] { RoleTypes.User, RoleTypes.Admin, RoleTypes.ServiceProvider, RoleTypes.Vendor })
         {
             if (!await roleManager.RoleExistsAsync(role))
             {

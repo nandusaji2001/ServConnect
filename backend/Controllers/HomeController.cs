@@ -42,6 +42,13 @@ namespace ServConnect.Controllers
             return View();
         }
 
+        // User: My Orders dashboard
+        [Authorize]
+        public IActionResult MyOrders()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

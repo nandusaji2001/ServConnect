@@ -15,11 +15,48 @@
     </div>
 </div>
 
+<!-- Order Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Order Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="orderForm">
+            <div class="mb-3">
+                <label class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="orderQty" min="1" value="1" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Shipping Address</label>
+                <textarea class="form-control" id="orderAddress" rows="3" placeholder="Enter your full address" required></textarea>
+            </div>
+            <div id="orderError" class="text-danger small" style="display:none;"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="submitOrderBtn" type="button" class="btn btn-primary">
+            <i class="fas fa-check"></i> Place Order
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
     let allItems = [];
+    let selectedItemId = null;
 
     function card(i){
         const img = i.imageUrl ? `<img src="${i.imageUrl}" class="card-img-top" alt="${i.title || 'item'}" style="object-fit:cover;height:160px;">` : '';
+        const price = (i.price ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'});
+        const badgeClass = String(i.ownerRole).toLowerCase() === 'vendor' ? 'bg-warning text-dark' : 'bg-info text-dark';
+        const stock = Number.isFinite(i.stock) ? i.stock : 0;
+        const disabled = stock <= 0 ? 'disabled' : '';
+        const stockHtml = `<span class="badge ${stock > 0 ? 'bg-success' : 'bg-secondary'}">Stock: ${stock}</span>`;
         return `
         <div class="col-sm-6 col-md-4 col-lg-3">
             <div class="card h-100">
@@ -27,13 +64,38 @@
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">${i.title || ''}</h5>
                     <p class="card-text flex-grow-1">${i.description || ''}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">${(i.price ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'})}</span>
-                        <span class="badge ${i.ownerRole === 'Vendor' ? 'bg-warning text-dark' : 'bg-info text-dark'}">${i.ownerRole}</span>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">${price}</span>
+                        <span class="d-flex align-items-center gap-2">
+                            ${stockHtml}
+                            <span class="badge ${badgeClass}">${i.ownerRole}</span>
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-sm btn-primary order-btn" data-id="${i.id}" ${disabled}>
+                            <i class="fas fa-shopping-cart"></i> ${stock > 0 ? 'Order Now' : 'Out of Stock'}
+                        </button>
+                        <a class="btn btn-sm btn-outline-secondary" href="/Home/MyOrders" title="View your current orders">
+                            <i class="fas fa-list"></i> My Orders
+                        </a>
                     </div>
                 </div>
             </div>
         </div>`;
+    }
+
+    function wireCardActions(){
+        document.querySelectorAll('.order-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                selectedItemId = e.currentTarget.getAttribute('data-id');
+                const modalEl = document.getElementById('orderModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                document.getElementById('orderQty').value = 1;
+                document.getElementById('orderAddress').value = '';
+                document.getElementById('orderError').style.display = 'none';
+                modal.show();
+            });
+        });
     }
 
     function render(items){
@@ -43,6 +105,7 @@
             return;
         }
         grid.innerHTML = items.map(card).join('');
+        wireCardActions();
     }
 
     async function load(){
@@ -70,6 +133,106 @@
         if(!role) return items;
         return items.filter(x => String(x.ownerRole).toLowerCase() === role.toLowerCase());
     }
+
+    // Lazy-load Razorpay script if not available
+    function ensureRazorpay() {
+        return new Promise((resolve, reject) => {
+            if (window.Razorpay) return resolve();
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load Razorpay.'));
+            document.head.appendChild(script);
+        });
+    }
+
+    document.getElementById('submitOrderBtn').addEventListener('click', async () => {
+        const qty = parseInt(document.getElementById('orderQty').value || '1', 10);
+        const addr = document.getElementById('orderAddress').value.trim();
+        const err = document.getElementById('orderError');
+        err.style.display = 'none';
+
+        if(!selectedItemId){ err.textContent = 'No item selected'; err.style.display = 'block'; return; }
+        if(!addr){ err.textContent = 'Please enter shipping address'; err.style.display = 'block'; return; }
+        if(!qty || qty < 1){ err.textContent = 'Quantity must be at least 1'; err.style.display = 'block'; return; }
+
+        const item = allItems.find(x => x.id === selectedItemId);
+        if(item && item.stock && qty > item.stock){
+            err.textContent = `Quantity exceeds available stock (${item.stock}).`;
+            err.style.display = 'block';
+            return;
+        }
+
+        const btn = document.getElementById('submitOrderBtn');
+        btn.disabled = true;
+        try{
+            // Step 1: Create backend order and get Razorpay order info
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ itemId: selectedItemId, quantity: qty, shippingAddress: addr })
+            });
+            if(!res.ok){
+                const txt = await res.text();
+                throw new Error(txt || 'Order creation failed');
+            }
+            const data = await res.json();
+
+            // Step 2: Load Razorpay and open checkout
+            await ensureRazorpay();
+            const options = {
+                key: data.key,
+                amount: data.amount,
+                currency: data.currency || 'INR',
+                name: 'ServConnect',
+                description: data.description || 'Order Payment',
+                order_id: data.razorpayOrderId,
+                handler: async function (response) {
+                    try {
+                        // Step 3: Verify payment with backend
+                        const vr = await fetch('/api/orders/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'same-origin',
+                            body: JSON.stringify({
+                                orderId: data.orderId,
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpaySignature: response.razorpay_signature
+                            })
+                        });
+                        if(!vr.ok){
+                            const t = await vr.text();
+                            throw new Error(t || 'Payment verification failed');
+                        }
+                        const modalEl = document.getElementById('orderModal');
+                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.hide();
+                        alert('Payment successful! Your order is placed and pending shipment.');
+                    } catch (verifyErr) {
+                        err.textContent = verifyErr?.message || 'Payment verification failed';
+                        err.style.display = 'block';
+                    }
+                },
+                prefill: {
+                    // best-effort prefill if we have it later
+                },
+                theme: { color: '#3399cc' }
+            };
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (resp) {
+                err.textContent = resp?.error?.description || 'Payment failed';
+                err.style.display = 'block';
+            });
+            rzp.open();
+        }catch(ex){
+            err.textContent = ex?.message || 'Order failed';
+            err.style.display = 'block';
+        }finally{
+            btn.disabled = false;
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', async () => {
         await load();
