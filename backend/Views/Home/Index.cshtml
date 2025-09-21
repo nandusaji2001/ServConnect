@@ -462,12 +462,29 @@
                             <option selected>Kattappana</option>
                             <option>Nedumkandam</option>
                             <option>Kanjirappally</option>
+                            <option>Kumily</option>
                             <option>Kuttikkanam</option>
                         </select>
                         <input class="search-input" id="searchInput" placeholder="What are you looking for?" />
                         <button class="search-btn" id="searchBtn"><i class="bi bi-search"></i></button>
+                        
+                        <style>
+                            .hero-results { margin-top:16px; }
+                            .service-card { border:1px solid #e5e7eb; border-radius:12px; padding:12px 16px; background:#fff; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+                            .service-title { font-weight:600; }
+                            .service-meta { font-size:.9rem; color:#6b7280; }
+                        </style>
                     </div>
                 </div>
+                <style>
+                    .osm-quick-cards { margin-top: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+                    .osm-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; cursor: pointer; display:flex; align-items:center; gap:8px; transition: transform .1s ease, box-shadow .1s ease; }
+                    .osm-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,.08); }
+                    .osm-card i { color:#0ea5e9; }
+                    @@media (max-width: 768px){ .osm-quick-cards{ grid-template-columns: repeat(2, 1fr);} }
+                </style>
+                <!-- Moved OSM quick cards into LocalDirectory/Discover search; removing from hero -->
+                <div class="osm-quick-cards d-none"></div>
 
                 <div class="category-chips">
                     @if (User.Identity?.IsAuthenticated ?? false)
@@ -560,12 +577,75 @@
 </div>
 
 <script>
-    // Pre-fill search on browse page
-    document.addEventListener('DOMContentLoaded', () => {
-        const q = sessionStorage.getItem('browse_q');
-        if(q){
-            sessionStorage.removeItem('browse_q');
+    // Hero search: fetch from local directory API with location
+    async function runHeroSearch(){
+        const loc = document.getElementById('searchLocation').value;
+        const q = (document.getElementById('searchInput').value || '').trim();
+        const url = new URL(location.origin + '/api/local/services');
+        if(q) url.searchParams.set('q', q);
+        url.searchParams.set('locationName', loc);
+        try{
+            const res = await fetch(url);
+            const list = await res.json();
+            const containerId = 'heroResults';
+            let container = document.getElementById(containerId);
+            if(!container){
+                container = document.createElement('div');
+                container.id = containerId;
+                container.className = 'hero-results';
+                document.querySelector('.search-container').appendChild(container);
+            }
+            if(!Array.isArray(list) || list.length === 0){
+                container.innerHTML = '<div class="text-white-50 mt-3">No results found.</div>';
+                return;
+            }
+            list.sort((a,b)=> (b.rating||0)-(a.rating||0));
+            container.innerHTML = list.map(s => {
+                const stars = (s.rating||0) > 0 ? `<span class="badge bg-warning text-dark ms-2"><i class="fas fa-star"></i> ${Number(s.rating).toFixed(1)}${s.ratingCount?` (${s.ratingCount})`:''}</span>` : '';
+                const addr = s.address ? `<div class="service-meta">${s.address}</div>` : '';
+                const mapHref = s.mapUrl ? s.mapUrl : `/local/services/${s.id}/map`;
+                const rate = `<div class="mt-2">
+                    <span class="me-2">Rate:</span>
+                    ${[1,2,3,4,5].map(n=>`<button class='btn btn-sm ${n<=Math.round(s.rating)?'btn-warning':'btn-outline-secondary'} me-1' onclick='rateService(${JSON.stringify(s.id)}, ${n})'>${n}</button>`).join('')}
+                </div>`;
+                return `<div class="service-card">
+                    <div>
+                        <div class="service-title">${s.name} ${stars}</div>
+                        <div class="service-meta">${s.categoryName||''}</div>
+                        ${addr}
+                        ${rate}
+                    </div>
+                    <a class="btn btn-sm btn-outline-success" target="_blank" href="${mapHref}"><i class="fas fa-map-marker-alt"></i> Map</a>
+                </div>`;
+            }).join('');
+        }catch{
+            alert('Failed to load results');
         }
+    }
+    async function rateService(id, rating){
+        try{
+            const res = await fetch(`/api/local/services/${id}/rating`, {
+                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({rating})
+            });
+            if(res.ok){
+                runHeroSearch();
+            }else if(res.status === 401){
+                alert('Please login to rate');
+            }else{
+                alert('Failed to submit rating');
+            }
+        }catch{
+            alert('Failed to submit rating');
+        }
+    }
+    function quickSearch(name){
+        const input = document.getElementById('searchInput');
+        input.value = name;
+        runHeroSearch();
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('searchBtn').addEventListener('click', (e)=>{ e.preventDefault(); runHeroSearch(); });
+        document.getElementById('searchInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); runHeroSearch(); }});
     });
 </script>
 

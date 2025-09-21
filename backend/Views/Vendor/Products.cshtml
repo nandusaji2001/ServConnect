@@ -7,7 +7,7 @@
         <div class="col-md-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Manage Products</h2>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <button class="btn btn-primary" onclick="openCreate()">
                     <i class="fas fa-plus"></i> Add New Product
                 </button>
             </div>
@@ -57,16 +57,17 @@
     </div>
 </div>
 
-<!-- Add Product Modal -->
-<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+<!-- Create/Edit Product Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
+                <h5 class="modal-title" id="productModalTitle">Add New Product</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="addItemForm">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -96,7 +97,7 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="productPrice" class="form-label">Price ($)</label>
+                                <label for="productPrice" class="form-label">Price (₹)</label>
                                 <input type="number" class="form-control" id="productPrice" step="0.01" min="0">
                             </div>
                         </div>
@@ -117,11 +118,18 @@
                         <label for="productImage" class="form-label">Product Image</label>
                         <input type="file" class="form-control" id="productImage" accept="image/*">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Active</label>
+                        <select class="form-select" id="productIsActive">
+                            <option value="true" selected>Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button id="submitAddItem" type="button" class="btn btn-primary">Add Product</button>
+                <button id="submitProduct" type="button" class="btn btn-primary">Save</button>
             </div>
         </div>
     </div>
@@ -148,23 +156,21 @@
                     <td>${i.stock ?? 0}</td>
                     <td>${i.isActive ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" disabled>Edit</button>
+                        <button class="btn btn-sm btn-outline-primary" onclick='openEdit(${JSON.stringify(i).replace(/'/g, "&apos;")})'>Edit</button>
                         <button class="btn btn-sm btn-outline-danger" data-id="${i.id}">Delete</button>
                     </td>
                 </tr>`).join('');
 
-            // wire delete
+            // wire delete (optimistic: confirm only, remove row immediately; no success/failure alerts)
             tbody.querySelectorAll('button[data-id]').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
                     if(!confirm('Delete this item?')) return;
-                    e.currentTarget.disabled = true;
+                    const row = e.currentTarget.closest('tr');
+                    row?.remove(); // optimistic UI update
                     try{
-                        const res = await fetch(`/api/items/${id}`, { method:'DELETE', credentials:'same-origin' });
-                        if(res.status === 204) e.currentTarget.closest('tr').remove();
-                        else alert('Delete failed');
-                    }catch{ alert('Delete failed'); }
-                    finally{ e.currentTarget.disabled = false; }
+                        await fetch(`/api/items/${id}`, { method:'DELETE', credentials:'same-origin' });
+                    }catch{ /* ignore errors to avoid confusing alerts */ }
                 });
             });
         }catch{
@@ -172,30 +178,76 @@
         }
     }
 
-    document.getElementById('submitAddItem').addEventListener('click', async () => {
-        const form = document.getElementById('addItemForm');
-        const fd = new FormData();
-        fd.append('title', document.getElementById('productName').value);
-        fd.append('description', document.getElementById('productDescription').value);
-        fd.append('price', document.getElementById('productPrice').value || '0');
-        fd.append('category', document.getElementById('productCategory').value);
-        fd.append('sku', document.getElementById('productSKU').value);
-        fd.append('stock', document.getElementById('productStock').value || '0');
-        const file = document.getElementById('productImage').files[0];
-        if(file) fd.append('image', file);
+    function openCreate(){
+        document.getElementById('productModalTitle').textContent = 'Add New Product';
+        document.getElementById('productId').value = '';
+        document.getElementById('productName').value = '';
+        document.getElementById('productDescription').value = '';
+        document.getElementById('productCategory').value = '';
+        document.getElementById('productPrice').value = '';
+        document.getElementById('productStock').value = '';
+        document.getElementById('productSKU').value = '';
+        document.getElementById('productIsActive').value = 'true';
+        const modal = new bootstrap.Modal(document.getElementById('productModal'));
+        modal.show();
+    }
 
-        const btn = document.getElementById('submitAddItem');
-        btn.disabled = true;
-        try{
-            const res = await fetch('/api/items/with-image', { method:'POST', body: fd, credentials:'same-origin' });
-            if(!res.ok){ alert('Failed to add'); return; }
-            // reset form and reload
-            form.reset();
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
-            modal?.hide();
-            loadMine();
-        }catch{ alert('Failed to add'); }
-        finally{ btn.disabled = false; }
+    function openEdit(i){
+        document.getElementById('productModalTitle').textContent = 'Edit Product';
+        document.getElementById('productId').value = i.id;
+        document.getElementById('productName').value = i.title || '';
+        document.getElementById('productDescription').value = i.description || '';
+        document.getElementById('productCategory').value = i.category || '';
+        document.getElementById('productPrice').value = i.price || 0;
+        document.getElementById('productStock').value = i.stock || 0;
+        document.getElementById('productSKU').value = i.sku || '';
+        document.getElementById('productIsActive').value = String(!!i.isActive);
+        const modal = new bootstrap.Modal(document.getElementById('productModal'));
+        modal.show();
+    }
+
+    document.getElementById('submitProduct').addEventListener('click', async () => {
+        const id = document.getElementById('productId').value;
+        const isEdit = !!id;
+
+        if(isEdit){
+            // PUT JSON for update
+            const payload = {
+                title: document.getElementById('productName').value,
+                description: document.getElementById('productDescription').value,
+                price: parseFloat(document.getElementById('productPrice').value || '0'),
+                category: document.getElementById('productCategory').value,
+                isActive: document.getElementById('productIsActive').value === 'true'
+            };
+            try{
+                const res = await fetch(`/api/items/${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type':'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                });
+                if(!res.ok){ alert('Update failed'); return; }
+                bootstrap.Modal.getInstance(document.getElementById('productModal'))?.hide();
+                loadMine();
+            }catch{ alert('Update failed'); }
+        }else{
+            // POST multipart for create-with-image
+            const fd = new FormData();
+            fd.append('title', document.getElementById('productName').value);
+            fd.append('description', document.getElementById('productDescription').value);
+            fd.append('price', document.getElementById('productPrice').value || '0');
+            fd.append('category', document.getElementById('productCategory').value);
+            fd.append('sku', document.getElementById('productSKU').value);
+            fd.append('stock', document.getElementById('productStock').value || '0');
+            const file = document.getElementById('productImage').files[0];
+            if(file) fd.append('image', file);
+            try{
+                const res = await fetch('/api/items/with-image', { method:'POST', body: fd, credentials:'same-origin' });
+                if(!res.ok){ alert('Failed to add'); return; }
+                bootstrap.Modal.getInstance(document.getElementById('productModal'))?.hide();
+                loadMine();
+            }catch{ alert('Failed to add'); }
+        }
     });
 
     document.addEventListener('DOMContentLoaded', loadMine);

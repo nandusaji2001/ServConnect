@@ -95,7 +95,7 @@ namespace ServConnect.Services
                                   .SortBy(x => x.Name).ToListAsync();
         }
 
-        public async Task<IReadOnlyList<LocalService>> SearchAsync(string? q, string? categorySlug)
+        public async Task<IReadOnlyList<LocalService>> SearchAsync(string? q, string? categorySlug, string? locationName)
         {
             var filter = Builders<LocalService>.Filter.Eq(x => x.IsActive, true);
             if (!string.IsNullOrWhiteSpace(categorySlug))
@@ -109,6 +109,7 @@ namespace ServConnect.Services
                 var addrFilter = Builders<LocalService>.Filter.Regex(x => x.Address!, regex);
                 filter &= Builders<LocalService>.Filter.Or(nameFilter, addrFilter);
             }
+            // locationName intentionally ignored in Mongo-backed search
             return await _services.Find(filter).SortBy(x => x.Name).ToListAsync();
         }
     }

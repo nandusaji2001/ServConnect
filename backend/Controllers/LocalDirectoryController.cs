@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using ServConnect.Models;
 using ServConnect.Services;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace ServConnect.Controllers
@@ -27,6 +29,17 @@ namespace ServConnect.Controllers
         [AllowAnonymous]
         public IActionResult Discover()
         {
+            return View();
+        }
+
+        // Public UI: browse results page
+        [HttpGet("/local/services/browse")]
+        [AllowAnonymous]
+        public IActionResult Browse([FromQuery] string? q, [FromQuery] string? categorySlug, [FromQuery] string? locationName)
+        {
+            ViewBag.Q = q;
+            ViewBag.CategorySlug = categorySlug;
+            ViewBag.LocationName = locationName;
             return View();
         }
 
@@ -98,9 +111,24 @@ namespace ServConnect.Controllers
         // Public discovery: list by category
         [HttpGet("/api/local/services")] 
         [AllowAnonymous]
-        public async Task<IActionResult> Discover([FromQuery] string? q, [FromQuery] string? categorySlug)
+        public async Task<IActionResult> Discover([FromQuery] string? q, [FromQuery] string? categorySlug, [FromQuery] string? locationName)
         {
-            var list = await _directory.SearchAsync(q, categorySlug);
+            var list = await _directory.SearchAsync(q, categorySlug, locationName);
+
+            // Enrich with user rating averages and sort desc by rating
+            var ratingSvc = HttpContext.RequestServices.GetRequiredService<IRatingService>();
+            // Build stable keys for services (OSM/mongo)
+            var keyPairs = list.Select(s => (s, ratingSvc.DetectKeyFrom(s.Id, s.MapUrl))).ToList();
+            var averages = await ratingSvc.GetAveragesAsync(keyPairs.Select(k => k.Item2));
+            foreach (var p in keyPairs)
+            {
+                if (averages.TryGetValue(p.Item2, out var agg))
+                {
+                    p.s.Rating = agg.average;
+                    p.s.RatingCount = agg.count;
+                }
+            }
+            list = list.OrderByDescending(x => x.Rating).ThenBy(x => x.Name).ToList();
             return Ok(list);
         }
 
@@ -125,5 +153,23 @@ namespace ServConnect.Controllers
             public string? Phone { get; set; }
             public bool? IsActive { get; set; }
         }
+
+        // API: submit rating for a service (logged-in users)
+        [HttpPost("/api/local/services/{id}/rating")]
+        [Authorize]
+        public async Task<IActionResult> SubmitRating(string id, [FromBody] RatingReq req)
+        {
+            if (req == null || req.Rating < 1 || req.Rating > 5) return BadRequest("Rating must be 1-5");
+            var ratingSvc = HttpContext.RequestServices.GetRequiredService<IRatingService>();
+            var svc = await _directory.GetServiceAsync(id); // if admin-created
+            string key = svc != null
+                ? ratingSvc.ComposeKey("mongo", svc.Id!)
+                : ratingSvc.DetectKeyFrom(id, null);
+
+            var userId = User?.Identity?.Name ?? User?.FindFirst("sub")?.Value ?? User?.FindFirst("userid")?.Value ?? "unknown";
+            await ratingSvc.SubmitAsync(userId, key, req.Rating);
+            return NoContent();
+        }
+        public class RatingReq { public int Rating { get; set; } }
     }
 }

@@ -14,6 +14,6 @@ namespace ServConnect.Services
         Task<bool> DeleteServiceAsync(string id);
         Task<LocalService?> GetServiceAsync(string id);
         Task<IReadOnlyList<LocalService>> GetByCategoryAsync(string categorySlug);
-        Task<IReadOnlyList<LocalService>> SearchAsync(string? q, string? categorySlug);
+        Task<IReadOnlyList<LocalService>> SearchAsync(string? q, string? categorySlug, string? locationName);
     }
 }

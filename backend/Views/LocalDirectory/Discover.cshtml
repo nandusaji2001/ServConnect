@@ -2,31 +2,90 @@
     ViewData["Title"] = "Discover Local Services";
 }
 <div class="container py-4">
-    <h2 class="mb-3">Services near you</h2>
+    <h2 class="mb-3">Discover local services</h2>
     <div class="card">
-        <div class="card-header d-flex gap-2 align-items-center">
+        <div class="card-header d-flex gap-2 align-items-center flex-wrap">
+            <select id="loc" class="form-select w-auto">
+                <option selected>Kattappana</option>
+                <option>Nedumkandam</option>
+                <option>Kanjirappally</option>
+                <option>Kumily</option>
+                <option>Kuttikkanam</option>
+            </select>
             <select id="cat" class="form-select w-auto"></select>
-            <input id="q" class="form-control" placeholder="Search by name/address">
-            <button class="btn btn-primary" onclick="loadList()"><i class="fas fa-search"></i></button>
+            <input id="q" class="form-control" placeholder="Search by name/address or choose a card below">
+            <button class="btn btn-primary" id="btnSearch"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="p-3">
+            <style>
+                /* Quick predefined cards */
+                .osm-quick-cards { display:grid; grid-template-columns: repeat(6,1fr); gap:12px; }
+                .osm-card { 
+                    background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+                    border:1px solid #e5e7eb; border-radius:12px; padding:14px; cursor:pointer; 
+                    display:flex; align-items:center; gap:10px; transition:all .2s ease;
+                }
+                .osm-card i{ font-size:18px; color:#2563eb; }
+                .osm-card:hover{ box-shadow:0 10px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
+                @@media (max-width: 992px){ .osm-quick-cards{ grid-template-columns: repeat(3,1fr);} }
+                @@media (max-width: 576px){ .osm-quick-cards{ grid-template-columns: repeat(2,1fr);} }
+                /* Category tiles */
+                .category-card.tile{ border-radius:12px; border:1px solid #e5e7eb; transition: box-shadow .2s ease, transform .2s ease; }
+                .category-card.tile:hover{ box-shadow:0 10px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
+                .category-card .card-title{ font-size:1.125rem; }
+            </style>
+            <div class="osm-quick-cards" id="quickCards">
+                <div class="osm-card" data-name="Hospital"><i class="fas fa-hospital"></i><span>Hospital</span></div>
+                <div class="osm-card" data-name="Pharmacy"><i class="fas fa-prescription-bottle-alt"></i><span>Pharmacy</span></div>
+                <div class="osm-card" data-name="Clinic"><i class="fas fa-clinic-medical"></i><span>Clinic</span></div>
+                <div class="osm-card" data-name="Police Station"><i class="fas fa-shield-alt"></i><span>Police</span></div>
+                <div class="osm-card" data-name="Fuel / Gas Station"><i class="fas fa-gas-pump"></i><span>Fuel</span></div>
+                <div class="osm-card" data-name="Restaurant"><i class="fas fa-utensils"></i><span>Restaurant</span></div>
+                <div class="osm-card" data-name="Cafe"><i class="fas fa-coffee"></i><span>Cafe</span></div>
+                <div class="osm-card" data-name="Fast Food"><i class="fas fa-hamburger"></i><span>Fast Food</span></div>
+                <div class="osm-card" data-name="Bank / ATM"><i class="fas fa-university"></i><span>Bank/ATM</span></div>
+                <div class="osm-card" data-name="Post Office"><i class="fas fa-mail-bulk"></i><span>Post Office</span></div>
+                <div class="osm-card" data-name="School"><i class="fas fa-school"></i><span>School</span></div>
+                <div class="osm-card" data-name="University"><i class="fas fa-graduation-cap"></i><span>University</span></div>
+                <div class="osm-card" data-name="Bus Stop"><i class="fas fa-bus"></i><span>Bus Stop</span></div>
+                <div class="osm-card" data-name="Train Station"><i class="fas fa-train"></i><span>Train</span></div>
+                <div class="osm-card" data-name="Airport"><i class="fas fa-plane"></i><span>Airport</span></div>
+                <div class="osm-card" data-name="Taxi Stand"><i class="fas fa-taxi"></i><span>Taxi</span></div>
+                <div class="osm-card" data-name="Park / Garden"><i class="fas fa-tree"></i><span>Park</span></div>
+                <div class="osm-card" data-name="Playground"><i class="fas fa-futbol"></i><span>Playground</span></div>
+                <div class="osm-card" data-name="Cinema / Movie Theater"><i class="fas fa-film"></i><span>Cinema</span></div>
+                <div class="osm-card" data-name="Theatre / Performing Arts Venue"><i class="fas fa-theater-masks"></i><span>Theatre</span></div>
+                <div class="osm-card" data-name="Museum"><i class="fas fa-landmark"></i><span>Museum</span></div>
+                <div class="osm-card" data-name="Art Gallery"><i class="fas fa-palette"></i><span>Art Gallery</span></div>
+                <div class="osm-card" data-name="Hotel"><i class="fas fa-bed"></i><span>Hotel</span></div>
+                <div class="osm-card" data-name="Guest House"><i class="fas fa-concierge-bell"></i><span>Guest House</span></div>
+                <div class="osm-card" data-name="Parking Lot / Garage"><i class="fas fa-parking"></i><span>Parking</span></div>
+                <div class="osm-card" data-name="Ferry Terminal"><i class="fas fa-ship"></i><span>Ferry</span></div>
+            </div>
         </div>
         <div id="tileGrid" class="p-3">
             <div class="text-muted">Loading categories...</div>
         </div>
-        <ul class="list-group list-group-flush d-none" id="list">
-            <li class="list-group-item text-muted">Loading...</li>
-        </ul>
     </div>
 </div>
 <script>
+    function navigateToBrowse(params){
+        const url = new URL(location.origin + '/local/services/browse');
+        if(params.q) url.searchParams.set('q', params.q);
+        if(params.categorySlug) url.searchParams.set('categorySlug', params.categorySlug);
+        if(params.locationName) url.searchParams.set('locationName', params.locationName);
+        location.href = url.toString();
+    }
+
     function renderTiles(cats){
         const grid = document.getElementById('tileGrid');
         grid.innerHTML = '';
         const row = document.createElement('div');
-        row.className = 'row g-3';
+        row.className = 'row g-4';
         cats.forEach(c => {
             const col = document.createElement('div');
-            col.className = 'col-12 col-sm-6 col-lg-4';
-            col.innerHTML = `<div class="card h-100 tile" data-slug="${c.slug}">
+            col.className = 'col-12 col-md-6 col-lg-3';
+            col.innerHTML = `<div class="card h-100 tile category-card" data-slug="${c.slug}">
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex align-items-center mb-2">
                         <i class="bi bi-geo-alt-fill me-2 text-primary"></i>
@@ -44,8 +103,8 @@
         grid.querySelectorAll('.tile').forEach(tile => {
             tile.addEventListener('click', ()=>{
                 const slug = tile.getAttribute('data-slug');
-                document.getElementById('cat').value = slug;
-                loadList();
+                const loc = document.getElementById('loc').value;
+                navigateToBrowse({ q: '', categorySlug: slug, locationName: loc });
             });
         });
     }
@@ -56,45 +115,36 @@
         try{
             const res = await fetch('/api/local/categories');
             const cats = await res.json();
+            // Populate dropdown with all categories (unchanged)
             cats.forEach(c => {
                 const o = document.createElement('option');
                 o.value = c.slug;
                 o.textContent = c.name;
                 sel.appendChild(o);
             });
-            renderTiles(cats);
+            // Exclude bottom duplicate tiles for Hospital, Police, Fuel/Petrol
+            const filtered = cats.filter(c => {
+                const n = (c.name || '').toLowerCase();
+                return !(n.includes('hospital') || n.includes('police') || n.includes('fuel') || n.includes('petrol'));
+            });
+            renderTiles(filtered);
         }catch{ document.getElementById('tileGrid').innerHTML = '<div class="text-danger">Failed to load categories.</div>'; }
     }
 
-    async function loadList(){
-        // Hide tiles, show list
-        document.getElementById('tileGrid').classList.add('d-none');
-        const ul = document.getElementById('list');
-        ul.classList.remove('d-none');
-        ul.innerHTML = '<li class="list-group-item text-muted">Loading...</li>';
-
-        const q = document.getElementById('q').value.trim();
-        const cat = document.getElementById('cat').value;
-        const url = new URL(location.origin + '/api/local/services');
-        if(q) url.searchParams.set('q', q);
-        if(cat) url.searchParams.set('categorySlug', cat);
-        try{
-            const res = await fetch(url);
-            const data = await res.json();
-            if(!data || data.length === 0){ ul.innerHTML = '<li class="list-group-item text-muted">No results.</li>'; return; }
-            ul.innerHTML = '';
-            data.forEach(s => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                li.innerHTML = `<div>
-                    <div><strong>${s.name}</strong> <span class='badge bg-secondary ms-2'>${s.categoryName}</span></div>
-                    <div class="text-muted small">${s.address || ''}</div>
-                </div>
-                <a class="btn btn-sm btn-outline-primary" href="/local/services/${s.id}/map" target="_blank" ${s.mapUrl ? '' : 'disabled'}><i class="fas fa-map-marker-alt"></i> Map</a>`;
-                ul.appendChild(li);
+    document.addEventListener('DOMContentLoaded', async ()=>{
+        await loadCats();
+        document.getElementById('btnSearch').addEventListener('click', () => {
+            const q = document.getElementById('q').value.trim();
+            const cat = document.getElementById('cat').value;
+            const loc = document.getElementById('loc').value;
+            navigateToBrowse({ q, categorySlug: cat, locationName: loc });
+        });
+        document.querySelectorAll('#quickCards .osm-card').forEach(el => {
+            el.addEventListener('click', () => {
+                const name = el.getAttribute('data-name');
+                const loc = document.getElementById('loc').value;
+                navigateToBrowse({ q: name, categorySlug: '', locationName: loc });
             });
-        }catch{ ul.innerHTML = '<li class="list-group-item text-danger">Failed to load.</li>'; }
-    }
-
-    document.addEventListener('DOMContentLoaded', async ()=>{ await loadCats(); });
+        });
+    });
 </script>

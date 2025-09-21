@@ -501,3 +501,12 @@ C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\refint\UsersApp.dll
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\UsersApp.pdb
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\UsersApp.genruntimeconfig.cache
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\ref\UsersApp.dll
+c:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\Google.Api.CommonProtos.dll
+c:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\Google.Api.Gax.Grpc.dll
+c:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\Google.Geo.Type.dll
+c:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\Google.Maps.Places.V1.dll
+c:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\Google.Protobuf.dll
+c:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\Grpc.Auth.dll
+c:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\Grpc.Core.Api.dll
+c:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\Grpc.Net.Client.dll
+c:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\Grpc.Net.Common.dll

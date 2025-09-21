@@ -60,8 +60,9 @@
       return { ok: true };
     },
     async phoneUnique(value) {
+      const url = isRegister ? '/Account/IsPhoneAvailable' : '/Account/IsPhoneAvailableForEdit';
       try {
-        const r = await fetch(`/Account/IsPhoneAvailable?phone=${encodeURIComponent(value)}`, { credentials: 'same-origin' });
+        const r = await fetch(`${url}?phone=${encodeURIComponent(value)}`, { credentials: 'same-origin' });
         const ok = await r.json();
         return ok ? { ok: true } : { ok: false, msg: 'This phone is already linked to another account.' };
       } catch {

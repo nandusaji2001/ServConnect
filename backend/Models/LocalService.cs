@@ -22,6 +22,10 @@ namespace ServConnect.Models
         public string? Address { get; set; }
         public string? Phone { get; set; }
 
+        // Rating for discovery (user-aggregated)
+        public decimal Rating { get; set; } = 0m;
+        public int RatingCount { get; set; } = 0;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; } = true;
     }

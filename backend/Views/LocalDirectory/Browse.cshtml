@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "Browse Services";
+    var q = (string?)ViewBag.Q ?? string.Empty;
+    var categorySlug = (string?)ViewBag.CategorySlug ?? string.Empty;
+    var locationName = (string?)ViewBag.LocationName ?? string.Empty;
+}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h2 class="mb-1">Services</h2>
+            <div class="text-muted small">
+                @if(!string.IsNullOrWhiteSpace(locationName)){<text>Location: <strong>@locationName</strong></text>}
+                @if(!string.IsNullOrWhiteSpace(q)){<text> · Query: <span class="badge bg-primary">@q</span></text>}
+                @if(!string.IsNullOrWhiteSpace(categorySlug)){<text> · Category: <span class="badge bg-secondary">@categorySlug</span></text>}
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/LocalDirectory/Discover" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Discover
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div id="results" class="row g-3">
+                <div class="col-12 text-muted">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const initial = {
+        q: '@(q.Replace("'", "\\'") )',
+        categorySlug: '@(categorySlug.Replace("'", "\\'") )',
+        locationName: '@(locationName.Replace("'", "\\'") )'
+    };
+
+    function buildUrl(params){
+        const url = new URL(location.origin + '/api/local/services');
+        if(params.q) url.searchParams.set('q', params.q);
+        if(params.categorySlug) url.searchParams.set('categorySlug', params.categorySlug);
+        if(params.locationName) url.searchParams.set('locationName', params.locationName);
+        return url.toString();
+    }
+
+    function ratingBadge(r){
+        if(!r || Number(r) <= 0) return '';
+        return `<span class="badge bg-warning text-dark ms-2"><i class="fas fa-star"></i> ${Number(r).toFixed(1)}</span>`;
+    }
+
+    function serviceCard(s){
+        const mapHref = s.mapUrl ? s.mapUrl : `/local/services/${s.id}/map`;
+        const phoneBtn = s.phone ? `<a href="tel:${s.phone}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-phone"></i> Call</a>` : '';
+        return `<div class="col-12 col-sm-6 col-lg-4">
+            <div class="card h-100 shadow-sm" style="border-radius:12px;">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-start justify-content-between mb-2">
+                        <div>
+                            <div class="h5 mb-1">${s.name || 'Unnamed'}</div>
+                            <div class="small text-muted">${s.categoryName || ''} ${ratingBadge(s.rating)}</div>
+                        </div>
+                    </div>
+                    <div class="text-muted small mb-3">
+                        <i class="bi bi-geo-alt-fill text-primary"></i> ${s.address || 'No address provided'}
+                    </div>
+                    <div class="mt-auto d-flex gap-2">
+                        <a class="btn btn-sm btn-primary" href="${mapHref}" target="_blank"><i class="fas fa-map-marker-alt"></i> Open Map</a>
+                        ${phoneBtn}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    async function loadServices(params){
+        const grid = document.getElementById('results');
+        grid.innerHTML = '<div class="col-12 text-muted">Loading...</div>';
+        try{
+            const res = await fetch(buildUrl(params));
+            const data = await res.json();
+            if(!data || data.length === 0){
+                grid.innerHTML = '<div class="col-12 text-muted">No results found.</div>';
+                return;
+            }
+            // Sort by rating desc then name asc
+            data.sort((a,b)=> (b.rating||0)-(a.rating||0) || (a.name||'').localeCompare(b.name||''));
+            grid.innerHTML = data.map(serviceCard).join('');
+        }catch(e){
+            grid.innerHTML = '<div class="col-12 text-danger">Failed to load services.</div>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initial load
+        loadServices(initial);
+        // No refine form on this page; it uses parameters from the previous page only.
+    });
+</script>

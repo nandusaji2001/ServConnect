@@ -6,6 +6,9 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0">Browse Services & Products</h2>
         <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="/Home/MyOrders" title="View your current orders">
+                <i class="fas fa-list"></i> My Orders
+            </a>
             <input id="search" class="form-control" placeholder="Search..." style="min-width: 260px;">
         </div>
     </div>
@@ -75,9 +78,7 @@
                         <button class="btn btn-sm btn-primary order-btn" data-id="${i.id}" ${disabled}>
                             <i class="fas fa-shopping-cart"></i> ${stock > 0 ? 'Order Now' : 'Out of Stock'}
                         </button>
-                        <a class="btn btn-sm btn-outline-secondary" href="/Home/MyOrders" title="View your current orders">
-                            <i class="fas fa-list"></i> My Orders
-                        </a>
+
                     </div>
                 </div>
             </div>

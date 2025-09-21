@@ -74,10 +74,14 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 
 // Orders & payments
 builder.Services.AddScoped<IOrderService, OrderService>();
-// Local directory for public services (hospitals, police, petrol, etc.)
-builder.Services.AddScoped<ILocalDirectory, LocalDirectory>();
+// Local directory: admin CRUD via Mongo + public discovery via OSM/Nominatim
+builder.Services.AddHttpClient<NominatimSearchService>();
+builder.Services.AddScoped<LocalDirectory>();
+builder.Services.AddScoped<ILocalDirectory, LocalDirectoryFacade>();
 // Recommendations
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+// Ratings
+builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

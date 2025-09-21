@@ -252,6 +252,20 @@ namespace ServConnect.Controllers
         var exists = allUsers.Any(u => !string.IsNullOrEmpty(u.PhoneNumber) && FormatPhoneNumber(u.PhoneNumber) == formatted);
         return Json(!exists);
     }
+
+    // When editing profile, allow the current user's phone to be considered available
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> IsPhoneAvailableForEdit(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone)) return Json(false);
+        var current = await _userManager.GetUserAsync(User);
+        if (current == null) return Json(false);
+        var formatted = FormatPhoneNumber(phone);
+        var allUsers = _userManager.Users.ToList();
+        var exists = allUsers.Any(u => !string.IsNullOrEmpty(u.PhoneNumber) && FormatPhoneNumber(u.PhoneNumber) == formatted && u.Id != current.Id);
+        return Json(!exists);
+    }
     #endregion
 
     #region Password Change (separate from profile)
