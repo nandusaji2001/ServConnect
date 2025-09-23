@@ -1,20 +1,20 @@
 @{
-    ViewData["Title"] = "Browse Items";
+    ViewData["Title"] = Localizer["Items.Title"];
 }
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">Browse Services & Products</h2>
+        <h2 class="mb-0">@Localizer["Items.Heading"]</h2>
         <div class="d-flex gap-2">
-            <a class="btn btn-outline-secondary" href="/Home/MyOrders" title="View your current orders">
-                <i class="fas fa-list"></i> My Orders
+            <a class="btn btn-outline-secondary" href="/Home/MyOrders" title="@Localizer["Items.MyOrders.Title"]">
+                <i class="fas fa-list"></i> @Localizer["Items.MyOrders"]
             </a>
-            <input id="search" class="form-control" placeholder="Search..." style="min-width: 260px;">
+            <input id="search" class="form-control" placeholder="@Localizer["Items.SearchPlaceholder"]" style="min-width: 260px;">
         </div>
     </div>
 
     <div id="itemsGrid" class="row g-3">
-        <div class="col-12 text-center text-muted">Loading...</div>
+        <div class="col-12 text-center text-muted">@Localizer["Items.Loading"]</div>
     </div>
 </div>
 
@@ -23,26 +23,26 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Order Item</h5>
+        <h5 class="modal-title">@Localizer["Order.ModalTitle"]</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="orderForm">
             <div class="mb-3">
-                <label class="form-label">Quantity</label>
+                <label class="form-label">@Localizer["Order.Quantity"]</label>
                 <input type="number" class="form-control" id="orderQty" min="1" value="1" required />
             </div>
             <div class="mb-3">
-                <label class="form-label">Shipping Address</label>
-                <textarea class="form-control" id="orderAddress" rows="3" placeholder="Enter your full address" required></textarea>
+                <label class="form-label">@Localizer["Order.ShippingAddress"]</label>
+                <textarea class="form-control" id="orderAddress" rows="3" placeholder="@Localizer["Order.AddressPlaceholder"]" required></textarea>
             </div>
             <div id="orderError" class="text-danger small" style="display:none;"></div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Order.Cancel"]</button>
         <button id="submitOrderBtn" type="button" class="btn btn-primary">
-            <i class="fas fa-check"></i> Place Order
+            <i class="fas fa-check"></i> @Localizer["Order.PlaceOrder"]
         </button>
       </div>
     </div>
@@ -59,7 +59,7 @@
         const badgeClass = String(i.ownerRole).toLowerCase() === 'vendor' ? 'bg-warning text-dark' : 'bg-info text-dark';
         const stock = Number.isFinite(i.stock) ? i.stock : 0;
         const disabled = stock <= 0 ? 'disabled' : '';
-        const stockHtml = `<span class="badge ${stock > 0 ? 'bg-success' : 'bg-secondary'}">Stock: ${stock}</span>`;
+        const stockHtml = `<span class="badge ${stock > 0 ? 'bg-success' : 'bg-secondary'}">@Localizer["Items.Stock"]: ${stock}</span>`;
         return `
         <div class="col-sm-6 col-md-4 col-lg-3">
             <div class="card h-100">
@@ -76,7 +76,7 @@
                     </div>
                     <div class="d-flex justify-content-end gap-2">
                         <button class="btn btn-sm btn-primary order-btn" data-id="${i.id}" ${disabled}>
-                            <i class="fas fa-shopping-cart"></i> ${stock > 0 ? 'Order Now' : 'Out of Stock'}
+                            <i class="fas fa-shopping-cart"></i> ${stock > 0 ? '@Localizer["Items.OrderNow"]' : '@Localizer["Items.OutOfStock"]'}
                         </button>
 
                     </div>
@@ -102,7 +102,7 @@
     function render(items){
         const grid = document.getElementById('itemsGrid');
         if(!items || items.length === 0){
-            grid.innerHTML = `<div class='col-12 text-center text-muted'>No items found.</div>`;
+            grid.innerHTML = `<div class='col-12 text-center text-muted'>@Localizer["Items.NoItems"]</div>`;
             return;
         }
         grid.innerHTML = items.map(card).join('');
@@ -111,14 +111,14 @@
 
     async function load(){
         const grid = document.getElementById('itemsGrid');
-        grid.innerHTML = `<div class='col-12 text-center text-muted'>Loading...</div>`;
+        grid.innerHTML = `<div class='col-12 text-center text-muted'>@Localizer["Items.Loading"]</div>`;
         try{
             const res = await fetch('/api/items', { credentials: 'same-origin' });
             if(!res.ok) throw new Error();
             allItems = await res.json();
             render(allItems);
         }catch{
-            grid.innerHTML = `<div class='col-12 text-center text-danger'>Failed to load.</div>`;
+            grid.innerHTML = `<div class='col-12 text-center text-danger'>@Localizer["Items.FailedToLoad"]</div>`;
         }
     }
 
@@ -142,7 +142,7 @@
             const script = document.createElement('script');
             script.src = 'https://checkout.razorpay.com/v1/checkout.js';
             script.onload = () => resolve();
-            script.onerror = () => reject(new Error('Failed to load Razorpay.'));
+            script.onerror = () => reject(new Error('@Localizer["Common.Failed"] to load Razorpay.'));
             document.head.appendChild(script);
         });
     }
@@ -153,13 +153,13 @@
         const err = document.getElementById('orderError');
         err.style.display = 'none';
 
-        if(!selectedItemId){ err.textContent = 'No item selected'; err.style.display = 'block'; return; }
-        if(!addr){ err.textContent = 'Please enter shipping address'; err.style.display = 'block'; return; }
-        if(!qty || qty < 1){ err.textContent = 'Quantity must be at least 1'; err.style.display = 'block'; return; }
+        if(!selectedItemId){ err.textContent = '@Localizer["Order.Error.NoItem"]'; err.style.display = 'block'; return; }
+        if(!addr){ err.textContent = '@Localizer["Order.Error.AddressRequired"]'; err.style.display = 'block'; return; }
+        if(!qty || qty < 1){ err.textContent = '@Localizer["Order.Error.QtyMin"]'; err.style.display = 'block'; return; }
 
         const item = allItems.find(x => x.id === selectedItemId);
         if(item && item.stock && qty > item.stock){
-            err.textContent = `Quantity exceeds available stock (${item.stock}).`;
+            err.textContent = `@Localizer["Order.Error.QtyExceeds"] (${item.stock}).`;
             err.style.display = 'block';
             return;
         }
@@ -205,14 +205,14 @@
                         });
                         if(!vr.ok){
                             const t = await vr.text();
-                            throw new Error(t || 'Payment verification failed');
+                            throw new Error(t || '@Localizer["Order.Payment.VerifyFailed"]');
                         }
                         const modalEl = document.getElementById('orderModal');
                         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                         modal.hide();
-                        alert('Payment successful! Your order is placed and pending shipment.');
+                        alert('@Localizer["Order.Payment.Success"]');
                     } catch (verifyErr) {
-                        err.textContent = verifyErr?.message || 'Payment verification failed';
+                        err.textContent = verifyErr?.message || '@Localizer["Order.Payment.VerifyFailed"]';
                         err.style.display = 'block';
                     }
                 },
@@ -223,12 +223,12 @@
             };
             const rzp = new Razorpay(options);
             rzp.on('payment.failed', function (resp) {
-                err.textContent = resp?.error?.description || 'Payment failed';
+                err.textContent = resp?.error?.description || '@Localizer["Order.Payment.Failed"]';
                 err.style.display = 'block';
             });
             rzp.open();
         }catch(ex){
-            err.textContent = ex?.message || 'Order failed';
+            err.textContent = ex?.message || '@Localizer["Common.Failed"]';
             err.style.display = 'block';
         }finally{
             btn.disabled = false;

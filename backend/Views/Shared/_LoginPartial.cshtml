@@ -52,7 +52,7 @@
                     {
                         <li>
                             <a class="dropdown-item" asp-controller="Language" asp-action="Set" asp-route-culture="ml-IN" asp-route-returnUrl="@returnUrl">
-                                <i class="bi bi-translate"></i> @Localizer["SwitchToMalayalam"]
+                                <i class="bi bi-translate"></i> മലയാളത്തിലേക്ക് മാറ്റുക
                             </a>
                         </li>
                     }
@@ -60,7 +60,7 @@
                     {
                         <li>
                             <a class="dropdown-item" asp-controller="Language" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
-                                <i class="bi bi-translate"></i> @Localizer["SwitchToEnglish"]
+                                <i class="bi bi-translate"></i> Switch to English
                             </a>
                         </li>
                     }
@@ -76,6 +76,23 @@
     }
     else
     {
+        @* Language toggle for anonymous users *@
+        @if (!string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase))
+        {
+            <li class="nav-item">
+                <a class="nav-link" asp-controller="Language" asp-action="Set" asp-route-culture="ml-IN" asp-route-returnUrl="@returnUrl">
+                    <i class="bi bi-translate"></i> മലയാളത്തിലേക്ക് മാറ്റുക
+                </a>
+            </li>
+        }
+        else
+        {
+            <li class="nav-item">
+                <a class="nav-link" asp-controller="Language" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
+                    <i class="bi bi-translate"></i> Switch to English
+                </a>
+            </li>
+        }
         <li class="nav-item">
             <a class="nav-link" asp-controller="Account" asp-action="Register">
                 <i class="bi bi-person-plus"></i> @Localizer["Register"]

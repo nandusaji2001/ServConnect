@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <data name="Items.Title" xml:space="preserve"><value>വസ്തുക്കൾ ബ്രൗസ് ചെയ്യുക</value></data>
+  <data name="Items.Heading" xml:space="preserve"><value>സേവനങ്ങളും ഉൽപ്പന്നങ്ങളും ബ്രൗസ് ചെയ്യുക</value></data>
+  <data name="Items.MyOrders" xml:space="preserve"><value>എന്റെ ഓർഡറുകൾ</value></data>
+  <data name="Items.MyOrders.Title" xml:space="preserve"><value>നിങ്ങളുടെ നിലവിലെ ഓർഡറുകൾ കാണുക</value></data>
+  <data name="Items.SearchPlaceholder" xml:space="preserve"><value>തിരയുക...</value></data>
+  <data name="Items.Loading" xml:space="preserve"><value>ലോഡിംഗ്...</value></data>
+  <data name="Items.NoItems" xml:space="preserve"><value>ഇനങ്ങൾ ഒന്നും കണ്ടെത്തിയില്ല.</value></data>
+  <data name="Items.FailedToLoad" xml:space="preserve"><value>ലോഡുചെയ്യുന്നത് പരാജയപ്പെട്ടു.</value></data>
+  <data name="Items.Stock" xml:space="preserve"><value>സ്റ്റോക്ക്</value></data>
+  <data name="Items.OrderNow" xml:space="preserve"><value>ഇപ്പോൾ ഓർഡർ ചെയ്യുക</value></data>
+  <data name="Items.OutOfStock" xml:space="preserve"><value>സ്റ്റോക്ക് ഇല്ല</value></data>
+
+  <data name="Order.ModalTitle" xml:space="preserve"><value>ഇനം ഓർഡർ ചെയ്യുക</value></data>
+  <data name="Order.Quantity" xml:space="preserve"><value>അളവ്</value></data>
+  <data name="Order.ShippingAddress" xml:space="preserve"><value>ഷിപ്പിംഗ് അഡ്രസ്</value></data>
+  <data name="Order.AddressPlaceholder" xml:space="preserve"><value>നിങ്ങളുടെ പൂർണ്ണ വിലാസം നൽകുക</value></data>
+  <data name="Order.Cancel" xml:space="preserve"><value>റദ്ദാക്കുക</value></data>
+  <data name="Order.PlaceOrder" xml:space="preserve"><value>ഓർഡർ ചെയ്യുക</value></data>
+
+  <data name="Order.Error.NoItem" xml:space="preserve"><value>ഒന്നും തിരഞ്ഞെടുക്കപ്പെട്ടിട്ടില്ല</value></data>
+  <data name="Order.Error.AddressRequired" xml:space="preserve"><value>ദയവായി ഷിപ്പിംഗ് വിലാസം നൽകുക</value></data>
+  <data name="Order.Error.QtyMin" xml:space="preserve"><value>അളവ് കുറഞ്ഞത് 1 ആയിരിക്കണം</value></data>
+  <data name="Order.Error.QtyExceeds" xml:space="preserve"><value>തിരഞ്ഞെടുത്ത അളവ് ലഭ്യമായ സ്റ്റോക്കിനെ കവിഞ്ഞിരിക്കുന്നു</value></data>
+
+  <data name="Order.Payment.Success" xml:space="preserve"><value>പേയ്മെന്റ് വിജയിച്ചു! നിങ്ങളുടെ ഓർഡർ പ്ലേസ് ചെയ്‌തു.</value></data>
+  <data name="Order.Payment.Failed" xml:space="preserve"><value>പേയ്മെന്റ് പരാജയപ്പെട്ടു</value></data>
+  <data name="Order.Payment.VerifyFailed" xml:space="preserve"><value>പേയ്മെന്റ് പരിശോധന പരാജയപ്പെട്ടു</value></data>
+
+  <data name="Common.Failed" xml:space="preserve"><value>പരാജയപ്പെട്ടു</value></data>
+</root>
