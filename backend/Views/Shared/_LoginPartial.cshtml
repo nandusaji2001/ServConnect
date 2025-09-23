@@ -2,12 +2,16 @@
 @using ServConnect.Models
 @inject SignInManager<Users> SignInManager
 @inject UserManager<Users> UserManager
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
 
 @{
     var isLoggedIn = SignInManager.IsSignedIn(User);
     Users? currentUser = null;
     var displayName = "User";
     var avatarUrl = string.Empty;
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+
     if (isLoggedIn)
     {
         currentUser = await UserManager.GetUserAsync(User);
@@ -27,7 +31,7 @@
             <li class="nav-item">
                 <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
                     <button type="submit" class="nav-link btn btn-link text-danger">
-                        <i class="bi bi-box-arrow-right"></i> Logout
+                        <i class="bi bi-box-arrow-right"></i> @Localizer["Logout"]
                     </button>
                 </form>
             </li>
@@ -41,11 +45,29 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                     <li class="dropdown-header">@displayName</li>
-                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> Profile</a></li>
+                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> @Localizer["Profile"]</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    @* Language toggle *@
+                    @if (!string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        <li>
+                            <a class="dropdown-item" asp-controller="Language" asp-action="Set" asp-route-culture="ml-IN" asp-route-returnUrl="@returnUrl">
+                                <i class="bi bi-translate"></i> @Localizer["SwitchToMalayalam"]
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li>
+                            <a class="dropdown-item" asp-controller="Language" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
+                                <i class="bi bi-translate"></i> @Localizer["SwitchToEnglish"]
+                            </a>
+                        </li>
+                    }
                     <li><hr class="dropdown-divider" /></li>
                     <li>
                         <form class="form-inline px-3" asp-controller="Account" asp-action="Logout" method="post">
-                            <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                            <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i> @Localizer["Logout"]</button>
                         </form>
                     </li>
                 </ul>
@@ -56,12 +78,12 @@
     {
         <li class="nav-item">
             <a class="nav-link" asp-controller="Account" asp-action="Register">
-                <i class="bi bi-person-plus"></i> Register
+                <i class="bi bi-person-plus"></i> @Localizer["Register"]
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" asp-controller="Account" asp-action="Login">
-                <i class="bi bi-box-arrow-in-right"></i> Login
+                <i class="bi bi-box-arrow-in-right"></i> @Localizer["Login"]
             </a>
         </li>
     }

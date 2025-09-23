@@ -489,21 +489,21 @@
                 <div class="category-chips">
                     @if (User.Identity?.IsAuthenticated ?? false)
                     {
-                        <a href="/Services/Browse?q=Plumber" class="category-chip">Plumber</a>
-                        <a href="/Services/Browse?q=Electrician" class="category-chip">Electrician</a>
-                        <a href="/Services/Browse?q=Cleaner" class="category-chip">Cleaner</a>
-                        <a href="/Services/Browse?q=Painting" class="category-chip">Painting</a>
-                        <a href="/Services/Browse?q=Salon" class="category-chip">Salon</a>
-                        <a href="/Services/Browse" class="category-chip">+ More</a>
+                        <a href="/Services/Browse?q=Plumber" class="category-chip">@Localizer["Category.Plumber"]</a>
+                        <a href="/Services/Browse?q=Electrician" class="category-chip">@Localizer["Category.Electrician"]</a>
+                        <a href="/Services/Browse?q=Cleaner" class="category-chip">@Localizer["Category.Cleaner"]</a>
+                        <a href="/Services/Browse?q=Painting" class="category-chip">@Localizer["Category.Painting"]</a>
+                        <a href="/Services/Browse?q=Salon" class="category-chip">@Localizer["Category.Salon"]</a>
+                        <a href="/Services/Browse" class="category-chip">@Localizer["Category.More"]</a>
                     }
                     else
                     {
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Plumber" class="category-chip">Plumber</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Electrician" class="category-chip">Electrician</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Cleaner" class="category-chip">Cleaner</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Painting" class="category-chip">Painting</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Salon" class="category-chip">Salon</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="category-chip">+ More</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Plumber" class="category-chip">@Localizer["Category.Plumber"]</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Electrician" class="category-chip">@Localizer["Category.Electrician"]</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Cleaner" class="category-chip">@Localizer["Category.Cleaner"]</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Painting" class="category-chip">@Localizer["Category.Painting"]</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Salon" class="category-chip">@Localizer["Category.Salon"]</a>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="category-chip">@Localizer["Category.More"]</a>
                     }
                 </div>
             </div>
@@ -514,15 +514,15 @@
                         <a href="/Services/Browse" class="action-btn">
                             <i class="fas fa-calendar-check"></i>
                             <div>
-                                <div class="fw-bold">Book Service</div>
-                                <small class="text-muted">Schedule appointments</small>
+                                <div class="fw-bold">@Localizer["CTA.BookService.Title"]</div>
+                                <small class="text-muted">@Localizer["CTA.BookService.Desc"]</small>
                             </div>
                         </a>
                         <a href="/LocalDirectory/Discover" class="action-btn">
                             <i class="fas fa-search-location"></i>
                             <div>
-                                <div class="fw-bold">Search Local Service</div>
-                                <small class="text-muted">Find nearby providers</small>
+                                <div class="fw-bold">@Localizer["CTA.SearchLocal.Title"]</div>
+                                <small class="text-muted">@Localizer["CTA.SearchLocal.Desc"]</small>
                             </div>
                         </a>
                     }
@@ -531,15 +531,15 @@
                         <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="action-btn">
                             <i class="fas fa-calendar-check"></i>
                             <div>
-                                <div class="fw-bold">Book Service</div>
-                                <small class="text-muted">Schedule appointments</small>
+                                <div class="fw-bold">@Localizer["CTA.BookService.Title"]</div>
+                                <small class="text-muted">@Localizer["CTA.BookService.Desc"]</small>
                             </div>
                         </a>
                         <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/LocalDirectory/Discover" class="action-btn">
                             <i class="fas fa-search-location"></i>
                             <div>
-                                <div class="fw-bold">Search Local Service</div>
-                                <small class="text-muted">Find nearby providers</small>
+                                <div class="fw-bold">@Localizer["CTA.SearchLocal.Title"]</div>
+                                <small class="text-muted">@Localizer["CTA.SearchLocal.Desc"]</small>
                             </div>
                         </a>
                     }
@@ -548,8 +548,8 @@
                         <a href="/Home/Items?role=Vendor" class="action-btn">
                             <i class="fas fa-store"></i>
                             <div>
-                                <div class="fw-bold">Vendor Items</div>
-                                <small class="text-muted">Browse products</small>
+                                <div class="fw-bold">@Localizer["CTA.VendorItems.Title"]</div>
+                                <small class="text-muted">@Localizer["CTA.VendorItems.Desc"]</small>
                             </div>
                         </a>
                     }
@@ -558,16 +558,16 @@
                         <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Home/Items?role=Vendor" class="action-btn">
                             <i class="fas fa-store"></i>
                             <div>
-                                <div class="fw-bold">Vendor Items</div>
-                                <small class="text-muted">Browse products</small>
+                                <div class="fw-bold">@Localizer["CTA.VendorItems.Title"]</div>
+                                <small class="text-muted">@Localizer["CTA.VendorItems.Desc"]</small>
                             </div>
                         </a>
                     }
-                    <a href="#" class="action-btn" onclick="alert('Subscriptions coming soon');return false;">
+                    <a href="#" class="action-btn" onclick="alert('@Localizer["Msg.NoResults"]');return false;">
                         <i class="fas fa-sync-alt"></i>
                         <div>
-                            <div class="fw-bold">Daily Essentials</div>
-                            <small class="text-muted">Regular deliveries</small>
+                            <div class="fw-bold">@Localizer["CTA.DailyEssentials.Title"]</div>
+                            <small class="text-muted">@Localizer["CTA.DailyEssentials.Desc"]</small>
                         </div>
                     </a>
                 </div>

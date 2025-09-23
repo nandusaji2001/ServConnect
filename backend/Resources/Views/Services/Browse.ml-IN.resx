@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="Title.BookService" xml:space="preserve"><value>സർവീസ് ബുക്ക് ചെയ്യുക</value></data>
+  <data name="Heading.BookService" xml:space="preserve"><value>സർവീസ് ബുക്ക് ചെയ്യുക</value></data>
+  <data name="BrowseServices" xml:space="preserve"><value>സർവീസുകൾ ബ്രൗസ് ചെയ്യുക</value></data>
+  <data name="ManageServices" xml:space="preserve"><value>സർവീസുകൾ മാനേജ് ചെയ്യുക</value></data>
+  <data name="SearchServicesPlaceholder" xml:space="preserve"><value>സർവീസുകൾ തിരയുക...</value></data>
+  <data name="NoServices" xml:space="preserve"><value>സർവീസുകൾ ലഭ്യമല്ല.</value></data>
+  <data name="Loading" xml:space="preserve"><value>ലോഡുചെയ്യുന്നു...</value></data>
+  <data name="FailedToLoad" xml:space="preserve"><value>ലോഡ് ചെയ്യാനായില്ല.</value></data>
+  <data name="TapToExploreProviders" xml:space="preserve"><value>പ്രൊവൈഡർമാരെ കാണാൻ ടാപ്പ് ചെയ്യുക</value></data>
+</root>

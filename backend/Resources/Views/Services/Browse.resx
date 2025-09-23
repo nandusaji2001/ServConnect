@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="Title.BookService" xml:space="preserve"><value>Book Service</value></data>
+  <data name="Heading.BookService" xml:space="preserve"><value>Book Service</value></data>
+  <data name="BrowseServices" xml:space="preserve"><value>Browse Services</value></data>
+  <data name="ManageServices" xml:space="preserve"><value>Manage services</value></data>
+  <data name="SearchServicesPlaceholder" xml:space="preserve"><value>Search services...</value></data>
+  <data name="NoServices" xml:space="preserve"><value>No services available.</value></data>
+  <data name="Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="FailedToLoad" xml:space="preserve"><value>Failed to load.</value></data>
+  <data name="TapToExploreProviders" xml:space="preserve"><value>Tap to explore providers</value></data>
+</root>

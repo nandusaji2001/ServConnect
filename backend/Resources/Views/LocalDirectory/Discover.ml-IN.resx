@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="Title.SearchLocalServices" xml:space="preserve"><value>ലോകൽ സർവീസുകൾ കണ്ടെത്തുക</value></data>
+  <data name="Heading.SearchLocalServices" xml:space="preserve"><value>ലോകൽ സർവീസുകൾ കണ്ടെത്തുക</value></data>
+  <data name="SearchLocalPlaceholder" xml:space="preserve"><value>പേര്/വിലാസം നൽകി തിരയുക അല്ലെങ്കിൽ താഴെ കാർഡ് തിരഞ്ഞെടുക്കൂ</value></data>
+  <data name="Search" xml:space="preserve"><value>തിരയുക</value></data>
+  <data name="LoadingCategories" xml:space="preserve"><value>വിഭാഗങ്ങൾ ലോഡുചെയ്യുന്നു...</value></data>
+  <data name="ClickToViewServices" xml:space="preserve"><value>സർവീസുകൾ കാണാൻ ക്ലിക്ക് ചെയ്യുക</value></data>
+  <data name="View" xml:space="preserve"><value>കാണുക</value></data>
+  <data name="Quick.Hospital" xml:space="preserve"><value>ആശുപത്രി</value></data>
+  <data name="Quick.Pharmacy" xml:space="preserve"><value>മെഡിക്കൽ സ്റ്റോർ</value></data>
+  <data name="Quick.Clinic" xml:space="preserve"><value>ക്ലിനിക്</value></data>
+  <data name="Quick.Police" xml:space="preserve"><value>പോലീസ്</value></data>
+  <data name="Quick.Fuel" xml:space="preserve"><value>ഇന്ധനം</value></data>
+  <data name="Quick.Restaurant" xml:space="preserve"><value>റസ്റ്റോറന്റ്</value></data>
+  <data name="Quick.Cafe" xml:space="preserve"><value>കഫേ</value></data>
+  <data name="Quick.FastFood" xml:space="preserve"><value>ഫാസ്റ്റ് ഫുഡ്</value></data>
+  <data name="Quick.BankATM" xml:space="preserve"><value>ബാങ്ക്/എടിഎം</value></data>
+  <data name="Quick.PostOffice" xml:space="preserve"><value>തപാൽ ഓഫീസ്</value></data>
+  <data name="Quick.School" xml:space="preserve"><value>സ്കൂൾ</value></data>
+  <data name="Quick.University" xml:space="preserve"><value>സർവകലാശാല</value></data>
+  <data name="Quick.BusStop" xml:space="preserve"><value>ബസ് സ്റ്റോപ്പ്</value></data>
+  <data name="Quick.Train" xml:space="preserve"><value>ട്രെയിൻ</value></data>
+  <data name="Quick.Airport" xml:space="preserve"><value>വിമാനത്താവളം</value></data>
+  <data name="Quick.Taxi" xml:space="preserve"><value>ടാക്സി</value></data>
+  <data name="Quick.Park" xml:space="preserve"><value>പാർക്ക്</value></data>
+  <data name="Quick.Playground" xml:space="preserve"><value>കളിസ്ഥലം</value></data>
+  <data name="Quick.Cinema" xml:space="preserve"><value>സിനിമ</value></data>
+  <data name="Quick.Theatre" xml:space="preserve"><value>നാടകശാല</value></data>
+  <data name="Quick.Museum" xml:space="preserve"><value>മ്യൂസിയം</value></data>
+  <data name="Quick.ArtGallery" xml:space="preserve"><value>ആർട്ട് ഗാലറി</value></data>
+  <data name="Quick.Hotel" xml:space="preserve"><value>ഹോട്ടൽ</value></data>
+  <data name="Quick.GuestHouse" xml:space="preserve"><value>ഗെസ്റ്റ് ഹൗസ്</value></data>
+  <data name="Quick.Parking" xml:space="preserve"><value>പാർക്കിംഗ്</value></data>
+  <data name="Quick.Ferry" xml:space="preserve"><value>ഫെറി</value></data>
+</root>

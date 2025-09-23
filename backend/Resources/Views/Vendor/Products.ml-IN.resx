@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="Title.ManageProducts"><value>ഉൽപ്പന്നങ്ങൾ കൈകാര്യം ചെയ്യുക</value></data>
+  <data name="Heading.ManageProducts"><value>ഉൽപ്പന്നങ്ങൾ കൈകാര്യം ചെയ്യുക</value></data>
+  <data name="Button.AddNewProduct"><value>പുതിയ ഉൽപ്പന്നം ചേർക്കുക</value></data>
+  <data name="YourProducts"><value>നിങ്ങളുടെ ഉൽപ്പന്നങ്ങൾ</value></data>
+
+  <data name="Tbl.Image"><value>ചിത്രം</value></data>
+  <data name="Tbl.ProductName"><value>ഉൽപ്പന്നം</value></data>
+  <data name="Tbl.Category"><value>വർഗ്ഗം</value></data>
+  <data name="Tbl.Price"><value>വില</value></data>
+  <data name="Tbl.Stock"><value>ശേഷിക്കുന്ന സ്റ്റോക്ക്</value></data>
+  <data name="Tbl.Status"><value>സ്ഥിതി</value></data>
+  <data name="Tbl.Actions"><value>നടപടികൾ</value></data>
+
+  <data name="Loading"><value>ലോഡുചെയ്യുന്നു...</value></data>
+  <data name="BackToDashboard"><value>ഡാഷ്ബോർഡിലേക്കു മടങ്ങുക</value></data>
+
+  <data name="Modal.AddNewProduct"><value>പുതിയ ഉൽപ്പന്നം ചേർക്കുക</value></data>
+  <data name="Modal.EditProduct"><value>ഉൽപ്പന്നം തിരുത്തുക</value></data>
+
+  <data name="Lbl.ProductName"><value>ഉൽപ്പന്നത്തിന്റെ പേര്</value></data>
+  <data name="Lbl.Category"><value>വർഗ്ഗം</value></data>
+  <data name="Lbl.Description"><value>വിവരണം</value></data>
+  <data name="Lbl.Price"><value>വില</value></data>
+  <data name="Lbl.StockQty"><value>സ്റ്റോക്ക് അളവ്</value></data>
+  <data name="Lbl.SKU"><value>SKU</value></data>
+  <data name="Lbl.ProductImage"><value>ഉൽപ്പന്നത്തിന്റെ ചിത്രം</value></data>
+  <data name="Lbl.Active"><value>സജീവം</value></data>
+
+  <data name="Opt.SelectCategory"><value>വർഗ്ഗം തിരഞ്ഞെടുക്കുക</value></data>
+  <data name="Opt.Electronics"><value>ഇലക്ട്രോണിക്സ്</value></data>
+  <data name="Opt.Clothing"><value>വസ്ത്രങ്ങൾ</value></data>
+  <data name="Opt.HomeGarden"><value>ഹോം &amp; ഗാർഡൻ</value></data>
+  <data name="Opt.Sports"><value>കായികം</value></data>
+  <data name="Opt.Books"><value>പുസ്തകങ്ങൾ</value></data>
+  <data name="Opt.Other"><value>മറ്റുള്ളവ</value></data>
+  <data name="Opt.Yes"><value>അതെ</value></data>
+  <data name="Opt.No"><value>ഇല്ല</value></data>
+
+  <data name="Btn.Cancel"><value>റദ്ദാക്കുക</value></data>
+  <data name="Btn.Save"><value>സംരക്ഷിക്കുക</value></data>
+  <data name="Btn.Edit"><value>തിരുത്തുക</value></data>
+  <data name="Btn.Delete"><value>ഇല്ലാതാക്കുക</value></data>
+
+  <data name="NoProductsYet"><value>ഇനിയും ഉൽപ്പന്നങ്ങളില്ല</value></data>
+  <data name="Confirm.DeleteItem"><value>ഈ ഇനം ഇല്ലാതാക്കട്ടെയോ?</value></data>
+
+  <data name="Error.FailedToLoad"><value>ലോഡ് ചെയ്യൽ പരാജയപ്പെട്ടു.</value></data>
+  <data name="Error.UpdateFailed"><value>അപ്ഡേറ്റ് പരാജയപ്പെട്ടു</value></data>
+  <data name="Error.AddFailed"><value>ചേർക്കൽ പരാജയപ്പെട്ടു</value></data>
+
+  <data name="Status.Active"><value>സജീവം</value></data>
+  <data name="Status.Inactive"><value>നിഷ്ക്രിയം</value></data>
+</root>

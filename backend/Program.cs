@@ -3,6 +3,8 @@ using AspNetCore.Identity.MongoDbCore.Models;
 using Microsoft.AspNetCore.Identity;
 using ServConnect.Models;
 using ServConnect.Services;
+using System.Globalization; // Localization
+using Microsoft.AspNetCore.Localization; // Localization
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +46,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ReturnUrlParameter = "returnUrl";
 });
 
+// Localization services
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
 // Firebase Authentication is handled client-side and verified server-side
 
 builder.Services.AddControllers();       // Adds API controllers
@@ -51,7 +56,10 @@ builder.Services.AddControllersWithViews(options =>
 {
     // Enforce profile completion and admin approval for all authenticated users
     options.Filters.Add<ServConnect.Filters.RequireApprovedUserFilter>();
-}).AddJsonOptions(o =>
+})
+.AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix)
+.AddDataAnnotationsLocalization()
+.AddJsonOptions(o =>
 {
     // Helpful during debugging to see enums/Guids as strings when needed
     o.JsonSerializerOptions.WriteIndented = true;
@@ -97,6 +105,16 @@ using (var scope = app.Services.CreateScope())
     await seeder.SeedAsync();
 }
 
+// Localization middleware configuration
+var supportedCultures = new[] { new CultureInfo("en"), new CultureInfo("ml-IN") };
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("en"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+};
+localizationOptions.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
+
 // Middleware pipeline
 if (!app.Environment.IsDevelopment())
 {
@@ -106,6 +124,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseRequestLocalization(localizationOptions);
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();

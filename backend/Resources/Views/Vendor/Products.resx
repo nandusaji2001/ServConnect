@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="Title.ManageProducts"><value>Manage Products</value></data>
+  <data name="Heading.ManageProducts"><value>Manage Products</value></data>
+  <data name="Button.AddNewProduct"><value>Add New Product</value></data>
+  <data name="YourProducts"><value>Your Products</value></data>
+
+  <data name="Tbl.Image"><value>Image</value></data>
+  <data name="Tbl.ProductName"><value>Product</value></data>
+  <data name="Tbl.Category"><value>Category</value></data>
+  <data name="Tbl.Price"><value>Price</value></data>
+  <data name="Tbl.Stock"><value>Stock</value></data>
+  <data name="Tbl.Status"><value>Status</value></data>
+  <data name="Tbl.Actions"><value>Actions</value></data>
+
+  <data name="Loading"><value>Loading...</value></data>
+  <data name="BackToDashboard"><value>Back to Dashboard</value></data>
+
+  <data name="Modal.AddNewProduct"><value>Add New Product</value></data>
+  <data name="Modal.EditProduct"><value>Edit Product</value></data>
+
+  <data name="Lbl.ProductName"><value>Product Name</value></data>
+  <data name="Lbl.Category"><value>Category</value></data>
+  <data name="Lbl.Description"><value>Description</value></data>
+  <data name="Lbl.Price"><value>Price</value></data>
+  <data name="Lbl.StockQty"><value>Stock quantity</value></data>
+  <data name="Lbl.SKU"><value>SKU</value></data>
+  <data name="Lbl.ProductImage"><value>Product image</value></data>
+  <data name="Lbl.Active"><value>Active</value></data>
+
+  <data name="Opt.SelectCategory"><value>Select category</value></data>
+  <data name="Opt.Electronics"><value>Electronics</value></data>
+  <data name="Opt.Clothing"><value>Clothing</value></data>
+  <data name="Opt.HomeGarden"><value>Home &amp; Garden</value></data>
+  <data name="Opt.Sports"><value>Sports</value></data>
+  <data name="Opt.Books"><value>Books</value></data>
+  <data name="Opt.Other"><value>Other</value></data>
+  <data name="Opt.Yes"><value>Yes</value></data>
+  <data name="Opt.No"><value>No</value></data>
+
+  <data name="Btn.Cancel"><value>Cancel</value></data>
+  <data name="Btn.Save"><value>Save</value></data>
+  <data name="Btn.Edit"><value>Edit</value></data>
+  <data name="Btn.Delete"><value>Delete</value></data>
+
+  <data name="NoProductsYet"><value>No products yet</value></data>
+  <data name="Confirm.DeleteItem"><value>Delete this item?</value></data>
+
+  <data name="Error.FailedToLoad"><value>Failed to load.</value></data>
+  <data name="Error.UpdateFailed"><value>Update failed</value></data>
+  <data name="Error.AddFailed"><value>Failed to add</value></data>
+
+  <data name="Status.Active"><value>Active</value></data>
+  <data name="Status.Inactive"><value>Inactive</value></data>
+</root>

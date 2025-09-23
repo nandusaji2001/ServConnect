@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <data name="Category.Plumber" xml:space="preserve"><value>പ്ലംബർ</value></data>
+  <data name="Category.Electrician" xml:space="preserve"><value>ഇലക്ട്രീഷ്യൻ</value></data>
+  <data name="Category.Cleaner" xml:space="preserve"><value>ക്ലീനർ</value></data>
+  <data name="Category.Painting" xml:space="preserve"><value>പെയിന്റിംഗ്</value></data>
+  <data name="Category.Salon" xml:space="preserve"><value>സലോൺ</value></data>
+  <data name="Category.More" xml:space="preserve"><value>+ കൂടുതൽ</value></data>
+  <data name="CTA.BookService.Title" xml:space="preserve"><value>സേവനം ബുക്ക് ചെയ്യുക</value></data>
+  <data name="CTA.BookService.Desc" xml:space="preserve"><value>അപ്പോയിന്റ്മെന്റുകൾ ഷെഡ്യൂൾ ചെയ്യുക</value></data>
+  <data name="CTA.SearchLocal.Title" xml:space="preserve"><value>ലോകൽ സേവനം തിരയുക</value></data>
+  <data name="CTA.SearchLocal.Desc" xml:space="preserve"><value>അടുത്തുള്ള പ്രൊവൈഡർമാരെ കണ്ടെത്തുക</value></data>
+  <data name="CTA.VendorItems.Title" xml:space="preserve"><value>വെൻഡർ ഐറ്റങ്ങൾ</value></data>
+  <data name="CTA.VendorItems.Desc" xml:space="preserve"><value>ഉൽപ്പന്നങ്ങൾ ബ്രൗസ് ചെയ്യുക</value></data>
+  <data name="CTA.DailyEssentials.Title" xml:space="preserve"><value>ദൈനംദിന ആവശ്യങ്ങൾ</value></data>
+  <data name="CTA.DailyEssentials.Desc" xml:space="preserve"><value>നിരന്തര ഡെലിവറികൾ</value></data>
+  <data name="Msg.NoResults" xml:space="preserve"><value>ഫലങ്ങളൊന്നും കണ്ടെത്തിയില്ല.</value></data>
+</root>

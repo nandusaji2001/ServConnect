@@ -1,14 +1,14 @@
 @{
-    ViewData["Title"] = "Manage Products";
+    ViewData["Title"] = Localizer["Title.ManageProducts"];
 }
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>Manage Products</h2>
+                <h2>@Localizer["Heading.ManageProducts"]</h2>
                 <button class="btn btn-primary" onclick="openCreate()">
-                    <i class="fas fa-plus"></i> Add New Product
+                    <i class="fas fa-plus"></i> @Localizer["Button.AddNewProduct"]
                 </button>
             </div>
         </div>
@@ -18,26 +18,26 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5>Your Products</h5>
+                    <h5>@Localizer["YourProducts"]</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th style="width:80px;">Image</th>
-                                    <th>Product Name</th>
-                                    <th>Category</th>
-                                    <th>Price</th>
-                                    <th>Stock</th>
-                                    <th>Status</th>
-                                    <th style="width:160px;">Actions</th>
+                                    <th style="width:80px;">@Localizer["Tbl.Image"]</th>
+                                    <th>@Localizer["Tbl.ProductName"]</th>
+                                    <th>@Localizer["Tbl.Category"]</th>
+                                    <th>@Localizer["Tbl.Price"]</th>
+                                    <th>@Localizer["Tbl.Stock"]</th>
+                                    <th>@Localizer["Tbl.Status"]</th>
+                                    <th style="width:160px;">@Localizer["Tbl.Actions"]</th>
                                 </tr>
                             </thead>
                             <tbody id="myItemsBody">
                                 <tr>
                                     <td colspan="7" class="text-center text-muted">
-                                        Loading...
+                                        @Localizer["Loading"]
                                     </td>
                                 </tr>
                             </tbody>
@@ -51,7 +51,7 @@
     <div class="row mt-3">
         <div class="col-md-12">
             <a asp-action="Dashboard" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                <i class="fas fa-arrow-left"></i> @Localizer["BackToDashboard"]
             </a>
         </div>
     </div>
@@ -62,7 +62,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="productModalTitle">Add New Product</h5>
+                <h5 class="modal-title" id="productModalTitle">@Localizer["Modal.AddNewProduct"]</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -71,65 +71,65 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="productName" class="form-label">Product Name</label>
+                                <label for="productName" class="form-label">@Localizer["Lbl.ProductName"]</label>
                                 <input type="text" class="form-control" id="productName" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="productCategory" class="form-label">Category</label>
+                                <label for="productCategory" class="form-label">@Localizer["Lbl.Category"]</label>
                                 <select class="form-control" id="productCategory">
-                                    <option value="">Select Category</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Clothing">Clothing</option>
-                                    <option value="Home & Garden">Home & Garden</option>
-                                    <option value="Sports">Sports</option>
-                                    <option value="Books">Books</option>
-                                    <option value="Other">Other</option>
+                                    <option value="">@Localizer["Opt.SelectCategory"]</option>
+                                    <option value="Electronics">@Localizer["Opt.Electronics"]</option>
+                                    <option value="Clothing">@Localizer["Opt.Clothing"]</option>
+                                    <option value="Home & Garden">@Localizer["Opt.HomeGarden"]</option>
+                                    <option value="Sports">@Localizer["Opt.Sports"]</option>
+                                    <option value="Books">@Localizer["Opt.Books"]</option>
+                                    <option value="Other">@Localizer["Opt.Other"]</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="productDescription" class="form-label">Description</label>
+                        <label for="productDescription" class="form-label">@Localizer["Lbl.Description"]</label>
                         <textarea class="form-control" id="productDescription" rows="3"></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="productPrice" class="form-label">Price (₹)</label>
+                                <label for="productPrice" class="form-label">@Localizer["Lbl.Price"] (₹)</label>
                                 <input type="number" class="form-control" id="productPrice" step="0.01" min="0">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="productStock" class="form-label">Stock Quantity</label>
+                                <label for="productStock" class="form-label">@Localizer["Lbl.StockQty"]</label>
                                 <input type="number" class="form-control" id="productStock" min="0">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="productSKU" class="form-label">SKU</label>
+                                <label for="productSKU" class="form-label">@Localizer["Lbl.SKU"]</label>
                                 <input type="text" class="form-control" id="productSKU">
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="productImage" class="form-label">Product Image</label>
+                        <label for="productImage" class="form-label">@Localizer["Lbl.ProductImage"]</label>
                         <input type="file" class="form-control" id="productImage" accept="image/*">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Active</label>
+                        <label class="form-label">@Localizer["Lbl.Active"]</label>
                         <select class="form-select" id="productIsActive">
-                            <option value="true" selected>Yes</option>
-                            <option value="false">No</option>
+                            <option value="true" selected>@Localizer["Opt.Yes"]</option>
+                            <option value="false">@Localizer["Opt.No"]</option>
                         </select>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button id="submitProduct" type="button" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Btn.Cancel"]</button>
+                <button id="submitProduct" type="button" class="btn btn-primary">@Localizer["Btn.Save"]</button>
             </div>
         </div>
     </div>
@@ -138,13 +138,13 @@
 <script>
     async function loadMine(){
         const tbody = document.getElementById('myItemsBody');
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Loading...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">@Localizer["Loading"]</td></tr>`;
         try{
             const res = await fetch('/api/items/mine', { credentials: 'same-origin' });
             if(!res.ok) throw new Error('Failed');
             const items = await res.json();
             if(!items || items.length === 0){
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No products yet.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">@Localizer["NoProductsYet"]</td></tr>`;
                 return;
             }
             tbody.innerHTML = items.map(i => `
@@ -154,10 +154,10 @@
                     <td>${i.category || ''}</td>
                     <td>${(i.price ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'})}</td>
                     <td>${i.stock ?? 0}</td>
-                    <td>${i.isActive ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}</td>
+                    <td>${i.isActive ? `<span class="badge bg-success">@Localizer["Status.Active"]</span>` : `<span class="badge bg-secondary">@Localizer["Status.Inactive"]</span>`}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick='openEdit(${JSON.stringify(i).replace(/'/g, "&apos;")})'>Edit</button>
-                        <button class="btn btn-sm btn-outline-danger" data-id="${i.id}">Delete</button>
+                        <button class="btn btn-sm btn-outline-primary" onclick='openEdit(${JSON.stringify(i).replace(/'/g, "&apos;")})'>@Localizer["Btn.Edit"]</button>
+                        <button class="btn btn-sm btn-outline-danger" data-id="${i.id}">@Localizer["Btn.Delete"]</button>
                     </td>
                 </tr>`).join('');
 
@@ -165,7 +165,7 @@
             tbody.querySelectorAll('button[data-id]').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
-                    if(!confirm('Delete this item?')) return;
+                    if(!confirm('@Localizer["Confirm.DeleteItem"]')) return;
                     const row = e.currentTarget.closest('tr');
                     row?.remove(); // optimistic UI update
                     try{
@@ -174,12 +174,12 @@
                 });
             });
         }catch{
-            tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">Failed to load.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">@Localizer["Error.FailedToLoad"]</td></tr>`;
         }
     }
 
     function openCreate(){
-        document.getElementById('productModalTitle').textContent = 'Add New Product';
+        document.getElementById('productModalTitle').textContent = '@Localizer["Modal.AddNewProduct"]';
         document.getElementById('productId').value = '';
         document.getElementById('productName').value = '';
         document.getElementById('productDescription').value = '';
@@ -193,7 +193,7 @@
     }
 
     function openEdit(i){
-        document.getElementById('productModalTitle').textContent = 'Edit Product';
+        document.getElementById('productModalTitle').textContent = '@Localizer["Modal.EditProduct"]';
         document.getElementById('productId').value = i.id;
         document.getElementById('productName').value = i.title || '';
         document.getElementById('productDescription').value = i.description || '';
@@ -226,10 +226,10 @@
                     credentials: 'same-origin',
                     body: JSON.stringify(payload)
                 });
-                if(!res.ok){ alert('Update failed'); return; }
+                if(!res.ok){ alert('@Localizer["Error.UpdateFailed"]'); return; }
                 bootstrap.Modal.getInstance(document.getElementById('productModal'))?.hide();
                 loadMine();
-            }catch{ alert('Update failed'); }
+            }catch{ alert('@Localizer["Error.UpdateFailed"]'); }
         }else{
             // POST multipart for create-with-image
             const fd = new FormData();
@@ -243,10 +243,10 @@
             if(file) fd.append('image', file);
             try{
                 const res = await fetch('/api/items/with-image', { method:'POST', body: fd, credentials:'same-origin' });
-                if(!res.ok){ alert('Failed to add'); return; }
+                if(!res.ok){ alert('@Localizer["Error.AddFailed"]'); return; }
                 bootstrap.Modal.getInstance(document.getElementById('productModal'))?.hide();
                 loadMine();
-            }catch{ alert('Failed to add'); }
+            }catch{ alert('@Localizer["Error.AddFailed"]'); }
         }
     });
 

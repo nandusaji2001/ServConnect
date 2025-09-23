@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="Title.SearchLocalServices" xml:space="preserve"><value>Discover Local Services</value></data>
+  <data name="Heading.SearchLocalServices" xml:space="preserve"><value>Discover local services</value></data>
+  <data name="SearchLocalPlaceholder" xml:space="preserve"><value>Search by name/address or choose a card below</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="LoadingCategories" xml:space="preserve"><value>Loading categories...</value></data>
+  <data name="ClickToViewServices" xml:space="preserve"><value>Click to view services</value></data>
+  <data name="View" xml:space="preserve"><value>View</value></data>
+  <data name="Quick.Hospital" xml:space="preserve"><value>Hospital</value></data>
+  <data name="Quick.Pharmacy" xml:space="preserve"><value>Pharmacy</value></data>
+  <data name="Quick.Clinic" xml:space="preserve"><value>Clinic</value></data>
+  <data name="Quick.Police" xml:space="preserve"><value>Police</value></data>
+  <data name="Quick.Fuel" xml:space="preserve"><value>Fuel</value></data>
+  <data name="Quick.Restaurant" xml:space="preserve"><value>Restaurant</value></data>
+  <data name="Quick.Cafe" xml:space="preserve"><value>Cafe</value></data>
+  <data name="Quick.FastFood" xml:space="preserve"><value>Fast Food</value></data>
+  <data name="Quick.BankATM" xml:space="preserve"><value>Bank/ATM</value></data>
+  <data name="Quick.PostOffice" xml:space="preserve"><value>Post Office</value></data>
+  <data name="Quick.School" xml:space="preserve"><value>School</value></data>
+  <data name="Quick.University" xml:space="preserve"><value>University</value></data>
+  <data name="Quick.BusStop" xml:space="preserve"><value>Bus Stop</value></data>
+  <data name="Quick.Train" xml:space="preserve"><value>Train</value></data>
+  <data name="Quick.Airport" xml:space="preserve"><value>Airport</value></data>
+  <data name="Quick.Taxi" xml:space="preserve"><value>Taxi</value></data>
+  <data name="Quick.Park" xml:space="preserve"><value>Park</value></data>
+  <data name="Quick.Playground" xml:space="preserve"><value>Playground</value></data>
+  <data name="Quick.Cinema" xml:space="preserve"><value>Cinema</value></data>
+  <data name="Quick.Theatre" xml:space="preserve"><value>Theatre</value></data>
+  <data name="Quick.Museum" xml:space="preserve"><value>Museum</value></data>
+  <data name="Quick.ArtGallery" xml:space="preserve"><value>Art Gallery</value></data>
+  <data name="Quick.Hotel" xml:space="preserve"><value>Hotel</value></data>
+  <data name="Quick.GuestHouse" xml:space="preserve"><value>Guest House</value></data>
+  <data name="Quick.Parking" xml:space="preserve"><value>Parking</value></data>
+  <data name="Quick.Ferry" xml:space="preserve"><value>Ferry</value></data>
+</root>

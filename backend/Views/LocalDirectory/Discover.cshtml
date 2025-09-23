@@ -1,8 +1,8 @@
 @{
-    ViewData["Title"] = "Discover Local Services";
+    ViewData["Title"] = Localizer["Title.SearchLocalServices"];
 }
 <div class="container py-4">
-    <h2 class="mb-3">Discover local services</h2>
+    <h2 class="mb-3">@Localizer["Heading.SearchLocalServices"]</h2>
     <div class="card">
         <div class="card-header d-flex gap-2 align-items-center flex-wrap">
             <select id="loc" class="form-select w-auto">
@@ -13,8 +13,8 @@
                 <option>Kuttikkanam</option>
             </select>
             <select id="cat" class="form-select w-auto"></select>
-            <input id="q" class="form-control" placeholder="Search by name/address or choose a card below">
-            <button class="btn btn-primary" id="btnSearch"><i class="fas fa-search"></i></button>
+            <input id="q" class="form-control" placeholder="@Localizer["SearchLocalPlaceholder"]">
+            <button class="btn btn-primary" id="btnSearch" title="@Localizer["Search"]"><i class="fas fa-search"></i></button>
         </div>
         <div class="p-3">
             <style>
@@ -36,36 +36,36 @@
                 .category-card .card-title{ font-size:1.125rem; }
             </style>
             <div class="osm-quick-cards" id="quickCards">
-                <div class="osm-card" data-name="Hospital"><i class="fas fa-hospital"></i><span>Hospital</span></div>
-                <div class="osm-card" data-name="Pharmacy"><i class="fas fa-prescription-bottle-alt"></i><span>Pharmacy</span></div>
-                <div class="osm-card" data-name="Clinic"><i class="fas fa-clinic-medical"></i><span>Clinic</span></div>
-                <div class="osm-card" data-name="Police Station"><i class="fas fa-shield-alt"></i><span>Police</span></div>
-                <div class="osm-card" data-name="Fuel / Gas Station"><i class="fas fa-gas-pump"></i><span>Fuel</span></div>
-                <div class="osm-card" data-name="Restaurant"><i class="fas fa-utensils"></i><span>Restaurant</span></div>
-                <div class="osm-card" data-name="Cafe"><i class="fas fa-coffee"></i><span>Cafe</span></div>
-                <div class="osm-card" data-name="Fast Food"><i class="fas fa-hamburger"></i><span>Fast Food</span></div>
-                <div class="osm-card" data-name="Bank / ATM"><i class="fas fa-university"></i><span>Bank/ATM</span></div>
-                <div class="osm-card" data-name="Post Office"><i class="fas fa-mail-bulk"></i><span>Post Office</span></div>
-                <div class="osm-card" data-name="School"><i class="fas fa-school"></i><span>School</span></div>
-                <div class="osm-card" data-name="University"><i class="fas fa-graduation-cap"></i><span>University</span></div>
-                <div class="osm-card" data-name="Bus Stop"><i class="fas fa-bus"></i><span>Bus Stop</span></div>
-                <div class="osm-card" data-name="Train Station"><i class="fas fa-train"></i><span>Train</span></div>
-                <div class="osm-card" data-name="Airport"><i class="fas fa-plane"></i><span>Airport</span></div>
-                <div class="osm-card" data-name="Taxi Stand"><i class="fas fa-taxi"></i><span>Taxi</span></div>
-                <div class="osm-card" data-name="Park / Garden"><i class="fas fa-tree"></i><span>Park</span></div>
-                <div class="osm-card" data-name="Playground"><i class="fas fa-futbol"></i><span>Playground</span></div>
-                <div class="osm-card" data-name="Cinema / Movie Theater"><i class="fas fa-film"></i><span>Cinema</span></div>
-                <div class="osm-card" data-name="Theatre / Performing Arts Venue"><i class="fas fa-theater-masks"></i><span>Theatre</span></div>
-                <div class="osm-card" data-name="Museum"><i class="fas fa-landmark"></i><span>Museum</span></div>
-                <div class="osm-card" data-name="Art Gallery"><i class="fas fa-palette"></i><span>Art Gallery</span></div>
-                <div class="osm-card" data-name="Hotel"><i class="fas fa-bed"></i><span>Hotel</span></div>
-                <div class="osm-card" data-name="Guest House"><i class="fas fa-concierge-bell"></i><span>Guest House</span></div>
-                <div class="osm-card" data-name="Parking Lot / Garage"><i class="fas fa-parking"></i><span>Parking</span></div>
-                <div class="osm-card" data-name="Ferry Terminal"><i class="fas fa-ship"></i><span>Ferry</span></div>
+                <div class="osm-card" data-name="Hospital"><i class="fas fa-hospital"></i><span>@Localizer["Quick.Hospital"]</span></div>
+                <div class="osm-card" data-name="Pharmacy"><i class="fas fa-prescription-bottle-alt"></i><span>@Localizer["Quick.Pharmacy"]</span></div>
+                <div class="osm-card" data-name="Clinic"><i class="fas fa-clinic-medical"></i><span>@Localizer["Quick.Clinic"]</span></div>
+                <div class="osm-card" data-name="Police Station"><i class="fas fa-shield-alt"></i><span>@Localizer["Quick.Police"]</span></div>
+                <div class="osm-card" data-name="Fuel / Gas Station"><i class="fas fa-gas-pump"></i><span>@Localizer["Quick.Fuel"]</span></div>
+                <div class="osm-card" data-name="Restaurant"><i class="fas fa-utensils"></i><span>@Localizer["Quick.Restaurant"]</span></div>
+                <div class="osm-card" data-name="Cafe"><i class="fas fa-coffee"></i><span>@Localizer["Quick.Cafe"]</span></div>
+                <div class="osm-card" data-name="Fast Food"><i class="fas fa-hamburger"></i><span>@Localizer["Quick.FastFood"]</span></div>
+                <div class="osm-card" data-name="Bank / ATM"><i class="fas fa-university"></i><span>@Localizer["Quick.BankATM"]</span></div>
+                <div class="osm-card" data-name="Post Office"><i class="fas fa-mail-bulk"></i><span>@Localizer["Quick.PostOffice"]</span></div>
+                <div class="osm-card" data-name="School"><i class="fas fa-school"></i><span>@Localizer["Quick.School"]</span></div>
+                <div class="osm-card" data-name="University"><i class="fas fa-graduation-cap"></i><span>@Localizer["Quick.University"]</span></div>
+                <div class="osm-card" data-name="Bus Stop"><i class="fas fa-bus"></i><span>@Localizer["Quick.BusStop"]</span></div>
+                <div class="osm-card" data-name="Train Station"><i class="fas fa-train"></i><span>@Localizer["Quick.Train"]</span></div>
+                <div class="osm-card" data-name="Airport"><i class="fas fa-plane"></i><span>@Localizer["Quick.Airport"]</span></div>
+                <div class="osm-card" data-name="Taxi Stand"><i class="fas fa-taxi"></i><span>@Localizer["Quick.Taxi"]</span></div>
+                <div class="osm-card" data-name="Park / Garden"><i class="fas fa-tree"></i><span>@Localizer["Quick.Park"]</span></div>
+                <div class="osm-card" data-name="Playground"><i class="fas fa-futbol"></i><span>@Localizer["Quick.Playground"]</span></div>
+                <div class="osm-card" data-name="Cinema / Movie Theater"><i class="fas fa-film"></i><span>@Localizer["Quick.Cinema"]</span></div>
+                <div class="osm-card" data-name="Theatre / Performing Arts Venue"><i class="fas fa-theater-masks"></i><span>@Localizer["Quick.Theatre"]</span></div>
+                <div class="osm-card" data-name="Museum"><i class="fas fa-landmark"></i><span>@Localizer["Quick.Museum"]</span></div>
+                <div class="osm-card" data-name="Art Gallery"><i class="fas fa-palette"></i><span>@Localizer["Quick.ArtGallery"]</span></div>
+                <div class="osm-card" data-name="Hotel"><i class="fas fa-bed"></i><span>@Localizer["Quick.Hotel"]</span></div>
+                <div class="osm-card" data-name="Guest House"><i class="fas fa-concierge-bell"></i><span>@Localizer["Quick.GuestHouse"]</span></div>
+                <div class="osm-card" data-name="Parking Lot / Garage"><i class="fas fa-parking"></i><span>@Localizer["Quick.Parking"]</span></div>
+                <div class="osm-card" data-name="Ferry Terminal"><i class="fas fa-ship"></i><span>@Localizer["Quick.Ferry"]</span></div>
             </div>
         </div>
         <div id="tileGrid" class="p-3">
-            <div class="text-muted">Loading categories...</div>
+            <div class="text-muted">@Localizer["LoadingCategories"]</div>
         </div>
     </div>
 </div>
@@ -92,9 +92,9 @@
                         <i class="bi bi-geo-alt-fill me-2 text-primary"></i>
                         <h5 class="card-title mb-0">${c.name}</h5>
                     </div>
-                    <p class="card-text text-muted small">Click to view services</p>
+                    <p class="card-text text-muted small">@Localizer["ClickToViewServices"]</p>
                     <div class="mt-auto text-end">
-                        <button class="btn btn-outline-primary btn-sm">View</button>
+                        <button class="btn btn-outline-primary btn-sm">@Localizer["View"]</button>
                     </div>
                 </div>
             </div>`;
