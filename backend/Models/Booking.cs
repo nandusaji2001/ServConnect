@@ -44,6 +44,11 @@ namespace ServConnect.Models
         public string? ProviderMessage { get; set; }
         public DateTime? RespondedAtUtc { get; set; }
 
+        // Price information
+        public decimal Price { get; set; } = 0;
+        public string PriceUnit { get; set; } = "per service";
+        public string Currency { get; set; } = "USD";
+
         // User completion & feedback
         public bool IsCompleted { get; set; } = false; // set by user when service is finished
         public DateTime? CompletedAtUtc { get; set; }

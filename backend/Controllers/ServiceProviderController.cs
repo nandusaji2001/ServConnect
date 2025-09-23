@@ -14,11 +14,14 @@ namespace ServConnect.Controllers
         private readonly IItemService _itemService;
         private readonly IBookingService _bookingService;
 
-        public ServiceProviderController(UserManager<Users> userManager, IItemService itemService, IBookingService bookingService)
+        private readonly IServiceCatalog _catalog;
+
+        public ServiceProviderController(UserManager<Users> userManager, IItemService itemService, IBookingService bookingService, IServiceCatalog catalog)
         {
             _userManager = userManager;
             _itemService = itemService;
             _bookingService = bookingService;
+            _catalog = catalog;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -29,10 +32,11 @@ namespace ServConnect.Controllers
                 return NotFound();
             }
 
-            var myItems = await _itemService.GetByOwnerAsync(user.Id);
+            // Count services via ProviderServices, not Items
+            var myLinks = await _catalog.GetProviderLinksByProviderAsync(user.Id);
             ViewBag.UserName = user.FullName;
-            ViewBag.TotalServices = myItems?.Count ?? 0;
-            ViewBag.ActiveServices = myItems?.Count(i => i.IsActive) ?? 0;
+            ViewBag.TotalServices = myLinks?.Count ?? 0;
+            ViewBag.ActiveServices = myLinks?.Count(i => i.IsActive) ?? 0;
 
             // Booking analytics for this provider
             var bookings = await _bookingService.GetForProviderAsync(user.Id);
@@ -62,8 +66,8 @@ namespace ServConnect.Controllers
 
         public IActionResult Services()
         {
-            // Placeholder for managing services
-            return View();
+            // Redirect legacy route to the new ProviderServices management UI
+            return RedirectToAction("Manage", "Services");
         }
 
         public IActionResult Profile()

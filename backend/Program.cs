@@ -51,6 +51,10 @@ builder.Services.AddControllersWithViews(options =>
 {
     // Enforce profile completion and admin approval for all authenticated users
     options.Filters.Add<ServConnect.Filters.RequireApprovedUserFilter>();
+}).AddJsonOptions(o =>
+{
+    // Helpful during debugging to see enums/Guids as strings when needed
+    o.JsonSerializerOptions.WriteIndented = true;
 }); // Adds MVC + Razor views with global filters
 builder.Services.AddScoped<DatabaseSeeder>();
 

@@ -167,7 +167,7 @@
         const tbody = document.getElementById('itemsBody');
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>`;
         try{
-            const res = await fetch('/api/items/mine', { credentials: 'same-origin' });
+            const res = await fetch('/api/items/mine', { credentials: 'same-origin' }); // Vendors only
             if(!res.ok) throw new Error();
             itemsCache = await res.json();
             renderItems(itemsCache);
@@ -269,7 +269,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'same-origin',
-                    body: JSON.stringify({ serviceName: category })
+                    body: JSON.stringify({ serviceName: category }) // Adds to ProviderServices
                 });
             }catch{ /* ignore */ }
             bootstrap.Modal.getInstance(document.getElementById('itemModal'))?.hide();

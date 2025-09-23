@@ -29,9 +29,9 @@ namespace ServConnect.Controllers
             return Ok(items);
         }
 
-        // Providers/Vendors: list own items
+        // Vendors: list own items
         [HttpGet("mine")]
-        [Authorize(Roles = $"{RoleTypes.ServiceProvider},{RoleTypes.Vendor}")]
+        [Authorize(Roles = RoleTypes.Vendor)]
         [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
         public async Task<IActionResult> GetMine()
         {
@@ -41,9 +41,9 @@ namespace ServConnect.Controllers
             return Ok(items);
         }
 
-        // Providers/Vendors: create item
+        // Vendors: create item (service providers should use ProviderServices via /api/services/link)
         [HttpPost]
-        [Authorize(Roles = $"{RoleTypes.ServiceProvider},{RoleTypes.Vendor}")]
+        [Authorize(Roles = RoleTypes.Vendor)]
         [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
         public async Task<IActionResult> Create([FromBody] Item input)
         {
@@ -58,7 +58,7 @@ namespace ServConnect.Controllers
             input.Id = null!; // let Mongo assign
             input.OwnerId = me.Id;
             var roles = await _userManager.GetRolesAsync(me);
-            input.OwnerRole = roles.Contains(RoleTypes.Vendor) ? RoleTypes.Vendor : RoleTypes.ServiceProvider;
+            input.OwnerRole = RoleTypes.Vendor;
             input.CreatedAt = DateTime.UtcNow;
             input.UpdatedAt = DateTime.UtcNow;
             // Respect requested activation state (default to true if unspecified)
@@ -77,9 +77,9 @@ namespace ServConnect.Controllers
             return Ok(item);
         }
 
-        // Providers/Vendors: update own item
+        // Vendors: update own item
         [HttpPut("{id}")]
-        [Authorize(Roles = $"{RoleTypes.ServiceProvider},{RoleTypes.Vendor}")]
+        [Authorize(Roles = RoleTypes.Vendor)]
         [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
         public async Task<IActionResult> Update(string id, [FromBody] Item input)
         {
@@ -101,9 +101,9 @@ namespace ServConnect.Controllers
             return ok ? NoContent() : StatusCode(500, "Update failed");
         }
 
-        // Providers/Vendors: delete own item
+        // Vendors: delete own item
         [HttpDelete("{id}")]
-        [Authorize(Roles = $"{RoleTypes.ServiceProvider},{RoleTypes.Vendor}")]
+        [Authorize(Roles = RoleTypes.Vendor)]
         [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
         public async Task<IActionResult> DeleteMine(string id)
         {

@@ -17,6 +17,7 @@
                     <tr>
                         <th>Provider</th>
                         <th>Service</th>
+                        <th>Price</th>
                         <th>Date & Time</th>
                         <th>Status</th>
                         <th>Message</th>
@@ -29,6 +30,16 @@
                         <tr>
                             <td>@b.ProviderName</td>
                             <td>@b.ServiceName</td>
+                            <td>
+                                @if (b.Price > 0)
+                                {
+                                    <span>@b.Currency @b.Price.ToString("F2") @b.PriceUnit</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Price on request</span>
+                                }
+                            </td>
                             <td>@b.ServiceDateTime.ToLocalTime().ToString("f")</td>
                             <td>
                                 @switch (b.Status)

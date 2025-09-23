@@ -113,7 +113,14 @@
 </style>
 
 <script>
-    const toSlug = (t) => (t||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-');
+    // Ensure client-side slug matches server-side logic (trim + normalize)
+    const toSlug = (t) => (t || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-+|-+$/g, '');
     let allServices = [];
 
     function getServiceIcon(name){

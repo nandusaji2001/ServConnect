@@ -19,14 +19,15 @@
         <div class="p-3">
             <style>
                 /* Quick predefined cards */
-                .osm-quick-cards { display:grid; grid-template-columns: repeat(6,1fr); gap:12px; }
+                .osm-quick-cards { display:grid; grid-template-columns: repeat(4,1fr); gap:16px; }
                 .osm-card { 
-                    background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-                    border:1px solid #e5e7eb; border-radius:12px; padding:14px; cursor:pointer; 
-                    display:flex; align-items:center; gap:10px; transition:all .2s ease;
+                    background: linear-gradient(135deg, #ffffff 0%, #f6faff 100%);
+                    border:1px solid #e2e8f0; border-radius:16px; padding:18px 16px; cursor:pointer; 
+                    display:flex; align-items:center; gap:14px; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; box-shadow:0 2px 6px rgba(0,0,0,.04);
                 }
-                .osm-card i{ font-size:18px; color:#2563eb; }
-                .osm-card:hover{ box-shadow:0 10px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
+                .osm-card i{ display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; background: linear-gradient(135deg, #3b82f6, #2563eb); color:#fff; font-size:18px; }
+                .osm-card span{ font-weight:600; font-size:1rem; color:#0f172a; }
+                .osm-card:hover{ box-shadow:0 12px 24px rgba(37,99,235,.15); transform: translateY(-3px); border-color:#c7d2fe; }
                 @@media (max-width: 992px){ .osm-quick-cards{ grid-template-columns: repeat(3,1fr);} }
                 @@media (max-width: 576px){ .osm-quick-cards{ grid-template-columns: repeat(2,1fr);} }
                 /* Category tiles */

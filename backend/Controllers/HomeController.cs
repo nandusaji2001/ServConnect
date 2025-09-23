@@ -19,14 +19,15 @@ namespace ServConnect.Controllers
             return View();
         }
 
-        // Role-aware dashboard: only regular users see this dashboard
+        // Role-aware dashboard: redirect regular users to hero home (Index)
         [Authorize]
         public IActionResult Dashboard()
         {
             if (User.IsInRole(RoleTypes.Admin)) return RedirectToAction("Dashboard", "Admin");
             if (User.IsInRole(RoleTypes.Vendor)) return RedirectToAction("Dashboard", "Vendor");
             if (User.IsInRole(RoleTypes.ServiceProvider)) return RedirectToAction("Dashboard", "ServiceProvider");
-            return View();
+            // For normal users, show the hero/landing with actions
+            return RedirectToAction("Index", "Home");
         }
 
         [Authorize]

@@ -76,6 +76,7 @@ namespace ServConnect.Controllers
         public async Task<IActionResult> Link([FromBody] LinkRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.ServiceName)) return BadRequest("Service name required");
+            if (req.Price <= 0) return BadRequest("Price must be greater than 0");
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
             var link = await _catalog.LinkProviderAsync(me.Id, req.ServiceName, req.Description, req.Price, req.PriceUnit, req.Currency, req.AvailableDays, req.AvailableHours);

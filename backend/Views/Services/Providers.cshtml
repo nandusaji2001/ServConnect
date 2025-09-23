@@ -233,16 +233,11 @@
                                         <input required class="form-control" type="datetime-local" name="serviceDateTime" />
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Phone Number</label>
-                                        <input required class="form-control" type="tel" name="contactPhone" />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Address</label>
-                                        <textarea required class="form-control" name="address" rows="2"></textarea>
-                                    </div>
-                                    <div class="mb-3">
                                         <label class="form-label">Note (optional)</label>
                                         <textarea class="form-control" name="note" rows="2" placeholder="Any additional details"></textarea>
+                                    </div>
+                                    <div class="alert alert-info">
+                                        Booking will use your profile phone and address. Update your profile if needed.
                                     </div>
                                     <input type="hidden" name="providerServiceId" value="@p.Id" />
                                     <button class="btn btn-primary" type="submit">Send Request</button>
@@ -280,8 +275,6 @@ async function submitBooking(formId, modalId, providerId, providerName, serviceN
         providerName: providerName,
         serviceName: serviceName,
         serviceDateTime: serviceDateTime.toISOString(),
-        contactPhone: form.contactPhone.value,
-        address: form.address.value,
         note: form.note.value
     };
 

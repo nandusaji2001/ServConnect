@@ -63,8 +63,8 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label class="form-label">Price</label>
-                                <input type="number" class="form-control" id="price" min="0" step="0.01" placeholder="0.00">
+                                <label class="form-label">Price <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="price" min="0.01" step="0.01" placeholder="0.00" required>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -238,6 +238,9 @@
         const sel = document.getElementById('serviceSelect').value;
         const name = sel === '__other__' ? document.getElementById('otherName').value.trim() : sel;
         if(!name){ alert('Please select or enter a category name.'); return; }
+
+        const price = parseFloat(document.getElementById('price').value);
+        if(isNaN(price) || price <= 0){ alert('Please enter a valid price greater than 0.'); return; }
         
         // Get selected days
         const selectedDays = [];

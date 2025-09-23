@@ -26,8 +26,6 @@ namespace ServConnect.Controllers
             public string ProviderName { get; set; } = string.Empty;
             public string ServiceName { get; set; } = string.Empty;
             public DateTime ServiceDateTime { get; set; }
-            public string ContactPhone { get; set; } = string.Empty;
-            public string Address { get; set; } = string.Empty;
             public string? Note { get; set; }
         }
 
@@ -38,17 +36,23 @@ namespace ServConnect.Controllers
         {
             if (string.IsNullOrWhiteSpace(req.ProviderServiceId)) return BadRequest("Provider service is required");
             if (req.ServiceDateTime <= DateTime.UtcNow.AddMinutes(-1)) return BadRequest("Please choose a future date/time");
-            if (string.IsNullOrWhiteSpace(req.ContactPhone)) return BadRequest("Phone is required");
-            if (string.IsNullOrWhiteSpace(req.Address)) return BadRequest("Address is required");
 
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
+
+            // Use phone and address from user's profile
+            var contactPhone = me.PhoneNumber ?? string.Empty;
+            var address = me.Address ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(contactPhone) || string.IsNullOrWhiteSpace(address))
+            {
+                return BadRequest("Please complete your profile (phone and address) before booking.");
+            }
 
             var booking = await _bookings.CreateAsync(
                 me.Id, me.FullName ?? me.UserName ?? "User", me.Email ?? string.Empty,
                 req.ProviderId, string.IsNullOrWhiteSpace(req.ProviderName) ? "Provider" : req.ProviderName,
                 req.ProviderServiceId, string.IsNullOrWhiteSpace(req.ServiceName) ? "Service" : req.ServiceName,
-                req.ServiceDateTime, req.ContactPhone, req.Address, req.Note
+                req.ServiceDateTime, contactPhone, address, req.Note
             );
 
             return Ok(booking);

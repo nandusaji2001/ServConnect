@@ -23,6 +23,12 @@ namespace ServConnect.Services
 
         public async Task<Booking> CreateAsync(Guid userId, string userName, string userEmail, Guid providerId, string providerName, string providerServiceId, string serviceName, DateTime serviceDateTime, string contactPhone, string address, string? note)
         {
+            // Fetch price information from ProviderService
+            var providerService = await _providerServices.Find(x => x.Id == providerServiceId).FirstOrDefaultAsync();
+            var price = providerService?.Price ?? 0;
+            var priceUnit = providerService?.PriceUnit ?? "per service";
+            var currency = providerService?.Currency ?? "USD";
+
             var booking = new Booking
             {
                 Id = null!,
@@ -37,6 +43,9 @@ namespace ServConnect.Services
                 ContactPhone = contactPhone,
                 Address = address,
                 Note = note,
+                Price = price,
+                PriceUnit = priceUnit,
+                Currency = currency,
                 RequestedAtUtc = DateTime.UtcNow,
                 Status = BookingStatus.Pending
             };
