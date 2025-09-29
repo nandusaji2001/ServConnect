@@ -224,9 +224,21 @@
                                 ${availabilityText}
                             </div>
                         </div>
-                        <button class="btn btn-sm btn-outline-danger" onclick="unlink('${l.id}')">
-                            <i class="fas fa-unlink"></i> Unlink
-                        </button>
+                        ${l.isActive
+                            ? `<button class="btn btn-sm btn-outline-danger" onclick="unlink('${l.id}')">
+                                    <i class="fas fa-unlink"></i> Unlink
+                               </button>`
+                            : `<button class="btn btn-sm btn-outline-success" onclick="relink('${l.id}')">
+                                    <i class="fas fa-link"></i> Link
+                               </button>`}
+                        <div class="btn-group btn-group-sm ms-2">
+                            <button class="btn btn-outline-primary" onclick='openEditLink(${JSON.stringify(l).replace(/'/g, "&apos;")})' title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick='deleteLink("${l.id}")' title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
                 ul.appendChild(li);
@@ -278,6 +290,63 @@
             if(res.status === 204) await loadLinks();
             else alert('Failed to unlink');
         }catch{ alert('Failed to unlink'); }
+    }
+
+    async function relink(id){
+        try{
+            const res = await fetch(`/api/services/mine/${id}/relink`, { method: 'POST' });
+            if(res.status === 204) await loadLinks();
+            else alert('Failed to link');
+        }catch{ alert('Failed to link'); }
+    }
+
+    function openEditLink(l){
+        // reuse the link modal to edit core fields
+        document.getElementById('serviceSelect').value = l.serviceName; // not editable here
+        document.getElementById('otherName').value = '';
+        document.getElementById('description').value = l.description || '';
+        document.getElementById('price').value = l.price || 0;
+        document.getElementById('priceUnit').value = l.priceUnit || 'per service';
+        document.getElementById('currency').value = l.currency || 'USD';
+        document.getElementById('availableHours').value = l.availableHours || '9:00 AM - 6:00 PM';
+        // set days
+        const days = new Set(l.availableDays || []);
+        const dayCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="monday"], input[type="checkbox"][id^="tuesday"], input[type="checkbox"][id^="wednesday"], input[type="checkbox"][id^="thursday"], input[type="checkbox"][id^="friday"], input[type="checkbox"][id^="saturday"], input[type="checkbox"][id^="sunday"]');
+        dayCheckboxes.forEach(cb => cb.checked = days.has(cb.value));
+        const modal = new bootstrap.Modal(document.getElementById('linkModal'));
+        modal.show();
+        // override save to update existing link
+        const saveBtn = document.querySelector('#linkModal .btn.btn-primary');
+        const originalHandler = saveLink; // fallback
+        saveBtn.onclick = async () => {
+            const price = parseFloat(document.getElementById('price').value);
+            if(isNaN(price) || price <= 0){ alert('Please enter a valid price greater than 0.'); return; }
+            const selectedDays = [];
+            document.querySelectorAll('input[type="checkbox"][id^="monday"], input[type="checkbox"][id^="tuesday"], input[type="checkbox"][id^="wednesday"], input[type="checkbox"][id^="thursday"], input[type="checkbox"][id^="friday"], input[type="checkbox"][id^="saturday"], input[type="checkbox"][id^="sunday"]').forEach(cb => { if(cb.checked) selectedDays.push(cb.value); });
+            const payload = {
+                description: document.getElementById('description').value.trim(),
+                price: parseFloat(document.getElementById('price').value) || 0,
+                priceUnit: document.getElementById('priceUnit').value,
+                currency: document.getElementById('currency').value,
+                availableDays: selectedDays,
+                availableHours: document.getElementById('availableHours').value.trim()
+            };
+            try{
+                const res = await fetch(`/api/services/mine/${l.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if(!res.ok && res.status !== 204) throw new Error();
+                bootstrap.Modal.getInstance(document.getElementById('linkModal'))?.hide();
+                await loadLinks();
+            }catch{ alert('Failed to update'); }
+        };
+    }
+
+    async function deleteLink(id){
+        if(!confirm('Delete this service link permanently?')) return;
+        try{
+            const res = await fetch(`/api/services/mine/${id}/hard`, { method: 'DELETE' });
+            if(res.status === 204) await loadLinks();
+            else alert('Failed to delete');
+        }catch{ alert('Failed to delete'); }
     }
 
     document.addEventListener('DOMContentLoaded', loadLinks);

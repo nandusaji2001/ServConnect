@@ -158,6 +158,35 @@ namespace ServConnect.Services
             return res.ModifiedCount == 1;
         }
 
+        public async Task<bool> RelinkAsync(string linkId, Guid providerId)
+        {
+            var update = Builders<ProviderService>.Update
+                .Set(x => x.IsActive, true)
+                .Set(x => x.UpdatedAt, DateTime.UtcNow);
+            var res = await _providerLinks.UpdateOneAsync(x => x.Id == linkId && x.ProviderId == providerId, update);
+            return res.ModifiedCount == 1;
+        }
+
+        public async Task<bool> UpdateLinkAsync(string linkId, Guid providerId, string description, decimal price, string priceUnit, string currency, List<string> availableDays, string availableHours)
+        {
+            var update = Builders<ProviderService>.Update
+                .Set(x => x.Description, description)
+                .Set(x => x.Price, price)
+                .Set(x => x.PriceUnit, priceUnit)
+                .Set(x => x.Currency, currency)
+                .Set(x => x.AvailableDays, availableDays ?? new List<string>())
+                .Set(x => x.AvailableHours, availableHours)
+                .Set(x => x.UpdatedAt, DateTime.UtcNow);
+            var res = await _providerLinks.UpdateOneAsync(x => x.Id == linkId && x.ProviderId == providerId, update);
+            return res.ModifiedCount == 1;
+        }
+
+        public async Task<bool> DeleteLinkAsync(string linkId, Guid providerId)
+        {
+            var res = await _providerLinks.DeleteOneAsync(x => x.Id == linkId && x.ProviderId == providerId);
+            return res.DeletedCount == 1;
+        }
+
         public async Task<List<string>> GetAllAvailableServiceNamesAsync()
         {
             // Names from active provider links

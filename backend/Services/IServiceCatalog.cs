@@ -17,6 +17,9 @@ namespace ServConnect.Services
         Task<List<ProviderService>> GetProviderLinksBySlugAsync(string slug);
         Task<List<ProviderService>> GetProviderLinksByProviderAsync(Guid providerId);
         Task<bool> UnlinkAsync(string linkId, Guid providerId);
+        Task<bool> RelinkAsync(string linkId, Guid providerId);
+        Task<bool> UpdateLinkAsync(string linkId, Guid providerId, string description, decimal price, string priceUnit, string currency, List<string> availableDays, string availableHours);
+        Task<bool> DeleteLinkAsync(string linkId, Guid providerId);
 
         // Aggregation
         Task<List<string>> GetAllAvailableServiceNamesAsync();

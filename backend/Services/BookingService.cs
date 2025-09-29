@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using ServConnect.Models;
+using System.Threading.Tasks;
 
 namespace ServConnect.Services
 {
@@ -9,8 +10,9 @@ namespace ServConnect.Services
         private readonly IMongoCollection<Booking> _bookings;
         private readonly IMongoCollection<Users> _users;
         private readonly IMongoCollection<ProviderService> _providerServices;
+        private readonly IEmailService _emailService;
 
-        public BookingService(IConfiguration config)
+        public BookingService(IConfiguration config, IEmailService emailService)
         {
             var conn = config["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017";
             var dbName = config["MongoDB:DatabaseName"] ?? "ServConnectDb";
@@ -19,6 +21,7 @@ namespace ServConnect.Services
             _bookings = db.GetCollection<Booking>("Bookings");
             _users = db.GetCollection<Users>("Users");
             _providerServices = db.GetCollection<ProviderService>("ProviderServices");
+            _emailService = emailService;
         }
 
         public async Task<Booking> CreateAsync(Guid userId, string userName, string userEmail, Guid providerId, string providerName, string providerServiceId, string serviceName, DateTime serviceDateTime, string contactPhone, string address, string? note)
@@ -50,6 +53,34 @@ namespace ServConnect.Services
                 Status = BookingStatus.Pending
             };
             await _bookings.InsertOneAsync(booking);
+
+            // Send email to provider
+            var provider = await _users.Find(u => u.Id == providerId).FirstOrDefaultAsync();
+            if (provider?.Email != null)
+            {
+                var subject = $"New Booking Request for {serviceName}";
+                var body = $@"
+<html>
+<body>
+<h2>New Booking Request</h2>
+<p>Dear {providerName},</p>
+<p>A user has booked your service <strong>{serviceName}</strong>.</p>
+<p><strong>User Details:</strong></p>
+<ul>
+<li>Name: {userName}</li>
+<li>Email: {userEmail}</li>
+<li>Phone: {contactPhone}</li>
+<li>Address: {address}</li>
+<li>Requested Date & Time: {serviceDateTime:yyyy-MM-dd HH:mm}</li>
+<li>Note: {note ?? "None"}</li>
+</ul>
+<p>Please log in to your account to accept or reject this booking.</p>
+<p>Best regards,<br>ServConnect Team</p>
+</body>
+</html>";
+                await _emailService.SendEmailAsync(provider.Email, subject, body);
+            }
+
             return booking;
         }
 
@@ -79,6 +110,35 @@ namespace ServConnect.Services
                 .Set(x => x.ProviderMessage, providerMessage)
                 .Set(x => x.RespondedAtUtc, DateTime.UtcNow);
             var res = await _bookings.UpdateOneAsync(x => x.Id == id && x.ProviderId == providerId, update);
+            if (res.ModifiedCount == 1 && status == BookingStatus.Accepted)
+            {
+                // Send email to user
+                var booking = await _bookings.Find(x => x.Id == id).FirstOrDefaultAsync();
+                if (booking != null && !string.IsNullOrEmpty(booking.UserEmail))
+                {
+                    var subject = $"Your Booking for {booking.ServiceName} has been Accepted";
+                    var body = $@"
+<html>
+<body>
+<h2>Booking Accepted</h2>
+<p>Dear {booking.UserName},</p>
+<p>Your booking request for <strong>{booking.ServiceName}</strong> with {booking.ProviderName} has been <strong>accepted</strong>.</p>
+<p><strong>Booking Details:</strong></p>
+<ul>
+<li>Service: {booking.ServiceName}</li>
+<li>Provider: {booking.ProviderName}</li>
+<li>Date & Time: {booking.ServiceDateTime:yyyy-MM-dd HH:mm}</li>
+<li>Your Phone: {booking.ContactPhone}</li>
+<li>Your Address: {booking.Address}</li>
+<li>Note: {booking.Note ?? "None"}</li>
+</ul>
+<p>If you have any questions, please contact the service provider directly.</p>
+<p>Best regards,<br>ServConnect Team</p>
+</body>
+</html>";
+                    await _emailService.SendEmailAsync(booking.UserEmail, subject, body);
+                }
+            }
             return res.ModifiedCount == 1;
         }
 

@@ -94,6 +94,8 @@ builder.Services.AddScoped<ILocalDirectory, LocalDirectoryFacade>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 // Ratings
 builder.Services.AddScoped<IRatingService, RatingService>();
+// Email service
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

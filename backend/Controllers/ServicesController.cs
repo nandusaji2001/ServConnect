@@ -107,6 +107,52 @@ namespace ServConnect.Controllers
             return ok ? NoContent() : NotFound();
         }
 
+        // API: relink (activate) a previously unlinked service
+        [HttpPost("/api/services/mine/{id}/relink")]
+        [Authorize(Roles = RoleTypes.ServiceProvider)]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        public async Task<IActionResult> Relink(string id)
+        {
+            var me = await _userManager.GetUserAsync(User);
+            if (me == null) return Unauthorized();
+            var ok = await _catalog.RelinkAsync(id, me.Id);
+            return ok ? NoContent() : NotFound();
+        }
+
+        // API: update an existing link (edit)
+        public class UpdateLinkRequest
+        {
+            public string Description { get; set; } = string.Empty;
+            public decimal Price { get; set; } = 0;
+            public string PriceUnit { get; set; } = "per service";
+            public string Currency { get; set; } = "USD";
+            public List<string> AvailableDays { get; set; } = new();
+            public string AvailableHours { get; set; } = "9:00 AM - 6:00 PM";
+        }
+
+        [HttpPut("/api/services/mine/{id}")]
+        [Authorize(Roles = RoleTypes.ServiceProvider)]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        public async Task<IActionResult> UpdateLink(string id, [FromBody] UpdateLinkRequest req)
+        {
+            var me = await _userManager.GetUserAsync(User);
+            if (me == null) return Unauthorized();
+            var ok = await _catalog.UpdateLinkAsync(id, me.Id, req.Description, req.Price, req.PriceUnit, req.Currency, req.AvailableDays, req.AvailableHours);
+            return ok ? NoContent() : NotFound();
+        }
+
+        // API: delete a link permanently
+        [HttpDelete("/api/services/mine/{id}/hard")]
+        [Authorize(Roles = RoleTypes.ServiceProvider)]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        public async Task<IActionResult> DeleteLinkHard(string id)
+        {
+            var me = await _userManager.GetUserAsync(User);
+            if (me == null) return Unauthorized();
+            var ok = await _catalog.DeleteLinkAsync(id, me.Id);
+            return ok ? NoContent() : NotFound();
+        }
+
         public class LinkRequest
         {
             public string ServiceName { get; set; } = string.Empty;
