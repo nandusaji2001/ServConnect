@@ -51,6 +51,7 @@ namespace ServConnect.Controllers
             ViewBag.ResponseRatePercent = total > 0 ? Math.Round((double)responded * 100 / total, 1) : 0;
             ViewBag.CompletionRatePercent = total > 0 ? Math.Round((double)completed * 100 / total, 1) : 0;
             ViewBag.AvgRating = Math.Round(avgRating, 1);
+            ViewBag.UnrespondedCount = bookings.Count(b => b.Status == BookingStatus.Pending);
 
             // Recent completed services with ratings
             var completedRecent = bookings

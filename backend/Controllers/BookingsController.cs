@@ -59,7 +59,7 @@ namespace ServConnect.Controllers
         }
 
         // Provider view: list bookings
-        [HttpGet("/provider/bookings")] 
+        [HttpGet("/provider/bookings")]
         [Authorize(Roles = RoleTypes.ServiceProvider)]
         [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
         public async Task<IActionResult> ProviderList()
@@ -67,6 +67,7 @@ namespace ServConnect.Controllers
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
             var list = await _bookings.GetForProviderAsync(me.Id);
+            ViewBag.UnrespondedCount = list.Count(b => b.Status == BookingStatus.Pending);
             return View("ProviderBookings", list);
         }
 

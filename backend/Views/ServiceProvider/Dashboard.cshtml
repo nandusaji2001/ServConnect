@@ -362,8 +362,19 @@
         </a>
         
         <a href="/provider/bookings" class="quick-action-btn">
-            <i class="fas fa-calendar-alt"></i>
-            <span>View Bookings</span>
+            <div class="d-flex align-items-center">
+                <i class="fas fa-calendar-alt me-2"></i>
+                <span>View Bookings</span>
+                @if (ViewBag.UnrespondedCount > 0)
+                {
+                    <div class="notification-icon ms-2 position-relative">
+                        <i class="fas fa-bell text-warning" style="font-size: 16px;"></i>
+                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" style="font-size: 0.6rem;">
+                            @ViewBag.UnrespondedCount
+                        </span>
+                    </div>
+                }
+            </div>
         </a>
         
         <a href="#" class="quick-action-btn">

@@ -8,7 +8,18 @@
         <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
             <span class="fw-semibold"><i class="fas fa-th-large me-2"></i> @Localizer["BrowseServices"]</span>
             <div class="d-flex gap-2 ms-auto align-items-center flex-wrap">
-                <a href="/my/bookings" class="btn btn-outline-primary"><i class="fas fa-tasks me-1"></i> @Localizer["ManageServices"]</a>
+                <a href="/my/bookings" class="btn btn-outline-primary position-relative">
+                    <i class="fas fa-tasks me-1"></i> @Localizer["ManageServices"]
+                    @if (ViewBag.ActiveBookingsCount > 0)
+                    {
+                        <span class="notification-icon position-absolute top-0 start-100 translate-middle">
+                            <i class="fas fa-bell text-warning" style="font-size: 14px;"></i>
+                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" style="font-size: 0.6rem;">
+                                @ViewBag.ActiveBookingsCount
+                            </span>
+                        </span>
+                    }
+                </a>
                 <input id="search" class="form-control w-auto flex-grow-1" placeholder="@Localizer["SearchServicesPlaceholder"]" style="min-width: 220px;">
             </div>
         </div>
@@ -28,6 +39,19 @@
         --tile-hover-border: #d0d7de;
         --tile-shadow: 0 1px 2px rgba(16,24,40,.05);
         --tile-hover-shadow: 0 8px 24px rgba(16,24,40,.12);
+    }
+
+    .notification-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1rem;
+        color: white;
+        background: transparent;
     }
 
     /* Responsive grid for service cards */

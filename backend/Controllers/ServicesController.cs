@@ -12,17 +12,36 @@ namespace ServConnect.Controllers
     {
         private readonly IServiceCatalog _catalog;
         private readonly UserManager<Users> _userManager;
+        private readonly IBookingService _bookingService;
 
-        public ServicesController(IServiceCatalog catalog, UserManager<Users> userManager)
+        public ServicesController(IServiceCatalog catalog, UserManager<Users> userManager, IBookingService bookingService)
         {
             _catalog = catalog;
             _userManager = userManager;
+            _bookingService = bookingService;
         }
 
         // User-facing: page to browse all services
         [AllowAnonymous]
-        public IActionResult Browse()
+        public async Task<IActionResult> Browse()
         {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me != null)
+                {
+                    var bookings = await _bookingService.GetForUserAsync(me.Id);
+                    ViewBag.ActiveBookingsCount = bookings.Count(b => b.Status == BookingStatus.Accepted && !b.IsCompleted);
+                }
+                else
+                {
+                    ViewBag.ActiveBookingsCount = 0;
+                }
+            }
+            else
+            {
+                ViewBag.ActiveBookingsCount = 0;
+            }
             return View();
         }
 
