@@ -37,4 +37,25 @@
   <data name="Quick.GuestHouse" xml:space="preserve"><value>Guest House</value></data>
   <data name="Quick.Parking" xml:space="preserve"><value>Parking</value></data>
   <data name="Quick.Ferry" xml:space="preserve"><value>Ferry</value></data>
+  <data name="Quick.GroceryStore" xml:space="preserve"><value>Grocery Store</value></data>
+  <data name="Quick.Supermarket" xml:space="preserve"><value>Supermarket</value></data>
+  <data name="Quick.MedicalStore" xml:space="preserve"><value>Medical Store</value></data>
+  <data name="Quick.Dentist" xml:space="preserve"><value>Dentist</value></data>
+  <data name="Quick.Lawyer" xml:space="preserve"><value>Lawyer</value></data>
+  <data name="Quick.Accountant" xml:space="preserve"><value>Accountant</value></data>
+  <data name="Quick.CarRepair" xml:space="preserve"><value>Car Repair</value></data>
+  <data name="Quick.Plumber" xml:space="preserve"><value>Plumber</value></data>
+  <data name="Quick.Electrician" xml:space="preserve"><value>Electrician</value></data>
+  <data name="Quick.BarberShop" xml:space="preserve"><value>Barber Shop</value></data>
+  <data name="Quick.BeautySalon" xml:space="preserve"><value>Beauty Salon</value></data>
+  <data name="Quick.Gym" xml:space="preserve"><value>Gym</value></data>
+  <data name="Quick.ClothingStore" xml:space="preserve"><value>Clothing Store</value></data>
+  <data name="Quick.ElectronicsStore" xml:space="preserve"><value>Electronics Store</value></data>
+  <data name="Quick.MobileShop" xml:space="preserve"><value>Mobile Shop</value></data>
+  <data name="Quick.Bakery" xml:space="preserve"><value>Bakery</value></data>
+  <data name="Quick.AutoStand" xml:space="preserve"><value>Auto Stand</value></data>
+  <data name="Quick.CarRental" xml:space="preserve"><value>Car Rental</value></data>
+  <data name="Quick.Temple" xml:space="preserve"><value>Temple</value></data>
+  <data name="Quick.Church" xml:space="preserve"><value>Church</value></data>
+  <data name="Quick.Mosque" xml:space="preserve"><value>Mosque</value></data>
 </root>

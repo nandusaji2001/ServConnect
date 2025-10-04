@@ -53,13 +53,20 @@
     function serviceCard(s){
         const mapHref = s.mapUrl ? s.mapUrl : `/local/services/${s.id}/map`;
         const phoneBtn = s.phone ? `<a href="tel:${s.phone}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-phone"></i> Call</a>` : '';
+        const photoHtml = s.photos && s.photos.length > 0
+            ? `<img src="${s.photos[0]}" class="card-img-top" style="height: 150px; object-fit: cover; border-radius: 12px 12px 0 0;" alt="${s.name}">`
+            : `<img src="/images/default-service.svg" class="card-img-top" style="height: 150px; object-fit: cover; border-radius: 12px 12px 0 0;" alt="Default service image">`;
+        const openStatus = s.openNow !== null
+            ? `<span class="badge ${s.openNow ? 'bg-success' : 'bg-danger'} ms-2">${s.openNow ? 'Open' : 'Closed'}</span>`
+            : '';
         return `<div class="col-12 col-sm-6 col-lg-4">
             <div class="card h-100 shadow-sm" style="border-radius:12px;">
+                ${photoHtml}
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex align-items-start justify-content-between mb-2">
                         <div>
                             <div class="h5 mb-1">${s.name || 'Unnamed'}</div>
-                            <div class="small text-muted">${s.categoryName || ''} ${ratingBadge(s.rating)}</div>
+                            <div class="small text-muted">${s.categoryName || ''} ${ratingBadge(s.rating)} ${openStatus}</div>
                         </div>
                     </div>
                     <div class="text-muted small mb-3">

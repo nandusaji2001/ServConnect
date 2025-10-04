@@ -3,16 +3,16 @@ using System.Linq;
 
 namespace ServConnect.Services
 {
-    // Facade that keeps Mongo-backed admin CRUD and uses OSM/Nominatim for public discovery
+    // Facade that keeps Mongo-backed admin CRUD and uses Google Places for public discovery
     public class LocalDirectoryFacade : ILocalDirectory
     {
         private readonly LocalDirectory _mongo;
-        private readonly NominatimSearchService _nominatim;
+        private readonly GooglePlacesService _googlePlaces;
 
-        public LocalDirectoryFacade(LocalDirectory mongo, NominatimSearchService nominatim)
+        public LocalDirectoryFacade(LocalDirectory mongo, GooglePlacesService googlePlaces)
         {
             _mongo = mongo;
-            _nominatim = nominatim;
+            _googlePlaces = googlePlaces;
         }
 
         // Admin / shared operations delegate to Mongo implementation
@@ -24,7 +24,7 @@ namespace ServConnect.Services
         public Task<LocalService?> GetServiceAsync(string id) => _mongo.GetServiceAsync(id);
         public Task<IReadOnlyList<LocalService>> GetByCategoryAsync(string categorySlug) => _mongo.GetByCategoryAsync(categorySlug);
 
-        // Public discovery uses OSM
+        // Public discovery uses Google Places
         public async Task<IReadOnlyList<LocalService>> SearchAsync(string? q, string? categorySlug, string? locationName)
         {
             // Resolve category name from slug for better queries
@@ -35,7 +35,7 @@ namespace ServConnect.Services
                 categoryName = cats.FirstOrDefault(c => c.Slug == categorySlug)?.Name;
             }
             var location = string.IsNullOrWhiteSpace(locationName) ? "Kattappana" : locationName!;
-            return await _nominatim.SearchAsync(q, categoryName, location);
+            return await _googlePlaces.SearchAsync(q, categoryName, location);
         }
     }
 }

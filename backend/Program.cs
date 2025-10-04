@@ -86,8 +86,8 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 
 // Orders & payments
 builder.Services.AddScoped<IOrderService, OrderService>();
-// Local directory: admin CRUD via Mongo + public discovery via OSM/Nominatim
-builder.Services.AddHttpClient<NominatimSearchService>();
+// Local directory: admin CRUD via Mongo + public discovery via Google Places
+builder.Services.AddHttpClient<GooglePlacesService>();
 builder.Services.AddScoped<LocalDirectory>();
 builder.Services.AddScoped<ILocalDirectory, LocalDirectoryFacade>();
 // Recommendations

@@ -37,4 +37,25 @@
   <data name="Quick.GuestHouse" xml:space="preserve"><value>ഗെസ്റ്റ് ഹൗസ്</value></data>
   <data name="Quick.Parking" xml:space="preserve"><value>പാർക്കിംഗ്</value></data>
   <data name="Quick.Ferry" xml:space="preserve"><value>ഫെറി</value></data>
+  <data name="Quick.GroceryStore" xml:space="preserve"><value>പലചരക്ക് കട</value></data>
+  <data name="Quick.Supermarket" xml:space="preserve"><value>സൂപ്പർമാർക്കറ്റ്</value></data>
+  <data name="Quick.MedicalStore" xml:space="preserve"><value>മെഡിക്കൽ സ്റ്റോർ</value></data>
+  <data name="Quick.Dentist" xml:space="preserve"><value>ദന്തഡോക്ടർ</value></data>
+  <data name="Quick.Lawyer" xml:space="preserve"><value>വക്കീൽ</value></data>
+  <data name="Quick.Accountant" xml:space="preserve"><value>അക്കൗണ്ടന്റ്</value></data>
+  <data name="Quick.CarRepair" xml:space="preserve"><value>കാർ റിപ്പയർ</value></data>
+  <data name="Quick.Plumber" xml:space="preserve"><value>പ്ലംബർ</value></data>
+  <data name="Quick.Electrician" xml:space="preserve"><value>ഇലക്ട്രീഷ്യൻ</value></data>
+  <data name="Quick.BarberShop" xml:space="preserve"><value>ബാർബർ ഷോപ്പ്</value></data>
+  <data name="Quick.BeautySalon" xml:space="preserve"><value>ബ്യൂട്ടി സലൂൺ</value></data>
+  <data name="Quick.Gym" xml:space="preserve"><value>ജിം</value></data>
+  <data name="Quick.ClothingStore" xml:space="preserve"><value>വസ്ത്ര കട</value></data>
+  <data name="Quick.ElectronicsStore" xml:space="preserve"><value>ഇലക്ട്രോണിക്സ് സ്റ്റോർ</value></data>
+  <data name="Quick.MobileShop" xml:space="preserve"><value>മൊബൈൽ ഷോപ്പ്</value></data>
+  <data name="Quick.Bakery" xml:space="preserve"><value>ബേക്കറി</value></data>
+  <data name="Quick.AutoStand" xml:space="preserve"><value>ഓട്ടോ സ്റ്റാൻഡ്</value></data>
+  <data name="Quick.CarRental" xml:space="preserve"><value>കാർ വാടക</value></data>
+  <data name="Quick.Temple" xml:space="preserve"><value>ക്ഷേത്രം</value></data>
+  <data name="Quick.Church" xml:space="preserve"><value>പള്ളി</value></data>
+  <data name="Quick.Mosque" xml:space="preserve"><value>മസ്ജിദ്</value></data>
 </root>

@@ -22,7 +22,12 @@ namespace ServConnect.Models
         public string? Address { get; set; }
         public string? Phone { get; set; }
 
-        // Rating for discovery (user-aggregated)
+        // Google Places specific fields
+        public List<string>? Photos { get; set; } // URLs of photos
+        public string? OpeningHours { get; set; } // Formatted opening hours
+        public bool? OpenNow { get; set; } // Is currently open
+
+        // Rating for discovery (user-aggregated or from Google)
         public decimal Rating { get; set; } = 0m;
         public int RatingCount { get; set; } = 0;
 
