@@ -1,4 +1,4 @@
-﻿using AspNetCore.Identity.MongoDbCore.Models;
+using AspNetCore.Identity.MongoDbCore.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +22,8 @@ namespace ServConnect.Controllers
 
         private readonly IAdvertisementRequestService _adReqService;
 
+        private readonly IServiceCatalog _serviceCatalog;
+
         public AdminController(
             UserManager<Users> userManager,
             RoleManager<MongoIdentityRole> roleManager,
@@ -29,7 +31,8 @@ namespace ServConnect.Controllers
             IAdvertisementService adService,
             IWebHostEnvironment env,
             IComplaintService complaintService,
-            IAdvertisementRequestService adReqService)
+            IAdvertisementRequestService adReqService,
+            IServiceCatalog serviceCatalog)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -38,6 +41,7 @@ namespace ServConnect.Controllers
             _env = env;
             _complaintService = complaintService;
             _adReqService = adReqService;
+            _serviceCatalog = serviceCatalog;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -241,6 +245,177 @@ namespace ServConnect.Controllers
         {
             // Placeholder for system settings
             return View();
+        }
+
+        // ================= Service Management =================
+        [HttpGet]
+        public async Task<IActionResult> Services()
+        {
+            // Get all provider services from all providers
+            var allProviders = await _userManager.GetUsersInRoleAsync(RoleTypes.ServiceProvider);
+            var allServices = new List<ProviderService>();
+            
+            foreach (var provider in allProviders)
+            {
+                var providerServices = await _serviceCatalog.GetProviderLinksByProviderAsync(provider.Id);
+                allServices.AddRange(providerServices);
+            }
+            
+            return View(allServices);
+        }
+
+        // API: Get all services as JSON
+        [HttpGet]
+        [Route("api/admin/services")]
+        public async Task<IActionResult> GetAllServices()
+        {
+            var allProviders = await _userManager.GetUsersInRoleAsync(RoleTypes.ServiceProvider);
+            var allServices = new List<object>();
+            
+            foreach (var provider in allProviders)
+            {
+                var providerServices = await _serviceCatalog.GetProviderLinksByProviderAsync(provider.Id);
+                foreach (var service in providerServices)
+                {
+                    allServices.Add(new
+                    {
+                        id = service.Id,
+                        serviceName = service.ServiceName,
+                        description = service.Description,
+                        providerName = service.ProviderName,
+                        providerEmail = service.ProviderEmail,
+                        price = service.Price,
+                        currency = service.Currency,
+                        priceUnit = service.PriceUnit,
+                        isActive = service.IsActive,
+                        isAvailable = service.IsAvailable,
+                        rating = service.Rating,
+                        reviewCount = service.ReviewCount,
+                        availableHours = service.AvailableHours,
+                        availableDays = service.AvailableDays,
+                        createdAt = service.CreatedAt
+                    });
+                }
+            }
+            
+            return Ok(allServices);
+        }
+
+        // API: Delete a service
+        [HttpDelete]
+        [Route("api/admin/services/{id}")]
+        public async Task<IActionResult> DeleteService(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return BadRequest("Service ID is required");
+            
+            // Find the service and its provider
+            var allProviders = await _userManager.GetUsersInRoleAsync(RoleTypes.ServiceProvider);
+            ProviderService? targetService = null;
+            Guid providerId = Guid.Empty;
+            
+            foreach (var provider in allProviders)
+            {
+                var providerServices = await _serviceCatalog.GetProviderLinksByProviderAsync(provider.Id);
+                targetService = providerServices.FirstOrDefault(s => s.Id == id);
+                if (targetService != null)
+                {
+                    providerId = provider.Id;
+                    break;
+                }
+            }
+            
+            if (targetService == null) return NotFound("Service not found");
+            
+            var success = await _serviceCatalog.DeleteLinkAsync(id, providerId);
+            return success ? NoContent() : StatusCode(500, "Failed to delete service");
+        }
+
+        // API: Suspend/Unsuspend a service
+        [HttpPost]
+        [Route("api/admin/services/{id}/suspend")]
+        public async Task<IActionResult> SuspendService(string id, [FromQuery] bool suspend = true)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return BadRequest("Service ID is required");
+            
+            // Find the service and its provider
+            var allProviders = await _userManager.GetUsersInRoleAsync(RoleTypes.ServiceProvider);
+            ProviderService? targetService = null;
+            Guid providerId = Guid.Empty;
+            
+            foreach (var provider in allProviders)
+            {
+                var providerServices = await _serviceCatalog.GetProviderLinksByProviderAsync(provider.Id);
+                targetService = providerServices.FirstOrDefault(s => s.Id == id);
+                if (targetService != null)
+                {
+                    providerId = provider.Id;
+                    break;
+                }
+            }
+            
+            if (targetService == null) return NotFound("Service not found");
+            
+            // Toggle the service availability (suspend/unsuspend)
+            bool success;
+            if (suspend)
+            {
+                success = await _serviceCatalog.UnlinkAsync(id, providerId);
+            }
+            else
+            {
+                success = await _serviceCatalog.RelinkAsync(id, providerId);
+            }
+            
+            return success ? Ok(new { id, suspended = suspend }) : StatusCode(500, "Failed to update service status");
+        }
+
+        // API: Update/Edit a service
+        [HttpPut]
+        [Route("api/admin/services/{id}")]
+        public async Task<IActionResult> UpdateService(string id, [FromBody] UpdateServiceRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return BadRequest("Service ID is required");
+            
+            // Find the service and its provider
+            var allProviders = await _userManager.GetUsersInRoleAsync(RoleTypes.ServiceProvider);
+            ProviderService? targetService = null;
+            Guid providerId = Guid.Empty;
+            
+            foreach (var provider in allProviders)
+            {
+                var providerServices = await _serviceCatalog.GetProviderLinksByProviderAsync(provider.Id);
+                targetService = providerServices.FirstOrDefault(s => s.Id == id);
+                if (targetService != null)
+                {
+                    providerId = provider.Id;
+                    break;
+                }
+            }
+            
+            if (targetService == null) return NotFound("Service not found");
+            
+            var success = await _serviceCatalog.UpdateLinkAsync(
+                id, 
+                providerId, 
+                request.Description, 
+                request.Price, 
+                request.PriceUnit, 
+                request.Currency, 
+                request.AvailableDays, 
+                request.AvailableHours
+            );
+            
+            return success ? Ok() : StatusCode(500, "Failed to update service");
+        }
+
+        public class UpdateServiceRequest
+        {
+            public string Description { get; set; } = string.Empty;
+            public decimal Price { get; set; } = 0;
+            public string PriceUnit { get; set; } = "per service";
+            public string Currency { get; set; } = "USD";
+            public List<string> AvailableDays { get; set; } = new();
+            public string AvailableHours { get; set; } = "9:00 AM - 6:00 PM";
         }
 
         // ================= Advertisement Management =================

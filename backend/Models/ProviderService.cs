@@ -41,7 +41,17 @@ namespace ServConnect.Models
         public int ReviewCount { get; set; } = 0;
 
         public bool IsActive { get; set; } = true;
+        
+        // Publication and payment details
+        public DateTime? PublicationStartDate { get; set; }
+        public DateTime? PublicationEndDate { get; set; }
+        public bool IsPaid { get; set; } = false;
+        public string? PaymentId { get; set; } // Links to ServicePayment
+        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        
+        // Helper property to check if service is expired
+        public bool IsExpired => PublicationEndDate.HasValue && PublicationEndDate.Value < DateTime.UtcNow;
     }
 }

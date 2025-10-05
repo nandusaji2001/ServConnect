@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Admin Dashboard";
 }
 
@@ -101,6 +101,13 @@
                 <div>
                     <div class="tile-title">Service Catalog</div>
                     <div class="tile-sub">Create and manage</div>
+                </div>
+            </a>
+            <a class="tile" asp-controller="Admin" asp-action="Services">
+                <div class="tile-icon"><i class="fas fa-cogs"></i></div>
+                <div>
+                    <div class="tile-title">Services</div>
+                    <div class="tile-sub">Manage and Delete</div>
                 </div>
             </a>
             <a class="tile" asp-controller="Admin" asp-action="Settings">

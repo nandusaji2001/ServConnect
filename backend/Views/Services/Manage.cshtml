@@ -10,6 +10,12 @@
         </button>
     </div>
 
+    <!-- Payment Pending Notice -->
+    <div id="paymentPendingNotice" class="alert alert-warning" style="display: none;">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Payment Pending:</strong> You have services waiting for payment completion. Click the <span class="badge bg-warning text-dark">Pay</span> button next to each service to complete payment and activate them.
+    </div>
+
     <div class="card mb-3">
         <div class="card-header">Linked Services</div>
         <div class="card-body p-0">
@@ -28,7 +34,7 @@
 
 <!-- Link Modal -->
 <div class="modal fade" id="linkModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Add Service</h5>
@@ -135,6 +141,19 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Publication Plan Selection -->
+                    <div class="mb-3">
+                        <label class="form-label">Publication Plan <span class="text-danger">*</span></label>
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Payment Required:</strong> To publish your service and make it visible to customers, you need to select a publication plan and complete payment.
+                        </div>
+                        <div id="publicationPlans" class="row">
+                            <!-- Plans will be loaded dynamically -->
+                        </div>
+                        <input type="hidden" id="selectedPlan" required>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -146,9 +165,76 @@
 </div>
 
 <script>
+    let publicationPlans = [];
+
     function toggleOther(){
         const v = document.getElementById('serviceSelect').value;
         document.getElementById('otherWrap').style.display = (v === '__other__') ? '' : 'none';
+    }
+
+    // Load publication plans
+    async function loadPublicationPlans(){
+        try{
+            console.log('Loading publication plans...');
+            const res = await fetch('/api/service-payment/plans');
+            if(!res.ok) {
+                console.error('Failed to fetch plans:', res.status, res.statusText);
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            publicationPlans = await res.json();
+            console.log('Publication plans loaded:', publicationPlans);
+            renderPublicationPlans();
+        }catch(err){
+            console.error('Failed to load publication plans:', err);
+            // Show fallback message
+            const container = document.getElementById('publicationPlans');
+            if(container) {
+                container.innerHTML = '<div class="alert alert-warning">Unable to load payment plans. Please refresh the page.</div>';
+            }
+        }
+    }
+
+    // Render publication plans
+    function renderPublicationPlans(){
+        const container = document.getElementById('publicationPlans');
+        if(!container) return;
+        
+        container.innerHTML = '';
+        publicationPlans.forEach(plan => {
+            const col = document.createElement('div');
+            col.className = 'col-lg-2 col-md-4 col-sm-6 mb-2';
+            col.innerHTML = `
+                <div class="card plan-card" onclick="selectPlan('${plan.name}', ${plan.durationInMonths}, ${plan.priceInRupees})" 
+                     style="cursor: pointer; border: 2px solid #dee2e6;">
+                    <div class="card-body text-center p-2">
+                        <h6 class="card-title mb-1 small">${plan.name}</h6>
+                        <div class="h6 text-success mb-1">₹${plan.priceInRupees}</div>
+                        <small class="text-muted" style="font-size: 0.75rem;">${plan.description.split(' ').slice(0, 4).join(' ')}...</small>
+                    </div>
+                </div>
+            `;
+            container.appendChild(col);
+        });
+    }
+
+    // Select publication plan
+    function selectPlan(planName, duration, price){
+        // Remove previous selection
+        document.querySelectorAll('.plan-card').forEach(card => {
+            card.style.border = '2px solid #dee2e6';
+            card.style.backgroundColor = '';
+        });
+        
+        // Highlight selected plan
+        event.currentTarget.style.border = '2px solid #0d6efd';
+        event.currentTarget.style.backgroundColor = '#f8f9fa';
+        
+        // Store selection
+        document.getElementById('selectedPlan').value = JSON.stringify({
+            name: planName,
+            duration: duration,
+            price: price
+        });
     }
 
     async function loadCategories(){
@@ -182,16 +268,24 @@
         document.getElementById('description').value = '';
         document.getElementById('price').value = '';
         document.getElementById('priceUnit').value = 'per service';
-        document.getElementById('currency').value = 'USD';
+        document.getElementById('currency').value = 'INR';
         document.getElementById('availableHours').value = '9:00 AM - 6:00 PM';
+        document.getElementById('selectedPlan').value = '';
         
         // Clear all day checkboxes
         const dayCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="monday"], input[type="checkbox"][id^="tuesday"], input[type="checkbox"][id^="wednesday"], input[type="checkbox"][id^="thursday"], input[type="checkbox"][id^="friday"], input[type="checkbox"][id^="saturday"], input[type="checkbox"][id^="sunday"]');
         dayCheckboxes.forEach(cb => cb.checked = false);
         
+        // Reset plan selection
+        document.querySelectorAll('.plan-card').forEach(card => {
+            card.style.border = '2px solid #dee2e6';
+            card.style.backgroundColor = '';
+        });
+        
         toggleOther();
         // refresh categories when opening modal
         loadCategories();
+        loadPublicationPlans();
     }
 
     async function loadLinks(){
@@ -202,8 +296,19 @@
             const links = await res.json();
             if(!links || links.length === 0){
                 ul.innerHTML = '<li class="list-group-item text-muted">No services linked yet.</li>';
+                document.getElementById('paymentPendingNotice').style.display = 'none';
                 return;
             }
+            
+            // Check if there are any payment pending services
+            const paymentPendingServices = links.filter(l => !l.isPaid);
+            const paymentPendingNotice = document.getElementById('paymentPendingNotice');
+            if(paymentPendingServices.length > 0){
+                paymentPendingNotice.style.display = 'block';
+            } else {
+                paymentPendingNotice.style.display = 'none';
+            }
+            
             ul.innerHTML = '';
             links.forEach(l => {
                 const li = document.createElement('li');
@@ -211,27 +316,60 @@
                 
                 const priceText = l.price > 0 ? `${l.currency} ${l.price} ${l.priceUnit}` : 'Price on request';
                 const ratingText = l.rating > 0 ? `⭐ ${l.rating.toFixed(1)} (${l.reviewCount} reviews)` : '';
-                const availabilityText = l.isAvailable ? '<span class="badge bg-success">Available</span>' : '<span class="badge bg-secondary">Unavailable</span>';
+                
+                // Payment and expiry status
+                let statusBadge = '';
+                let expiryInfo = '';
+                
+                if(!l.isPaid){
+                    statusBadge = '<span class="badge bg-warning">Payment Pending</span>';
+                } else if(l.isActive && !l.isExpired){
+                    statusBadge = '<span class="badge bg-success">Active</span>';
+                    
+                    // Show expiry information
+                    if(l.publicationEndDate){
+                        const expiry = new Date(l.publicationEndDate);
+                        const now = new Date();
+                        const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+                        
+                        if(daysLeft <= 7){
+                            expiryInfo = `<small class="text-warning">⚠️ Expires in ${daysLeft} days</small>`;
+                        } else {
+                            expiryInfo = `<small class="text-muted">Expires: ${expiry.toLocaleDateString()}</small>`;
+                        }
+                    }
+                } else if(l.isExpired){
+                    statusBadge = '<span class="badge bg-danger">Expired</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-secondary">Inactive</span>';
+                }
                 
                 li.innerHTML = `
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div class="flex-grow-1">
-                            <h6 class="mb-1">${l.serviceName} ${l.isActive ? '' : '<span class="badge bg-secondary ms-2">Inactive</span>'}</h6>
+                            <h6 class="mb-1">${l.serviceName}</h6>
                             ${l.description ? `<p class="text-muted small mb-2">${l.description}</p>` : ''}
-                            <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-3 mb-1">
                                 <small class="text-primary fw-medium">${priceText}</small>
                                 ${ratingText ? `<small class="text-warning">${ratingText}</small>` : ''}
-                                ${availabilityText}
+                                ${statusBadge}
                             </div>
+                            ${expiryInfo ? `<div>${expiryInfo}</div>` : ''}
                         </div>
-                        ${l.isActive
-                            ? `<button class="btn btn-sm btn-outline-danger" onclick="unlink('${l.id}')">
-                                    <i class="fas fa-unlink"></i> Unlink
-                               </button>`
-                            : `<button class="btn btn-sm btn-outline-success" onclick="relink('${l.id}')">
-                                    <i class="fas fa-link"></i> Link
-                               </button>`}
-                        <div class="btn-group btn-group-sm ms-2">
+                        <div class="btn-group btn-group-sm">
+                            ${!l.isPaid
+                                ? `<button class="btn btn-warning" onclick="completePayment('${l.id}', '${l.serviceName}')" title="Complete Payment">
+                                        <i class="fas fa-credit-card"></i> Pay
+                                   </button>`
+                                : l.isPaid && l.isActive && !l.isExpired
+                                ? `<button class="btn btn-outline-danger" onclick="unlink('${l.id}')" title="Deactivate">
+                                        <i class="fas fa-pause"></i>
+                                   </button>`
+                                : l.isPaid && !l.isActive
+                                ? `<button class="btn btn-outline-success" onclick="relink('${l.id}')" title="Activate">
+                                        <i class="fas fa-play"></i>
+                                   </button>`
+                                : ''}
                             <button class="btn btn-outline-primary" onclick='openEditLink(${JSON.stringify(l).replace(/'/g, "&apos;")})' title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -254,6 +392,13 @@
         const price = parseFloat(document.getElementById('price').value);
         if(isNaN(price) || price <= 0){ alert('Please enter a valid price greater than 0.'); return; }
         
+        // Check if payment plan is selected
+        const selectedPlanData = document.getElementById('selectedPlan').value;
+        if(!selectedPlanData){
+            alert('Please select a publication plan to continue.');
+            return;
+        }
+        
         // Get selected days
         const selectedDays = [];
         const dayCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="monday"], input[type="checkbox"][id^="tuesday"], input[type="checkbox"][id^="wednesday"], input[type="checkbox"][id^="thursday"], input[type="checkbox"][id^="friday"], input[type="checkbox"][id^="saturday"], input[type="checkbox"][id^="sunday"]');
@@ -261,26 +406,77 @@
             if(cb.checked) selectedDays.push(cb.value);
         });
         
-        const payload = {
-            serviceName: name,
-            description: document.getElementById('description').value.trim(),
-            price: parseFloat(document.getElementById('price').value) || 0,
-            priceUnit: document.getElementById('priceUnit').value,
-            currency: document.getElementById('currency').value,
-            availableDays: selectedDays,
-            availableHours: document.getElementById('availableHours').value.trim()
-        };
-        
         try{
-            const res = await fetch('/api/services/link', {
-                method: 'POST', 
+            console.log('Creating service with payment plan...');
+            
+            // First create the service link
+            const linkPayload = {
+                serviceName: name,
+                description: document.getElementById('description').value.trim(),
+                price: parseFloat(document.getElementById('price').value) || 0,
+                priceUnit: document.getElementById('priceUnit').value,
+                currency: document.getElementById('currency').value,
+                availableDays: selectedDays,
+                availableHours: document.getElementById('availableHours').value.trim()
+            };
+
+            console.log('Service link payload:', linkPayload);
+
+            const linkRes = await fetch('/api/services/link', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                credentials: 'same-origin',
+                body: JSON.stringify(linkPayload)
             });
-            if(!res.ok) throw new Error();
+
+            if(!linkRes.ok) {
+                const errorText = await linkRes.text();
+                console.error('Service link creation failed:', errorText);
+                throw new Error('Failed to create service: ' + errorText);
+            }
+            const serviceLink = await linkRes.json();
+            console.log('Service link created:', serviceLink);
+
+            // Create payment
+            const planData = JSON.parse(selectedPlanData);
+            const paymentPayload = {
+                serviceName: name,
+                planName: planData.name,
+                durationInMonths: planData.duration,
+                amountInRupees: planData.price
+            };
+
+            console.log('Payment payload:', paymentPayload);
+
+            const paymentRes = await fetch('/api/service-payment/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(paymentPayload)
+            });
+
+            if(!paymentRes.ok) {
+                const errorText = await paymentRes.text();
+                console.error('Payment creation failed:', errorText);
+                throw new Error('Failed to create payment: ' + errorText);
+            }
+            const paymentData = await paymentRes.json();
+            console.log('Payment created:', paymentData);
+
+            // Store service ID for activation after payment
+            sessionStorage.setItem('pendingServiceId', serviceLink.id);
+            sessionStorage.setItem('pendingPaymentId', paymentData.paymentId);
+
             bootstrap.Modal.getInstance(document.getElementById('linkModal'))?.hide();
-            await loadLinks();
-        }catch{ alert('Failed to add service.'); }
+            
+            console.log('Redirecting to payment page...');
+            // Redirect to payment page
+            window.location.href = `/service-payment/pay/${paymentData.paymentId}`;
+            
+        }catch(err){ 
+            console.error('Service creation error:', err);
+            alert('Failed to add service: ' + (err.message || 'Unknown error')); 
+        }
     }
 
     async function unlink(id){
@@ -347,6 +543,171 @@
             if(res.status === 204) await loadLinks();
             else alert('Failed to delete');
         }catch{ alert('Failed to delete'); }
+    }
+
+    // Complete payment for pending services
+    async function completePayment(serviceId, serviceName){
+        try{
+            console.log('Completing payment for service:', serviceId, serviceName);
+            
+            // Show payment plan selection modal
+            await showPaymentPlanModal(serviceId, serviceName);
+            
+        }catch(err){
+            console.error('Failed to initiate payment:', err);
+            alert('Failed to initiate payment: ' + (err.message || 'Unknown error'));
+        }
+    }
+
+    // Show payment plan selection modal for existing service
+    async function showPaymentPlanModal(serviceId, serviceName){
+        // Load publication plans if not already loaded
+        if(!publicationPlans || publicationPlans.length === 0){
+            await loadPublicationPlans();
+        }
+        
+        // Create and show modal
+        const modalHtml = `
+            <div class="modal fade" id="paymentPlanModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Complete Payment for ${serviceName}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Complete Your Payment:</strong> Select a publication plan to activate your service and make it visible to customers.
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Select Publication Plan <span class="text-danger">*</span></label>
+                                <div id="paymentPlanOptions" class="row">
+                                    <!-- Plans will be loaded here -->
+                                </div>
+                                <input type="hidden" id="selectedPaymentPlan" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-success" onclick="proceedWithPayment('${serviceId}', '${serviceName}')">
+                                <i class="fas fa-credit-card me-2"></i>Proceed to Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('paymentPlanModal');
+        if(existingModal) existingModal.remove();
+        
+        // Add modal to DOM
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Render payment plans
+        renderPaymentPlanOptions();
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('paymentPlanModal'));
+        modal.show();
+    }
+
+    // Render payment plan options in the payment modal
+    function renderPaymentPlanOptions(){
+        const container = document.getElementById('paymentPlanOptions');
+        if(!container) return;
+        
+        container.innerHTML = '';
+        publicationPlans.forEach(plan => {
+            const col = document.createElement('div');
+            col.className = 'col-md-4 mb-2';
+            col.innerHTML = `
+                <div class="card payment-plan-card" onclick="selectPaymentPlan('${plan.name}', ${plan.durationInMonths}, ${plan.priceInRupees})" 
+                     style="cursor: pointer; border: 2px solid #dee2e6;">
+                    <div class="card-body text-center p-3">
+                        <h6 class="card-title mb-1">${plan.name}</h6>
+                        <div class="h5 text-success mb-1">₹${plan.priceInRupees}</div>
+                        <small class="text-muted">${plan.description}</small>
+                    </div>
+                </div>
+            `;
+            container.appendChild(col);
+        });
+    }
+
+    // Select payment plan in the payment modal
+    function selectPaymentPlan(planName, duration, price){
+        // Remove previous selection
+        document.querySelectorAll('.payment-plan-card').forEach(card => {
+            card.style.border = '2px solid #dee2e6';
+            card.style.backgroundColor = '';
+        });
+        
+        // Highlight selected plan
+        event.currentTarget.style.border = '2px solid #0d6efd';
+        event.currentTarget.style.backgroundColor = '#f8f9fa';
+        
+        // Store selection
+        document.getElementById('selectedPaymentPlan').value = JSON.stringify({
+            name: planName,
+            duration: duration,
+            price: price
+        });
+    }
+
+    // Proceed with payment for existing service
+    async function proceedWithPayment(serviceId, serviceName){
+        const selectedPlanData = document.getElementById('selectedPaymentPlan').value;
+        if(!selectedPlanData){
+            alert('Please select a publication plan to continue.');
+            return;
+        }
+        
+        try{
+            const planData = JSON.parse(selectedPlanData);
+            
+            // Create payment for existing service
+            const paymentPayload = {
+                serviceName: serviceName,
+                planName: planData.name,
+                durationInMonths: planData.duration,
+                amountInRupees: planData.price
+            };
+
+            console.log('Creating payment for existing service:', paymentPayload);
+
+            const paymentRes = await fetch('/api/service-payment/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(paymentPayload)
+            });
+
+            if(!paymentRes.ok) {
+                const errorText = await paymentRes.text();
+                console.error('Payment creation failed:', errorText);
+                throw new Error('Failed to create payment: ' + errorText);
+            }
+            const paymentData = await paymentRes.json();
+            console.log('Payment created for existing service:', paymentData);
+
+            // Store service ID for activation after payment
+            sessionStorage.setItem('pendingServiceId', serviceId);
+            sessionStorage.setItem('pendingPaymentId', paymentData.paymentId);
+
+            // Hide modal
+            bootstrap.Modal.getInstance(document.getElementById('paymentPlanModal'))?.hide();
+            
+            console.log('Redirecting to payment page...');
+            // Redirect to payment page
+            window.location.href = `/service-payment/pay/${paymentData.paymentId}`;
+            
+        }catch(err){
+            console.error('Payment creation error:', err);
+            alert('Failed to create payment: ' + (err.message || 'Unknown error'));
+        }
     }
 
     document.addEventListener('DOMContentLoaded', loadLinks);

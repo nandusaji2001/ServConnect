@@ -68,21 +68,23 @@ builder.Services.AddScoped<DatabaseSeeder>();
 
 // Filters
 builder.Services.AddScoped<ServConnect.Filters.RequireApprovedUserFilter>();
-
 // Register custom services
 builder.Services.AddHttpClient<Fast2SmsOtpService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ISmsService, Fast2SmsOtpService>();
-builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IAdvertisementService, AdvertisementService>();
 builder.Services.AddScoped<IAdvertisementRequestService, AdvertisementRequestService>();
 builder.Services.AddScoped<IComplaintService, ComplaintService>();
 // New service catalog for service-provider linking
 builder.Services.AddScoped<IServiceCatalog, ServiceCatalog>();
-// Booking service
 builder.Services.AddScoped<IBookingService, BookingService>();
+// Service payment service
+builder.Services.AddScoped<IServicePaymentService, ServicePaymentService>();
+// Background service for automatic service expiry
+builder.Services.AddHostedService<ServConnect.BackgroundServices.ServiceExpiryBackgroundService>();
 
 // Orders & payments
 builder.Services.AddScoped<IOrderService, OrderService>();

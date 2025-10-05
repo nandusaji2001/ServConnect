@@ -81,22 +81,8 @@ namespace ServConnect.Services
             // Get provider details
             var provider = await _users.Find(x => x.Id == providerId).FirstOrDefaultAsync();
 
-            // Upsert-like behavior (avoid duplicate link for same provider+service)
-            var existing = await _providerLinks.Find(x => x.ProviderId == providerId && x.ServiceSlug == slug)
-                                               .FirstOrDefaultAsync();
-            if (existing != null)
-            {
-                if (!existing.IsActive)
-                {
-                    var update = Builders<ProviderService>.Update
-                        .Set(x => x.IsActive, true)
-                        .Set(x => x.UpdatedAt, DateTime.UtcNow);
-                    await _providerLinks.UpdateOneAsync(x => x.Id == existing.Id, update);
-                    existing.IsActive = true;
-                    existing.UpdatedAt = DateTime.UtcNow;
-                }
-                return existing;
-            }
+            // Allow multiple services in the same category for payment-based system
+            // No longer preventing duplicates since each service requires separate payment
 
             var link = new ProviderService
             {
@@ -114,7 +100,8 @@ namespace ServConnect.Services
                 ProviderEmail = provider?.Email ?? "",
                 ProviderPhone = provider?.PhoneNumber ?? "",
                 ProviderAddress = provider?.Address ?? "",
-                IsActive = true,
+                IsActive = false, // Services start inactive until payment is made
+                IsPaid = false,   // Payment required for new services
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -124,8 +111,19 @@ namespace ServConnect.Services
 
         public async Task<List<ProviderService>> GetProviderLinksBySlugAsync(string slug)
         {
-            var providerServices = await _providerLinks.Find(x => x.ServiceSlug == slug && x.IsActive)
-                                                       .ToListAsync();
+            // Only show services that are active, paid, and not expired
+            var now = DateTime.UtcNow;
+            var filter = Builders<ProviderService>.Filter.And(
+                Builders<ProviderService>.Filter.Eq(x => x.ServiceSlug, slug),
+                Builders<ProviderService>.Filter.Eq(x => x.IsActive, true),
+                Builders<ProviderService>.Filter.Eq(x => x.IsPaid, true),
+                Builders<ProviderService>.Filter.Or(
+                    Builders<ProviderService>.Filter.Eq(x => x.PublicationEndDate, null),
+                    Builders<ProviderService>.Filter.Gt(x => x.PublicationEndDate, now)
+                )
+            );
+            
+            var providerServices = await _providerLinks.Find(filter).ToListAsync();
             
             // Enrich with current user details
             foreach (var service in providerServices)
