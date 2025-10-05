@@ -83,6 +83,8 @@ builder.Services.AddScoped<IServiceCatalog, ServiceCatalog>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 // Service payment service
 builder.Services.AddScoped<IServicePaymentService, ServicePaymentService>();
+// Notification service
+builder.Services.AddScoped<INotificationService, NotificationService>();
 // Background service for automatic service expiry
 builder.Services.AddHostedService<ServConnect.BackgroundServices.ServiceExpiryBackgroundService>();
 

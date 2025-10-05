@@ -108,6 +108,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWR2ZXJ0aXNlbWVudHNcU3VibWl0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Analytics/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQW5hbHl0aWNzXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Bookings/ProviderBookings.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQm9va2luZ3NcUHJvdmlkZXJCb29raW5ncy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -154,6 +158,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LocalDirectory/Manage.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9jYWxEaXJlY3RvcnlcTWFuYWdlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Notifications/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ServicePayment/Pay.cshtml]

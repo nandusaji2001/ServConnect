@@ -1,0 +1,407 @@
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<style>
+    .notifications-container {
+        padding: 20px;
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+    
+    .notifications-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .notifications-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 300;
+    }
+    
+    .notifications-header p {
+        margin: 10px 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .notification-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid #e9ecef;
+    }
+    
+    .notification-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .notification-card.unread {
+        border-left-color: #4facfe;
+        background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    }
+    
+    .notification-card.booking { border-left-color: #4CAF50; }
+    .notification-card.payment { border-left-color: #FF9800; }
+    .notification-card.review { border-left-color: #9C27B0; }
+    .notification-card.warning { border-left-color: #F44336; }
+    
+    .notification-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+    
+    .notification-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-right: 15px;
+    }
+    
+    .notification-icon.booking { background: #4CAF50; }
+    .notification-icon.payment { background: #FF9800; }
+    .notification-icon.review { background: #9C27B0; }
+    .notification-icon.warning { background: #F44336; }
+    .notification-icon.general { background: #2196F3; }
+    
+    .notification-content {
+        flex: 1;
+    }
+    
+    .notification-title {
+        margin: 0 0 8px 0;
+        color: #333;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+    
+    .notification-message {
+        margin: 0 0 10px 0;
+        color: #666;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    .notification-time {
+        color: #999;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .notification-time i {
+        margin-right: 5px;
+    }
+    
+    .notification-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        text-align: center;
+        border-left: 4px solid;
+    }
+    
+    .stat-card.total { border-left-color: #2196F3; }
+    .stat-card.unread { border-left-color: #FF9800; }
+    .stat-card.read { border-left-color: #4CAF50; }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0 0 5px 0;
+        color: #333;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: #ddd;
+    }
+    
+    .filter-tabs {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .filter-tabs .nav-tabs {
+        border: none;
+    }
+    
+    .filter-tabs .nav-link {
+        border: none;
+        color: #666;
+        font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 25px;
+        margin-right: 10px;
+    }
+    
+    .filter-tabs .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    @@media (max-width: 768px) {
+        .notifications-container {
+            padding: 10px;
+        }
+        
+        .notifications-header {
+            padding: 20px;
+        }
+        
+        .notifications-header h1 {
+            font-size: 2rem;
+        }
+        
+        .stats-summary {
+            grid-template-columns: 1fr;
+        }
+        
+        .notification-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .notification-icon {
+            margin-bottom: 10px;
+        }
+    }
+</style>
+
+<div class="notifications-container">
+    <!-- Header -->
+    <div class="notifications-header">
+        <h1><i class="fas fa-bell"></i> Notifications</h1>
+        <p>Stay updated with your service activities, <strong>@ViewBag.UserName</strong></p>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-summary">
+        <div class="stat-card total">
+            <h2 class="stat-number">@ViewBag.TotalNotifications</h2>
+            <p class="stat-label">Total Notifications</p>
+        </div>
+        
+        <div class="stat-card unread">
+            <h2 class="stat-number">@ViewBag.UnreadCount</h2>
+            <p class="stat-label">Unread</p>
+        </div>
+        
+        <div class="stat-card read">
+            <h2 class="stat-number">@(ViewBag.TotalNotifications - ViewBag.UnreadCount)</h2>
+            <p class="stat-label">Read</p>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <ul class="nav nav-tabs" id="notificationTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                    <i class="fas fa-list"></i> All Notifications
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="unread-tab" data-bs-toggle="tab" data-bs-target="#unread" type="button" role="tab">
+                    <i class="fas fa-envelope"></i> Unread
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab">
+                    <i class="fas fa-calendar"></i> Bookings
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="tab-content" id="notificationTabsContent">
+        <div class="tab-pane fade show active" id="all" role="tabpanel">
+            @{ var notifications = ViewBag.Notifications as IEnumerable<ServConnect.Models.Notification>; }
+            @if (notifications != null && notifications.Any())
+            {
+                @foreach (var notification in notifications)
+                {
+                    <div class="notification-card @(!notification.IsRead ? "unread" : "") @GetNotificationClass(notification.Type)">
+                        <div class="notification-header">
+                            <div class="d-flex align-items-center">
+                                <div class="notification-icon @GetIconClass(notification.Type)">
+                                    @switch (notification.Type)
+                                    {
+                                        case ServConnect.Models.NotificationType.BookingReceived:
+                                            <i class="fas fa-calendar-plus"></i>
+                                            break;
+                                        case ServConnect.Models.NotificationType.PaymentReceived:
+                                            <i class="fas fa-dollar-sign"></i>
+                                            break;
+                                        case ServConnect.Models.NotificationType.ReviewReceived:
+                                            <i class="fas fa-star"></i>
+                                            break;
+                                        case ServConnect.Models.NotificationType.ServiceExpiring:
+                                        case ServConnect.Models.NotificationType.ServiceExpired:
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            break;
+                                        default:
+                                            <i class="fas fa-info-circle"></i>
+                                            break;
+                                    }
+                                </div>
+                                <div class="notification-content">
+                                    <h3 class="notification-title">@notification.Title</h3>
+                                    <p class="notification-message">@notification.Message</p>
+                                    <div class="notification-time">
+                                        <i class="fas fa-clock"></i>
+                                        @notification.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy 'at' h:mm tt")
+                                    </div>
+                                </div>
+                            </div>
+                            @if (!notification.IsRead)
+                            {
+                                <span class="badge bg-primary">New</span>
+                            }
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(notification.ActionUrl))
+                        {
+                            <div class="notification-actions">
+                                <a href="@notification.ActionUrl" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-external-link-alt"></i> View Details
+                                </a>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="markAsRead('@notification.Id')">
+                                    <i class="fas fa-check"></i> Mark as Read
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <h3>No Notifications</h3>
+                    <p>You're all caught up! New notifications will appear here when you receive them.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Back to Dashboard -->
+    <div class="text-center mt-4">
+        <a href="/ServiceProvider/Dashboard" class="btn btn-primary btn-lg">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+@functions {
+    private string GetNotificationClass(ServConnect.Models.NotificationType type)
+    {
+        return type switch
+        {
+            ServConnect.Models.NotificationType.BookingReceived => "booking",
+            ServConnect.Models.NotificationType.PaymentReceived => "payment",
+            ServConnect.Models.NotificationType.ReviewReceived => "review",
+            ServConnect.Models.NotificationType.ServiceExpiring or ServConnect.Models.NotificationType.ServiceExpired => "warning",
+            _ => "general"
+        };
+    }
+    
+    private string GetIconClass(ServConnect.Models.NotificationType type)
+    {
+        return type switch
+        {
+            ServConnect.Models.NotificationType.BookingReceived => "booking",
+            ServConnect.Models.NotificationType.PaymentReceived => "payment",
+            ServConnect.Models.NotificationType.ReviewReceived => "review",
+            ServConnect.Models.NotificationType.ServiceExpiring or ServConnect.Models.NotificationType.ServiceExpired => "warning",
+            _ => "general"
+        };
+    }
+}
+
+<script>
+    function markAsRead(notificationId) {
+        fetch(`/api/notification/${notificationId}/mark-read`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error marking notification as read:', error);
+        });
+    }
+    
+    // Add animation to stat numbers
+    document.addEventListener('DOMContentLoaded', function() {
+        const statNumbers = document.querySelectorAll('.stat-number');
+        statNumbers.forEach(stat => {
+            const finalNumber = parseInt(stat.textContent);
+            let currentNumber = 0;
+            const increment = finalNumber / 30;
+            
+            const timer = setInterval(() => {
+                currentNumber += increment;
+                if (currentNumber >= finalNumber) {
+                    stat.textContent = finalNumber;
+                    clearInterval(timer);
+                } else {
+                    stat.textContent = Math.floor(currentNumber);
+                }
+            }, 50);
+        });
+    });
+</script>

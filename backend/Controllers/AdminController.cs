@@ -69,6 +69,14 @@ namespace ServConnect.Controllers
             }
             catch { ViewBag.NewComplaints = 0; }
 
+            // Pending user verification count for notification
+            try
+            {
+                var pendingUsers = allUsers.Where(u => u.IsProfileCompleted && !u.IsAdminApproved).ToList();
+                ViewBag.PendingUsersCount = pendingUsers.Count;
+            }
+            catch { ViewBag.PendingUsersCount = 0; }
+
             return View();
         }
 

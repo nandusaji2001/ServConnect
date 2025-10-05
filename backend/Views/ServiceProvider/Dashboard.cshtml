@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Service Provider Dashboard";
 }
 
@@ -122,32 +122,29 @@
         font-weight: 500;
     }
     
-    .content-grid {
+    .dashboard-cards {
         display: grid;
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
         gap: 20px;
         margin-bottom: 30px;
     }
     
-    .main-content {
+    .dashboard-card {
         background: white;
         border-radius: 15px;
         padding: 25px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     
-    .sidebar-content {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
     }
     
-    .sidebar-card {
-        background: white;
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-    }
+    .dashboard-card.notifications { border-left: 4px solid #667eea; }
+    .dashboard-card.recent-activity { border-left: 4px solid #4CAF50; }
+    .dashboard-card.quick-stats { border-left: 4px solid #FF9800; }
     
     .section-title {
         margin: 0 0 20px 0;
@@ -251,6 +248,91 @@
         margin-top: 5px;
     }
     
+    .notification-item.unread {
+        background: #f8f9ff;
+        border-left: 3px solid #4facfe;
+        padding-left: 12px;
+    }
+    
+    .performance-metric .metric-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .performance-metric .metric-row:last-child {
+        border-bottom: none;
+    }
+    
+    .metric-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .metric-value {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: start;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        margin-right: 15px;
+        font-size: 1.2rem;
+        margin-top: 2px;
+    }
+    
+    .activity-content h5 {
+        margin: 0 0 5px 0;
+        color: #333;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .activity-content p {
+        margin: 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .stats-grid-small {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .stat-number-small {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label-small {
+        font-size: 0.8rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
     .chart-container {
         height: 300px;
         display: flex;
@@ -283,7 +365,11 @@
             grid-template-columns: repeat(2, 1fr);
         }
         
-        .content-grid {
+        .dashboard-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid-small {
             grid-template-columns: 1fr;
         }
     }
@@ -377,7 +463,7 @@
             </div>
         </a>
         
-        <a href="#" class="quick-action-btn">
+        <a href="/Analytics" class="quick-action-btn">
             <i class="fas fa-chart-line"></i>
             <span>Analytics</span>
         </a>
@@ -404,150 +490,164 @@
         </a>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="content-grid">
-        <!-- Services Summary -->
-        <div class="main-content">
+    <!-- Dashboard Cards -->
+    <div class="dashboard-cards">
+        <!-- Notifications Card -->
+        <div class="dashboard-card notifications">
             <h3 class="section-title">
-                <i class="fas fa-briefcase"></i>
-                My Services Snapshot
+                <i class="fas fa-bell"></i>
+                Notifications
+                @if (ViewBag.UnreadNotificationCount > 0)
+                {
+                    <span class="badge bg-danger ms-2">@ViewBag.UnreadNotificationCount</span>
+                }
             </h3>
-            <div class="row g-3">
-                <div class="col-sm-6 col-lg-3">
-                    <div class="stat-card services">
-                        <div class="stat-icon"><i class="fas fa-concierge-bell"></i></div>
-                        <h2 class="stat-number">@ViewBag.ActiveServices</h2>
-                        <p class="stat-label">Active</p>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                    <div class="stat-card bookings">
-                        <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
-                        <h2 class="stat-number">@ViewBag.TotalServices</h2>
-                        <p class="stat-label">Total</p>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                    <div class="stat-card earnings">
-                        <div class="stat-icon"><i class="fas fa-toggle-off"></i></div>
-                        <h2 class="stat-number">@((ViewBag.TotalServices ?? 0) - (ViewBag.ActiveServices ?? 0))</h2>
-                        <p class="stat-label">Inactive</p>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                    <div class="stat-card rating">
-                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                        <h2 class="stat-number">@DateTime.UtcNow.ToString("dd MMM")</h2>
-                        <p class="stat-label">As of</p>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-3">
-                <a href="/ServiceProvider/Services" class="btn btn-primary"><i class="fas fa-plus"></i> Manage Services</a>
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="sidebar-content">
-            <!-- Notifications -->
-            <div class="sidebar-card">
-                <h4 class="section-title">
-                    <i class="fas fa-bell"></i>
-                    Notifications
-                </h4>
-                
-                <div class="notification-item">
-                    <div class="notification-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="notification-content">
-                        <h5>New Review Received</h5>
-                        <p>Sarah gave you 5 stars for cleaning service</p>
-                        <div class="notification-time">2 hours ago</div>
-                    </div>
-                </div>
-                
-                <div class="notification-item">
-                    <div class="notification-icon">
-                        <i class="fas fa-calendar"></i>
-                    </div>
-                    <div class="notification-content">
-                        <h5>Booking Reminder</h5>
-                        <p>You have a service scheduled for tomorrow</p>
-                        <div class="notification-time">5 hours ago</div>
-                    </div>
-                </div>
-                
-                <div class="notification-item">
-                    <div class="notification-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="notification-content">
-                        <h5>Payment Received</h5>
-                        <p>$150 payment for plumbing service</p>
-                        <div class="notification-time">1 day ago</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analytics: Completed Services -->
-            <div class="sidebar-card">
-                <h4 class="section-title">
-                    <i class="fas fa-chart-line"></i>
-                    Analytics: Completed Services
-                </h4>
-                @{ var completedRecent = ViewBag.CompletedRecent as IEnumerable<dynamic>; }
-                @if (completedRecent == null || !completedRecent.Any())
-                {
-                    <div class="text-muted">No completed services yet.</div>
-                }
-                else
-                {
-                    <div>
-                        @foreach (var c in completedRecent)
-                        {
-                            <div class="booking-item" style="padding:10px 0;">
-                                <div class="booking-info">
-                                    <h4 style="margin:0 0 4px 0;">@c.ServiceName</h4>
-                                    <p class="mb-0 text-muted">by @c.UserName • @((c.CompletedAtUtc as DateTime?)?.ToLocalTime().ToString("dd MMM, h:mm tt"))</p>
-                                </div>
-                                <div class="text-end" style="min-width:90px;">
-                                    <span class="badge bg-primary">@((c.UserRating != null ? $"{c.UserRating}/5" : "No rating"))</span>
-                                </div>
+            
+            @{ var notifications = ViewBag.Notifications as IEnumerable<ServConnect.Models.Notification>; }
+            @if (notifications != null && notifications.Any())
+            {
+                <div class="recent-notifications">
+                    @foreach (var notification in notifications.Take(3))
+                    {
+                        <div class="notification-item @(!notification.IsRead ? "unread" : "")">
+                            <div class="notification-icon">
+                                @switch (notification.Type)
+                                {
+                                    case ServConnect.Models.NotificationType.BookingReceived:
+                                        <i class="fas fa-calendar-plus"></i>
+                                        break;
+                                    case ServConnect.Models.NotificationType.PaymentReceived:
+                                        <i class="fas fa-dollar-sign"></i>
+                                        break;
+                                    case ServConnect.Models.NotificationType.ReviewReceived:
+                                        <i class="fas fa-star"></i>
+                                        break;
+                                    case ServConnect.Models.NotificationType.ServiceExpiring:
+                                    case ServConnect.Models.NotificationType.ServiceExpired:
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        break;
+                                    default:
+                                        <i class="fas fa-info-circle"></i>
+                                        break;
+                                }
                             </div>
-                        }
-                    </div>
-                }
-            </div>
-
-            <!-- Quick Stats -->
-            <div class="sidebar-card">
-                <h4 class="section-title">
-                    <i class="fas fa-tachometer-alt"></i>
-                    Quick Stats
-                </h4>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                    <span>This Week:</span>
-                    <strong>@(ViewBag.BookingsThisWeek ?? 0) bookings</strong>
+                            <div class="notification-content">
+                                <h5>@notification.Title</h5>
+                                <p>@notification.Message</p>
+                                <div class="notification-time">@notification.CreatedAt.ToLocalTime().ToString("MMM dd, h:mm tt")</div>
+                            </div>
+                        </div>
+                    }
                 </div>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                    <span>Response Rate:</span>
-                    <strong style="color: #4CAF50;">@((ViewBag.ResponseRatePercent ?? 0.0).ToString("0.0"))%</strong>
+            }
+            else
+            {
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                    <p>No notifications yet</p>
+                    <small>You'll see important updates here</small>
                 </div>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                    <span>Completion Rate:</span>
-                    <strong style="color: #4CAF50;">@((ViewBag.CompletionRatePercent ?? 0.0).ToString("0.0"))%</strong>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Customer Satisfaction:</span>
-                    <strong style="color: #FF9800;">⭐ @((ViewBag.AvgRating ?? 0.0).ToString("0.0"))/5</strong>
-                </div>
+            }
+            
+            <div class="text-center mt-3">
+                <a href="/Notifications" class="btn btn-primary">
+                    <i class="fas fa-bell"></i> View All Notifications
+                </a>
             </div>
         </div>
+
+        <!-- Recent Activity Card -->
+        <div class="dashboard-card recent-activity">
+            <h3 class="section-title">
+                <i class="fas fa-history"></i>
+                Recent Activity
+            </h3>
+            
+            @{ var completedRecent = ViewBag.CompletedRecent as IEnumerable<dynamic>; }
+            @if (completedRecent != null && completedRecent.Any())
+            {
+                <div class="activity-list">
+                    @foreach (var activity in completedRecent.Take(4))
+                    {
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-check-circle text-success"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h5>@activity.ServiceName</h5>
+                                <p class="mb-1">Completed for @activity.UserName</p>
+                                <small class="text-muted">@((activity.CompletedAtUtc as DateTime?)?.ToLocalTime().ToString("MMM dd, h:mm tt"))</small>
+                                @if (activity.UserRating != null)
+                                {
+                                    <div class="rating mt-1">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= activity.UserRating)
+                                            {
+                                                <i class="fas fa-star text-warning"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="far fa-star text-muted"></i>
+                                            }
+                                        }
+                                        <small class="ms-1">(@activity.UserRating/5)</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-calendar-check fa-3x mb-3"></i>
+                    <p>No recent activity</p>
+                    <small>Completed services will appear here</small>
+                </div>
+            }
+            
+            <div class="text-center mt-3">
+                <a href="/provider/bookings" class="btn btn-primary">
+                    <i class="fas fa-calendar-alt"></i> View All Bookings
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Stats Card -->
+        <div class="dashboard-card quick-stats">
+            <h3 class="section-title">
+                <i class="fas fa-tachometer-alt"></i>
+                Quick Stats
+            </h3>
+            
+            <div class="stats-grid-small">
+                <div class="stat-item">
+                    <div class="stat-number-small">@(ViewBag.BookingsThisWeek ?? 0)</div>
+                    <div class="stat-label-small">This Week</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number-small">@((ViewBag.ResponseRatePercent ?? 0.0).ToString("0.0"))%</div>
+                    <div class="stat-label-small">Response Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number-small">⭐ @((ViewBag.AvgRating ?? 0.0).ToString("0.0"))</div>
+                    <div class="stat-label-small">Avg Rating</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number-small">@ViewBag.ActiveServices</div>
+                    <div class="stat-label-small">Active Services</div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="/Analytics" class="btn btn-primary">
+                    <i class="fas fa-chart-line"></i> View Analytics
+                </a>
+            </div>
+        </div>
+    </div>
         <div class="dashboard-footer">
             <div>
                 <strong>Keep your pipeline full</strong>
@@ -562,41 +662,100 @@
     </div>
 
 <script>
-    // Add some interactivity
+    // Enhanced dashboard interactivity
     document.addEventListener('DOMContentLoaded', function() {
         // Animate stat numbers on load
         const statNumbers = document.querySelectorAll('.stat-number');
         statNumbers.forEach(stat => {
-            const text = stat.textContent;
-            if (text.includes('$')) {
-                const finalNumber = parseInt(text.replace('$', '').replace(',', ''));
-                let currentNumber = 0;
-                const increment = finalNumber / 50;
-                
-                const timer = setInterval(() => {
-                    currentNumber += increment;
-                    if (currentNumber >= finalNumber) {
-                        stat.textContent = '$' + finalNumber.toLocaleString();
-                        clearInterval(timer);
-                    } else {
-                        stat.textContent = '$' + Math.floor(currentNumber).toLocaleString();
-                    }
-                }, 30);
-            } else if (!text.includes('.')) {
+            const text = stat.textContent.trim();
+            if (text.includes('₹')) {
+                const finalNumber = parseInt(text.replace('₹', '').replace(',', ''));
+                animateNumber(stat, finalNumber, '₹');
+            } else if (text.includes('%')) {
+                const finalNumber = parseFloat(text.replace('%', ''));
+                animateNumber(stat, finalNumber, '', '%');
+            } else if (!text.includes('.') && !isNaN(parseInt(text))) {
                 const finalNumber = parseInt(text);
-                let currentNumber = 0;
-                const increment = finalNumber / 30;
-                
-                const timer = setInterval(() => {
-                    currentNumber += increment;
-                    if (currentNumber >= finalNumber) {
-                        stat.textContent = finalNumber;
-                        clearInterval(timer);
-                    } else {
-                        stat.textContent = Math.floor(currentNumber);
-                    }
-                }, 50);
+                animateNumber(stat, finalNumber);
+            }
+        });
+
+        // Add hover effects to quick action buttons
+        const actionButtons = document.querySelectorAll('.quick-action-btn');
+        actionButtons.forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add click animation to stat cards
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 150);
+            });
+        });
+
+        // Auto-refresh notifications every 30 seconds
+        setInterval(refreshNotifications, 30000);
+
+        // Mark notifications as read when clicked
+        const notificationItems = document.querySelectorAll('.notification-item');
+        notificationItems.forEach(item => {
+            item.addEventListener('click', function() {
+                if (this.classList.contains('unread')) {
+                    this.classList.remove('unread');
+                    // Here you would typically make an API call to mark as read
+                }
+            });
+        });
+    });
+
+    function animateNumber(element, finalNumber, prefix = '', suffix = '') {
+        let currentNumber = 0;
+        const increment = finalNumber / 50;
+        const timer = setInterval(() => {
+            currentNumber += increment;
+            if (currentNumber >= finalNumber) {
+                element.textContent = prefix + finalNumber + suffix;
+                clearInterval(timer);
+            } else {
+                const displayNumber = Math.floor(currentNumber);
+                element.textContent = prefix + displayNumber + suffix;
+            }
+        }, 30);
+    }
+
+    function refreshNotifications() {
+        // This would typically fetch new notifications via API
+        // For now, we'll just add a subtle animation to indicate refresh
+        const notificationSection = document.querySelector('.sidebar-card h4');
+        if (notificationSection) {
+            notificationSection.style.opacity = '0.7';
+            setTimeout(() => {
+                notificationSection.style.opacity = '1';
+            }, 200);
+        }
+    }
+
+    // Add smooth scrolling for internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         });
     });
+
 </script>

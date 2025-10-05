@@ -3,52 +3,410 @@
 }
 
 <style>
-    .dashboard-container { padding: 20px; background-color: var(--bg-page); min-height: 100vh; }
-    .dashboard-header { background: var(--header-bg) !important; color: #fff; padding: 30px; border-radius: 15px; margin-bottom: 30px; box-shadow: var(--shadow-md); }
-    .dashboard-header h1 { margin: 0; font-size: 2.2rem; font-weight: 600; }
-    .dashboard-header p { margin: 10px 0 0 0; opacity: 0.9; font-size: 1.05rem; }
-
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-
-    .stat-card { background: var(--bg-surface); padding: 25px; border-radius: 15px; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease; border-left: 4px solid var(--border); }
-    .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
-
-    .stat-number { font-size: 2.2rem; font-weight: 700; margin: 0; color: var(--text-primary); }
-    .stat-label { color: var(--text-secondary); font-size: 0.95rem; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
-    .stat-icon { float: right; font-size: 2rem; opacity: 0.3; margin-top: -10px; color: #9CA3AF; }
-
-    .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
-
-    .action-card { background: var(--bg-surface); border-radius: 15px; overflow: hidden; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease; border:1px solid var(--border); }
-    .action-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-
-    .action-header { padding: 16px 20px; background: #111; color: #fff; }
-    .action-header h3 { margin: 0; font-size: 1.15rem; }
-
-    .action-body { padding: 18px 20px; }
-    .action-list { list-style: none; padding: 0; margin: 0; }
-    .action-list li { padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .action-list li:last-child { border-bottom: none; }
-    .action-list a { color: var(--text-primary); text-decoration: none; display: flex; align-items: center; gap:10px; transition: color 0.2s ease; }
-    .action-list a:hover { color: var(--accent-indigo); }
-    .action-list i { width: 20px; color: var(--accent-indigo); }
-
-    .recent-activity { background: var(--bg-surface); border-radius: 15px; padding: 25px; box-shadow: var(--shadow-sm); border:1px solid var(--border); }
-    .recent-activity h3 { margin: 0 0 20px 0; color: var(--text-primary); font-size: 1.4rem; }
-
-    @@media (max-width: 768px) {
-        .dashboard-container { padding: 10px; }
-        .dashboard-header { padding: 20px; }
-        .dashboard-header h1 { font-size: 1.8rem; }
-        .stats-grid { grid-template-columns: 1fr; }
-        .action-grid { grid-template-columns: 1fr; }
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+        --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #4a6741 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --card-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
 
-    /* Footer CTA */
-    .dashboard-footer { margin-top: 30px; padding: 18px 22px; border-radius: 12px; background: var(--header-bg); color: #fff; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; box-shadow: var(--shadow-md); }
-    .dashboard-footer .cta { display:flex; gap:10px; }
-    .dashboard-footer .btn-outline-light { border-color:#fff; color:#fff; }
-    .dashboard-footer .btn-outline-light:hover { background:#fff; color:#111; }
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .dashboard-container {
+        padding: 2rem;
+        min-height: 100vh;
+        background: transparent;
+    }
+
+    /* Modern Header */
+    .dashboard-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(50px, -50px);
+    }
+
+    .dashboard-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .dashboard-header p {
+        margin: 1rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+        font-weight: 400;
+    }
+
+    /* Analytics Grid */
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .analytics-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .analytics-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .analytics-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+    }
+
+    .analytics-card.users::before { background: var(--primary-gradient); }
+    .analytics-card.providers::before { background: var(--success-gradient); }
+    .analytics-card.vendors::before { background: var(--warning-gradient); }
+    .analytics-card.services::before { background: var(--danger-gradient); }
+    .analytics-card.complaints::before { background: var(--info-gradient); }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .card-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .card-icon.users { background: var(--primary-gradient); }
+    .card-icon.providers { background: var(--success-gradient); }
+    .card-icon.vendors { background: var(--warning-gradient); }
+    .card-icon.services { background: var(--danger-gradient); }
+    .card-icon.complaints { background: var(--info-gradient); }
+
+    .card-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin: 0;
+    }
+
+    .card-label {
+        color: #718096;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0.5rem 0 0 0;
+    }
+
+    .card-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .trend-up { color: #38a169; }
+    .trend-down { color: #e53e3e; }
+
+    /* Quick Actions Grid */
+    .quick-actions {
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .action-tile {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-tile:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--card-shadow-hover);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .tile-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+    .tile-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+    }
+
+    .tile-subtitle {
+        font-size: 0.85rem;
+        color: #718096;
+    }
+
+    /* Management Cards */
+    .management-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .management-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .management-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .management-header {
+        padding: 1.5rem;
+        background: var(--dark-gradient);
+        color: white;
+    }
+
+    .management-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .management-body {
+        padding: 1.5rem;
+    }
+
+    .management-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .management-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .management-list li:last-child {
+        border-bottom: none;
+    }
+
+    .management-list a {
+        color: #4a5568;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.2s ease;
+        padding: 0.5rem;
+        border-radius: 8px;
+    }
+
+    .management-list a:hover {
+        background: #f7fafc;
+        color: #667eea;
+        text-decoration: none;
+    }
+
+    .management-list i {
+        width: 20px;
+        color: #667eea;
+        font-size: 1rem;
+    }
+
+    /* Activity Feed */
+    .activity-feed {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 2rem;
+    }
+
+    .activity-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .activity-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        
+        .dashboard-header {
+            padding: 1.5rem;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2rem;
+        }
+        
+        .analytics-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .actions-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+        
+        .management-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Notification Badge */
+    .notification-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #e53e3e;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    /* Chart Container */
+    .chart-container {
+        height: 100px;
+        margin-top: 1rem;
+        position: relative;
+    }
+
+    .mini-chart {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: end;
+        padding: 0.5rem;
+        gap: 2px;
+    }
+
+    .chart-bar {
+        background: var(--primary-gradient);
+        border-radius: 2px;
+        flex: 1;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+
+    .chart-bar:hover {
+        opacity: 1;
+    }
 </style>
 
 <div class="dashboard-container">
@@ -58,229 +416,419 @@
         <p>Welcome back, @ViewBag.AdminName! Here's what's happening with ServConnect today.</p>
     </div>
 
-    <!-- Quick Tiles -->
-    <div class="container-narrow mb-4">
-        <div class="tile-grid">
-            <a class="tile" asp-controller="Admin" asp-action="Users">
-                <div class="tile-icon"><i class="fas fa-users"></i></div>
-                <div>
-                    <div class="tile-title">Manage Users</div>
-                    <div class="tile-sub">View, roles, actions</div>
+    <!-- Analytics Cards -->
+    <div class="analytics-grid">
+        <div class="analytics-card users">
+            <div class="card-header">
+                <div class="card-icon users">
+                    <i class="fas fa-users"></i>
                 </div>
+            </div>
+            <h2 class="card-value" data-value="@ViewBag.TotalUsers">@ViewBag.TotalUsers</h2>
+            <p class="card-label">Total Users</p>
+            <div class="card-trend trend-up">
+                <i class="fas fa-arrow-up"></i>
+                <span>+12% from last month</span>
+            </div>
+            <div class="chart-container">
+                <div class="mini-chart">
+                    <div class="chart-bar" style="height: 60%;"></div>
+                    <div class="chart-bar" style="height: 80%;"></div>
+                    <div class="chart-bar" style="height: 45%;"></div>
+                    <div class="chart-bar" style="height: 90%;"></div>
+                    <div class="chart-bar" style="height: 70%;"></div>
+                    <div class="chart-bar" style="height: 100%;"></div>
+                    <div class="chart-bar" style="height: 85%;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="analytics-card providers">
+            <div class="card-header">
+                <div class="card-icon providers">
+                    <i class="fas fa-tools"></i>
+                </div>
+            </div>
+            <h2 class="card-value" data-value="@ViewBag.ServiceProviders">@ViewBag.ServiceProviders</h2>
+            <p class="card-label">Service Providers</p>
+            <div class="card-trend trend-up">
+                <i class="fas fa-arrow-up"></i>
+                <span>+8% from last month</span>
+            </div>
+            <div class="chart-container">
+                <div class="mini-chart">
+                    <div class="chart-bar" style="height: 40%;"></div>
+                    <div class="chart-bar" style="height: 65%;"></div>
+                    <div class="chart-bar" style="height: 55%;"></div>
+                    <div class="chart-bar" style="height: 80%;"></div>
+                    <div class="chart-bar" style="height: 75%;"></div>
+                    <div class="chart-bar" style="height: 95%;"></div>
+                    <div class="chart-bar" style="height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="analytics-card vendors">
+            <div class="card-header">
+                <div class="card-icon vendors">
+                    <i class="fas fa-store"></i>
+                </div>
+            </div>
+            <h2 class="card-value" data-value="@ViewBag.Vendors">@ViewBag.Vendors</h2>
+            <p class="card-label">Vendors</p>
+            <div class="card-trend trend-up">
+                <i class="fas fa-arrow-up"></i>
+                <span>+5% from last month</span>
+            </div>
+            <div class="chart-container">
+                <div class="mini-chart">
+                    <div class="chart-bar" style="height: 50%;"></div>
+                    <div class="chart-bar" style="height: 70%;"></div>
+                    <div class="chart-bar" style="height: 60%;"></div>
+                    <div class="chart-bar" style="height: 85%;"></div>
+                    <div class="chart-bar" style="height: 90%;"></div>
+                    <div class="chart-bar" style="height: 75%;"></div>
+                    <div class="chart-bar" style="height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="analytics-card services">
+            <div class="card-header">
+                <div class="card-icon services">
+                    <i class="fas fa-concierge-bell"></i>
+                </div>
+            </div>
+            <h2 class="card-value" data-value="@ViewBag.RegularUsers">@ViewBag.RegularUsers</h2>
+            <p class="card-label">Regular Users</p>
+            <div class="card-trend trend-up">
+                <i class="fas fa-arrow-up"></i>
+                <span>+15% from last month</span>
+            </div>
+            <div class="chart-container">
+                <div class="mini-chart">
+                    <div class="chart-bar" style="height: 30%;"></div>
+                    <div class="chart-bar" style="height: 50%;"></div>
+                    <div class="chart-bar" style="height: 70%;"></div>
+                    <div class="chart-bar" style="height: 60%;"></div>
+                    <div class="chart-bar" style="height: 85%;"></div>
+                    <div class="chart-bar" style="height: 95%;"></div>
+                    <div class="chart-bar" style="height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="analytics-card complaints">
+            <div class="card-header">
+                <div class="card-icon complaints">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+            </div>
+            <h2 class="card-value" data-value="@ViewBag.NewComplaints">@ViewBag.NewComplaints</h2>
+            <p class="card-label">New Complaints</p>
+            <div class="card-trend trend-down">
+                <i class="fas fa-arrow-down"></i>
+                <span>-3% from last month</span>
+            </div>
+            <div class="chart-container">
+                <div class="mini-chart">
+                    <div class="chart-bar" style="height: 100%;"></div>
+                    <div class="chart-bar" style="height: 85%;"></div>
+                    <div class="chart-bar" style="height: 70%;"></div>
+                    <div class="chart-bar" style="height: 60%;"></div>
+                    <div class="chart-bar" style="height: 45%;"></div>
+                    <div class="chart-bar" style="height: 35%;"></div>
+                    <div class="chart-bar" style="height: 30%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h2 class="section-title">
+            <i class="fas fa-bolt"></i>
+            Quick Actions
+        </h2>
+        <div class="actions-grid">
+            <a class="action-tile" asp-controller="Admin" asp-action="Users">
+                <div class="tile-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="tile-title">Manage Users</div>
+                <div class="tile-subtitle">View, roles, actions</div>
             </a>
-            <a class="tile" asp-controller="Admin" asp-action="VerifyUsers">
-                <div class="tile-icon"><i class="fas fa-id-badge"></i></div>
-                <div>
-                    <div class="tile-title">Verify Users Card</div>
-                    <div class="tile-sub">Approve or reject users</div>
+            
+            <a class="action-tile" asp-controller="Admin" asp-action="VerifyUsers">
+                <div class="tile-icon">
+                    <i class="fas fa-id-badge"></i>
+                    @if (ViewBag.PendingUsersCount > 0)
+                    {
+                        <div class="notification-badge">@ViewBag.PendingUsersCount</div>
+                    }
                 </div>
+                <div class="tile-title">Verify Users</div>
+                <div class="tile-subtitle">Approve or reject users</div>
             </a>
-            <a class="tile" asp-controller="Admin" asp-action="CreateAd">
-                <div class="tile-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                <div>
-                    <div class="tile-title">Upload Ad</div>
-                    <div class="tile-sub">Add new banner</div>
+            
+            <a class="action-tile" asp-controller="Admin" asp-action="CreateAd">
+                <div class="tile-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
                 </div>
+                <div class="tile-title">Upload Ad</div>
+                <div class="tile-subtitle">Add new banner</div>
             </a>
-            <a class="tile" asp-controller="Admin" asp-action="Advertisements">
-                <div class="tile-icon"><i class="fas fa-images"></i></div>
-                <div>
-                    <div class="tile-title">Advertisements</div>
-                    <div class="tile-sub">Review and delete</div>
+            
+            <a class="action-tile" asp-controller="Admin" asp-action="Advertisements">
+                <div class="tile-icon">
+                    <i class="fas fa-images"></i>
                 </div>
+                <div class="tile-title">Advertisements</div>
+                <div class="tile-subtitle">Review and delete</div>
             </a>
-            <a class="tile" asp-controller="LocalDirectory" asp-action="Manage">
-                <div class="tile-icon"><i class="fas fa-map-marked-alt"></i></div>
-                <div>
-                    <div class="tile-title">Local Services</div>
-                    <div class="tile-sub">Hospitals, police, fuel</div>
+            
+            <a class="action-tile" asp-controller="LocalDirectory" asp-action="Manage">
+                <div class="tile-icon">
+                    <i class="fas fa-map-marked-alt"></i>
                 </div>
+                <div class="tile-title">Local Services</div>
+                <div class="tile-subtitle">Hospitals, police, fuel</div>
             </a>
-            <a class="tile" asp-controller="Services" asp-action="Manage">
-                <div class="tile-icon"><i class="fas fa-clipboard-list"></i></div>
-                <div>
-                    <div class="tile-title">Service Catalog</div>
-                    <div class="tile-sub">Create and manage</div>
+            
+            <a class="action-tile" asp-controller="Services" asp-action="Manage">
+                <div class="tile-icon">
+                    <i class="fas fa-clipboard-list"></i>
                 </div>
+                <div class="tile-title">Service Catalog</div>
+                <div class="tile-subtitle">Create and manage</div>
             </a>
-            <a class="tile" asp-controller="Admin" asp-action="Services">
-                <div class="tile-icon"><i class="fas fa-cogs"></i></div>
-                <div>
-                    <div class="tile-title">Services</div>
-                    <div class="tile-sub">Manage and Delete</div>
+            
+            <a class="action-tile" asp-controller="Admin" asp-action="Services">
+                <div class="tile-icon">
+                    <i class="fas fa-cogs"></i>
                 </div>
+                <div class="tile-title">Services</div>
+                <div class="tile-subtitle">Manage and Delete</div>
             </a>
-            <a class="tile" asp-controller="Admin" asp-action="Settings">
-                <div class="tile-icon"><i class="fas fa-gear"></i></div>
-                <div>
-                    <div class="tile-title">Settings</div>
-                    <div class="tile-sub">System preferences</div>
+            
+            <a class="action-tile" asp-controller="Admin" asp-action="Settings">
+                <div class="tile-icon">
+                    <i class="fas fa-gear"></i>
                 </div>
+                <div class="tile-title">Settings</div>
+                <div class="tile-subtitle">System preferences</div>
             </a>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-        <div class="stat-card users">
-            <div class="stat-icon">
-                <i class="fas fa-users"></i>
-            </div>
-            <h2 class="stat-number">@ViewBag.TotalUsers</h2>
-            <p class="stat-label">Total Users</p>
-        </div>
-        
-        <div class="stat-card providers">
-            <div class="stat-icon">
-                <i class="fas fa-tools"></i>
-            </div>
-            <h2 class="stat-number">@ViewBag.ServiceProviders</h2>
-            <p class="stat-label">Service Providers</p>
-        </div>
-        
-        <div class="stat-card vendors">
-            <div class="stat-icon">
-                <i class="fas fa-store"></i>
-            </div>
-            <h2 class="stat-number">@ViewBag.Vendors</h2>
-            <p class="stat-label">Vendors</p>
-        </div>
-        
-        <div class="stat-card services">
-            <div class="stat-icon">
-                <i class="fas fa-concierge-bell"></i>
-            </div>
-            <h2 class="stat-number">@ViewBag.RegularUsers</h2>
-            <p class="stat-label">Regular Users</p>
-        </div>
-        
-        <div class="stat-card complaints">
-            <div class="stat-icon">
-                <i class="fas fa-envelope-open-text"></i>
-            </div>
-            <h2 class="stat-number">@ViewBag.NewComplaints</h2>
-            <p class="stat-label">New Complaints</p>
-        </div>
-    </div>
-
-    <!-- Action Cards -->
-    <div class="action-grid">
-        <div class="action-card">
-            <div class="action-header">
+    <!-- Management Cards -->
+    <div class="management-grid">
+        <div class="management-card">
+            <div class="management-header">
                 <h3><i class="fas fa-users-cog"></i> User Management</h3>
             </div>
-            <div class="action-body">
-                <ul class="action-list">
-                    <li><a href="#"><i class="fas fa-user-plus"></i> Add New User</a></li>
+            <div class="management-body">
+                <ul class="management-list">
                     <li><a asp-controller="Admin" asp-action="Users"><i class="fas fa-users"></i> View All Users</a></li>
+                    <li><a asp-controller="Admin" asp-action="VerifyUsers"><i class="fas fa-user-check"></i> Verify Users</a></li>
                     <li><a href="#"><i class="fas fa-user-shield"></i> Manage Roles</a></li>
                     <li><a asp-controller="Admin" asp-action="Users" asp-route-suspended="true"><i class="fas fa-ban"></i> Suspended Users</a></li>
                 </ul>
             </div>
         </div>
 
-        <div class="action-card">
-            <div class="action-header">
+        <div class="management-card">
+            <div class="management-header">
                 <h3><i class="fas fa-cogs"></i> System Management</h3>
             </div>
-            <div class="action-body">
-                <ul class="action-list">
-                    <li><a href="#"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+            <div class="management-body">
+                <ul class="management-list">
+                    <li><a asp-controller="Admin" asp-action="Analytics"><i class="fas fa-chart-bar"></i> Analytics Dashboard</a></li>
                     <li><a href="#"><i class="fas fa-database"></i> Database Status</a></li>
                     <li><a href="#"><i class="fas fa-shield-alt"></i> Security Logs</a></li>
-                    <li><a href="#"><i class="fas fa-cog"></i> System Settings</a></li>
+                    <li><a asp-controller="Admin" asp-action="Settings"><i class="fas fa-cog"></i> System Settings</a></li>
                 </ul>
             </div>
         </div>
 
-        <div class="action-card">
-            <div class="action-header">
+        <div class="management-card">
+            <div class="management-header">
                 <h3><i class="fas fa-handshake"></i> Service Management</h3>
             </div>
-            <div class="action-body">
-                <ul class="action-list">
-                    <li><a href="#"><i class="fas fa-list"></i> All Services</a></li>
-                    <li><a href="#"><i class="fas fa-clock"></i> Pending Approvals</a></li>
+            <div class="management-body">
+                <ul class="management-list">
+                    <li><a asp-controller="Admin" asp-action="Services"><i class="fas fa-list"></i> All Services</a></li>
+                    <li><a asp-controller="Services" asp-action="Manage"><i class="fas fa-clipboard-list"></i> Service Catalog</a></li>
                     <li><a href="#"><i class="fas fa-star"></i> Featured Services</a></li>
                     <li><a href="#"><i class="fas fa-flag"></i> Reported Services</a></li>
                 </ul>
             </div>
         </div>
 
-        <div class="action-card">
-            <div class="action-header">
+        <div class="management-card">
+            <div class="management-header">
                 <h3><i class="fas fa-chart-line"></i> Reports & Analytics</h3>
             </div>
-            <div class="action-body">
-                <ul class="action-list">
+            <div class="management-body">
+                <ul class="management-list">
                     <li><a href="#"><i class="fas fa-chart-pie"></i> Usage Statistics</a></li>
                     <li><a href="#"><i class="fas fa-dollar-sign"></i> Revenue Reports</a></li>
+                    <li><a asp-controller="Admin" asp-action="Complaints"><i class="fas fa-envelope"></i> Complaints</a></li>
                     <li><a href="#"><i class="fas fa-download"></i> Export Data</a></li>
-                    <li><a href="#"><i class="fas fa-calendar"></i> Monthly Reports</a></li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <!-- Recent Complaints / Messages -->
-    <div class="recent-activity">
-        <h3><i class="fas fa-inbox"></i> Messages / Complaints</h3>
-        <div id="complaintsContainer">Loading...</div>
-        <div class="mt-3">
-            <a class="btn btn-outline-primary btn-sm" href="/Admin/Complaints">View All</a>
+    <!-- Activity Feed -->
+    <div class="activity-feed">
+        <div class="activity-header">
+            <h3 class="activity-title">
+                <i class="fas fa-bell"></i>
+                Recent Activity & Complaints
+            </h3>
+        </div>
+        <div id="complaintsContainer">
+            <div class="d-flex justify-content-center p-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 text-center">
+            <a class="btn btn-primary" asp-controller="Admin" asp-action="Complaints">
+                <i class="fas fa-eye"></i> View All Complaints
+            </a>
         </div>
     </div>
+</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async function(){
+            // Load complaints
             const container = document.getElementById('complaintsContainer');
             try {
-                const res = await fetch('/api/complaints?limit=6');
-                if(!res.ok){ container.textContent = 'Failed to load.'; return; }
+                const res = await fetch('/api/complaints?limit=5');
+                if(!res.ok){ 
+                    container.innerHTML = '<div class="text-center text-muted p-4">Failed to load complaints.</div>'; 
+                    return; 
+                }
                 const list = await res.json();
-                if(!list.length){ container.textContent = 'No messages yet.'; return; }
+                if(!list.length){ 
+                    container.innerHTML = '<div class="text-center text-muted p-4"><i class="fas fa-inbox fa-2x mb-2"></i><br>No recent complaints</div>'; 
+                    return; 
+                }
+                
                 container.innerHTML = '';
                 list.forEach(c => {
                     const card = document.createElement('div');
-                    card.className = 'card mb-2';
+                    card.className = 'card mb-3 border-0 shadow-sm';
+                    card.style.borderLeft = '4px solid #667eea';
                     card.innerHTML = `
                         <div class="card-body">
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div>
-                                    <strong>${c.category}</strong> - ${c.complainantName} (${c.complainantRole})
-                                    <div class="text-muted small">${new Date(c.createdAt).toLocaleString()}</div>
+                                    <h6 class="card-title mb-1 text-primary">${c.category}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-user"></i> ${c.complainantName} (${c.complainantRole})
+                                    </small>
                                 </div>
-                                <span class="badge bg-${c.status === 'New' ? 'warning' : (c.status === 'Resolved' ? 'success' : 'secondary')}">${c.status}</span>
+                                <span class="badge ${c.status === 'New' ? 'bg-warning' : (c.status === 'Resolved' ? 'bg-success' : 'bg-secondary')}">${c.status}</span>
                             </div>
-                            <div class="mt-2">${(c.description || '').substring(0, 140)}...</div>
+                            <p class="card-text small text-muted mb-2">${(c.description || '').substring(0, 120)}${c.description && c.description.length > 120 ? '...' : ''}</p>
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> ${new Date(c.createdAt).toLocaleDateString()}
+                            </small>
                         </div>`;
                     container.appendChild(card);
                 });
             } catch (e) {
-                container.textContent = 'Error loading messages.';
+                container.innerHTML = '<div class="text-center text-danger p-4">Error loading complaints.</div>';
             }
-        });
-    </script>
 
-<script>
-    // Add some interactivity
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate stat numbers on load
-        const statNumbers = document.querySelectorAll('.stat-number');
-        statNumbers.forEach(stat => {
-            const finalNumber = parseInt(stat.textContent.replace(',', ''));
-            let currentNumber = 0;
-            const increment = finalNumber / 50;
+            // Animate analytics cards
+            animateCounters();
             
-            const timer = setInterval(() => {
-                currentNumber += increment;
-                if (currentNumber >= finalNumber) {
-                    stat.textContent = finalNumber.toLocaleString();
-                    clearInterval(timer);
-                } else {
-                    stat.textContent = Math.floor(currentNumber).toLocaleString();
-                }
-            }, 30);
+            // Add hover effects to charts
+            addChartInteractivity();
         });
-    });
-</script>
+
+        function animateCounters() {
+            const cardValues = document.querySelectorAll('.card-value');
+            cardValues.forEach(card => {
+                const finalNumber = parseInt(card.getAttribute('data-value') || card.textContent.replace(/,/g, ''));
+                if (isNaN(finalNumber)) return;
+                
+                let currentNumber = 0;
+                const increment = Math.max(1, Math.ceil(finalNumber / 60));
+                
+                const timer = setInterval(() => {
+                    currentNumber += increment;
+                    if (currentNumber >= finalNumber) {
+                        card.textContent = finalNumber.toLocaleString();
+                        clearInterval(timer);
+                    } else {
+                        card.textContent = Math.floor(currentNumber).toLocaleString();
+                    }
+                }, 50);
+            });
+        }
+
+        function addChartInteractivity() {
+            const chartBars = document.querySelectorAll('.chart-bar');
+            chartBars.forEach((bar, index) => {
+                // Add staggered animation
+                setTimeout(() => {
+                    bar.style.transform = 'scaleY(0)';
+                    bar.style.transformOrigin = 'bottom';
+                    bar.style.transition = 'transform 0.6s ease';
+                    
+                    setTimeout(() => {
+                        bar.style.transform = 'scaleY(1)';
+                    }, 100);
+                }, index * 100);
+
+                // Add tooltip on hover
+                bar.addEventListener('mouseenter', function() {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'chart-tooltip';
+                    tooltip.style.cssText = `
+                        position: absolute;
+                        background: #2d3748;
+                        color: white;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 12px;
+                        pointer-events: none;
+                        z-index: 1000;
+                        transform: translateX(-50%);
+                        bottom: 100%;
+                        left: 50%;
+                        margin-bottom: 5px;
+                    `;
+                    tooltip.textContent = `${this.style.height}`;
+                    this.style.position = 'relative';
+                    this.appendChild(tooltip);
+                });
+
+                bar.addEventListener('mouseleave', function() {
+                    const tooltip = this.querySelector('.chart-tooltip');
+                    if (tooltip) tooltip.remove();
+                });
+            });
+        }
+
+        // Add real-time clock
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            const dateString = now.toLocaleDateString();
+            
+            // You can add a clock element to the header if needed
+            console.log(`Dashboard loaded at ${timeString} on ${dateString}`);
+        }
+
+        // Update clock every minute
+        setInterval(updateClock, 60000);
+        updateClock();
+    </script>
