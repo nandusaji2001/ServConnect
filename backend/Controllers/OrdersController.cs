@@ -32,7 +32,7 @@ namespace ServConnect.Controllers
 
         [HttpPost]
         [Authorize]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Create([FromBody] CreateOrderInput input)
         {
             if (string.IsNullOrWhiteSpace(input.ItemId) || input.Quantity <= 0)
@@ -41,45 +41,16 @@ namespace ServConnect.Controllers
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
 
-            // Create order and generate (placeholder) Razorpay order id
-            var (order, razorpayOrderId) = await _orders.CreateOrderAsync(me.Id, me.Email ?? string.Empty, input.ItemId, input.Quantity, input.ShippingAddress);
+            var item = await _items.GetByIdAsync(input.ItemId);
+            if (item == null) return NotFound("Item not found");
 
-            // Return data needed for client-side Razorpay checkout
-            var keyId = _config["Razorpay:KeyId"] ?? string.Empty;
-            return Ok(new
-            {
-                orderId = order.Id,
-                razorpayOrderId,
-                amount = (long)(order.TotalAmount * 100),
-                currency = "INR",
-                key = keyId,
-                description = order.ItemTitle
-            });
+            var order = await _orders.CreateOrderAsync(me.Id, me.Email ?? string.Empty, input.ItemId, input.Quantity, input.ShippingAddress);
+            return Ok(order);
         }
 
-        public class PaymentVerifyInput
-        {
-            public string OrderId { get; set; } = string.Empty; // our mongo order id
-            public string RazorpayOrderId { get; set; } = string.Empty;
-            public string RazorpayPaymentId { get; set; } = string.Empty;
-            public string RazorpaySignature { get; set; } = string.Empty;
-        }
-
-        [HttpPost("verify-payment")]
+        [HttpGet]
         [Authorize]
-        public async Task<IActionResult> VerifyPayment([FromBody] PaymentVerifyInput input)
-        {
-            var me = await _userManager.GetUserAsync(User);
-            if (me == null) return Unauthorized();
-
-            var ok = await _orders.VerifyPaymentAndConfirmAsync(input.OrderId, input.RazorpayOrderId, input.RazorpayPaymentId, input.RazorpaySignature);
-            if (!ok) return BadRequest("Payment verification failed");
-            return Ok(new { success = true });
-        }
-
-        [HttpGet("mine")]
-        [Authorize]
-        public async Task<IActionResult> MyOrders()
+        public async Task<IActionResult> GetMine()
         {
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
@@ -89,7 +60,7 @@ namespace ServConnect.Controllers
 
         [HttpGet("vendor")]
         [Authorize(Roles = $"{RoleTypes.Vendor},{RoleTypes.ServiceProvider}")]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> VendorOrders()
         {
             var me = await _userManager.GetUserAsync(User);
@@ -102,7 +73,7 @@ namespace ServConnect.Controllers
 
         [HttpPost("ship")]
         [Authorize(Roles = $"{RoleTypes.Vendor},{RoleTypes.ServiceProvider}")]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> MarkShipped([FromBody] ShipInput input)
         {
             var me = await _userManager.GetUserAsync(User);

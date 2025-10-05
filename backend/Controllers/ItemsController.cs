@@ -32,7 +32,7 @@ namespace ServConnect.Controllers
         // Vendors: list own items
         [HttpGet("mine")]
         [Authorize(Roles = RoleTypes.Vendor)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> GetMine()
         {
             var me = await _userManager.GetUserAsync(User);
@@ -44,7 +44,7 @@ namespace ServConnect.Controllers
         // Vendors: create item (service providers should use ProviderServices via /api/services/link)
         [HttpPost]
         [Authorize(Roles = RoleTypes.Vendor)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Create([FromBody] Item input)
         {
             var me = await _userManager.GetUserAsync(User);
@@ -80,7 +80,7 @@ namespace ServConnect.Controllers
         // Vendors: update own item
         [HttpPut("{id}")]
         [Authorize(Roles = RoleTypes.Vendor)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Update(string id, [FromBody] Item input)
         {
             var me = await _userManager.GetUserAsync(User);
@@ -104,7 +104,7 @@ namespace ServConnect.Controllers
         // Vendors: delete own item
         [HttpDelete("{id}")]
         [Authorize(Roles = RoleTypes.Vendor)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> DeleteMine(string id)
         {
             var me = await _userManager.GetUserAsync(User);

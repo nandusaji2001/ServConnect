@@ -91,7 +91,7 @@ namespace ServConnect.Controllers
         // API: link current provider to a service
         [HttpPost("/api/services/link")]
         [Authorize(Roles = RoleTypes.ServiceProvider)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Link([FromBody] LinkRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.ServiceName)) return BadRequest("Service name required");
@@ -105,7 +105,7 @@ namespace ServConnect.Controllers
         // API: list my linked services
         [HttpGet("/api/services/mine")]
         [Authorize(Roles = RoleTypes.ServiceProvider)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Mine()
         {
             var me = await _userManager.GetUserAsync(User);
@@ -117,7 +117,7 @@ namespace ServConnect.Controllers
         // API: unlink (deactivate) a service from my profile
         [HttpDelete("/api/services/mine/{id}")]
         [Authorize(Roles = RoleTypes.ServiceProvider)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Unlink(string id)
         {
             var me = await _userManager.GetUserAsync(User);
@@ -129,7 +129,7 @@ namespace ServConnect.Controllers
         // API: relink (activate) a previously unlinked service
         [HttpPost("/api/services/mine/{id}/relink")]
         [Authorize(Roles = RoleTypes.ServiceProvider)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Relink(string id)
         {
             var me = await _userManager.GetUserAsync(User);
@@ -151,7 +151,7 @@ namespace ServConnect.Controllers
 
         [HttpPut("/api/services/mine/{id}")]
         [Authorize(Roles = RoleTypes.ServiceProvider)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> UpdateLink(string id, [FromBody] UpdateLinkRequest req)
         {
             var me = await _userManager.GetUserAsync(User);
@@ -163,7 +163,7 @@ namespace ServConnect.Controllers
         // API: delete a link permanently
         [HttpDelete("/api/services/mine/{id}/hard")]
         [Authorize(Roles = RoleTypes.ServiceProvider)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> DeleteLinkHard(string id)
         {
             var me = await _userManager.GetUserAsync(User);

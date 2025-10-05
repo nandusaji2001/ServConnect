@@ -11,12 +11,14 @@ namespace ServConnect.Controllers
         private readonly IBookingService _bookings;
         private readonly UserManager<Users> _userManager;
         private readonly IServiceCatalog _catalog;
+        private readonly IBookingPaymentService _paymentService;
 
-        public BookingsController(IBookingService bookings, UserManager<Users> userManager, IServiceCatalog catalog)
+        public BookingsController(IBookingService bookings, UserManager<Users> userManager, IServiceCatalog catalog, IBookingPaymentService paymentService)
         {
             _bookings = bookings;
             _userManager = userManager;
             _catalog = catalog;
+            _paymentService = paymentService;
         }
 
         public class CreateBookingRequest
@@ -31,7 +33,7 @@ namespace ServConnect.Controllers
 
         [HttpPost("/api/bookings")] 
         [Authorize] // any logged-in user can request a booking
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Create([FromBody] CreateBookingRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.ProviderServiceId)) return BadRequest("Provider service is required");
@@ -39,6 +41,23 @@ namespace ServConnect.Controllers
 
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
+
+            // Check for pending payments - user must complete all pending payments before booking new services
+            var hasPendingPayments = await _paymentService.HasPendingPaymentsAsync(me.Id);
+            if (hasPendingPayments)
+            {
+                var pendingPayments = await _paymentService.GetPendingPaymentsByUserAsync(me.Id);
+                return BadRequest(new { 
+                    error = "Please complete your pending payments before booking new services.",
+                    pendingPayments = pendingPayments.Select(p => new {
+                        id = p.Id,
+                        serviceName = p.ServiceName,
+                        providerName = p.ProviderName,
+                        amount = p.AmountInRupees,
+                        paymentUrl = $"/booking-payment/pay/{p.Id}"
+                    })
+                });
+            }
 
             // Use phone and address from user's profile
             var contactPhone = me.PhoneNumber ?? string.Empty;
@@ -81,7 +100,7 @@ namespace ServConnect.Controllers
         // Provider decide accept/reject
         [HttpPost("/api/bookings/decision")] 
         [Authorize(Roles = RoleTypes.ServiceProvider)]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Decide([FromBody] DecisionRequest req)
         {
             var me = await _userManager.GetUserAsync(User);
@@ -101,14 +120,30 @@ namespace ServConnect.Controllers
 
         [HttpPost("/api/bookings/complete")]
         [Authorize]
-        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserFilter))]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Complete([FromBody] CompleteRequest req)
         {
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
-            var ok = await _bookings.CompleteAsync(req.BookingId, me.Id, req.Rating, req.Feedback);
-            if (!ok) return NotFound();
-            return Ok();
+            
+            // Get the booking to extract service details
+            var userBookings = await _bookings.GetForUserAsync(me.Id);
+            var booking = userBookings.FirstOrDefault(b => b.Id == req.BookingId);
+            if (booking == null) return NotFound();
+
+            // Instead of completing directly, redirect to payment
+            // The payment amount should be the service price
+            var paymentAmount = booking.Price > 0 ? booking.Price : 100; // Default ₹100 if no price set
+
+            return Ok(new { 
+                requiresPayment = true, 
+                bookingId = req.BookingId,
+                amount = paymentAmount,
+                serviceName = booking.ServiceName,
+                providerName = booking.ProviderName,
+                rating = req.Rating,
+                feedback = req.Feedback
+            });
         }
 
         // User view: my bookings
@@ -119,6 +154,12 @@ namespace ServConnect.Controllers
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
             var list = await _bookings.GetForUserAsync(me.Id);
+            
+            // Get pending payments to show notifications
+            var pendingPayments = await _paymentService.GetPendingPaymentsByUserAsync(me.Id);
+            ViewBag.PendingPayments = pendingPayments;
+            ViewBag.HasPendingPayments = pendingPayments.Any();
+            
             return View("UserBookings", list);
         }
     }

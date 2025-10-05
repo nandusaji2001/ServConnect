@@ -291,8 +291,28 @@ async function submitBooking(formId, modalId, providerId, providerName, serviceN
             modal.hide();
             alert('Booking request sent! You will be notified when the provider responds.');
         } else {
-            const text = await res.text();
-            alert('Failed to create booking: ' + text);
+            try {
+                const errorData = await res.json();
+                if (errorData.pendingPayments && errorData.pendingPayments.length > 0) {
+                    // Show pending payments with payment links
+                    let message = errorData.error + '\n\nPending Payments:\n';
+                    errorData.pendingPayments.forEach(payment => {
+                        message += `• ${payment.serviceName} by ${payment.providerName} - ₹${payment.amount}\n`;
+                    });
+                    message += '\nWould you like to complete your pending payments now?';
+                    
+                    if (confirm(message)) {
+                        // Redirect to first pending payment
+                        window.location.href = errorData.pendingPayments[0].paymentUrl;
+                    }
+                } else {
+                    alert('Failed to create booking: ' + (errorData.error || errorData.message || 'Unknown error'));
+                }
+            } catch (e) {
+                // Fallback for non-JSON responses
+                const text = await res.text();
+                alert('Failed to create booking: ' + text);
+            }
         }
     } catch (error) {
         alert('An error occurred: ' + error.message);

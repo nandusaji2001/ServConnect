@@ -68,6 +68,7 @@ builder.Services.AddScoped<DatabaseSeeder>();
 
 // Filters
 builder.Services.AddScoped<ServConnect.Filters.RequireApprovedUserFilter>();
+builder.Services.AddScoped<ServConnect.Filters.RequireApprovedUserApiFilter>();
 // Register custom services
 builder.Services.AddHttpClient<Fast2SmsOtpService>();
 builder.Services.AddHttpClient();
@@ -83,6 +84,8 @@ builder.Services.AddScoped<IServiceCatalog, ServiceCatalog>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 // Service payment service
 builder.Services.AddScoped<IServicePaymentService, ServicePaymentService>();
+// Booking payment service (requires HttpClientFactory)
+builder.Services.AddScoped<IBookingPaymentService, BookingPaymentService>();
 // Notification service
 builder.Services.AddScoped<INotificationService, NotificationService>();
 // Background service for automatic service expiry

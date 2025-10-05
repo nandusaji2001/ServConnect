@@ -1,0 +1,127 @@
+@model ServConnect.Models.BookingPayment
+@{
+    ViewData["Title"] = "Complete Payment";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-credit-card me-2"></i>Complete Payment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Complete your payment to finalize the service booking.
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Service Details</h6>
+                            <p class="mb-1"><strong>Service:</strong> @Model.ServiceName</p>
+                            <p class="mb-1"><strong>Provider:</strong> @Model.ProviderName</p>
+                            <p class="mb-1"><strong>Completed:</strong> @Model.ServiceCompletedAt.ToLocalTime().ToString("f")</p>
+                            @if (Model.UserRating.HasValue)
+                            {
+                                <p class="mb-1"><strong>Rating:</strong> 
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="fas fa-star @(i <= Model.UserRating.Value ? "text-warning" : "text-muted")"></i>
+                                    }
+                                </p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(Model.UserFeedback))
+                            {
+                                <p class="mb-1"><strong>Feedback:</strong> "@Model.UserFeedback"</p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Payment Details</h6>
+                            <p class="mb-1"><strong>Amount:</strong> ₹@Model.AmountInRupees.ToString("F2")</p>
+                            <p class="mb-1"><strong>Status:</strong> 
+                                <span class="badge bg-warning">@Model.Status</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    @if (Model.Status == ServConnect.Models.BookingPaymentStatus.Pending)
+                    {
+                        <div class="text-center">
+                            <button id="payButton" class="btn btn-success btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Pay ₹@Model.AmountInRupees.ToString("F2")
+                            </button>
+                        </div>
+                    }
+                    else if (Model.Status == ServConnect.Models.BookingPaymentStatus.Paid)
+                    {
+                        <div class="alert alert-success text-center">
+                            <i class="fas fa-check-circle me-2"></i>Payment completed successfully!
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Status == ServConnect.Models.BookingPaymentStatus.Pending)
+{
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.getElementById('payButton').onclick = function(e) {
+            e.preventDefault();
+            
+            const options = {
+                "key": "@ViewBag.RazorpayKeyId",
+                "amount": @Model.AmountInPaise,
+                "currency": "@Model.Currency",
+                "name": "ServConnect",
+                "description": "Payment for @Model.ServiceName",
+                "order_id": "@Model.RazorpayOrderId",
+                "handler": function (response) {
+                    verifyPayment(response);
+                },
+                "prefill": {
+                    "name": "@Model.UserName",
+                    "email": "@Model.UserEmail"
+                },
+                "theme": {
+                    "color": "#0d6efd"
+                }
+            };
+            
+            const rzp = new Razorpay(options);
+            rzp.open();
+        };
+
+        async function verifyPayment(response) {
+            try {
+                const verifyResponse = await fetch('/api/booking-payment/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        paymentId: '@Model.Id',
+                        razorpayOrderId: response.razorpay_order_id,
+                        razorpayPaymentId: response.razorpay_payment_id,
+                        razorpaySignature: response.razorpay_signature
+                    })
+                });
+
+                const result = await verifyResponse.json();
+                
+                if (result.success) {
+                    alert('Payment successful! Your booking has been completed.');
+                    window.location.href = '/my/bookings';
+                } else {
+                    alert('Payment verification failed. Please contact support.');
+                }
+            } catch (error) {
+                console.error('Payment verification error:', error);
+                alert('Payment verification failed. Please contact support.');
+            }
+        }
+    </script>
+}
