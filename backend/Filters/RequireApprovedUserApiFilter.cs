@@ -20,13 +20,15 @@ namespace ServConnect.Filters
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            var principal = context.HttpContext.User;
-            if (principal?.Identity == null || !principal.Identity.IsAuthenticated)
+            try
             {
-                // Let [Authorize] handle unauthenticated cases
-                await next();
-                return;
-            }
+                var principal = context.HttpContext.User;
+                if (principal?.Identity == null || !principal.Identity.IsAuthenticated)
+                {
+                    // Let [Authorize] handle unauthenticated cases
+                    await next();
+                    return;
+                }
 
             var user = await _userManager.GetUserAsync(principal);
             if (user == null)
@@ -38,32 +40,39 @@ namespace ServConnect.Filters
             // Determine if the current user is an Admin once
             var isAdmin = principal.IsInRole(RoleTypes.Admin);
 
-            // Skip profile completion requirement for Admins
-            if (!isAdmin && !user.IsProfileCompleted)
-            {
-                context.Result = new BadRequestObjectResult(new 
-                { 
-                    error = "Profile incomplete", 
-                    message = "Please complete your profile to continue using the app." 
-                });
-                return;
-            }
-
-            // Skip approval requirement for Admins
-            if (!isAdmin && !user.IsAdminApproved)
-            {
-                context.Result = new ObjectResult(new 
-                { 
-                    error = "Approval pending", 
-                    message = "Your profile is pending admin approval." 
-                })
+                // Skip profile completion requirement for Admins
+                if (!isAdmin && !user.IsProfileCompleted)
                 {
-                    StatusCode = 403 // Forbidden
-                };
-                return;
-            }
+                    context.Result = new BadRequestObjectResult(new 
+                    { 
+                        error = "Profile incomplete", 
+                        message = "Please complete your profile to continue using the app." 
+                    });
+                    return;
+                }
 
-            await next();
+                // Skip approval requirement for Admins
+                if (!isAdmin && !user.IsAdminApproved)
+                {
+                    context.Result = new ObjectResult(new 
+                    { 
+                        error = "Approval pending", 
+                        message = "Your profile is pending admin approval." 
+                    })
+                    {
+                        StatusCode = 403 // Forbidden
+                    };
+                    return;
+                }
+
+                await next();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] RequireApprovedUserApiFilter error: {ex.Message}");
+                Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+                context.Result = new StatusCodeResult(500);
+            }
         }
     }
 }

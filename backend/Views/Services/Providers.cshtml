@@ -255,44 +255,124 @@
 @section Scripts {
 <script>
 async function submitBooking(formId, modalId, providerId, providerName, serviceName) {
-    const form = document.getElementById(formId);
-    if (!form) {
-        alert('Form not found!');
-        return false;
-    }
-
-    const dtLocal = form.serviceDateTime.value; 
-    if (!dtLocal) { 
-        alert('Please select date & time'); 
-        return false; 
-    }
-
-    const serviceDateTime = new Date(dtLocal);
-
-    const payload = {
-        providerServiceId: form.querySelector("input[name='providerServiceId']").value,
-        providerId: providerId,
-        providerName: providerName,
-        serviceName: serviceName,
-        serviceDateTime: serviceDateTime.toISOString(),
-        note: form.note.value
-    };
-
+    console.log('[DEBUG] submitBooking called with:', { formId, modalId, providerId, providerName, serviceName });
+    
     try {
+        const form = document.getElementById(formId);
+        if (!form) {
+            console.error('[ERROR] Form not found:', formId);
+            alert('Form not found!');
+            return false;
+        }
+
+        const dtLocal = form.serviceDateTime.value; 
+        if (!dtLocal) { 
+            console.error('[ERROR] No date/time selected');
+            alert('Please select date & time'); 
+            return false; 
+        }
+
+        const serviceDateTime = new Date(dtLocal);
+        console.log('[DEBUG] Service date/time:', serviceDateTime);
+
+        const providerServiceIdInput = form.querySelector("input[name='providerServiceId']");
+        if (!providerServiceIdInput) {
+            console.error('[ERROR] Provider service ID input not found');
+            alert('Provider service ID not found');
+            return false;
+        }
+
+        const payload = {
+            providerServiceId: providerServiceIdInput.value,
+            providerId: providerId,
+            providerName: providerName,
+            serviceName: serviceName,
+            serviceDateTime: serviceDateTime.toISOString(),
+            note: form.note.value || ''
+        };
+
+        console.log('[DEBUG] Booking payload:', payload);
+        console.log('[DEBUG] Making booking request...');
+
+        // Create AbortController for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
         const res = await fetch('/api/bookings', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest' // Helps identify AJAX requests
+            },
+            body: JSON.stringify(payload),
+            credentials: 'same-origin', // Include cookies for authentication
+            signal: controller.signal
         });
 
+        clearTimeout(timeoutId); // Clear timeout if request completes
+
+        console.log('[DEBUG] Response status:', res.status);
+        console.log('[DEBUG] Response ok:', res.ok);
+
+        // Check if response is a redirect (which might indicate auth issues)
+        if (res.redirected) {
+            console.warn('[WARN] Request was redirected to:', res.url);
+            if (res.url.includes('/Account/Login')) {
+                alert('Your session has expired. Please log in again.');
+                window.location.href = '/Account/Login';
+                return false;
+            }
+        }
+
         if (res.ok) {
+            console.log('[SUCCESS] Booking created successfully - entering success block');
+            
+            // Don't try to parse JSON immediately, just show success
+            console.log('[SUCCESS] Response received, showing success message');
+            
+            console.log('[SUCCESS] Hiding modal...');
             const modalEl = document.getElementById(modalId);
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            modal.hide();
-            alert('Booking request sent! You will be notified when the provider responds.');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.hide();
+                console.log('[SUCCESS] Modal hidden');
+            }
+            
+            // Reset the form
+            console.log('[SUCCESS] Resetting form...');
+            const form = document.getElementById(formId);
+            if (form) {
+                form.reset();
+                console.log('[SUCCESS] Form reset');
+            }
+            
+            // Show success message immediately
+            console.log('[SUCCESS] Showing success message...');
+            alert('Booking request sent successfully! The provider will be notified.');
+            
+            // Optional: redirect to bookings
+            if (confirm('Would you like to view your bookings now?')) {
+                console.log('[SUCCESS] Redirecting to bookings...');
+                window.location.href = '/my/bookings';
+            } else {
+                console.log('[SUCCESS] Staying on current page');
+            }
         } else {
+            console.log('[ERROR] Response not OK, status:', res.status);
+            // Handle different status codes
+            if (res.status === 401) {
+                alert('Please log in to continue.');
+                window.location.href = '/Account/Login';
+                return false;
+            } else if (res.status === 403) {
+                alert('Access denied. Please ensure your profile is complete and approved.');
+                return false;
+            }
+
             try {
                 const errorData = await res.json();
+                console.log('[ERROR] Error response:', errorData);
+                
                 if (errorData.pendingPayments && errorData.pendingPayments.length > 0) {
                     // Show pending payments with payment links
                     let message = errorData.error + '\n\nPending Payments:\n';
@@ -310,12 +390,31 @@ async function submitBooking(formId, modalId, providerId, providerName, serviceN
                 }
             } catch (e) {
                 // Fallback for non-JSON responses
-                const text = await res.text();
-                alert('Failed to create booking: ' + text);
+                console.error('[ERROR] Failed to parse error response:', e);
+                try {
+                    const text = await res.text();
+                    console.log('[ERROR] Error response text:', text);
+                    alert('Failed to create booking: ' + (text || 'Server error'));
+                } catch (textError) {
+                    console.error('[ERROR] Failed to read response text:', textError);
+                    alert('Failed to create booking: Server error (Status: ' + res.status + ')');
+                }
             }
         }
-    } catch (error) {
-        alert('An error occurred: ' + error.message);
+    } catch (outerError) {
+        console.error('[ERROR] Fetch failed:', outerError);
+        console.error('[ERROR] Error details:', {
+            name: outerError.name,
+            message: outerError.message,
+            stack: outerError.stack
+        });
+        
+        // Check for specific error types
+        if (outerError.name === 'AbortError') {
+            alert('Request timed out. The booking may have been processed. Please check your bookings page.');
+        } else {
+            alert('Request sent but no response received. Please check your bookings to confirm the status.');
+        }
     }
 
     return false; // prevent form from refreshing the page

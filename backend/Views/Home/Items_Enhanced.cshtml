@@ -383,12 +383,12 @@
             // Step 2: Load Razorpay and open checkout
             await ensureRazorpay();
             const options = {
-                key: data.key,
-                amount: data.amount,
-                currency: data.currency || 'INR',
+                key: data.order.key || data.key,
+                amount: data.order.amount || data.amount,
+                currency: data.order.currency || data.currency || 'INR',
                 name: 'ServConnect',
-                description: data.description || 'Order Payment',
-                order_id: data.razorpayOrderId,
+                description: data.order.description || data.description || 'Order Payment',
+                order_id: data.order.razorpayOrderId || data.razorpayOrderId,
                 handler: async function (response) {
                     try {
                         // Step 3: Verify payment with backend
@@ -397,7 +397,7 @@
                             headers: { 'Content-Type': 'application/json' },
                             credentials: 'same-origin',
                             body: JSON.stringify({
-                                orderId: data.orderId,
+                                orderId: data.order.id || data.orderId,
                                 razorpayOrderId: response.razorpay_order_id,
                                 razorpayPaymentId: response.razorpay_payment_id,
                                 razorpaySignature: response.razorpay_signature

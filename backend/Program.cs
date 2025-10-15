@@ -51,6 +51,18 @@ builder.Services.AddLocalization(options => options.ResourcesPath = "Resources")
 
 // Firebase Authentication is handled client-side and verified server-side
 
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowCredentials()
+              .SetIsOriginAllowed(origin => true) // Allow any origin in development
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers();       // Adds API controllers
 builder.Services.AddControllersWithViews(options =>
 {
@@ -93,6 +105,8 @@ builder.Services.AddHostedService<ServConnect.BackgroundServices.ServiceExpiryBa
 
 // Orders & payments
 builder.Services.AddScoped<IOrderService, OrderService>();
+// Address management
+builder.Services.AddScoped<IAddressService, AddressService>();
 // Local directory: admin CRUD via Mongo + public discovery via Google Places
 builder.Services.AddHttpClient<GooglePlacesService>();
 builder.Services.AddScoped<LocalDirectory>();
@@ -135,6 +149,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRequestLocalization(localizationOptions);
 app.UseRouting();
+app.UseCors(); // Add CORS middleware
 app.UseAuthentication();
 app.UseAuthorization();
 

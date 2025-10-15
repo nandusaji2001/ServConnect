@@ -5,10 +5,13 @@ namespace ServConnect.Models
 {
     public enum OrderStatus
     {
-        Pending = 0,     // payment verified, awaiting shipment
-        Shipped = 1,
-        Delivered = 2,
-        Cancelled = 3
+        Pending = 0,        // payment verified, awaiting vendor acceptance
+        Accepted = 1,       // vendor accepted the order
+        Packed = 2,         // vendor marked as packed
+        Shipped = 3,        // vendor marked as shipped
+        OutForDelivery = 4, // vendor marked as out for delivery
+        Delivered = 5,      // user confirmed delivery
+        Cancelled = 6       // order cancelled
     }
 
     public enum PaymentStatus
@@ -40,7 +43,21 @@ namespace ServConnect.Models
         public int Quantity { get; set; }
         public decimal TotalAmount { get; set; }
 
-        public string ShippingAddress { get; set; } = string.Empty;
+        // Detailed shipping address
+        public string ShippingAddress { get; set; } = string.Empty; // Legacy field for backward compatibility
+        public string ShippingFullName { get; set; } = string.Empty;
+        public string ShippingPhoneNumber { get; set; } = string.Empty;
+        public string ShippingAddressLine1 { get; set; } = string.Empty;
+        public string? ShippingAddressLine2 { get; set; }
+        public string ShippingCity { get; set; } = string.Empty;
+        public string ShippingState { get; set; } = string.Empty;
+        public string ShippingPostalCode { get; set; } = string.Empty;
+        public string ShippingCountry { get; set; } = "India";
+        public string? ShippingLandmark { get; set; }
+
+        // Reference to user's saved address if used
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? UserAddressId { get; set; }
 
         // flow status
         public OrderStatus Status { get; set; } = OrderStatus.Pending;

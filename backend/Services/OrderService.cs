@@ -34,6 +34,57 @@ namespace ServConnect.Services
             _itemService = itemService;
         }
 
+        public async Task<(Order order, string razorpayOrderId)> CreateOrderWithAddressAsync(Guid userId, string userEmail, string itemId, int quantity, UserAddress address, string? userAddressId = null)
+        {
+            if (quantity <= 0) throw new ArgumentException("Quantity must be > 0");
+            var item = await _items.Find(i => i.Id == itemId && i.IsActive).FirstOrDefaultAsync();
+            if (item == null) throw new InvalidOperationException("Item not found");
+            if (quantity > item.Stock) throw new InvalidOperationException("Insufficient stock");
+
+            var total = item.Price * quantity;
+            var amountPaise = (long)(total * 100);
+
+            // Create Razorpay order
+            var razorpayOrderId = await CreateRazorpayOrderAsync(amountPaise);
+
+            var order = new Order
+            {
+                Id = null!,
+                UserId = userId,
+                UserEmail = userEmail,
+                VendorId = item.OwnerId,
+                ItemId = item.Id!,
+                ItemTitle = item.Title,
+                ItemPrice = item.Price,
+                Quantity = quantity,
+                TotalAmount = total,
+                
+                // Legacy field for backward compatibility
+                ShippingAddress = address.FormattedAddress,
+                
+                // Detailed address fields
+                ShippingFullName = address.FullName,
+                ShippingPhoneNumber = address.PhoneNumber,
+                ShippingAddressLine1 = address.AddressLine1,
+                ShippingAddressLine2 = address.AddressLine2,
+                ShippingCity = address.City,
+                ShippingState = address.State,
+                ShippingPostalCode = address.PostalCode,
+                ShippingCountry = address.Country,
+                ShippingLandmark = address.Landmark,
+                UserAddressId = userAddressId,
+                
+                Status = OrderStatus.Pending,
+                RazorpayOrderId = razorpayOrderId,
+                PaymentStatus = PaymentStatus.Created,
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow
+            };
+
+            await _orders.InsertOneAsync(order);
+            return (order, razorpayOrderId);
+        }
+
         public async Task<(Order order, string razorpayOrderId)> CreateOrderAsync(Guid userId, string userEmail, string itemId, int quantity, string shippingAddress)
         {
             if (quantity <= 0) throw new ArgumentException("Quantity must be > 0");
@@ -41,37 +92,11 @@ namespace ServConnect.Services
             if (item == null) throw new InvalidOperationException("Item not found");
             if (quantity > item.Stock) throw new InvalidOperationException("Insufficient stock");
 
-            var total = item.Price * quantity; // decimal
+            var total = item.Price * quantity;
             var amountPaise = (long)(total * 100);
 
-            // Create Razorpay order via REST API
-            var keyId = _config["Razorpay:KeyId"] ?? string.Empty;
-            var secret = _config["Razorpay:Secret"] ?? string.Empty;
-            if (string.IsNullOrEmpty(keyId) || string.IsNullOrEmpty(secret))
-                throw new InvalidOperationException("Razorpay configuration missing");
-
-            var http = _httpFactory.CreateClient();
-            http.BaseAddress = new Uri("https://api.razorpay.com/");
-            var authToken = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{keyId}:{secret}"));
-            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
-
-            var payload = new
-            {
-                amount = amountPaise,
-                currency = "INR",
-                receipt = $"rcpt_{Guid.NewGuid():N}",
-                payment_capture = 1
-            };
-            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            var resp = await http.PostAsync("v1/orders", content);
-            if (!resp.IsSuccessStatusCode)
-            {
-                var err = await resp.Content.ReadAsStringAsync();
-                throw new InvalidOperationException($"Failed to create Razorpay order: {resp.StatusCode} {err}");
-            }
-            using var stream = await resp.Content.ReadAsStreamAsync();
-            using var doc = await JsonDocument.ParseAsync(stream);
-            var razorpayOrderId = doc.RootElement.GetProperty("id").GetString() ?? string.Empty;
+            // Create Razorpay order
+            var razorpayOrderId = await CreateRazorpayOrderAsync(amountPaise);
 
             var order = new Order
             {
@@ -223,7 +248,7 @@ namespace ServConnect.Services
                          (isVendor ? Builders<Order>.Filter.Eq(x => x.VendorId, actorId) : Builders<Order>.Filter.Eq(x => x.UserId, actorId));
             var current = await _orders.Find(filter).FirstOrDefaultAsync();
             if (current == null) return false;
-            if (current.Status == OrderStatus.Shipped || current.Status == OrderStatus.Delivered) return false;
+            if (current.Status == OrderStatus.Shipped || current.Status == OrderStatus.OutForDelivery || current.Status == OrderStatus.Delivered) return false;
 
             var update = Builders<Order>.Update
                 .Set(x => x.Status, OrderStatus.Cancelled)
@@ -257,6 +282,108 @@ namespace ServConnect.Services
         public async Task<Order?> GetByIdAsync(string id)
         {
             return await _orders.Find(o => o.Id == id).FirstOrDefaultAsync();
+        }
+
+        // New status management methods
+        public async Task<bool> AcceptOrderAsync(string orderId, Guid vendorId)
+        {
+            return await UpdateOrderStatusAsync(orderId, vendorId, OrderStatus.Accepted);
+        }
+
+        public async Task<bool> MarkPackedAsync(string orderId, Guid vendorId)
+        {
+            return await UpdateOrderStatusAsync(orderId, vendorId, OrderStatus.Packed);
+        }
+
+        public async Task<bool> MarkOutForDeliveryAsync(string orderId, Guid vendorId)
+        {
+            return await UpdateOrderStatusAsync(orderId, vendorId, OrderStatus.OutForDelivery);
+        }
+
+        public async Task<bool> UpdateOrderStatusAsync(string orderId, Guid vendorId, OrderStatus status, string? trackingUrl = null)
+        {
+            var updateBuilder = Builders<Order>.Update
+                .Set(x => x.Status, status)
+                .Set(x => x.UpdatedAtUtc, DateTime.UtcNow);
+
+            if (!string.IsNullOrEmpty(trackingUrl))
+            {
+                updateBuilder = updateBuilder.Set(x => x.TrackingUrl, trackingUrl);
+            }
+
+            var res = await _orders.UpdateOneAsync(
+                x => x.Id == orderId && x.VendorId == vendorId && x.PaymentStatus == PaymentStatus.Paid,
+                updateBuilder
+            );
+
+            if (res.ModifiedCount == 1)
+            {
+                var ord = await GetByIdAsync(orderId);
+                if (ord != null)
+                {
+                    await SendStatusUpdateNotifications(ord, status);
+                }
+            }
+
+            return res.ModifiedCount == 1;
+        }
+
+        private async Task SendStatusUpdateNotifications(Order order, OrderStatus status)
+        {
+            var user = await _userManager.FindByIdAsync(order.UserId.ToString());
+            var vendor = await _userManager.FindByIdAsync(order.VendorId.ToString());
+
+            string userMsg = status switch
+            {
+                OrderStatus.Accepted => $"Your order {order.Id} has been accepted by the vendor.",
+                OrderStatus.Packed => $"Your order {order.Id} has been packed and is ready for shipment.",
+                OrderStatus.Shipped => $"Your order {order.Id} has been shipped." + (string.IsNullOrWhiteSpace(order.TrackingUrl) ? "" : $" Track: {order.TrackingUrl}"),
+                OrderStatus.OutForDelivery => $"Your order {order.Id} is out for delivery. You should receive it soon!",
+                _ => $"Your order {order.Id} status updated to {status}."
+            };
+
+            string vendorMsg = status switch
+            {
+                OrderStatus.Accepted => $"Order {order.Id} accepted.",
+                OrderStatus.Packed => $"Order {order.Id} marked as packed.",
+                OrderStatus.Shipped => $"Order {order.Id} marked as shipped.",
+                OrderStatus.OutForDelivery => $"Order {order.Id} marked as out for delivery.",
+                _ => $"Order {order.Id} status updated to {status}."
+            };
+
+            if (!string.IsNullOrWhiteSpace(user?.PhoneNumber)) _ = _sms.SendSmsAsync(user.PhoneNumber!, userMsg);
+            if (!string.IsNullOrWhiteSpace(vendor?.PhoneNumber)) _ = _sms.SendSmsAsync(vendor.PhoneNumber!, vendorMsg);
+        }
+
+        private async Task<string> CreateRazorpayOrderAsync(long amountPaise)
+        {
+            var keyId = _config["Razorpay:KeyId"] ?? string.Empty;
+            var secret = _config["Razorpay:Secret"] ?? string.Empty;
+            if (string.IsNullOrEmpty(keyId) || string.IsNullOrEmpty(secret))
+                throw new InvalidOperationException("Razorpay configuration missing");
+
+            var http = _httpFactory.CreateClient();
+            http.BaseAddress = new Uri("https://api.razorpay.com/");
+            var authToken = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{keyId}:{secret}"));
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
+
+            var payload = new
+            {
+                amount = amountPaise,
+                currency = "INR",
+                receipt = $"rcpt_{Guid.NewGuid():N}",
+                payment_capture = 1
+            };
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var resp = await http.PostAsync("v1/orders", content);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var err = await resp.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to create Razorpay order: {resp.StatusCode} {err}");
+            }
+            using var stream = await resp.Content.ReadAsStreamAsync();
+            using var doc = await JsonDocument.ParseAsync(stream);
+            return doc.RootElement.GetProperty("id").GetString() ?? string.Empty;
         }
     }
 }

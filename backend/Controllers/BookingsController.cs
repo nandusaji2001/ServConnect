@@ -31,13 +31,23 @@ namespace ServConnect.Controllers
             public string? Note { get; set; }
         }
 
+        // Test endpoint to verify API is working
+        [HttpGet("/api/bookings/test")]
+        public IActionResult Test()
+        {
+            return Ok(new { message = "Bookings API is working", timestamp = DateTime.UtcNow });
+        }
+
         [HttpPost("/api/bookings")] 
         [Authorize] // any logged-in user can request a booking
         [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
         public async Task<IActionResult> Create([FromBody] CreateBookingRequest req)
         {
-            if (string.IsNullOrWhiteSpace(req.ProviderServiceId)) return BadRequest("Provider service is required");
-            if (req.ServiceDateTime <= DateTime.UtcNow.AddMinutes(-1)) return BadRequest("Please choose a future date/time");
+            Console.WriteLine($"[DEBUG] Booking API called at {DateTime.Now}");
+            try
+            {
+                if (string.IsNullOrWhiteSpace(req.ProviderServiceId)) return BadRequest("Provider service is required");
+                if (req.ServiceDateTime <= DateTime.UtcNow.AddMinutes(-1)) return BadRequest("Please choose a future date/time");
 
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
@@ -67,14 +77,21 @@ namespace ServConnect.Controllers
                 return BadRequest("Please complete your profile (phone and address) before booking.");
             }
 
-            var booking = await _bookings.CreateAsync(
-                me.Id, me.FullName ?? me.UserName ?? "User", me.Email ?? string.Empty,
-                req.ProviderId, string.IsNullOrWhiteSpace(req.ProviderName) ? "Provider" : req.ProviderName,
-                req.ProviderServiceId, string.IsNullOrWhiteSpace(req.ServiceName) ? "Service" : req.ServiceName,
-                req.ServiceDateTime, contactPhone, address, req.Note
-            );
+                var booking = await _bookings.CreateAsync(
+                    me.Id, me.FullName ?? me.UserName ?? "User", me.Email ?? string.Empty,
+                    req.ProviderId, string.IsNullOrWhiteSpace(req.ProviderName) ? "Provider" : req.ProviderName,
+                    req.ProviderServiceId, string.IsNullOrWhiteSpace(req.ServiceName) ? "Service" : req.ServiceName,
+                    req.ServiceDateTime, contactPhone, address, req.Note
+                );
 
-            return Ok(booking);
+                return Ok(booking);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Booking creation failed: {ex.Message}");
+                Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+                return StatusCode(500, new { error = "Internal server error", message = ex.Message });
+            }
         }
 
         // Provider view: list bookings
