@@ -4,18 +4,19 @@ using ServConnect.Services;
 
 namespace ServConnect.ViewComponents
 {
-    public class AdvertisementBannerViewComponent : ViewComponent
+    public class HeroAdvertisementViewComponent : ViewComponent
     {
         private readonly IAdvertisementService _adService;
-        public AdvertisementBannerViewComponent(IAdvertisementService adService)
+        
+        public HeroAdvertisementViewComponent(IAdvertisementService adService)
         {
             _adService = adService;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var ads = await _adService.GetActiveByTypeAsync(AdvertisementType.BottomPage, 10);
-            return View(ads);
+            var heroAds = await _adService.GetActiveByTypeAsync(AdvertisementType.HeroBanner, 10);
+            return View(heroAds);
         }
     }
 }

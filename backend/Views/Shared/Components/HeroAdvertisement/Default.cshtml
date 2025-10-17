@@ -1,0 +1,168 @@
+@model List<ServConnect.Models.Advertisement>
+
+@if (Model != null && Model.Count > 0)
+{
+    var carouselId = "heroAdCarousel";
+    <div class="hero-advertisement-banner">
+        @if (Model.Count == 1)
+        {
+            var ad = Model[0];
+            @if (!string.IsNullOrEmpty(ad.TargetUrl))
+            {
+                <a href="@ad.TargetUrl" target="_blank" rel="noopener noreferrer" class="hero-ad-link">
+                    <img src="@ad.ImageUrl" alt="Advertisement" class="hero-ad-image" />
+                </a>
+            }
+            else
+            {
+                <img src="@ad.ImageUrl" alt="Advertisement" class="hero-ad-image" />
+            }
+        }
+        else
+        {
+            <div id="@carouselId" class="carousel slide hero-ad-carousel" data-bs-ride="carousel" data-bs-interval="3000">
+                <div class="carousel-inner">
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        var ad = Model[i];
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            @if (!string.IsNullOrEmpty(ad.TargetUrl))
+                            {
+                                <a href="@ad.TargetUrl" target="_blank" rel="noopener noreferrer" class="hero-ad-link">
+                                    <img src="@ad.ImageUrl" alt="Advertisement @(i + 1)" class="hero-ad-image" />
+                                </a>
+                            }
+                            else
+                            {
+                                <img src="@ad.ImageUrl" alt="Advertisement @(i + 1)" class="hero-ad-image" />
+                            }
+                        </div>
+                    }
+                </div>
+                
+                <!-- Carousel indicators -->
+                <div class="carousel-indicators hero-ad-indicators">
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        <button type="button" data-bs-target="#@carouselId" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")" aria-label="Slide @(i + 1)"></button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .hero-advertisement-banner {
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        aspect-ratio: 600/180;
+        margin: 0 auto;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .hero-advertisement-banner:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-ad-link {
+        display: block;
+        width: 100%;
+        height: 100%;
+        text-decoration: none;
+    }
+
+    .hero-ad-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        border-radius: 12px;
+        transition: transform 0.3s ease;
+        display: block;
+    }
+
+    .hero-ad-link:hover .hero-ad-image {
+        transform: scale(1.02);
+    }
+
+    /* Carousel specific styles */
+    .hero-ad-carousel {
+        width: 100%;
+        height: 100%;
+    }
+
+    .hero-ad-indicators {
+        bottom: -30px;
+        margin-bottom: 0;
+    }
+
+    .hero-ad-indicators button {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        background-color: rgba(255, 255, 255, 0.3);
+        margin: 0 4px;
+        transition: all 0.3s ease;
+    }
+
+    .hero-ad-indicators button.active {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-color: rgba(255, 255, 255, 1);
+        transform: scale(1.2);
+    }
+
+    .hero-ad-indicators button:hover {
+        background-color: rgba(255, 255, 255, 0.7);
+        transform: scale(1.1);
+    }
+
+    /* Responsive design */
+    @@media (max-width: 991px) {
+        .hero-advertisement-banner {
+            max-width: 400px;
+            margin: 20px auto;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .hero-advertisement-banner {
+            max-width: 100%;
+            margin: 15px auto;
+        }
+        
+        .hero-ad-indicators {
+            bottom: -25px;
+        }
+        
+        .hero-ad-indicators button {
+            width: 6px;
+            height: 6px;
+            margin: 0 3px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .hero-advertisement-banner {
+            margin: 10px auto;
+            border-radius: 8px;
+        }
+        
+        .hero-ad-image {
+            border-radius: 8px;
+        }
+        
+        .hero-ad-indicators {
+            bottom: -20px;
+        }
+    }
+</style>

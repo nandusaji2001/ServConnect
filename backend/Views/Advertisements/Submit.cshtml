@@ -2,23 +2,204 @@
     ViewData["Title"] = "Submit Advertisement";
 }
 
-<div class="container py-4" style="max-width:720px;">
+<div class="container py-4" style="max-width:800px;">
     <h3 class="mb-3">Submit Your Advertisement</h3>
-    <p class="text-muted">Upload your banner image and provide a destination URL (e.g., Google Maps). A fee of Rs.1000 applies.</p>
+    <p class="text-muted">Choose your advertisement type, upload your banner image and provide a destination URL. A fee of Rs.1000 applies.</p>
 
-    <form asp-action="Submit" method="post" enctype="multipart/form-data" class="card p-3">
-        <div class="mb-3">
-            <label for="image" class="form-label">Ad Image</label>
+    <form asp-action="Submit" method="post" enctype="multipart/form-data" class="card p-4">
+        <!-- Advertisement Type Selection -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">Advertisement Type</label>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="ad-type-card" data-type="0">
+                        <input type="radio" name="adType" value="0" id="bottomPage" checked class="d-none">
+                        <label for="bottomPage" class="ad-type-label">
+                            <div class="ad-type-preview">
+                                <div class="ad-preview-box" style="width: 200px; height: 25px; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6c757d;">
+                                    728 x 90 px
+                                </div>
+                            </div>
+                            <h6 class="mt-2 mb-1">Bottom Page Advertisement</h6>
+                            <small class="text-muted">Displayed at the bottom of pages</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="ad-type-card" data-type="1">
+                        <input type="radio" name="adType" value="1" id="heroBanner" class="d-none">
+                        <label for="heroBanner" class="ad-type-label">
+                            <div class="ad-type-preview">
+                                <div class="ad-preview-box" style="width: 200px; height: 60px; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6c757d;">
+                                    600 x 180 px
+                                </div>
+                            </div>
+                            <h6 class="mt-2 mb-1">Hero Banner Advertisement</h6>
+                            <small class="text-muted">Displayed in the hero section</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Upload with Preview -->
+        <div class="mb-4">
+            <label for="image" class="form-label fw-bold">Ad Image</label>
             <input type="file" class="form-control" id="image" name="image" accept="image/*" required />
+            <div class="mt-2">
+                <small class="text-muted">Image will be automatically cropped to fit the selected advertisement dimensions.</small>
+            </div>
             <span class="text-danger">@Html.ValidationMessage("image")</span>
+            
+            <!-- Image Preview and Cropper -->
+            <div id="imagePreviewContainer" class="mt-3" style="display: none;">
+                <label class="form-label">Preview & Crop</label>
+                <div class="border rounded p-3 bg-light">
+                    <div id="cropperContainer">
+                        <img id="imagePreview" style="max-width: 100%; display: block;">
+                    </div>
+                    <div class="mt-2 text-center">
+                        <small class="text-muted">The image will be cropped to the highlighted area to match the advertisement dimensions.</small>
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div class="mb-3">
-            <label for="targetUrl" class="form-label">Destination URL (Google Maps or website)</label>
+            <label for="targetUrl" class="form-label fw-bold">Destination URL (Optional)</label>
             <input type="url" class="form-control" id="targetUrl" name="targetUrl" placeholder="https://maps.google.com/..." />
+            <small class="text-muted">Where users will be redirected when they click your advertisement.</small>
         </div>
+
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-success"><i class="bi bi-send-check"></i> Continue to Payment</button>
             <a class="btn btn-secondary" asp-controller="Home" asp-action="Index">Cancel</a>
         </div>
     </form>
 </div>
+
+<style>
+    .ad-type-card {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .ad-type-card:hover {
+        border-color: #0d6efd;
+        background-color: #f8f9ff;
+    }
+
+    .ad-type-card.selected {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
+    }
+
+    .ad-type-label {
+        cursor: pointer;
+        margin: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .ad-type-preview {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .ad-preview-box {
+        border-radius: 4px;
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+
+<script>
+    let cropper = null;
+    let currentAdType = 0; // Default to bottom page
+
+    // Handle advertisement type selection
+    document.querySelectorAll('input[name="adType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            currentAdType = parseInt(this.value);
+            
+            // Update visual selection
+            document.querySelectorAll('.ad-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            this.closest('.ad-type-card').classList.add('selected');
+            
+            // Update cropper if image is loaded
+            if (cropper) {
+                updateCropperAspectRatio();
+            }
+        });
+    });
+
+    // Initialize first option as selected
+    document.querySelector('.ad-type-card[data-type="0"]').classList.add('selected');
+
+    // Handle image upload
+    document.getElementById('image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.src = e.target.result;
+                
+                document.getElementById('imagePreviewContainer').style.display = 'block';
+                
+                // Destroy existing cropper
+                if (cropper) {
+                    cropper.destroy();
+                }
+                
+                // Initialize new cropper
+                initializeCropper();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function initializeCropper() {
+        const imagePreview = document.getElementById('imagePreview');
+        const aspectRatio = getAspectRatio();
+        
+        cropper = new Cropper(imagePreview, {
+            aspectRatio: aspectRatio,
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 1,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+        });
+    }
+
+    function updateCropperAspectRatio() {
+        if (cropper) {
+            const aspectRatio = getAspectRatio();
+            cropper.setAspectRatio(aspectRatio);
+        }
+    }
+
+    function getAspectRatio() {
+        if (currentAdType === 1) { // Hero Banner
+            return 600 / 180; // 3.33
+        } else { // Bottom Page
+            return 728 / 90; // 8.09
+        }
+    }
+</script>

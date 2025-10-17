@@ -32,6 +32,8 @@ namespace ServConnect.Models
         public int AmountInPaise { get; set; } = 100000; // default Rs.1000
         public bool IsPaid { get; set; } = false;
 
+        public AdvertisementType Type { get; set; } = AdvertisementType.BottomPage;
+
         public string? AdminNote { get; set; }
         public DateTime? ReviewedAtUtc { get; set; }
     }

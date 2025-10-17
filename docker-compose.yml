@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  servconnect-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      # MongoDB Configuration (update these with your MongoDB Atlas connection)
+      - MongoDB__ConnectionString=mongodb://localhost:27017
+      - MongoDB__DatabaseName=ServConnectDb
+      # Add other environment variables as needed
+      # - Razorpay__KeyId=your_razorpay_key_id
+      # - Razorpay__KeySecret=your_razorpay_key_secret
+      # - GoogleMaps__ApiKey=your_google_maps_api_key
+    volumes:
+      - ./uploads:/app/wwwroot/uploads
+      - ./logs:/app/logs
+    depends_on:
+      - mongodb
+    networks:
+      - servconnect-network
+
+  mongodb:
+    image: mongo:7.0
+    container_name: servconnect-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=ServConnectDb
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - servconnect-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  servconnect-network:
+    driver: bridge

@@ -442,6 +442,7 @@ namespace ServConnect.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
         public async Task<IActionResult> CreateAd(IFormFile image, string? targetUrl)
         {
             if (image == null || image.Length == 0)
@@ -541,6 +542,7 @@ namespace ServConnect.Controllers
             {
                 ImageUrl = req.ImageUrl,
                 TargetUrl = req.TargetUrl,
+                Type = req.Type,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };

@@ -45,6 +45,21 @@ namespace ServConnect.Services
                              .ToListAsync();
         }
 
+        public async Task<Advertisement?> GetLatestActiveByTypeAsync(AdvertisementType type)
+        {
+            return await _ads.Find(a => a.IsActive && a.Type == type)
+                             .SortByDescending(a => a.CreatedAt)
+                             .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<Advertisement>> GetActiveByTypeAsync(AdvertisementType type, int take = 10)
+        {
+            return await _ads.Find(a => a.IsActive && a.Type == type)
+                             .SortByDescending(a => a.CreatedAt)
+                             .Limit(take)
+                             .ToListAsync();
+        }
+
         public async Task<bool> DeleteAsync(string id)
         {
             var res = await _ads.DeleteOneAsync(a => a.Id == id);

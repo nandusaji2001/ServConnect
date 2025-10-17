@@ -36,7 +36,8 @@ namespace ServConnect.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Submit(IFormFile image, string? targetUrl)
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+        public async Task<IActionResult> Submit(IFormFile image, string? targetUrl, AdvertisementType adType = AdvertisementType.BottomPage)
         {
             if (image == null || image.Length == 0)
             {
@@ -44,9 +45,19 @@ namespace ServConnect.Controllers
                 return View();
             }
 
-            // Crop/resize like admin to 728x90
-            const int targetW = 728;
-            const int targetH = 90;
+            // Set dimensions based on advertisement type
+            int targetW, targetH;
+            if (adType == AdvertisementType.HeroBanner)
+            {
+                targetW = 600;
+                targetH = 180;
+            }
+            else
+            {
+                targetW = 728;
+                targetH = 90;
+            }
+
             try
             {
                 var user = await _userManager.GetUserAsync(User);
@@ -93,6 +104,7 @@ namespace ServConnect.Controllers
                     RequestedByUserId = user.Id,
                     ImageUrl = $"/ads/{fileName}",
                     TargetUrl = string.IsNullOrWhiteSpace(targetUrl) ? null : targetUrl,
+                    Type = adType,
                     AmountInPaise = 100000,
                     Status = AdRequestStatus.Pending,
                     IsPaid = false

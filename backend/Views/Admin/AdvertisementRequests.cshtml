@@ -24,6 +24,7 @@
                 <thead>
                     <tr>
                         <th>Preview</th>
+                        <th>Type</th>
                         <th>User</th>
                         <th>Submitted</th>
                         <th>Payment</th>
@@ -36,7 +37,26 @@
                     {
                         <tr>
                             <td>
-                                <img src="@r.ImageUrl" alt="ad" width="364" height="45" style="object-fit:cover;border-radius:4px;" />
+                                @if (r.Type == AdvertisementType.HeroBanner)
+                                {
+                                    <img src="@r.ImageUrl" alt="ad" width="120" height="36" style="object-fit:cover;border-radius:4px;" />
+                                }
+                                else
+                                {
+                                    <img src="@r.ImageUrl" alt="ad" width="364" height="45" style="object-fit:cover;border-radius:4px;" />
+                                }
+                            </td>
+                            <td>
+                                @if (r.Type == AdvertisementType.HeroBanner)
+                                {
+                                    <span class="badge bg-primary">Hero Banner</span>
+                                    <small class="d-block text-muted">600x180</small>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Bottom Page</span>
+                                    <small class="d-block text-muted">728x90</small>
+                                }
                             </td>
                             <td>@r.RequestedByUserId</td>
                             <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>

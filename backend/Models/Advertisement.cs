@@ -3,6 +3,12 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace ServConnect.Models
 {
+    public enum AdvertisementType
+    {
+        BottomPage = 0,  // Default existing type (728x90)
+        HeroBanner = 1   // New hero banner type (600x180)
+    }
+
     public class Advertisement
     {
         [BsonId]
@@ -12,6 +18,8 @@ namespace ServConnect.Models
         public string ImageUrl { get; set; } = string.Empty; // relative URL under wwwroot
 
         public string? TargetUrl { get; set; } // optional external link (e.g., Google Maps)
+
+        public AdvertisementType Type { get; set; } = AdvertisementType.BottomPage;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
