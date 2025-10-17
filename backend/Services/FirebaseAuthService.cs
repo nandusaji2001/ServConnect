@@ -12,29 +12,41 @@ namespace ServConnect.Services
         public FirebaseAuthService(ILogger<FirebaseAuthService> logger, IConfiguration configuration)
         {
             _logger = logger;
-            
+
             // Initialize Firebase Admin SDK if not already initialized
             if (FirebaseApp.DefaultInstance == null)
             {
-                var serviceAccountPath = configuration["Firebase:ServiceAccountPath"];
-                var projectId = configuration["Firebase:ProjectId"];
-                
-                if (string.IsNullOrEmpty(serviceAccountPath) || string.IsNullOrEmpty(projectId))
+                string firebaseJson = Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_JSON");
+                string projectId = configuration["Firebase:ProjectId"];
+
+                // If env variable is not set, fallback to local file for development
+                if (string.IsNullOrEmpty(firebaseJson))
                 {
-                    throw new InvalidOperationException("Firebase configuration is missing. Please check Firebase:ServiceAccountPath and Firebase:ProjectId in appsettings.json");
+                    var serviceAccountPath = configuration["Firebase:ServiceAccountPath"];
+                    if (string.IsNullOrEmpty(serviceAccountPath))
+                    {
+                        throw new InvalidOperationException("Firebase configuration is missing. Please set FIREBASE_SERVICE_ACCOUNT_JSON or Firebase:ServiceAccountPath in appsettings.json");
+                    }
+
+                    firebaseJson = File.ReadAllText(serviceAccountPath);
                 }
 
-                var credential = GoogleCredential.FromFile(serviceAccountPath);
-                
+                if (string.IsNullOrEmpty(projectId))
+                {
+                    throw new InvalidOperationException("Firebase ProjectId is missing. Please check Firebase:ProjectId in appsettings.json");
+                }
+
+                var credential = GoogleCredential.FromJson(firebaseJson);
+
                 FirebaseApp.Create(new AppOptions()
                 {
                     Credential = credential,
                     ProjectId = projectId
                 });
-                
+
                 _logger.LogInformation("Firebase Admin SDK initialized successfully");
             }
-            
+
             _firebaseAuth = FirebaseAuth.DefaultInstance;
         }
 
