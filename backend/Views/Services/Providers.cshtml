@@ -61,6 +61,28 @@
         font-size: 0.75rem;
         font-weight: 500;
     }
+    .booking-validation-message {
+        font-size: 0.875rem;
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin-top: 8px;
+    }
+    .booking-validation-message.alert-success {
+        background-color: #d1f2eb;
+        border-color: #10b981;
+        color: #047857;
+    }
+    .booking-validation-message.alert-danger {
+        background-color: #fee2e2;
+        border-color: #ef4444;
+        color: #dc2626;
+    }
+    .availability-info {
+        font-size: 0.875rem;
+        background-color: #e0f2fe;
+        border-color: #0ea5e9;
+        color: #0369a1;
+    }
 </style>
 
 <div class="container py-4">
@@ -229,18 +251,22 @@
                             <div class="modal-body">
                                 <form id="@formId" onsubmit="return submitBooking('@formId', '@modalId', '@p.ProviderId', '@(p.ProviderName ?? "Provider")', '@(p.ServiceName ?? Model.ServiceName)')">
                                     <div class="mb-3">
-                                        <label class="form-label">Preferred Date & Time</label>
+                                        <label class="form-label">Preferred Date & Time <span class="text-danger">*</span></label>
                                         <input required class="form-control" type="datetime-local" name="serviceDateTime" />
+                                        <div class="form-text">Select a date and time when you need the service</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Note (optional)</label>
-                                        <textarea class="form-control" name="note" rows="2" placeholder="Any additional details"></textarea>
+                                        <textarea class="form-control" name="note" rows="2" placeholder="Any additional details or special requirements"></textarea>
                                     </div>
                                     <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-1"></i>
                                         Booking will use your profile phone and address. Update your profile if needed.
                                     </div>
                                     <input type="hidden" name="providerServiceId" value="@p.Id" />
-                                    <button class="btn btn-primary" type="submit">Send Request</button>
+                                    <button class="btn btn-primary" type="submit" id="submit-@formId">
+                                        <i class="fas fa-paper-plane me-1"></i>Send Request
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -253,6 +279,7 @@
 </div>
 
 @section Scripts {
+<script src="~/js/booking-validation.js"></script>
 <script>
 async function submitBooking(formId, modalId, providerId, providerName, serviceName) {
     console.log('[DEBUG] submitBooking called with:', { formId, modalId, providerId, providerName, serviceName });
@@ -272,6 +299,13 @@ async function submitBooking(formId, modalId, providerId, providerName, serviceN
             return false; 
         }
 
+        // Check if the submit button is disabled (validation failed)
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton && submitButton.disabled) {
+            alert('Please fix the validation errors before submitting');
+            return false;
+        }
+
         const serviceDateTime = new Date(dtLocal);
         console.log('[DEBUG] Service date/time:', serviceDateTime);
 
@@ -282,12 +316,22 @@ async function submitBooking(formId, modalId, providerId, providerName, serviceN
             return false;
         }
 
+        // Format datetime in local timezone (same as validation)
+        const year = serviceDateTime.getFullYear();
+        const month = String(serviceDateTime.getMonth() + 1).padStart(2, '0');
+        const day = String(serviceDateTime.getDate()).padStart(2, '0');
+        const hours = String(serviceDateTime.getHours()).padStart(2, '0');
+        const minutes = String(serviceDateTime.getMinutes()).padStart(2, '0');
+        const seconds = String(serviceDateTime.getSeconds()).padStart(2, '0');
+        
+        const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+
         const payload = {
             providerServiceId: providerServiceIdInput.value,
             providerId: providerId,
             providerName: providerName,
             serviceName: serviceName,
-            serviceDateTime: serviceDateTime.toISOString(),
+            serviceDateTime: localDateTime,
             note: form.note.value || ''
         };
 
@@ -385,6 +429,17 @@ async function submitBooking(formId, modalId, providerId, providerName, serviceN
                         // Redirect to first pending payment
                         window.location.href = errorData.pendingPayments[0].paymentUrl;
                     }
+                } else if (errorData.availableDays || errorData.availableHours) {
+                    // Handle availability validation errors
+                    let message = errorData.error || 'Booking time is not available.';
+                    if (errorData.availableDays && errorData.availableDays.length > 0) {
+                        message += `\n\nAvailable Days: ${errorData.availableDays.join(', ')}`;
+                    }
+                    if (errorData.availableHours) {
+                        message += `\nAvailable Hours: ${errorData.availableHours}`;
+                    }
+                    message += '\n\nPlease select a different date and time.';
+                    alert(message);
                 } else {
                     alert('Failed to create booking: ' + (errorData.error || errorData.message || 'Unknown error'));
                 }
@@ -413,7 +468,7 @@ async function submitBooking(formId, modalId, providerId, providerName, serviceN
         if (outerError.name === 'AbortError') {
             alert('Request timed out. The booking may have been processed. Please check your bookings page.');
         } else {
-            alert('Request sent but no response received. Please check your bookings to confirm the status.');
+            alert('Request sent . Please check your bookings to confirm the status.');
         }
     }
 

@@ -10,5 +10,7 @@ namespace ServConnect.Services
         Task<Booking?> GetByIdAsync(string id);
         Task<bool> SetStatusAsync(string id, Guid providerId, BookingStatus status, string? providerMessage);
         Task<bool> CompleteAsync(string id, Guid userId, int? rating, string? feedback);
+        Task<bool> UpdateServiceOtpAsync(string bookingId, string otpId);
+        Task<bool> UpdateServiceStatusAsync(string bookingId, Guid providerId, ServiceStatus serviceStatus);
     }
 }

@@ -21,7 +21,8 @@
                         <th>Service</th>
                         <th>Price</th>
                         <th>Date & Time</th>
-                        <th>Status</th>
+                        <th>Booking Status</th>
+                        <th>Service Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -69,12 +70,56 @@
                                 }
                             </td>
                             <td>
+                                @switch (b.ServiceStatus)
+                                {
+                                    case ServConnect.Models.ServiceStatus.NotStarted:
+                                        <span class="badge bg-secondary">Not Started</span>
+                                        break;
+                                    case ServConnect.Models.ServiceStatus.InProgress:
+                                        <span class="badge bg-primary">In Progress</span>
+                                        @if (b.ServiceStartedAt.HasValue)
+                                        {
+                                            <div class="small text-muted">Started: @b.ServiceStartedAt.Value.ToLocalTime().ToString("g")</div>
+                                        }
+                                        break;
+                                    case ServConnect.Models.ServiceStatus.Completed:
+                                        <span class="badge bg-success">Completed</span>
+                                        @if (b.ServiceCompletedAt.HasValue)
+                                        {
+                                            <div class="small text-muted">Completed: @b.ServiceCompletedAt.Value.ToLocalTime().ToString("g")</div>
+                                        }
+                                        break;
+                                    case ServConnect.Models.ServiceStatus.Cancelled:
+                                        <span class="badge bg-danger">Cancelled</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
                                 @if (b.Status == ServConnect.Models.BookingStatus.Pending)
                                 {
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-sm btn-success" onclick="decide('@b.Id', true)"><i class="fas fa-check me-1"></i>Accept</button>
                                         <button class="btn btn-sm btn-outline-danger" onclick="decide('@b.Id', false)"><i class="fas fa-times me-1"></i>Reject</button>
                                     </div>
+                                }
+                                else if (b.Status == ServConnect.Models.BookingStatus.Accepted)
+                                {
+                                    @if (b.ServiceStatus == ServConnect.Models.ServiceStatus.NotStarted)
+                                    {
+                                        <button class="btn btn-sm btn-primary" onclick="startService('@b.Id')">
+                                            <i class="fas fa-play me-1"></i>Start Service
+                                        </button>
+                                    }
+                                    else if (b.ServiceStatus == ServConnect.Models.ServiceStatus.InProgress)
+                                    {
+                                        <button class="btn btn-sm btn-warning" onclick="stopService('@b.Id')">
+                                            <i class="fas fa-stop me-1"></i>Stop Service
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Service completed</span>
+                                    }
                                 }
                                 else
                                 {
@@ -102,6 +147,80 @@ async function decide(bookingId, accept) {
         location.reload();
     } else {
         alert('Failed to update booking.');
+    }
+}
+
+async function startService(bookingId) {
+    try {
+        // First, generate OTP for the user
+        const res = await fetch(`/api/bookings/${bookingId}/start-service`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (res.ok) {
+            const result = await res.json();
+            alert(result.message);
+            
+            // Now ask for OTP from user
+            const otpCode = prompt('Please ask the customer for their 6-digit service code:');
+            if (otpCode && otpCode.length === 6) {
+                await verifyAndStart(bookingId, otpCode);
+            }
+        } else {
+            const error = await res.json();
+            alert('Failed to start service: ' + (error.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Start service error:', error);
+        alert('Failed to start service. Please try again.');
+    }
+}
+
+async function verifyAndStart(bookingId, otpCode) {
+    try {
+        const res = await fetch(`/api/bookings/${bookingId}/verify-start`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ otpCode })
+        });
+        
+        if (res.ok) {
+            const result = await res.json();
+            alert(result.message);
+            location.reload();
+        } else {
+            const error = await res.json();
+            alert('Failed to verify code: ' + (error.error || 'Invalid or expired code'));
+        }
+    } catch (error) {
+        console.error('Verify OTP error:', error);
+        alert('Failed to verify code. Please try again.');
+    }
+}
+
+async function stopService(bookingId) {
+    if (!confirm('Are you sure you want to stop this service? This will mark it as completed.')) {
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/api/bookings/${bookingId}/stop-service`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (res.ok) {
+            const result = await res.json();
+            alert(result.message);
+            location.reload();
+        } else {
+            const error = await res.json();
+            alert('Failed to stop service: ' + (error.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Stop service error:', error);
+        alert('Failed to stop service. Please try again.');
     }
 }
 </script>

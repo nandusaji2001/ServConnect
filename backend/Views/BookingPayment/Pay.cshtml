@@ -13,7 +13,7 @@
                 <div class="card-body">
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
-                        Complete your payment to finalize the service booking.
+                        Please complete the payment for the service.
                     </div>
 
                     <div class="row mb-4">
@@ -55,8 +55,42 @@
                     }
                     else if (Model.Status == ServConnect.Models.BookingPaymentStatus.Paid)
                     {
-                        <div class="alert alert-success text-center">
+                        <div class="alert alert-success text-center mb-4">
                             <i class="fas fa-check-circle me-2"></i>Payment completed successfully!
+                        </div>
+                        
+                        <!-- Rating Form after successful payment -->
+                        <div class="card border-primary">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-star me-2"></i>Rate Your Service Experience</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="ratingForm">
+                                    <div class="mb-3">
+                                        <label class="form-label">Rating <span class="text-danger">*</span></label>
+                                        <select id="serviceRating" class="form-select" required>
+                                            <option value="">Select rating</option>
+                                            <option value="1">⭐ 1 - Poor</option>
+                                            <option value="2">⭐⭐ 2 - Fair</option>
+                                            <option value="3">⭐⭐⭐ 3 - Good</option>
+                                            <option value="4">⭐⭐⭐⭐ 4 - Very Good</option>
+                                            <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Feedback</label>
+                                        <textarea id="serviceFeedback" class="form-control" rows="3" placeholder="Share your experience with this service (optional)"></textarea>
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="button" class="btn btn-primary" onclick="submitRating()">
+                                            <i class="fas fa-star me-1"></i>Submit Rating
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary ms-2" onclick="skipRating()">
+                                            Skip Rating
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     }
                 </div>
@@ -113,14 +147,59 @@
                 const result = await verifyResponse.json();
                 
                 if (result.success) {
-                    alert('Payment successful! Your booking has been completed.');
-                    window.location.href = '/my/bookings';
+                    alert('Payment successful! Please rate your service experience.');
+                    // Reload the page to show the rating form
+                    window.location.reload();
                 } else {
                     alert('Payment verification failed. Please contact support.');
                 }
             } catch (error) {
                 console.error('Payment verification error:', error);
                 alert('Payment verification failed. Please contact support.');
+            }
+        }
+    </script>
+}
+
+@if (Model.Status == ServConnect.Models.BookingPaymentStatus.Paid)
+{
+    <script>
+        async function submitRating() {
+            const rating = document.getElementById('serviceRating').value;
+            const feedback = document.getElementById('serviceFeedback').value || null;
+            
+            if (!rating) {
+                alert('Please select a rating before submitting.');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/bookings/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bookingId: '@Model.BookingId',
+                        rating: parseInt(rating),
+                        feedback: feedback
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Thank you for your rating! Your booking is now complete.');
+                    window.location.href = '/my/bookings';
+                } else {
+                    const error = await response.json();
+                    alert('Failed to submit rating: ' + (error.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Rating submission error:', error);
+                alert('Failed to submit rating. Please try again.');
+            }
+        }
+        
+        function skipRating() {
+            if (confirm('Are you sure you want to skip rating? You can rate this service later from your bookings page.')) {
+                window.location.href = '/my/bookings';
             }
         }
     </script>

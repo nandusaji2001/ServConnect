@@ -147,6 +147,11 @@ namespace ServConnect.Services
                                        .ToListAsync();
         }
 
+        public async Task<ProviderService?> GetProviderServiceByIdAsync(string id)
+        {
+            return await _providerLinks.Find(x => x.Id == id).FirstOrDefaultAsync();
+        }
+
         public async Task<bool> UnlinkAsync(string linkId, Guid providerId)
         {
             var update = Builders<ProviderService>.Update
