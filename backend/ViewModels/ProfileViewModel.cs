@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ServConnect.ViewModels
 {
@@ -14,17 +14,22 @@ namespace ServConnect.ViewModels
         [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Phone number is required")]
+        [RegularExpression("^[6-9][0-9]{9}$", ErrorMessage = "Phone number must be exactly 10 digits starting with 6-9")]
         [Display(Name = "Phone Number")]
         public string? PhoneNumber { get; set; }
 
+        [Required(ErrorMessage = "Address is required")]
+        [RegularExpression("^[A-Za-z0-9\\s,\\-.#/()]+$", ErrorMessage = "Address can only contain letters, numbers, spaces, comma, hyphen, dot, hash, slash, and parentheses")]
+        [StringLength(200, MinimumLength = 10, ErrorMessage = "Address must be 10–200 characters")]
         [Display(Name = "Complete Address")]
-        [RegularExpression("^[A-Za-z0-9\\s,\\-.]+$", ErrorMessage = "Use letters, numbers, comma, hyphen, dot only.")]
-        [StringLength(200, MinimumLength = 10, ErrorMessage = "Address must be 10–200 characters.")]
         public string? Address { get; set; }
 
+        [Required(ErrorMessage = "Profile image is required")]
         [Display(Name = "Profile Image")]
         public IFormFile? Image { get; set; }
 
+        [Required(ErrorMessage = "Identity proof is required")]
         [Display(Name = "Identity Proof (PDF or Image)")]
         public IFormFile? IdentityProof { get; set; }
 
