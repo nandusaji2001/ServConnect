@@ -1,4 +1,4 @@
-﻿using AspNetCore.Identity.MongoDbCore.Models;
+using AspNetCore.Identity.MongoDbCore.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -390,7 +390,10 @@ namespace ServConnect.Controllers
         }
 
         // Mark profile completed when mandatory fields present
-        user.IsProfileCompleted = !string.IsNullOrWhiteSpace(user.Address) && !string.IsNullOrWhiteSpace(user.PhoneNumber);
+        user.IsProfileCompleted = !string.IsNullOrWhiteSpace(user.Address) && 
+                                  !string.IsNullOrWhiteSpace(user.PhoneNumber) &&
+                                  !string.IsNullOrWhiteSpace(user.ProfileImageUrl) &&
+                                  !string.IsNullOrWhiteSpace(user.IdentityProofUrl);
         // Reset approval on changes requiring re-review
         if (user.IsProfileCompleted)
         {

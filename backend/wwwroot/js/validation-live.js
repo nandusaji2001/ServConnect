@@ -54,9 +54,9 @@
     phone(value) {
       const trimmed = value.trim();
       if (!trimmed) return { ok: false, msg: 'Phone number is required.' };
-      // Allow +91 optional, then 10 digits starting with 6-9
-      const re = /^(?:\+?91[-\s]?)?[6-9]\d{9}$/;
-      if (!re.test(trimmed)) return { ok: false, msg: 'Enter a valid 10-digit Indian phone (optional +91).' };
+      // Exactly 10 digits starting with 6-9, no spaces or other characters allowed
+      const re = /^[6-9][0-9]{9}$/;
+      if (!re.test(trimmed)) return { ok: false, msg: 'Phone number must be exactly 10 digits starting with 6-9.' };
       return { ok: true };
     },
     async phoneUnique(value) {
@@ -71,10 +71,46 @@
     },
     address(value) {
       const trimmed = value.trim();
-      if (!trimmed) return { ok: true }; // Address may be optional at register; required for profile completion by server
-      const re = /^[A-Za-z0-9\s,\-.]+$/;
-      if (!re.test(trimmed)) return { ok: false, msg: 'Use letters, numbers, comma, hyphen, dot only.' };
+      // Address is required for profile completion
+      if (isProfile && !trimmed) return { ok: false, msg: 'Address is required.' };
+      if (!isProfile && !trimmed) return { ok: true }; // Optional at register
+      const re = /^[A-Za-z0-9\s,\-.#/()]+$/;
+      if (!re.test(trimmed)) return { ok: false, msg: 'Address can only contain letters, numbers, spaces, comma, hyphen, dot, hash, slash, and parentheses.' };
       if (trimmed.length < 10 || trimmed.length > 200) return { ok: false, msg: 'Address must be 10–200 characters.' };
+      return { ok: true };
+    },
+    profileImage(files) {
+      if (isProfile && (!files || files.length === 0)) {
+        return { ok: false, msg: 'Profile image is required.' };
+      }
+      if (files && files.length > 0) {
+        const file = files[0];
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+          return { ok: false, msg: 'Please select a valid image file (JPEG, PNG, GIF, WebP).' };
+        }
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+          return { ok: false, msg: 'Image size must be less than 5MB.' };
+        }
+      }
+      return { ok: true };
+    },
+    identityProof(files) {
+      if (isProfile && (!files || files.length === 0)) {
+        return { ok: false, msg: 'Identity proof is required.' };
+      }
+      if (files && files.length > 0) {
+        const file = files[0];
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+        if (!validTypes.includes(file.type)) {
+          return { ok: false, msg: 'Please select a valid image file or PDF.' };
+        }
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+          return { ok: false, msg: 'File size must be less than 10MB.' };
+        }
+      }
       return { ok: true };
     }
   };
@@ -178,6 +214,41 @@
     });
   }
 
+  // File input validation for profile page
+  const profileImageInput = $('input[name="Image"]', form);
+  if (profileImageInput) {
+    profileImageInput.addEventListener('change', () => {
+      const res = validators.profileImage(profileImageInput.files);
+      setFieldState(profileImageInput, res.ok, res.msg);
+      refreshSubmitState();
+    });
+  }
+
+  const identityProofInput = $('input[name="IdentityProof"]', form);
+  if (identityProofInput) {
+    identityProofInput.addEventListener('change', () => {
+      const res = validators.identityProof(identityProofInput.files);
+      setFieldState(identityProofInput, res.ok, res.msg);
+      refreshSubmitState();
+    });
+  }
+
+  // Initial validation check for file inputs on profile page
+  if (isProfile) {
+    // Check file inputs immediately on page load
+    if (profileImageInput) {
+      const res = validators.profileImage(profileImageInput.files);
+      setFieldState(profileImageInput, res.ok, res.msg);
+    }
+    if (identityProofInput) {
+      const res = validators.identityProof(identityProofInput.files);
+      setFieldState(identityProofInput, res.ok, res.msg);
+    }
+  }
+
   // Initial run to set state when form loads with values
   ['input', 'change'].forEach(evt => form.dispatchEvent(new Event(evt)));
+  
+  // Initial submit button state
+  refreshSubmitState();
 })();
