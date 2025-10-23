@@ -154,5 +154,33 @@ namespace ServConnect.Services
             var res = await _bookings.UpdateOneAsync(x => x.Id == id && x.UserId == userId, update);
             return res.ModifiedCount == 1;
         }
+
+        public async Task<bool> UpdateServiceOtpAsync(string bookingId, string otpId)
+        {
+            var update = Builders<Booking>.Update.Set(x => x.CurrentOtpId, otpId);
+            var res = await _bookings.UpdateOneAsync(x => x.Id == bookingId, update);
+            return res.ModifiedCount == 1;
+        }
+
+        public async Task<bool> UpdateServiceStatusAsync(string bookingId, Guid providerId, ServiceStatus serviceStatus)
+        {
+            var updateBuilder = Builders<Booking>.Update.Set(x => x.ServiceStatus, serviceStatus);
+            
+            // Set appropriate timestamps based on status
+            if (serviceStatus == ServiceStatus.InProgress)
+            {
+                updateBuilder = updateBuilder.Set(x => x.ServiceStartedAt, DateTime.UtcNow);
+            }
+            else if (serviceStatus == ServiceStatus.Completed)
+            {
+                updateBuilder = updateBuilder.Set(x => x.ServiceCompletedAt, DateTime.UtcNow);
+            }
+
+            var res = await _bookings.UpdateOneAsync(
+                x => x.Id == bookingId && x.ProviderId == providerId, 
+                updateBuilder
+            );
+            return res.ModifiedCount == 1;
+        }
     }
 }

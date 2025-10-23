@@ -10,6 +10,14 @@ namespace ServConnect.Models
         Rejected = 2
     }
 
+    public enum ServiceStatus
+    {
+        NotStarted = 0,     // Service accepted but not started
+        InProgress = 1,     // Service started by provider
+        Completed = 2,      // Service completed by provider
+        Cancelled = 3       // Service cancelled
+    }
+
     public class Booking
     {
         [BsonId]
@@ -48,6 +56,12 @@ namespace ServConnect.Models
         public decimal Price { get; set; } = 0;
         public string PriceUnit { get; set; } = "per service";
         public string Currency { get; set; } = "USD";
+
+        // Service execution tracking
+        public ServiceStatus ServiceStatus { get; set; } = ServiceStatus.NotStarted;
+        public DateTime? ServiceStartedAt { get; set; }
+        public DateTime? ServiceCompletedAt { get; set; }
+        public string? CurrentOtpId { get; set; } // Links to active ServiceOtp
 
         // User completion & feedback
         public bool IsCompleted { get; set; } = false; // set by user when service is finished

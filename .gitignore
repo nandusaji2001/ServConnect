@@ -1,4 +1,4 @@
 *.json
 appsettings.json
 appsettings.Development.json
-firebase-service-account.jsonan
+firebase-service-account.json

@@ -43,6 +43,7 @@ namespace ServConnect.Models
         ServiceExpired,
         ProfileUpdate,
         SystemAlert,
-        General
+        General,
+        ServiceOtp
     }
 }

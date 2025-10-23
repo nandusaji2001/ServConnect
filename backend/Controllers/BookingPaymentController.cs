@@ -62,6 +62,10 @@ namespace ServConnect.Controllers
                 return Ok(new { paymentId = existingPayment.Id, redirectUrl = $"/booking-payment/pay/{existingPayment.Id}" });
             }
 
+            // Determine payment amount - use provided amount or booking price or default
+            decimal paymentAmount = request.AmountInRupees > 0 ? request.AmountInRupees : 
+                                   (booking.Price > 0 ? booking.Price : 100); // Default to ₹100
+
             // Create new payment
             var payment = await _paymentService.CreatePaymentAsync(
                 user.Id, 
@@ -70,7 +74,7 @@ namespace ServConnect.Controllers
                 request.BookingId,
                 booking.ServiceName,
                 booking.ProviderName,
-                request.AmountInRupees,
+                paymentAmount,
                 request.Rating,
                 request.Feedback
             );

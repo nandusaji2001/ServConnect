@@ -98,6 +98,10 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IServicePaymentService, ServicePaymentService>();
 // Booking payment service (requires HttpClientFactory)
 builder.Services.AddScoped<IBookingPaymentService, BookingPaymentService>();
+// Availability validation service
+builder.Services.AddScoped<IAvailabilityValidationService, AvailabilityValidationService>();
+// Service OTP service
+builder.Services.AddScoped<IServiceOtpService, ServiceOtpService>();
 // Notification service
 builder.Services.AddScoped<INotificationService, NotificationService>();
 // Background service for automatic service expiry

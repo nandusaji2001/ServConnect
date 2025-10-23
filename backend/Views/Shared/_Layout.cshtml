@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -82,6 +82,105 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <!-- OTP Notification System -->
+    <script>
+        let otpNotificationsVisible = false;
+        
+        // Check for active OTPs on page load (only for users)
+        document.addEventListener('DOMContentLoaded', function() {
+            const isAuthenticated = document.body.getAttribute('data-authed') === 'true';
+            if (isAuthenticated) {
+                checkActiveOtps();
+                // Check every 30 seconds for new OTPs
+                setInterval(checkActiveOtps, 30000);
+            }
+        });
+        
+        async function checkActiveOtps() {
+            try {
+                const response = await fetch('/api/bookings/active-otps');
+                if (response.ok) {
+                    const otps = await response.json();
+                    updateOtpNotifications(otps);
+                }
+            } catch (error) {
+                console.error('Failed to check active OTPs:', error);
+            }
+        }
+        
+        function updateOtpNotifications(otps) {
+            const badge = document.getElementById('otpNotificationBadge');
+            const count = document.getElementById('otpNotificationCount');
+            const list = document.getElementById('otpNotificationsList');
+            
+            if (!badge || !count || !list) return;
+            
+            if (otps.length > 0) {
+                badge.style.display = 'block';
+                badge.textContent = otps.length;
+                count.textContent = `${otps.length} active`;
+                
+                list.innerHTML = otps.map(otp => `
+                    <div class="dropdown-item border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold text-primary">${otp.serviceName}</div>
+                                <div class="small text-muted">by ${otp.providerName}</div>
+                                <div class="mt-1">
+                                    <span class="badge bg-success fs-6">${otp.otpCode}</span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">
+                                    ${Math.max(0, Math.floor(otp.timeRemaining))} min left
+                                </small>
+                            </div>
+                        </div>
+                        <div class="small text-info mt-1">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Share this code with your service provider to start the service
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                badge.style.display = 'none';
+                count.textContent = '0 active';
+                list.innerHTML = `
+                    <div class="dropdown-item-text text-center text-muted py-3">
+                        <i class="fas fa-info-circle me-1"></i>No active service codes
+                    </div>
+                `;
+            }
+        }
+        
+        function toggleOtpNotifications() {
+            const dropdown = document.getElementById('otpNotificationsDropdown');
+            if (!dropdown) return;
+            
+            otpNotificationsVisible = !otpNotificationsVisible;
+            dropdown.style.display = otpNotificationsVisible ? 'block' : 'none';
+            
+            // Close when clicking outside
+            if (otpNotificationsVisible) {
+                document.addEventListener('click', closeOtpNotificationsOnOutsideClick);
+            } else {
+                document.removeEventListener('click', closeOtpNotificationsOnOutsideClick);
+            }
+        }
+        
+        function closeOtpNotificationsOnOutsideClick(event) {
+            const dropdown = document.getElementById('otpNotificationsDropdown');
+            const bell = document.getElementById('otpNotificationBell');
+            
+            if (dropdown && bell && !dropdown.contains(event.target) && !bell.contains(event.target)) {
+                dropdown.style.display = 'none';
+                otpNotificationsVisible = false;
+                document.removeEventListener('click', closeOtpNotificationsOnOutsideClick);
+            }
+        }
+    </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

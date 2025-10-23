@@ -12,13 +12,17 @@ namespace ServConnect.Controllers
         private readonly UserManager<Users> _userManager;
         private readonly IServiceCatalog _catalog;
         private readonly IBookingPaymentService _paymentService;
+        private readonly IAvailabilityValidationService _availabilityValidation;
+        private readonly IServiceOtpService _serviceOtpService;
 
-        public BookingsController(IBookingService bookings, UserManager<Users> userManager, IServiceCatalog catalog, IBookingPaymentService paymentService)
+        public BookingsController(IBookingService bookings, UserManager<Users> userManager, IServiceCatalog catalog, IBookingPaymentService paymentService, IAvailabilityValidationService availabilityValidation, IServiceOtpService serviceOtpService)
         {
             _bookings = bookings;
             _userManager = userManager;
             _catalog = catalog;
             _paymentService = paymentService;
+            _availabilityValidation = availabilityValidation;
+            _serviceOtpService = serviceOtpService;
         }
 
         public class CreateBookingRequest
@@ -47,7 +51,21 @@ namespace ServConnect.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(req.ProviderServiceId)) return BadRequest("Provider service is required");
-                if (req.ServiceDateTime <= DateTime.UtcNow.AddMinutes(-1)) return BadRequest("Please choose a future date/time");
+                
+                // Get the provider service to validate availability
+                var providerService = await _catalog.GetProviderServiceByIdAsync(req.ProviderServiceId);
+                if (providerService == null) return BadRequest("Service not found");
+                
+                // Validate availability using the new service
+                var availabilityResult = await _availabilityValidation.ValidateBookingAvailabilityAsync(providerService, req.ServiceDateTime);
+                if (!availabilityResult.IsValid)
+                {
+                    return BadRequest(new { 
+                        error = availabilityResult.ErrorMessage,
+                        availableDays = availabilityResult.AvailableDays,
+                        availableHours = availabilityResult.AvailableHours
+                    });
+                }
 
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
@@ -178,6 +196,211 @@ namespace ServConnect.Controllers
             ViewBag.HasPendingPayments = pendingPayments.Any();
             
             return View("UserBookings", list);
+        }
+
+        // API endpoint to get availability information for a service
+        [HttpGet("/api/bookings/availability/{providerServiceId}")]
+        public async Task<IActionResult> GetAvailability(string providerServiceId, [FromQuery] DateTime? date = null)
+        {
+            try
+            {
+                var providerService = await _catalog.GetProviderServiceByIdAsync(providerServiceId);
+                if (providerService == null) return NotFound("Service not found");
+
+                var targetDate = date ?? DateTime.Today;
+                
+                var result = new
+                {
+                    availableDays = providerService.AvailableDays,
+                    availableHours = providerService.AvailableHours,
+                    isDayAvailable = _availabilityValidation.IsDayAvailable(providerService, targetDate.DayOfWeek),
+                    timeSlots = await _availabilityValidation.GetAvailableTimeSlotsAsync(providerService, targetDate)
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Get availability failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // API endpoint to validate a specific date/time
+        [HttpPost("/api/bookings/validate-availability")]
+        public async Task<IActionResult> ValidateAvailability([FromBody] ValidateAvailabilityRequest req)
+        {
+            try
+            {
+                var providerService = await _catalog.GetProviderServiceByIdAsync(req.ProviderServiceId);
+                if (providerService == null) return NotFound("Service not found");
+
+                var result = await _availabilityValidation.ValidateBookingAvailabilityAsync(providerService, req.RequestedDateTime);
+                
+                return Ok(new
+                {
+                    isValid = result.IsValid,
+                    errorMessage = result.ErrorMessage,
+                    availableDays = result.AvailableDays,
+                    availableHours = result.AvailableHours
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Validate availability failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // API endpoint to start a service (generates OTP for user)
+        [HttpPost("/api/bookings/{bookingId}/start-service")]
+        [Authorize(Roles = RoleTypes.ServiceProvider)]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> StartService(string bookingId)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                // Get the booking and verify provider ownership
+                var providerBookings = await _bookings.GetForProviderAsync(me.Id);
+                var booking = providerBookings.FirstOrDefault(b => b.Id == bookingId);
+                
+                if (booking == null) return NotFound("Booking not found");
+                if (booking.Status != BookingStatus.Accepted) return BadRequest("Booking must be accepted first");
+                if (booking.ServiceStatus != ServiceStatus.NotStarted) return BadRequest("Service already started or completed");
+
+                // Generate OTP for the user
+                var otp = await _serviceOtpService.GenerateOtpAsync(
+                    bookingId, 
+                    booking.UserId, 
+                    me.Id, 
+                    booking.ServiceName, 
+                    booking.ProviderName
+                );
+
+                // Update booking with OTP reference
+                await _bookings.UpdateServiceOtpAsync(bookingId, otp.Id!);
+
+                return Ok(new { 
+                    message = "OTP sent to customer. Please ask customer for the 6-digit code to start service.",
+                    otpId = otp.Id,
+                    expiresAt = otp.ExpiresAt
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Start service failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // API endpoint to verify OTP and actually start the service
+        [HttpPost("/api/bookings/{bookingId}/verify-start")]
+        [Authorize(Roles = RoleTypes.ServiceProvider)]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> VerifyAndStartService(string bookingId, [FromBody] VerifyOtpRequest req)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                // Validate OTP
+                var isValidOtp = await _serviceOtpService.ValidateOtpAsync(bookingId, req.OtpCode, me.Id);
+                if (!isValidOtp)
+                {
+                    return BadRequest(new { error = "Invalid or expired OTP code" });
+                }
+
+                // Update booking status to InProgress
+                var success = await _bookings.UpdateServiceStatusAsync(bookingId, me.Id, ServiceStatus.InProgress);
+                if (!success)
+                {
+                    return BadRequest(new { error = "Failed to start service" });
+                }
+
+                return Ok(new { message = "Service started successfully!" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Verify and start service failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // API endpoint to stop/complete a service
+        [HttpPost("/api/bookings/{bookingId}/stop-service")]
+        [Authorize(Roles = RoleTypes.ServiceProvider)]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> StopService(string bookingId)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                // Get the booking and verify provider ownership
+                var providerBookings = await _bookings.GetForProviderAsync(me.Id);
+                var booking = providerBookings.FirstOrDefault(b => b.Id == bookingId);
+                
+                if (booking == null) return NotFound("Booking not found");
+                if (booking.ServiceStatus != ServiceStatus.InProgress) return BadRequest("Service is not currently in progress");
+
+                // Update booking status to Completed
+                var success = await _bookings.UpdateServiceStatusAsync(bookingId, me.Id, ServiceStatus.Completed);
+                if (!success)
+                {
+                    return BadRequest(new { error = "Failed to stop service" });
+                }
+
+                return Ok(new { message = "Service completed successfully! Customer can now provide rating." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Stop service failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // API endpoint to get active OTPs for a user (for notifications)
+        [HttpGet("/api/bookings/active-otps")]
+        [Authorize]
+        public async Task<IActionResult> GetActiveOtps()
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var otps = await _serviceOtpService.GetActiveOtpsForUserAsync(me.Id);
+                
+                return Ok(otps.Select(otp => new {
+                    id = otp.Id,
+                    otpCode = otp.OtpCode,
+                    serviceName = otp.ServiceName,
+                    providerName = otp.ProviderName,
+                    expiresAt = otp.ExpiresAt,
+                    timeRemaining = (otp.ExpiresAt - DateTime.UtcNow).TotalMinutes
+                }));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Get active OTPs failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        public class VerifyOtpRequest
+        {
+            public string OtpCode { get; set; } = string.Empty;
+        }
+
+        public class ValidateAvailabilityRequest
+        {
+            public string ProviderServiceId { get; set; } = string.Empty;
+            public DateTime RequestedDateTime { get; set; }
         }
     }
 }
