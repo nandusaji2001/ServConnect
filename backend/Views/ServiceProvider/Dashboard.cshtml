@@ -526,6 +526,12 @@
                                     case ServConnect.Models.NotificationType.ServiceExpired:
                                         <i class="fas fa-exclamation-triangle"></i>
                                         break;
+                                    case ServConnect.Models.NotificationType.ServiceTransferRequest:
+                                    case ServConnect.Models.NotificationType.ServiceTransferApproved:
+                                    case ServConnect.Models.NotificationType.ServiceTransferRejected:
+                                    case ServConnect.Models.NotificationType.ServiceTransferCompleted:
+                                        <i class="fas fa-exchange-alt"></i>
+                                        break;
                                     default:
                                         <i class="fas fa-info-circle"></i>
                                         break;
@@ -552,6 +558,25 @@
             <div class="text-center mt-3">
                 <a href="/Notifications" class="btn btn-primary">
                     <i class="fas fa-bell"></i> View All Notifications
+                </a>
+            </div>
+        </div>
+
+        <!-- Transfer Requests Card -->
+        <div class="dashboard-card transfer-requests" id="transferRequestsCard" style="display: none;">
+            <h3 class="section-title">
+                <i class="fas fa-exchange-alt"></i>
+                Transfer Requests
+                <span class="badge bg-warning ms-2" id="transferRequestsCount">0</span>
+            </h3>
+            
+            <div id="transferRequestsList">
+                <!-- Transfer requests will be loaded here -->
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="/provider/bookings" class="btn btn-primary">
+                    <i class="fas fa-exchange-alt"></i> View All Transfers
                 </a>
             </div>
         </div>
@@ -705,6 +730,9 @@
         // Auto-refresh notifications every 30 seconds
         setInterval(refreshNotifications, 30000);
 
+        // Load transfer requests
+        loadTransferRequests();
+
         // Mark notifications as read when clicked
         const notificationItems = document.querySelectorAll('.notification-item');
         notificationItems.forEach(item => {
@@ -757,5 +785,131 @@
             }
         });
     });
+
+    // Transfer Request Functions
+    async function loadTransferRequests() {
+        try {
+            const res = await fetch('/api/bookings/transfer/provider/pending');
+            if (res.ok) {
+                const transfers = await res.json();
+                
+                if (transfers.length > 0) {
+                    displayTransferRequests(transfers);
+                    document.getElementById('transferRequestsCard').style.display = 'block';
+                    document.getElementById('transferRequestsCount').textContent = transfers.length;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load transfer requests:', error);
+        }
+    }
+
+    function displayTransferRequests(transfers) {
+        const container = document.getElementById('transferRequestsList');
+        container.innerHTML = '';
+        
+        transfers.forEach(transfer => {
+            const transferHtml = `
+                <div class="notification-item" id="transfer-${transfer.id}">
+                    <div class="notification-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="notification-content">
+                        <h5>Transfer Request: ${transfer.serviceName}</h5>
+                        <p class="mb-1">From: ${transfer.originalProviderName}</p>
+                        <p class="mb-1">Customer: ${transfer.userName}</p>
+                        <div class="notification-time">Requested: ${new Date(transfer.requestedAt).toLocaleString()}</div>
+                        ${transfer.transferReason ? `<small class="text-muted">Reason: ${transfer.transferReason}</small>` : ''}
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-success me-2" onclick="acceptTransfer('${transfer.id}')">
+                                <i class="fas fa-check me-1"></i>Accept
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="rejectTransfer('${transfer.id}')">
+                                <i class="fas fa-times me-1"></i>Reject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', transferHtml);
+        });
+    }
+
+    async function acceptTransfer(transferId) {
+        const message = prompt('Optional message to the customer (Accept):') || '';
+        
+        try {
+            const res = await fetch('/api/bookings/transfer/provider-accept', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transferId: transferId,
+                    message: message
+                })
+            });
+            
+            if (res.ok) {
+                alert('Transfer request accepted! The service has been assigned to you.');
+                // Remove the transfer item
+                document.getElementById(`transfer-${transferId}`).remove();
+                
+                // Update count
+                const remainingTransfers = document.querySelectorAll('#transferRequestsList .notification-item');
+                const count = remainingTransfers.length;
+                document.getElementById('transferRequestsCount').textContent = count;
+                
+                // Hide card if no more transfers
+                if (count === 0) {
+                    document.getElementById('transferRequestsCard').style.display = 'none';
+                }
+                
+                // Reload page to show updated information
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                const error = await res.json();
+                alert('Failed to accept transfer: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Accept transfer error:', error);
+            alert('Failed to accept transfer. Please try again.');
+        }
+    }
+
+    async function rejectTransfer(transferId) {
+        const message = prompt('Optional message to the customer (Reject):') || '';
+        
+        try {
+            const res = await fetch('/api/bookings/transfer/provider-reject', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transferId: transferId,
+                    message: message
+                })
+            });
+            
+            if (res.ok) {
+                alert('Transfer request rejected. The service will remain with the original provider.');
+                // Remove the transfer item
+                document.getElementById(`transfer-${transferId}`).remove();
+                
+                // Update count
+                const remainingTransfers = document.querySelectorAll('#transferRequestsList .notification-item');
+                const count = remainingTransfers.length;
+                document.getElementById('transferRequestsCount').textContent = count;
+                
+                // Hide card if no more transfers
+                if (count === 0) {
+                    document.getElementById('transferRequestsCard').style.display = 'none';
+                }
+            } else {
+                const error = await res.json();
+                alert('Failed to reject transfer: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Reject transfer error:', error);
+            alert('Failed to reject transfer. Please try again.');
+        }
+    }
 
 </script>

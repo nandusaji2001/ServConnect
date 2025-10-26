@@ -22,6 +22,17 @@
         </div>
     }
 
+    <!-- Transfer Requests Section -->
+    <div id="transferRequestsSection" class="mb-4" style="display: none;">
+        <div class="alert alert-info">
+            <h5><i class="fas fa-exchange-alt me-2"></i>Service Transfer Requests</h5>
+            <p class="mb-2">You have pending service transfer requests that require your approval:</p>
+            <div id="transferRequestsList">
+                <!-- Transfer requests will be loaded here -->
+            </div>
+        </div>
+    </div>
+
     @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info">You have no bookings yet.</div>
@@ -148,6 +159,139 @@
 
 
 <script>
+    // Load transfer requests on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTransferRequests();
+    });
+
+    async function loadTransferRequests() {
+        try {
+            const res = await fetch('/api/bookings/transfer/user');
+            if (res.ok) {
+                const transfers = await res.json();
+                const pendingTransfers = transfers.filter(t => t.status === 'PendingUserApproval');
+                
+                if (pendingTransfers.length > 0) {
+                    displayTransferRequests(pendingTransfers);
+                    document.getElementById('transferRequestsSection').style.display = 'block';
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load transfer requests:', error);
+        }
+    }
+
+    function displayTransferRequests(transfers) {
+        const container = document.getElementById('transferRequestsList');
+        container.innerHTML = '';
+        
+        transfers.forEach(transfer => {
+            const transferHtml = `
+                <div class="card mb-3" id="transfer-${transfer.id}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="card-title mb-1">
+                                    <i class="fas fa-exchange-alt me-2 text-primary"></i>
+                                    ${transfer.serviceName} Transfer Request
+                                </h6>
+                                <p class="card-text mb-2">
+                                    <strong>${transfer.originalProviderName}</strong> wants to transfer your service to 
+                                    <strong>${transfer.newProviderName}</strong>
+                                </p>
+                                <div class="small text-muted">
+                                    <div><i class="fas fa-calendar me-1"></i>Service Date: ${new Date(transfer.serviceDateTime).toLocaleString()}</div>
+                                    <div><i class="fas fa-clock me-1"></i>Requested: ${new Date(transfer.requestedAt).toLocaleString()}</div>
+                                    ${transfer.transferReason ? `<div><i class="fas fa-comment me-1"></i>Reason: ${transfer.transferReason}</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <button class="btn btn-sm btn-success" onclick="approveTransfer('${transfer.id}')">
+                                        <i class="fas fa-check me-1"></i>Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="rejectTransfer('${transfer.id}')">
+                                        <i class="fas fa-times me-1"></i>Reject
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', transferHtml);
+        });
+    }
+
+    async function approveTransfer(transferId) {
+        const message = prompt('Optional message to the providers (Approve):') || '';
+        
+        try {
+            const res = await fetch('/api/bookings/transfer/user-approve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transferId: transferId,
+                    message: message
+                })
+            });
+            
+            if (res.ok) {
+                alert('Transfer request approved! The new provider will be notified.');
+                // Remove the transfer card
+                document.getElementById(`transfer-${transferId}`).remove();
+                
+                // Hide section if no more transfers
+                const remainingTransfers = document.querySelectorAll('#transferRequestsList .card');
+                if (remainingTransfers.length === 0) {
+                    document.getElementById('transferRequestsSection').style.display = 'none';
+                }
+                
+                // Reload page to show updated booking information
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                const error = await res.json();
+                alert('Failed to approve transfer: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Approve transfer error:', error);
+            alert('Failed to approve transfer. Please try again.');
+        }
+    }
+
+    async function rejectTransfer(transferId) {
+        const message = prompt('Optional message to the original provider (Reject):') || '';
+        
+        try {
+            const res = await fetch('/api/bookings/transfer/user-reject', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transferId: transferId,
+                    message: message
+                })
+            });
+            
+            if (res.ok) {
+                alert('Transfer request rejected. The service will remain with the original provider.');
+                // Remove the transfer card
+                document.getElementById(`transfer-${transferId}`).remove();
+                
+                // Hide section if no more transfers
+                const remainingTransfers = document.querySelectorAll('#transferRequestsList .card');
+                if (remainingTransfers.length === 0) {
+                    document.getElementById('transferRequestsSection').style.display = 'none';
+                }
+            } else {
+                const error = await res.json();
+                alert('Failed to reject transfer: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Reject transfer error:', error);
+            alert('Failed to reject transfer. Please try again.');
+        }
+    }
+
     async function completePayment(bookingId) {
         try {
             // Create payment directly without rating first
