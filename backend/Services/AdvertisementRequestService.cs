@@ -69,5 +69,30 @@ namespace ServConnect.Services
             var res = await _requests.UpdateOneAsync(r => r.Id == id, update);
             return res.ModifiedCount == 1;
         }
+
+        public async Task<bool> ApproveAndSetExpiryAsync(string id, string? adminNote = null)
+        {
+            var req = await GetByIdAsync(id);
+            if (req == null) return false;
+
+            var expiryDate = DateTime.UtcNow.AddMonths(req.DurationInMonths);
+            
+            var update = Builders<AdvertisementRequest>.Update
+                .Set(r => r.Status, AdRequestStatus.Approved)
+                .Set(r => r.ReviewedAtUtc, DateTime.UtcNow)
+                .Set(r => r.AdminNote, adminNote)
+                .Set(r => r.ExpiryDate, expiryDate)
+                .Set(r => r.IsExpired, false);
+            
+            var res = await _requests.UpdateOneAsync(r => r.Id == id, update);
+            return res.ModifiedCount == 1;
+        }
+
+        public async Task<bool> DeleteAsync(string id, Guid userId)
+        {
+            // Only allow users to delete their own advertisement requests
+            var res = await _requests.DeleteOneAsync(r => r.Id == id && r.RequestedByUserId == userId);
+            return res.DeletedCount == 1;
+        }
     }
 }

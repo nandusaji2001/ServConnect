@@ -37,7 +37,8 @@ namespace ServConnect.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-        public async Task<IActionResult> Submit(IFormFile image, string? targetUrl, AdvertisementType adType = AdvertisementType.BottomPage)
+        public async Task<IActionResult> Submit(IFormFile image, string? targetUrl, AdvertisementType adType = AdvertisementType.BottomPage, 
+            int durationInMonths = 1, double? cropX = null, double? cropY = null, double? cropWidth = null, double? cropHeight = null)
         {
             if (image == null || image.Length == 0)
             {
@@ -63,26 +64,61 @@ namespace ServConnect.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) return Unauthorized();
 
+                // Debug logging
+                Console.WriteLine($"Received image: {image.FileName}");
+                Console.WriteLine($"Image size: {image.Length} bytes");
+                Console.WriteLine($"Content type: {image.ContentType}");
+                Console.WriteLine($"Crop coordinates: X={cropX}, Y={cropY}, W={cropWidth}, H={cropHeight}");
+
                 using var stream = image.OpenReadStream();
                 using var src = System.Drawing.Image.FromStream(stream);
 
-                var targetRatio = (double)targetW / targetH;
-                var srcRatio = (double)src.Width / src.Height;
+                Console.WriteLine($"Original image dimensions: {src.Width}x{src.Height}");
 
                 System.Drawing.Rectangle cropRect;
-                if (srcRatio > targetRatio)
+                
+                // Use user's crop selection if provided, otherwise auto-crop from center
+                if (cropX.HasValue && cropY.HasValue && cropWidth.HasValue && cropHeight.HasValue)
                 {
-                    var cropW = (int)Math.Round(src.Height * targetRatio);
-                    var x = (src.Width - cropW) / 2;
-                    cropRect = new System.Drawing.Rectangle(x, 0, cropW, src.Height);
+                    // Use user's crop selection
+                    cropRect = new System.Drawing.Rectangle(
+                        (int)Math.Round(cropX.Value),
+                        (int)Math.Round(cropY.Value),
+                        (int)Math.Round(cropWidth.Value),
+                        (int)Math.Round(cropHeight.Value)
+                    );
+                    
+                    // Ensure crop rectangle is within image bounds
+                    cropRect.X = Math.Max(0, Math.Min(cropRect.X, src.Width - 1));
+                    cropRect.Y = Math.Max(0, Math.Min(cropRect.Y, src.Height - 1));
+                    cropRect.Width = Math.Max(1, Math.Min(cropRect.Width, src.Width - cropRect.X));
+                    cropRect.Height = Math.Max(1, Math.Min(cropRect.Height, src.Height - cropRect.Y));
+                    
+                    Console.WriteLine($"Using user crop: {cropRect}");
                 }
                 else
                 {
-                    var cropH = (int)Math.Round(src.Width / targetRatio);
-                    var y = (src.Height - cropH) / 2;
-                    cropRect = new System.Drawing.Rectangle(0, y, src.Width, cropH);
+                    // Fallback to automatic center cropping
+                    var targetRatio = (double)targetW / targetH;
+                    var srcRatio = (double)src.Width / src.Height;
+
+                    if (srcRatio > targetRatio)
+                    {
+                        var cropW = (int)Math.Round(src.Height * targetRatio);
+                        var x = (src.Width - cropW) / 2;
+                        cropRect = new System.Drawing.Rectangle(x, 0, cropW, src.Height);
+                    }
+                    else
+                    {
+                        var cropH = (int)Math.Round(src.Width / targetRatio);
+                        var y = (src.Height - cropH) / 2;
+                        cropRect = new System.Drawing.Rectangle(0, y, src.Width, cropH);
+                    }
+                    
+                    Console.WriteLine($"Using auto crop: {cropRect}");
                 }
 
+                // Create the final cropped image
                 using var dest = new System.Drawing.Bitmap(targetW, targetH);
                 using (var g = System.Drawing.Graphics.FromImage(dest))
                 {
@@ -99,13 +135,20 @@ namespace ServConnect.Controllers
                 var savePath = Path.Combine(adsFolder, fileName);
                 dest.Save(savePath, System.Drawing.Imaging.ImageFormat.Jpeg);
 
+                Console.WriteLine($"Saved cropped image to: {savePath}");
+
+                // Calculate price based on advertisement type and duration
+                int priceInRupees = CalculatePrice(adType, durationInMonths);
+                int amountInPaise = priceInRupees * 100;
+
                 var req = new AdvertisementRequest
                 {
                     RequestedByUserId = user.Id,
                     ImageUrl = $"/ads/{fileName}",
                     TargetUrl = string.IsNullOrWhiteSpace(targetUrl) ? null : targetUrl,
                     Type = adType,
-                    AmountInPaise = 100000,
+                    DurationInMonths = durationInMonths,
+                    AmountInPaise = amountInPaise,
                     Status = AdRequestStatus.Pending,
                     IsPaid = false
                 };
@@ -175,6 +218,50 @@ namespace ServConnect.Controllers
             if (user == null) return Unauthorized();
             var list = await _requestService.GetByUserAsync(user.Id);
             return View(list);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var success = await _requestService.DeleteAsync(id, user.Id);
+            if (success)
+            {
+                TempData["Message"] = "Advertisement deleted successfully.";
+            }
+            else
+            {
+                TempData["Error"] = "Failed to delete advertisement. It may not exist or you don't have permission.";
+            }
+
+            return RedirectToAction(nameof(My));
+        }
+
+        private int CalculatePrice(AdvertisementType adType, int durationInMonths)
+        {
+            if (adType == AdvertisementType.BottomPage)
+            {
+                return durationInMonths switch
+                {
+                    1 => 500,   // 1 month
+                    2 => 750,   // 2 months
+                    3 => 1000,  // 3 months
+                    _ => 500    // default to 1 month price
+                };
+            }
+            else // HeroBanner
+            {
+                return durationInMonths switch
+                {
+                    1 => 1500,  // 1 month
+                    2 => 1750,  // 2 months
+                    3 => 2000,  // 3 months
+                    _ => 1500   // default to 1 month price
+                };
+            }
         }
     }
 }

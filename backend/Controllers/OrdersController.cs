@@ -14,13 +14,15 @@ namespace ServConnect.Controllers
         private readonly IItemService _items;
         private readonly UserManager<Users> _userManager;
         private readonly IConfiguration _config;
+        private readonly IAddressService _addressService;
 
-        public OrdersController(IOrderService orders, IItemService items, UserManager<Users> userManager, IConfiguration config)
+        public OrdersController(IOrderService orders, IItemService items, UserManager<Users> userManager, IConfiguration config, IAddressService addressService)
         {
             _orders = orders;
             _items = items;
             _userManager = userManager;
             _config = config;
+            _addressService = addressService;
         }
 
         public class CreateOrderInput
@@ -44,6 +46,8 @@ namespace ServConnect.Controllers
             public string PostalCode { get; set; } = string.Empty;
             public string Country { get; set; } = "India";
             public string? Landmark { get; set; }
+            public bool SaveForFuture { get; set; } = false; // Whether to save this address for future use
+            public string? AddressLabel { get; set; } // Label for the saved address (e.g., "Home", "Office")
         }
 
         [HttpPost]
@@ -89,6 +93,7 @@ namespace ServConnect.Controllers
 
             var address = new UserAddress
             {
+                UserId = me.Id,
                 FullName = input.FullName,
                 PhoneNumber = input.PhoneNumber,
                 AddressLine1 = input.AddressLine1,
@@ -97,10 +102,19 @@ namespace ServConnect.Controllers
                 State = input.State,
                 PostalCode = input.PostalCode,
                 Country = input.Country,
-                Landmark = input.Landmark
+                Landmark = input.Landmark,
+                Label = input.AddressLabel ?? "Delivery Address"
             };
 
-            var (order, razorpayOrderId) = await _orders.CreateOrderWithAddressAsync(me.Id, me.Email ?? string.Empty, input.ItemId, input.Quantity, address, input.UserAddressId);
+            // If user wants to save this address for future use, save it first
+            string? savedAddressId = input.UserAddressId;
+            if (input.SaveForFuture && string.IsNullOrEmpty(input.UserAddressId))
+            {
+                var savedAddress = await _addressService.CreateAddressAsync(address);
+                savedAddressId = savedAddress.Id;
+            }
+
+            var (order, razorpayOrderId) = await _orders.CreateOrderWithAddressAsync(me.Id, me.Email ?? string.Empty, input.ItemId, input.Quantity, address, savedAddressId);
             
             // Return the data structure expected by the frontend
             var response = new
@@ -110,7 +124,8 @@ namespace ServConnect.Controllers
                 key = _config["Razorpay:KeyId"],
                 amount = (long)(order.TotalAmount * 100), // Convert to paise
                 currency = "INR",
-                description = $"Order for {order.ItemTitle} x{order.Quantity}"
+                description = $"Order for {order.ItemTitle} x{order.Quantity}",
+                savedAddressId = savedAddressId // Return the saved address ID so frontend can use it next time
             };
             
             return Ok(response);

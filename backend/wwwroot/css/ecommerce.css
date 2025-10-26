@@ -1,0 +1,482 @@
+/* ============================================
+   E-Commerce Enhanced Styles
+   ServConnect - Modern Products Browse Page
+   ============================================ */
+
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --accent-color: #f5576c;
+    --success-color: #2e7d32;
+    --warning-color: #f093fb;
+    --danger-color: #c62828;
+    --light-bg: #f8f9fa;
+    --border-color: #e0e0e0;
+    --text-dark: #333;
+    --text-muted: #666;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ============================================
+   Product Card Hover Effects
+   ============================================ */
+
+.product-card-hover {
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card-hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.product-card-hover:hover::before {
+    left: 100%;
+}
+
+/* ============================================
+   Category Pills Animation
+   ============================================ */
+
+.category-pill-scroll {
+    scroll-snap-type: x mandatory;
+}
+
+.category-pill {
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+}
+
+/* ============================================
+   Responsive Grid Utilities
+   ============================================ */
+
+@media (max-width: 1400px) {
+    .products-grid-xl {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+}
+
+@media (max-width: 1024px) {
+    .products-grid-lg {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .products-grid-md {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .products-grid-sm {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ============================================
+   Product Card Variants
+   ============================================ */
+
+.product-card-featured {
+    grid-column: span 2;
+    grid-row: span 2;
+}
+
+.product-card-featured .product-image-wrapper {
+    height: 300px;
+}
+
+@media (max-width: 768px) {
+    .product-card-featured {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+
+    .product-card-featured .product-image-wrapper {
+        height: 200px;
+    }
+}
+
+/* ============================================
+   Badge Styles
+   ============================================ */
+
+.badge-gradient {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.badge-outline {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    background: transparent;
+}
+
+/* ============================================
+   Filter & Sort Bar
+   ============================================ */
+
+.filter-sort-bar {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem 0;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-dropdown,
+.sort-dropdown {
+    border-radius: 25px;
+    border: 2px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-dropdown:hover,
+.sort-dropdown:hover {
+    border-color: var(--primary-color);
+    background: rgba(102, 126, 234, 0.05);
+}
+
+/* ============================================
+   Loading States
+   ============================================ */
+
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.product-card-skeleton {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.product-card-skeleton .skeleton-image {
+    height: 200px;
+    width: 100%;
+}
+
+.product-card-skeleton .skeleton-text {
+    height: 12px;
+    margin: 1rem;
+    border-radius: 4px;
+}
+
+/* ============================================
+   Comparison Mode
+   ============================================ */
+
+.comparison-mode-active .product-card {
+    cursor: pointer;
+    position: relative;
+}
+
+.product-card.selected::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(102, 126, 234, 0.1);
+    border: 3px solid var(--primary-color);
+    border-radius: 12px;
+    z-index: 10;
+}
+
+.product-card.selected .product-checkbox {
+    display: flex;
+}
+
+.product-checkbox {
+    display: none;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border: 2px solid var(--primary-color);
+    border-radius: 4px;
+    z-index: 20;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-checkbox::after {
+    content: '✓';
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* ============================================
+   Wishlist Heart Animation
+   ============================================ */
+
+.wishlist-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wishlist-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.wishlist-btn.active {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+/* ============================================
+   Quick View Modal
+   ============================================ */
+
+.quick-view-modal .modal-body {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.product-details-image {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.product-details-image img {
+    width: 100%;
+    height: auto;
+}
+
+.product-details-thumbnails {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.product-details-thumbnails img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.product-details-thumbnails img:hover,
+.product-details-thumbnails img.active {
+    border-color: var(--primary-color);
+}
+
+/* ============================================
+   Reviews Section
+   ============================================ */
+
+.reviews-container {
+    border-top: 2px solid var(--light-bg);
+    padding-top: 2rem;
+    margin-top: 2rem;
+}
+
+.review-item {
+    padding: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+    margin-bottom: 1rem;
+    background: var(--light-bg);
+    border-radius: 0 8px 8px 0;
+}
+
+.review-rating {
+    color: #ffc107;
+}
+
+/* ============================================
+   Toast Notifications
+   ============================================ */
+
+.toast-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+.custom-toast {
+    background: white;
+    border-left: 4px solid var(--primary-color);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideInLeft 0.3s ease;
+}
+
+.custom-toast.success {
+    border-left-color: var(--success-color);
+}
+
+.custom-toast.error {
+    border-left-color: var(--danger-color);
+}
+
+.custom-toast.warning {
+    border-left-color: var(--accent-color);
+}
+
+/* ============================================
+   Breadcrumb
+   ============================================ */
+
+.breadcrumb-modern {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.breadcrumb-modern-item {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.breadcrumb-modern-item:hover {
+    color: var(--primary-color);
+}
+
+.breadcrumb-modern-item.active {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.breadcrumb-modern-separator {
+    color: var(--border-color);
+}
+
+/* ============================================
+   Responsive Utilities
+   ============================================ */
+
+@media (max-width: 576px) {
+    .filter-sort-bar {
+        flex-direction: column;
+    }
+
+    .toast-container {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        max-width: 100%;
+    }
+}
+
+/* ============================================
+   Dark Mode Support (Future)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-dark: #f0f0f0;
+        --text-muted: #b0b0b0;
+        --light-bg: #2a2a2a;
+        --border-color: #404040;
+    }
+
+    .product-card {
+        background: #1a1a1a;
+        border-color: #303030;
+    }
+
+    .category-badge {
+        background: #2a2a2a;
+        border-color: #404040;
+        color: #f0f0f0;
+    }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+    .category-filter,
+    .items-actions,
+    .order-btn-wrapper,
+    .wishlist-btn {
+        display: none;
+    }
+
+    .product-card {
+        break-inside: avoid;
+    }
+}
