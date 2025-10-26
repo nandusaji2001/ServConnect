@@ -14,8 +14,9 @@ namespace ServConnect.Controllers
         private readonly IBookingPaymentService _paymentService;
         private readonly IAvailabilityValidationService _availabilityValidation;
         private readonly IServiceOtpService _serviceOtpService;
+        private readonly IServiceTransferService _transferService;
 
-        public BookingsController(IBookingService bookings, UserManager<Users> userManager, IServiceCatalog catalog, IBookingPaymentService paymentService, IAvailabilityValidationService availabilityValidation, IServiceOtpService serviceOtpService)
+        public BookingsController(IBookingService bookings, UserManager<Users> userManager, IServiceCatalog catalog, IBookingPaymentService paymentService, IAvailabilityValidationService availabilityValidation, IServiceOtpService serviceOtpService, IServiceTransferService transferService)
         {
             _bookings = bookings;
             _userManager = userManager;
@@ -23,6 +24,7 @@ namespace ServConnect.Controllers
             _paymentService = paymentService;
             _availabilityValidation = availabilityValidation;
             _serviceOtpService = serviceOtpService;
+            _transferService = transferService;
         }
 
         public class CreateBookingRequest
@@ -401,6 +403,329 @@ namespace ServConnect.Controllers
         {
             public string ProviderServiceId { get; set; } = string.Empty;
             public DateTime RequestedDateTime { get; set; }
+        }
+
+        // Service Transfer API Endpoints
+
+        public class CreateTransferRequestModel
+        {
+            public string BookingId { get; set; } = string.Empty;
+            public Guid NewProviderId { get; set; }
+            public string? TransferReason { get; set; }
+        }
+
+        public class TransferResponseRequest
+        {
+            public string TransferId { get; set; } = string.Empty;
+            public string? Message { get; set; }
+        }
+
+        // Create a transfer request (Original provider)
+        [HttpPost("/api/bookings/transfer/create")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> CreateTransferRequest([FromBody] CreateTransferRequestModel req)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var transfer = await _transferService.CreateTransferRequestAsync(
+                    req.BookingId, 
+                    me.Id, 
+                    req.NewProviderId, 
+                    req.TransferReason
+                );
+
+                return Ok(new { 
+                    message = "Transfer request created successfully", 
+                    transferId = transfer.Id 
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Create transfer request failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // Get available providers for transfer
+        [HttpGet("/api/bookings/transfer/available-providers/{providerServiceId}")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> GetAvailableProvidersForTransfer(string providerServiceId)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var providers = await _transferService.GetAvailableProvidersForTransferAsync(providerServiceId, me.Id);
+                
+                return Ok(providers.Select(p => new {
+                    id = p.Id,
+                    providerId = p.ProviderId,
+                    providerName = p.ProviderName,
+                    serviceName = p.ServiceName,
+                    description = p.Description,
+                    price = p.Price,
+                    priceUnit = p.PriceUnit,
+                    currency = p.Currency,
+                    availableDays = p.AvailableDays,
+                    availableHours = p.AvailableHours
+                }));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Get available providers failed: {ex.Message}");
+                Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
+            }
+        }
+
+        // User approve transfer
+        [HttpPost("/api/bookings/transfer/user-approve")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> UserApproveTransfer([FromBody] TransferResponseRequest req)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var success = await _transferService.UserApproveTransferAsync(req.TransferId, me.Id, req.Message);
+                if (!success)
+                {
+                    return BadRequest(new { error = "Failed to approve transfer request" });
+                }
+
+                return Ok(new { message = "Transfer request approved successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] User approve transfer failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // User reject transfer
+        [HttpPost("/api/bookings/transfer/user-reject")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> UserRejectTransfer([FromBody] TransferResponseRequest req)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var success = await _transferService.UserRejectTransferAsync(req.TransferId, me.Id, req.Message);
+                if (!success)
+                {
+                    return BadRequest(new { error = "Failed to reject transfer request" });
+                }
+
+                return Ok(new { message = "Transfer request rejected successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] User reject transfer failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // Provider accept transfer
+        [HttpPost("/api/bookings/transfer/provider-accept")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> ProviderAcceptTransfer([FromBody] TransferResponseRequest req)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var success = await _transferService.ProviderAcceptTransferAsync(req.TransferId, me.Id, req.Message);
+                if (!success)
+                {
+                    return BadRequest(new { error = "Failed to accept transfer request" });
+                }
+
+                return Ok(new { message = "Transfer request accepted successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Provider accept transfer failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // Provider reject transfer
+        [HttpPost("/api/bookings/transfer/provider-reject")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> ProviderRejectTransfer([FromBody] TransferResponseRequest req)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var success = await _transferService.ProviderRejectTransferAsync(req.TransferId, me.Id, req.Message);
+                if (!success)
+                {
+                    return BadRequest(new { error = "Failed to reject transfer request" });
+                }
+
+                return Ok(new { message = "Transfer request rejected successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Provider reject transfer failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // Cancel transfer request (Original provider)
+        [HttpPost("/api/bookings/transfer/cancel")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> CancelTransferRequest([FromBody] TransferResponseRequest req)
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var success = await _transferService.CancelTransferRequestAsync(req.TransferId, me.Id);
+                if (!success)
+                {
+                    return BadRequest(new { error = "Failed to cancel transfer request" });
+                }
+
+                return Ok(new { message = "Transfer request cancelled successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Cancel transfer request failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // Get transfer requests for user
+        [HttpGet("/api/bookings/transfer/user")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> GetUserTransferRequests()
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var transfers = await _transferService.GetTransferRequestsForUserAsync(me.Id);
+                
+                return Ok(transfers.Select(t => new {
+                    id = t.Id,
+                    bookingId = t.BookingId,
+                    originalProviderName = t.OriginalProviderName,
+                    newProviderName = t.NewProviderName,
+                    serviceName = t.ServiceName,
+                    serviceDateTime = t.ServiceDateTime,
+                    transferReason = t.TransferReason,
+                    status = t.Status.ToString(),
+                    requestedAt = t.RequestedAtUtc,
+                    userMessage = t.UserMessage,
+                    providerMessage = t.ProviderMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Get user transfer requests failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // Get transfer requests for provider
+        [HttpGet("/api/bookings/transfer/provider")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> GetProviderTransferRequests()
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var transfers = await _transferService.GetTransferRequestsForProviderAsync(me.Id);
+                
+                return Ok(transfers.Select(t => new {
+                    id = t.Id,
+                    bookingId = t.BookingId,
+                    userName = t.UserName,
+                    originalProviderName = t.OriginalProviderName,
+                    newProviderName = t.NewProviderName,
+                    serviceName = t.ServiceName,
+                    serviceDateTime = t.ServiceDateTime,
+                    transferReason = t.TransferReason,
+                    status = t.Status.ToString(),
+                    requestedAt = t.RequestedAtUtc,
+                    userMessage = t.UserMessage,
+                    providerMessage = t.ProviderMessage,
+                    isOriginalProvider = t.OriginalProviderId == me.Id,
+                    isNewProvider = t.NewProviderId == me.Id
+                }));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Get provider transfer requests failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        // Get pending transfer requests for provider (for notifications)
+        [HttpGet("/api/bookings/transfer/provider/pending")]
+        [Authorize]
+        [ServiceFilter(typeof(ServConnect.Filters.RequireApprovedUserApiFilter))]
+        public async Task<IActionResult> GetPendingTransferRequests()
+        {
+            try
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me == null) return Unauthorized();
+
+                var transfers = await _transferService.GetPendingTransferRequestsForProviderAsync(me.Id);
+                
+                return Ok(transfers.Select(t => new {
+                    id = t.Id,
+                    bookingId = t.BookingId,
+                    userName = t.UserName,
+                    originalProviderName = t.OriginalProviderName,
+                    serviceName = t.ServiceName,
+                    serviceDateTime = t.ServiceDateTime,
+                    transferReason = t.TransferReason,
+                    requestedAt = t.RequestedAtUtc
+                }));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Get pending transfer requests failed: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
         }
     }
 }

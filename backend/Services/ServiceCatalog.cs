@@ -210,5 +210,18 @@ namespace ServConnect.Services
                 .ToList();
             return names;
         }
+
+        public async Task<List<ProviderService>> GetActiveServicesByNameAsync(string serviceName)
+        {
+            // Get all services with matching name and IsActive, then filter expiry in memory
+            var services = await _providerLinks
+                .Find(x => x.ServiceName.ToLower() == serviceName.ToLower() && x.IsActive)
+                .ToListAsync();
+            
+            // Filter out expired services in memory (since IsExpired is a computed property)
+            return services
+                .Where(s => !s.PublicationEndDate.HasValue || s.PublicationEndDate.Value >= DateTime.UtcNow)
+                .ToList();
+        }
     }
 }

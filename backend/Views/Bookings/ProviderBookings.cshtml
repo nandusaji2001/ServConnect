@@ -106,9 +106,14 @@
                                 {
                                     @if (b.ServiceStatus == ServConnect.Models.ServiceStatus.NotStarted)
                                     {
-                                        <button class="btn btn-sm btn-primary" onclick="startService('@b.Id')">
-                                            <i class="fas fa-play me-1"></i>Start Service
-                                        </button>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <button class="btn btn-sm btn-primary" onclick="startService('@b.Id')">
+                                                <i class="fas fa-play me-1"></i>Start Service
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="transferService('@b.Id', '@b.ProviderServiceId')">
+                                                <i class="fas fa-exchange-alt me-1"></i>Transfer
+                                            </button>
+                                        </div>
                                     }
                                     else if (b.ServiceStatus == ServConnect.Models.ServiceStatus.InProgress)
                                     {
@@ -221,6 +226,129 @@ async function stopService(bookingId) {
     } catch (error) {
         console.error('Stop service error:', error);
         alert('Failed to stop service. Please try again.');
+    }
+}
+
+async function transferService(bookingId, providerServiceId) {
+    try {
+        console.log(`[DEBUG] Fetching available providers for service: ${providerServiceId}`);
+        
+        // First, get available providers for this service
+        const res = await fetch(`/api/bookings/transfer/available-providers/${providerServiceId}`);
+        
+        console.log(`[DEBUG] Response status: ${res.status}`);
+        
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('[ERROR] API response:', errorData);
+            alert(`Failed to load available providers: ${errorData.error || 'Unknown error'}\nDetails: ${errorData.details || 'No details available'}`);
+            return;
+        }
+        
+        const providers = await res.json();
+        console.log(`[DEBUG] Found ${providers.length} available providers:`, providers);
+        
+        if (providers.length === 0) {
+            alert('No other providers available for this service');
+            return;
+        }
+        
+        // Show transfer modal
+        showTransferModal(bookingId, providers);
+    } catch (error) {
+        console.error('Transfer service error:', error);
+        alert(`Failed to load transfer options: ${error.message}\nPlease try again.`);
+    }
+}
+
+function showTransferModal(bookingId, providers) {
+    // Create modal HTML
+    const modalHtml = `
+        <div class="modal fade" id="transferModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Transfer Service</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Select a provider to transfer this service to:</p>
+                        <div class="mb-3">
+                            <label class="form-label">Available Providers:</label>
+                            <select class="form-select" id="newProviderId">
+                                <option value="">Select a provider...</option>
+                                ${providers.map(p => `
+                                    <option value="${p.providerId}" data-name="${p.providerName}">
+                                        ${p.providerName} - ${p.currency} ${p.price} ${p.priceUnit}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Reason for Transfer (Optional):</label>
+                            <textarea class="form-control" id="transferReason" rows="3" placeholder="Explain why you need to transfer this service..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="submitTransfer('${bookingId}')">Send Transfer Request</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('transferModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('transferModal'));
+    modal.show();
+}
+
+async function submitTransfer(bookingId) {
+    const newProviderId = document.getElementById('newProviderId').value;
+    const transferReason = document.getElementById('transferReason').value;
+    
+    if (!newProviderId) {
+        alert('Please select a provider');
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/bookings/transfer/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                bookingId: bookingId,
+                newProviderId: newProviderId,
+                transferReason: transferReason
+            })
+        });
+        
+        if (res.ok) {
+            const result = await res.json();
+            alert('Transfer request sent successfully! The customer will be notified to approve or reject the transfer.');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('transferModal'));
+            modal.hide();
+            
+            // Reload page to show updated status
+            location.reload();
+        } else {
+            const error = await res.json();
+            alert('Failed to create transfer request: ' + (error.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Submit transfer error:', error);
+        alert('Failed to submit transfer request. Please try again.');
     }
 }
 </script>

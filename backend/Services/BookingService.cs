@@ -182,5 +182,19 @@ namespace ServConnect.Services
             );
             return res.ModifiedCount == 1;
         }
+
+        public async Task<bool> UpdateProviderAsync(string bookingId, Guid newProviderId, string newProviderName)
+        {
+            var update = Builders<Booking>.Update
+                .Set(x => x.ProviderId, newProviderId)
+                .Set(x => x.ProviderName, newProviderName)
+                .Set(x => x.ServiceStatus, ServiceStatus.NotStarted) // Reset service status for new provider
+                .Set(x => x.ServiceStartedAt, null)
+                .Set(x => x.ServiceCompletedAt, null)
+                .Set(x => x.CurrentOtpId, null);
+
+            var res = await _bookings.UpdateOneAsync(x => x.Id == bookingId, update);
+            return res.ModifiedCount == 1;
+        }
     }
 }

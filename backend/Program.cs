@@ -102,6 +102,8 @@ builder.Services.AddScoped<IBookingPaymentService, BookingPaymentService>();
 builder.Services.AddScoped<IAvailabilityValidationService, AvailabilityValidationService>();
 // Service OTP service
 builder.Services.AddScoped<IServiceOtpService, ServiceOtpService>();
+// Service Transfer service
+builder.Services.AddScoped<IServiceTransferService, ServiceTransferService>();
 // Notification service
 builder.Services.AddScoped<INotificationService, NotificationService>();
 // Background service for automatic service expiry

@@ -44,6 +44,10 @@ namespace ServConnect.Models
         ProfileUpdate,
         SystemAlert,
         General,
-        ServiceOtp
+        ServiceOtp,
+        ServiceTransferRequest,
+        ServiceTransferApproved,
+        ServiceTransferRejected,
+        ServiceTransferCompleted
     }
 }

@@ -24,5 +24,6 @@ namespace ServConnect.Services
 
         // Aggregation
         Task<List<string>> GetAllAvailableServiceNamesAsync();
+        Task<List<ProviderService>> GetActiveServicesByNameAsync(string serviceName);
     }
 }
