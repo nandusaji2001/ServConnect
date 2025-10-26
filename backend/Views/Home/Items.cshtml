@@ -2,116 +2,509 @@
     ViewData["Title"] = Localizer["Items.Title"];
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">@Localizer["Items.Heading"]</h2>
-        <div class="d-flex gap-2">
-            <a class="btn btn-outline-secondary" href="/Home/MyOrders" title="@Localizer["Items.MyOrders.Title"]">
-                <i class="fas fa-list"></i> @Localizer["Items.MyOrders"]
-            </a>
-            <input id="search" class="form-control" placeholder="@Localizer["Items.SearchPlaceholder"]" style="min-width: 260px;">
-        </div>
-    </div>
+<style>
+    /* Modern E-Commerce Styles */
+    .ecommerce-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 15px 15px;
+    }
 
-    <div id="itemsGrid" class="row g-3">
-        <div class="col-12 text-center text-muted">@Localizer["Items.Loading"]</div>
+    .ecommerce-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .ecommerce-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    /* Category Filter Tabs */
+    .category-filter {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .category-filter::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .category-filter::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .category-filter::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 10px;
+    }
+
+    .category-badge {
+        padding: 0.6rem 1.5rem;
+        border: 2px solid #e0e0e0;
+        background-color: white;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        font-weight: 500;
+        color: #333;
+        flex-shrink: 0;
+    }
+
+    .category-badge:hover {
+        border-color: #667eea;
+        background-color: #f5f7ff;
+        transform: translateY(-2px);
+    }
+
+    .category-badge.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Search Bar Enhancement */
+    .search-wrapper {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .search-wrapper input {
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .search-wrapper input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .search-wrapper i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+    }
+
+    /* Product Grid & Cards */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    @@media (max-width: 1200px) {
+        .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border: 1px solid #f0f0f0;
+    }
+
+    .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        border-color: #667eea;
+    }
+
+    .product-image-wrapper {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+        background: #f5f5f5;
+    }
+
+    .product-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image-wrapper img {
+        transform: scale(1.05);
+    }
+
+    .product-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-badge.vendor {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .product-badge.provider {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+
+    .product-content {
+        padding: 1rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #333;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-description {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex-grow: 1;
+    }
+
+    .product-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .product-price {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    .product-stock {
+        padding: 0.3rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .product-stock.in-stock {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .product-stock.out-of-stock {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .order-btn-wrapper {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .order-btn-wrapper .btn {
+        flex: 1;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .order-btn-wrapper .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .order-btn-wrapper .btn-primary:hover:not(:disabled) {
+        background: linear-gradient(135deg, #5568d3 0%, #6a4090 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    .order-btn-wrapper .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: #999;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #aaa;
+    }
+
+    /* Top Section */
+    .items-top-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .items-top-section h1 {
+        margin: 0;
+        color: #333;
+        font-size: 1.5rem;
+    }
+
+    .items-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .items-actions .btn {
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    /* Loading Spinner */
+    .loading-state {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @@media (max-width: 576px) {
+        .ecommerce-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .items-top-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .items-top-section h1 {
+            font-size: 1.25rem;
+        }
+
+        .search-wrapper input {
+            width: 100%;
+        }
+
+        .category-filter {
+            padding: 1rem 0;
+        }
+
+        .products-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<!-- Header Section -->
+<div class="ecommerce-header">
+    <div class="container">
+        <h1>@Localizer["Items.Heading"]</h1>
+        <p>@Localizer["Items.Subheading"] • @Localizer["Items.BrowseTitle"]</p>
     </div>
 </div>
 
-<!-- Enhanced Order Modal with Address Management -->
+<div class="container py-4">
+    <!-- Top Actions -->
+    <div class="items-top-section">
+        <h1 style="font-size: 1.5rem; color: #333;">@Localizer["Items.Heading"]</h1>
+        <div class="items-actions">
+            <a class="btn btn-outline-secondary" href="/Home/MyOrders" title="@Localizer["Items.MyOrders.Title"]">
+                <i class="fas fa-list"></i> @Localizer["Items.MyOrders"]
+            </a>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-wrapper">
+        <i class="fas fa-search"></i>
+        <input id="search" class="form-control" placeholder="@Localizer["Items.SearchPlaceholder"]" style="width: 100%; padding-left: 2.5rem;">
+    </div>
+
+    <!-- Category Filter -->
+    <div class="category-filter" id="categoryFilter">
+        <button class="category-badge active" data-category="all">
+            <i class="fas fa-th"></i> All Products
+        </button>
+    </div>
+
+    <!-- Products Grid -->
+    <div id="itemsGrid" class="products-grid">
+        <div class="loading-state">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Modal -->
 <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Place Order</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="orderForm">
-            <div class="mb-3">
-                <label class="form-label">Quantity</label>
-                <input type="number" class="form-control" id="orderQty" min="1" value="1" required />
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom: 2px solid #f0f0f0;">
+                <h5 class="modal-title">Place Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
-            <!-- Address Selection -->
-            <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label">Delivery Address</label>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="addNewAddressBtn">
-                        <i class="fas fa-plus"></i> Add New Address
-                    </button>
-                </div>
-                
-                <!-- Saved Addresses -->
-                <div id="savedAddresses" class="mb-3">
-                    <div class="text-muted">Loading addresses...</div>
-                </div>
-                
-                <!-- New Address Form (Hidden by default) -->
-                <div id="newAddressForm" style="display: none;">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">Add New Address</h6>
+            <div class="modal-body">
+                <form id="orderForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Quantity</label>
+                        <input type="number" class="form-control" id="orderQty" min="1" value="1" required />
+                    </div>
+                    
+                    <!-- Address Selection -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold">Delivery Address</label>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="addNewAddressBtn">
+                                <i class="fas fa-plus"></i> Add New Address
+                            </button>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Full Name *</label>
-                                    <input type="text" class="form-control" id="newFullName" required />
+                        
+                        <!-- Saved Addresses -->
+                        <div id="savedAddresses" class="mb-3">
+                            <div class="text-muted">Loading addresses...</div>
+                        </div>
+                        
+                        <!-- New Address Form -->
+                        <div id="newAddressForm" style="display: none;">
+                            <div class="card">
+                                <div class="card-header" style="background: #f8f9fa; border: none;">
+                                    <h6 class="mb-0">Add New Address</h6>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Phone Number *</label>
-                                    <input type="tel" class="form-control" id="newPhoneNumber" required />
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Full Name *</label>
+                                            <input type="text" class="form-control" id="newFullName" required />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Phone Number *</label>
+                                            <input type="tel" class="form-control" id="newPhoneNumber" required />
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Address Line 1 *</label>
+                                        <input type="text" class="form-control" id="newAddressLine1" placeholder="House/Flat No., Building Name" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Address Line 2</label>
+                                        <input type="text" class="form-control" id="newAddressLine2" placeholder="Street, Area, Colony" />
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">City *</label>
+                                            <input type="text" class="form-control" id="newCity" required />
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">State *</label>
+                                            <input type="text" class="form-control" id="newState" required />
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Postal Code *</label>
+                                            <input type="text" class="form-control" id="newPostalCode" required />
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Landmark</label>
+                                        <input type="text" class="form-control" id="newLandmark" placeholder="Near..." />
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="saveAddress" checked>
+                                        <label class="form-check-label" for="saveAddress">
+                                            Save this address for future orders
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Address Line 1 *</label>
-                                <input type="text" class="form-control" id="newAddressLine1" placeholder="House/Flat No., Building Name" required />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Address Line 2</label>
-                                <input type="text" class="form-control" id="newAddressLine2" placeholder="Street, Area, Colony" />
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">City *</label>
-                                    <input type="text" class="form-control" id="newCity" required />
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">State *</label>
-                                    <input type="text" class="form-control" id="newState" required />
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Postal Code *</label>
-                                    <input type="text" class="form-control" id="newPostalCode" required />
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Landmark</label>
-                                <input type="text" class="form-control" id="newLandmark" placeholder="Near..." />
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="saveAddress" checked>
-                                <label class="form-check-label" for="saveAddress">
-                                    Save this address for future orders
-                                </label>
                             </div>
                         </div>
                     </div>
-                </div>
+                    
+                    <div id="orderError" class="alert alert-danger small" style="display:none;"></div>
+                </form>
             </div>
-            
-            <div id="orderError" class="text-danger small" style="display:none;"></div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button id="submitOrderBtn" type="button" class="btn btn-primary">
-            <i class="fas fa-check"></i> Place Order
-        </button>
-      </div>
+            <div class="modal-footer" style="border-top: 2px solid #f0f0f0;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="submitOrderBtn" type="button" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                    <i class="fas fa-check"></i> Place Order
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <script>
@@ -119,33 +512,65 @@
     let selectedItemId = null;
     let selectedAddressId = null;
     let userAddresses = [];
+    let currentCategory = 'all';
 
-    function card(i){
-        const img = i.imageUrl ? `<img src="${i.imageUrl}" class="card-img-top" alt="${i.title || 'item'}" style="object-fit:cover;height:160px;">` : '';
+    function extractCategories() {
+        const categories = new Set(['all']);
+        allItems.forEach(item => {
+            if (item.category && item.category.trim()) {
+                categories.add(item.category.trim());
+            }
+        });
+        categories.add('Other');
+        return Array.from(categories);
+    }
+
+    function renderCategories() {
+        const categories = extractCategories();
+        const filter = document.getElementById('categoryFilter');
+        filter.innerHTML = categories.map(cat => `
+            <button class="category-badge ${cat === 'all' ? 'active' : ''}" data-category="${cat}">
+                ${cat === 'all' ? '<i class="fas fa-th"></i> All Products' : 
+                  cat === 'Other' ? '<i class="fas fa-box"></i> ' + cat :
+                  '<i class="fas fa-tag"></i> ' + cat}
+            </button>
+        `).join('');
+
+        document.querySelectorAll('.category-badge').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.category-badge').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                currentCategory = e.currentTarget.getAttribute('data-category');
+                filterAndRender();
+            });
+        });
+    }
+
+    function productCard(i) {
+        const img = i.imageUrl ? `<div class="product-image-wrapper"><img src="${i.imageUrl}" alt="${i.title || 'item'}"></div>` : '<div class="product-image-wrapper" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="font-size: 3rem; color: white; opacity: 0.3;"></i></div>';
         const price = (i.price ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'});
-        const badgeClass = String(i.ownerRole).toLowerCase() === 'vendor' ? 'bg-warning text-dark' : 'bg-info text-dark';
         const stock = Number.isFinite(i.stock) ? i.stock : 0;
         const disabled = stock <= 0 ? 'disabled' : '';
-        const stockHtml = `<span class="badge ${stock > 0 ? 'bg-success' : 'bg-secondary'}">Stock: ${stock}</span>`;
+        const badgeType = String(i.ownerRole).toLowerCase() === 'vendor' ? 'vendor' : 'provider';
+        const badgeText = String(i.ownerRole).toLowerCase() === 'vendor' ? 'Vendor' : 'Service Provider';
+        
         return `
-        <div class="col-sm-6 col-md-4 col-lg-3">
-            <div class="card h-100">
-                ${img}
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">${i.title || ''}</h5>
-                    <p class="card-text flex-grow-1">${i.description || ''}</p>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-bold">${price}</span>
-                        <span class="d-flex align-items-center gap-2">
-                            ${stockHtml}
-                            <span class="badge ${badgeClass}">${i.ownerRole}</span>
-                        </span>
-                    </div>
-                    <div class="d-flex justify-content-end gap-2">
-                        <button class="btn btn-sm btn-primary order-btn" data-id="${i.id}" ${disabled}>
-                            <i class="fas fa-shopping-cart"></i> ${stock > 0 ? 'Order Now' : 'Out of Stock'}
-                        </button>
-                    </div>
+        <div class="product-card">
+            ${img}
+            <span class="product-badge ${badgeType}">${badgeText}</span>
+            <div class="product-content">
+                <h5 class="product-title">${i.title || ''}</h5>
+                <p class="product-description">${i.description || 'No description available'}</p>
+                <div class="product-footer">
+                    <span class="product-price">${price}</span>
+                    <span class="product-stock ${stock > 0 ? 'in-stock' : 'out-of-stock'}">
+                        ${stock > 0 ? `<i class="fas fa-check-circle"></i> In Stock` : '<i class="fas fa-times-circle"></i> Out'}
+                    </span>
+                </div>
+                <div class="order-btn-wrapper">
+                    <button class="btn btn-sm btn-primary order-btn" data-id="${i.id}" ${disabled}>
+                        <i class="fas fa-shopping-cart"></i> ${stock > 0 ? 'Order' : 'Out'}
+                    </button>
                 </div>
             </div>
         </div>`;
@@ -177,8 +602,6 @@
             if (res.ok) {
                 userAddresses = await res.json();
                 renderAddresses();
-            } else {
-                document.getElementById('savedAddresses').innerHTML = '<div class="text-muted">No saved addresses found.</div>';
             }
         } catch {
             document.getElementById('savedAddresses').innerHTML = '<div class="text-danger">Failed to load addresses.</div>';
@@ -198,90 +621,97 @@
 
         container.innerHTML = userAddresses.map(addr => addressCard(addr, addr.id === selectedId)).join('');
         
-        // Wire address selection
         document.querySelectorAll('.address-card').forEach(card => {
             card.addEventListener('click', () => {
                 selectedAddressId = card.getAttribute('data-id');
                 renderAddresses();
             });
         });
-
-        document.querySelectorAll('.address-radio').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                selectedAddressId = e.target.value;
-                renderAddresses();
-            });
-        });
     }
 
-    function wireCardActions(){
+    function filterAndRender() {
+        let filtered = allItems;
+        
+        if (currentCategory !== 'all') {
+            if (currentCategory === 'Other') {
+                filtered = allItems.filter(x => !x.category || x.category.trim() === '');
+            } else {
+                filtered = allItems.filter(x => x.category === currentCategory);
+            }
+        }
+
+        const q = document.getElementById('search').value.toLowerCase();
+        if (q) {
+            filtered = filtered.filter(x => `${x.title} ${x.description}`.toLowerCase().includes(q));
+        }
+
+        render(filtered);
+    }
+
+    function wireCardActions() {
         document.querySelectorAll('.order-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 selectedItemId = e.currentTarget.getAttribute('data-id');
                 const modalEl = document.getElementById('orderModal');
                 const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 
-                // Reset form
                 document.getElementById('orderQty').value = 1;
                 document.getElementById('orderError').style.display = 'none';
                 document.getElementById('newAddressForm').style.display = 'none';
                 
-                // Load addresses
                 await loadAddresses();
-                
                 modal.show();
             });
         });
     }
 
-    function render(items){
+    function render(items) {
         const grid = document.getElementById('itemsGrid');
-        if(!items || items.length === 0){
-            grid.innerHTML = `<div class='col-12 text-center text-muted'>No items found.</div>`;
+        if (!items || items.length === 0) {
+            grid.innerHTML = `
+            <div style="grid-column: 1 / -1;">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No Products Found</h3>
+                    <p>Try adjusting your search or category filters</p>
+                </div>
+            </div>`;
             return;
         }
-        grid.innerHTML = items.map(card).join('');
+        grid.innerHTML = items.map(productCard).join('');
         wireCardActions();
     }
 
-    async function load(){
+    async function load() {
         const grid = document.getElementById('itemsGrid');
-        grid.innerHTML = `<div class='col-12 text-center text-muted'>Loading...</div>`;
-        try{
+        grid.innerHTML = `
+        <div style="grid-column: 1 / -1;">
+            <div class="loading-state">
+                <div class="spinner"></div>
+            </div>
+        </div>`;
+        try {
             const res = await fetch('/api/items', { credentials: 'same-origin' });
-            if(!res.ok) throw new Error();
+            if (!res.ok) throw new Error();
             allItems = await res.json();
+            renderCategories();
             render(allItems);
-        }catch{
-            grid.innerHTML = `<div class='col-12 text-center text-danger'>Failed to load items.</div>`;
+        } catch {
+            grid.innerHTML = `<div style="grid-column: 1 / -1;" class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Failed to Load</h3><p>Please refresh the page</p></div>`;
         }
     }
 
-    document.getElementById('search').addEventListener('input', (e) => {
-        const q = e.target.value.toLowerCase();
-        const filtered = allItems.filter(x => `${x.title} ${x.description}`.toLowerCase().includes(q));
-        render(filtered);
-    });
+    document.getElementById('search').addEventListener('input', filterAndRender);
 
-    function applyRoleFilter(items){
-        const params = new URLSearchParams(location.search);
-        const role = params.get('role');
-        if(!role) return items;
-        return items.filter(x => String(x.ownerRole).toLowerCase() === role.toLowerCase());
-    }
-
-    // Toggle new address form
     document.getElementById('addNewAddressBtn').addEventListener('click', () => {
         const form = document.getElementById('newAddressForm');
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
-        
         if (form.style.display === 'block') {
             selectedAddressId = null;
             renderAddresses();
         }
     });
 
-    // Lazy-load Razorpay script if not available
     function ensureRazorpay() {
         return new Promise((resolve, reject) => {
             if (window.Razorpay) return resolve();
@@ -295,160 +725,66 @@
 
     function getOrderData() {
         const qty = parseInt(document.getElementById('orderQty').value || '1', 10);
-        
         if (selectedAddressId) {
-            // Using saved address
-            return {
-                itemId: selectedItemId,
-                quantity: qty,
-                userAddressId: selectedAddressId
-            };
-        } else {
-            // Using new address
-            return {
-                itemId: selectedItemId,
-                quantity: qty,
-                fullName: document.getElementById('newFullName').value.trim(),
-                phoneNumber: document.getElementById('newPhoneNumber').value.trim(),
-                addressLine1: document.getElementById('newAddressLine1').value.trim(),
-                addressLine2: document.getElementById('newAddressLine2').value.trim(),
-                city: document.getElementById('newCity').value.trim(),
-                state: document.getElementById('newState').value.trim(),
-                postalCode: document.getElementById('newPostalCode').value.trim(),
-                country: 'India',
-                landmark: document.getElementById('newLandmark').value.trim()
-            };
+            const addr = userAddresses.find(a => a.id === selectedAddressId);
+            return { itemId: selectedItemId, quantity: qty, addressId: selectedAddressId, address: addr };
         }
-    }
-
-    function validateOrderData(data) {
-        if (!selectedItemId) return 'No item selected';
-        if (!data.quantity || data.quantity < 1) return 'Quantity must be at least 1';
-        
-        if (!selectedAddressId) {
-            // Validate new address
-            if (!data.fullName) return 'Full name is required';
-            if (!data.phoneNumber) return 'Phone number is required';
-            if (!data.addressLine1) return 'Address line 1 is required';
-            if (!data.city) return 'City is required';
-            if (!data.state) return 'State is required';
-            if (!data.postalCode) return 'Postal code is required';
-        }
-        
-        const item = allItems.find(x => x.id === selectedItemId);
-        if (item && item.stock && data.quantity > item.stock) {
-            return `Quantity exceeds available stock (${item.stock})`;
-        }
-        
         return null;
     }
 
     document.getElementById('submitOrderBtn').addEventListener('click', async () => {
-        const err = document.getElementById('orderError');
-        err.style.display = 'none';
-
-        const orderData = getOrderData();
-        const validationError = validateOrderData(orderData);
-        
-        if (validationError) {
-            err.textContent = validationError;
-            err.style.display = 'block';
+        const data = getOrderData();
+        if (!data) {
+            document.getElementById('orderError').textContent = 'Please select an address';
+            document.getElementById('orderError').style.display = 'block';
             return;
         }
 
-        const btn = document.getElementById('submitOrderBtn');
-        btn.disabled = true;
-        
         try {
-            // Step 1: Create backend order
-            const endpoint = selectedAddressId ? '/api/orders' : '/api/orders/with-address';
-            const payload = selectedAddressId ? 
-                { itemId: orderData.itemId, quantity: orderData.quantity, shippingAddress: userAddresses.find(a => a.id === selectedAddressId)?.formattedAddress || '' } :
-                orderData;
-
-            const res = await fetch(endpoint, {
+            await ensureRazorpay();
+            const res = await fetch('/api/bookings/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ itemId: data.itemId, quantity: data.quantity, addressId: data.addressId })
             });
-            
-            if (!res.ok) {
-                const txt = await res.text();
-                throw new Error(txt || 'Order creation failed');
-            }
-            
-            const data = await res.json();
 
-            // Step 2: Load Razorpay and open checkout
-            await ensureRazorpay();
+            if (!res.ok) {
+                const err = await res.json();
+                document.getElementById('orderError').textContent = err.message || 'Failed to create order';
+                document.getElementById('orderError').style.display = 'block';
+                return;
+            }
+
+            const order = await res.json();
             const options = {
-                key: data.key,
-                amount: data.amount,
-                currency: data.currency || 'INR',
+                key: 'rzp_test_RIlW2V6HMBx49X',
+                amount: order.amount,
+                currency: 'INR',
                 name: 'ServConnect',
-                description: data.description || 'Order Payment',
-                order_id: data.razorpayOrderId,
-                handler: async function (response) {
-                    try {
-                        // Step 3: Verify payment with backend
-                        const vr = await fetch('/api/orders/verify-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            credentials: 'same-origin',
-                            body: JSON.stringify({
-                                orderId: data.orderId,
-                                razorpayOrderId: response.razorpay_order_id,
-                                razorpayPaymentId: response.razorpay_payment_id,
-                                razorpaySignature: response.razorpay_signature
-                            })
-                        });
-                        
-                        if (!vr.ok) {
-                            const t = await vr.text();
-                            throw new Error(t || 'Payment verification failed');
-                        }
-                        
-                        const modalEl = document.getElementById('orderModal');
-                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                        modal.hide();
-                        alert('Order placed successfully! Payment confirmed.');
-                        
-                        // Reload addresses if new address was saved
-                        if (!selectedAddressId && document.getElementById('saveAddress').checked) {
-                            await loadAddresses();
-                        }
-                        
-                    } catch (verifyErr) {
-                        err.textContent = verifyErr?.message || 'Payment verification failed';
-                        err.style.display = 'block';
+                order_id: order.id,
+                handler: async (res) => {
+                    const verifyRes = await fetch('/api/bookings/verify-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ orderId: order.id, paymentId: res.razorpay_payment_id, signature: res.razorpay_signature })
+                    });
+                    if (verifyRes.ok) {
+                        bootstrap.Modal.getInstance(document.getElementById('orderModal'))?.hide();
+                        alert('Order placed successfully!');
+                        load();
+                    } else {
+                        alert('Payment verification failed');
                     }
-                },
-                prefill: {
-                    name: selectedAddressId ? userAddresses.find(a => a.id === selectedAddressId)?.fullName : orderData.fullName,
-                    contact: selectedAddressId ? userAddresses.find(a => a.id === selectedAddressId)?.phoneNumber : orderData.phoneNumber
-                },
-                theme: { color: '#3399cc' }
+                }
             };
-            
-            const rzp = new Razorpay(options);
-            rzp.on('payment.failed', function (resp) {
-                err.textContent = resp?.error?.description || 'Payment failed';
-                err.style.display = 'block';
-            });
-            rzp.open();
-            
-        } catch (ex) {
-            err.textContent = ex?.message || 'Failed to place order';
-            err.style.display = 'block';
-        } finally {
-            btn.disabled = false;
+            new window.Razorpay(options).open();
+        } catch (err) {
+            document.getElementById('orderError').textContent = err.message || 'An error occurred';
+            document.getElementById('orderError').style.display = 'block';
         }
     });
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        await load();
-        allItems = applyRoleFilter(allItems);
-        render(allItems);
-    });
+    document.addEventListener('DOMContentLoaded', load);
 </script>

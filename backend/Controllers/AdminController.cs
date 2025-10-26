@@ -443,7 +443,8 @@ namespace ServConnect.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-        public async Task<IActionResult> CreateAd(IFormFile image, string? targetUrl)
+        public async Task<IActionResult> CreateAd(IFormFile image, string? targetUrl, AdvertisementType adType = AdvertisementType.BottomPage, 
+            double? cropX = null, double? cropY = null, double? cropWidth = null, double? cropHeight = null)
         {
             if (image == null || image.Length == 0)
             {
@@ -451,32 +452,60 @@ namespace ServConnect.Controllers
                 return View();
             }
 
-            // Process: crop/resize any image to 728x90
-            const int targetW = 728;
-            const int targetH = 90;
+            // Set dimensions based on advertisement type
+            int targetW, targetH;
+            if (adType == AdvertisementType.HeroBanner)
+            {
+                targetW = 600;
+                targetH = 180;
+            }
+            else
+            {
+                targetW = 728;
+                targetH = 90;
+            }
             try
             {
                 using var stream = image.OpenReadStream();
                 using var src = System.Drawing.Image.FromStream(stream);
 
-                var targetRatio = (double)targetW / targetH;
-                var srcRatio = (double)src.Width / src.Height;
-
-                // Compute crop rectangle to match target ratio
                 System.Drawing.Rectangle cropRect;
-                if (srcRatio > targetRatio)
+                
+                // Use user's crop selection if provided, otherwise auto-crop from center
+                if (cropX.HasValue && cropY.HasValue && cropWidth.HasValue && cropHeight.HasValue)
                 {
-                    // Too wide: crop width
-                    var cropW = (int)Math.Round(src.Height * targetRatio);
-                    var x = (src.Width - cropW) / 2;
-                    cropRect = new System.Drawing.Rectangle(x, 0, cropW, src.Height);
+                    // Use user's crop selection
+                    cropRect = new System.Drawing.Rectangle(
+                        (int)Math.Round(cropX.Value),
+                        (int)Math.Round(cropY.Value),
+                        (int)Math.Round(cropWidth.Value),
+                        (int)Math.Round(cropHeight.Value)
+                    );
+                    
+                    // Ensure crop rectangle is within image bounds
+                    cropRect.X = Math.Max(0, Math.Min(cropRect.X, src.Width - 1));
+                    cropRect.Y = Math.Max(0, Math.Min(cropRect.Y, src.Height - 1));
+                    cropRect.Width = Math.Max(1, Math.Min(cropRect.Width, src.Width - cropRect.X));
+                    cropRect.Height = Math.Max(1, Math.Min(cropRect.Height, src.Height - cropRect.Y));
                 }
                 else
                 {
-                    // Too tall: crop height
-                    var cropH = (int)Math.Round(src.Width / targetRatio);
-                    var y = (src.Height - cropH) / 2;
-                    cropRect = new System.Drawing.Rectangle(0, y, src.Width, cropH);
+                    // Fallback to automatic center cropping
+                    var targetRatio = (double)targetW / targetH;
+                    var srcRatio = (double)src.Width / src.Height;
+
+                    if (srcRatio > targetRatio)
+                    {
+                        var cropW = (int)Math.Round(src.Height * targetRatio);
+                        var x = (src.Width - cropW) / 2;
+                        cropRect = new System.Drawing.Rectangle(x, 0, cropW, src.Height);
+                    }
+                    else
+                    {
+                        var cropH = (int)Math.Round(src.Width / targetRatio);
+                        var y = (src.Height - cropH) / 2;
+                        cropRect = new System.Drawing.Rectangle(0, y, src.Width, cropH);
+                    }
                 }
 
                 using var dest = new System.Drawing.Bitmap(targetW, targetH);
@@ -500,6 +529,7 @@ namespace ServConnect.Controllers
                 {
                     ImageUrl = $"/ads/{fileName}",
                     TargetUrl = string.IsNullOrWhiteSpace(targetUrl) ? null : targetUrl,
+                    Type = adType,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -547,7 +577,7 @@ namespace ServConnect.Controllers
                 CreatedAt = DateTime.UtcNow
             };
             await _adService.CreateAsync(ad);
-            await _adReqService.UpdateStatusAsync(id, AdRequestStatus.Approved);
+            await _adReqService.ApproveAndSetExpiryAsync(id);
             TempData["AdReqMessage"] = "Request approved and published as advertisement.";
             return RedirectToAction(nameof(AdvertisementRequests));
         }

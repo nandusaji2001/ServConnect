@@ -10,5 +10,7 @@ namespace ServConnect.Services
         Task<List<AdvertisementRequest>> GetByUserAsync(Guid userId);
         Task<AdvertisementRequest?> GetByIdAsync(string id);
         Task<bool> UpdateStatusAsync(string id, AdRequestStatus status, string? adminNote = null);
+        Task<bool> ApproveAndSetExpiryAsync(string id, string? adminNote = null);
+        Task<bool> DeleteAsync(string id, Guid userId);
     }
 }

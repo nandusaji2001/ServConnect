@@ -4,15 +4,39 @@
 }
 
 <div class="container py-4" style="max-width:960px;">
-    <h3 class="mb-3">My Advertisements</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">My Advertisements</h3>
+        <a asp-action="Submit" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Submit New Advertisement
+        </a>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
     @if (Model == null || Model.Count == 0)
     {
-        <div class="alert alert-info">You haven't submitted any advertisements yet.</div>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> You haven't submitted any advertisements yet.
+            <a asp-action="Submit" class="btn btn-sm btn-outline-primary ms-2">Submit Your First Ad</a>
+        </div>
     }
     else
     {
-        <div class="list-group">
+        <div class="row g-3">
             @foreach (var req in Model)
             {
                 var statusText = req.Status switch
@@ -29,10 +53,102 @@
                     ServConnect.Models.AdRequestStatus.Rejected => "badge bg-danger",
                     _ => "badge bg-secondary"
                 };
-                <div class="list-group-item">
-                    <div class="d-flex flex-column gap-2">
-                        <img src="@req.ImageUrl" alt="Ad" style="height:90px;width:728px;object-fit:cover;border-radius:6px;max-width:100%;" />
-                        <span class="@statusClass" style="width:fit-content;font-size:.95rem;padding:.5rem .9rem;">@statusText</span>
+                var typeText = req.Type == ServConnect.Models.AdvertisementType.HeroBanner ? "Hero Banner" : "Bottom Page";
+                var typeBadge = req.Type == ServConnect.Models.AdvertisementType.HeroBanner ? "badge bg-info" : "badge bg-secondary";
+                var priceInRupees = req.AmountInPaise / 100;
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="@typeBadge">@typeText</span>
+                                    <span class="@statusClass ms-1">@statusText</span>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        @if (req.Status == ServConnect.Models.AdRequestStatus.Pending && !req.IsPaid)
+                                        {
+                                            <li><a class="dropdown-item" asp-action="Pay" asp-route-id="@req.Id">
+                                                <i class="bi bi-credit-card text-primary"></i> Complete Payment
+                                            </a></li>
+                                        }
+                                        <li>
+                                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this advertisement?');">
+                                                <input type="hidden" name="id" value="@req.Id" />
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <img src="@req.ImageUrl" alt="Advertisement" class="img-fluid rounded" style="max-height: 120px; width: 100%; object-fit: cover;" />
+                            </div>
+                            
+                            <div class="row text-muted small">
+                                <div class="col-6">
+                                    <strong>Duration:</strong> @req.DurationInMonths month@(req.DurationInMonths > 1 ? "s" : "")
+                                </div>
+                                <div class="col-6">
+                                    <strong>Amount:</strong> ₹@priceInRupees
+                                </div>
+                                <div class="col-6">
+                                    <strong>Created:</strong> @req.CreatedAt.ToString("MMM dd, yyyy")
+                                </div>
+                                <div class="col-6">
+                                    <strong>Paid:</strong> @(req.IsPaid ? "Yes" : "No")
+                                </div>
+                                @if (req.ExpiryDate.HasValue)
+                                {
+                                    var daysRemaining = (req.ExpiryDate.Value - DateTime.UtcNow).Days;
+                                    var isExpired = daysRemaining <= 0;
+                                    <div class="col-6">
+                                        <strong>Expires:</strong> @req.ExpiryDate.Value.ToString("MMM dd, yyyy")
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Status:</strong> 
+                                        @if (isExpired)
+                                        {
+                                            <span class="text-danger">Expired</span>
+                                        }
+                                        else if (daysRemaining <= 7)
+                                        {
+                                            <span class="text-warning">@daysRemaining days left</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success">@daysRemaining days left</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(req.TargetUrl))
+                            {
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <strong>Target URL:</strong> 
+                                        <a href="@req.TargetUrl" target="_blank" class="text-decoration-none">@req.TargetUrl</a>
+                                    </small>
+                                </div>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(req.AdminNote))
+                            {
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <strong>Admin Note:</strong> @req.AdminNote
+                                    </small>
+                                </div>
+                            }
+                        </div>
                     </div>
                 </div>
             }

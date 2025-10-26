@@ -2,9 +2,9 @@
     ViewData["Title"] = "Submit Advertisement";
 }
 
-<div class="container py-4" style="max-width:800px;">
+<div class="container py-4" style="max-width:900px;">
     <h3 class="mb-3">Submit Your Advertisement</h3>
-    <p class="text-muted">Choose your advertisement type, upload your banner image and provide a destination URL. A fee of Rs.1000 applies.</p>
+    <p class="text-muted">Choose your advertisement type, select duration, upload your banner image and crop it to fit.</p>
 
     <form asp-action="Submit" method="post" enctype="multipart/form-data" class="card p-4">
         <!-- Advertisement Type Selection -->
@@ -42,24 +42,58 @@
             </div>
         </div>
 
-        <!-- Image Upload with Preview -->
+        <!-- Pricing Plans Selection -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">Select Duration & Pricing</label>
+            <div id="pricingPlans" class="row g-3">
+                <!-- Pricing plans will be dynamically populated based on ad type -->
+            </div>
+        </div>
+
+        <!-- Image Upload with Simple Cropper -->
         <div class="mb-4">
             <label for="image" class="form-label fw-bold">Ad Image</label>
             <input type="file" class="form-control" id="image" name="image" accept="image/*" required />
             <div class="mt-2">
-                <small class="text-muted">Image will be automatically cropped to fit the selected advertisement dimensions.</small>
+                <small class="text-muted">Upload an image and use the crop tool below to select the area for your advertisement.</small>
             </div>
             <span class="text-danger">@Html.ValidationMessage("image")</span>
             
-            <!-- Image Preview and Cropper -->
-            <div id="imagePreviewContainer" class="mt-3" style="display: none;">
-                <label class="form-label">Preview & Crop</label>
-                <div class="border rounded p-3 bg-light">
-                    <div id="cropperContainer">
-                        <img id="imagePreview" style="max-width: 100%; display: block;">
+            <!-- Simple Image Cropper -->
+            <div id="cropperContainer" class="mt-3" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Crop Your Image</h6>
+                        <small class="text-muted">Drag the corners to resize the crop area</small>
                     </div>
-                    <div class="mt-2 text-center">
-                        <small class="text-muted">The image will be cropped to the highlighted area to match the advertisement dimensions.</small>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div id="imageContainer" style="position: relative; display: inline-block; max-width: 100%;">
+                                    <img id="previewImage" style="max-width: 100%; height: auto; display: block;" />
+                                    <div id="cropBox" style="position: absolute; border: 2px solid #007bff; background: rgba(0,123,255,0.1); cursor: move; min-width: 50px; min-height: 30px; display: none;">
+                                        <div class="resize-handle" data-direction="nw" style="position: absolute; top: -5px; left: -5px; width: 10px; height: 10px; background: #007bff; cursor: nw-resize;"></div>
+                                        <div class="resize-handle" data-direction="ne" style="position: absolute; top: -5px; right: -5px; width: 10px; height: 10px; background: #007bff; cursor: ne-resize;"></div>
+                                        <div class="resize-handle" data-direction="sw" style="position: absolute; bottom: -5px; left: -5px; width: 10px; height: 10px; background: #007bff; cursor: sw-resize;"></div>
+                                        <div class="resize-handle" data-direction="se" style="position: absolute; bottom: -5px; right: -5px; width: 10px; height: 10px; background: #007bff; cursor: se-resize;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Preview</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <canvas id="previewCanvas" style="border: 1px solid #dee2e6; max-width: 100%;"></canvas>
+                                        <div class="mt-2">
+                                            <small class="text-muted">Final advertisement preview</small>
+                                        </div>
+                                        <button type="button" id="resetCrop" class="btn btn-sm btn-outline-secondary mt-2">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -70,6 +104,13 @@
             <input type="url" class="form-control" id="targetUrl" name="targetUrl" placeholder="https://maps.google.com/..." />
             <small class="text-muted">Where users will be redirected when they click your advertisement.</small>
         </div>
+
+        <!-- Hidden fields for crop coordinates and duration -->
+        <input type="hidden" id="cropX" name="cropX" />
+        <input type="hidden" id="cropY" name="cropY" />
+        <input type="hidden" id="cropWidth" name="cropWidth" />
+        <input type="hidden" id="cropHeight" name="cropHeight" />
+        <input type="hidden" id="durationInMonths" name="durationInMonths" value="1" />
 
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-success"><i class="bi bi-send-check"></i> Continue to Payment</button>
@@ -116,14 +157,127 @@
     .ad-preview-box {
         border-radius: 4px;
     }
+
+    .resize-handle {
+        border-radius: 50%;
+    }
+
+    .resize-handle:hover {
+        background: #0056b3 !important;
+    }
+
+    .pricing-card {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 100%;
+        position: relative;
+    }
+
+    .pricing-card:hover {
+        border-color: #28a745;
+        background-color: #f8fff8;
+    }
+
+    .pricing-card.selected {
+        border-color: #28a745;
+        background-color: #e8f5e8;
+    }
+
+    .pricing-badge {
+        position: absolute;
+        top: -10px;
+        right: 10px;
+        background: #28a745;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .pricing-amount {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #28a745;
+        margin: 10px 0;
+    }
+
+    .pricing-duration {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
-
 <script>
-    let cropper = null;
-    let currentAdType = 0; // Default to bottom page
+    let currentAdType = 0;
+    let selectedDuration = 1;
+    let imageLoaded = false;
+    let cropBox = null;
+    let previewImage = null;
+    let previewCanvas = null;
+    let previewCtx = null;
+    let isDragging = false;
+    let isResizing = false;
+    let resizeDirection = '';
+    let startX = 0, startY = 0;
+    let originalCropBox = {};
+
+    // Pricing plans data
+    const pricingPlans = {
+        0: [ // Bottom Page Advertisement
+            { duration: 1, price: 500, label: "1 Month" },
+            { duration: 2, price: 750, label: "2 Months", savings: 250 },
+            { duration: 3, price: 1000, label: "3 Months", savings: 500 }
+        ],
+        1: [ // Hero Banner Advertisement
+            { duration: 1, price: 1500, label: "1 Month" },
+            { duration: 2, price: 1750, label: "2 Months", savings: 1250 },
+            { duration: 3, price: 2000, label: "3 Months", savings: 2500 }
+        ]
+    };
+
+    // Initialize pricing plans
+    function updatePricingPlans() {
+        const pricingContainer = document.getElementById('pricingPlans');
+        const plans = pricingPlans[currentAdType];
+        
+        pricingContainer.innerHTML = '';
+        
+        plans.forEach((plan, index) => {
+            const isSelected = plan.duration === selectedDuration;
+            const savingsText = plan.savings ? `Save ₹${plan.savings}` : '';
+            
+            const planHtml = `
+                <div class="col-md-4">
+                    <div class="pricing-card ${isSelected ? 'selected' : ''}" data-duration="${plan.duration}" data-price="${plan.price}">
+                        ${plan.savings ? `<div class="pricing-badge">${savingsText}</div>` : ''}
+                        <div class="pricing-duration">${plan.label}</div>
+                        <div class="pricing-amount">₹${plan.price}</div>
+                        <small class="text-muted">per ${plan.duration} month${plan.duration > 1 ? 's' : ''}</small>
+                    </div>
+                </div>
+            `;
+            
+            pricingContainer.innerHTML += planHtml;
+        });
+        
+        // Add click handlers for pricing cards
+        document.querySelectorAll('.pricing-card').forEach(card => {
+            card.addEventListener('click', function() {
+                selectedDuration = parseInt(this.dataset.duration);
+                document.getElementById('durationInMonths').value = selectedDuration;
+                
+                // Update visual selection
+                document.querySelectorAll('.pricing-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    }
 
     // Handle advertisement type selection
     document.querySelectorAll('input[name="adType"]').forEach(radio => {
@@ -136,15 +290,21 @@
             });
             this.closest('.ad-type-card').classList.add('selected');
             
-            // Update cropper if image is loaded
-            if (cropper) {
-                updateCropperAspectRatio();
+            // Reset duration to 1 month and update pricing plans
+            selectedDuration = 1;
+            document.getElementById('durationInMonths').value = selectedDuration;
+            updatePricingPlans();
+            
+            // Reset crop if image is loaded
+            if (imageLoaded) {
+                resetCrop();
             }
         });
     });
 
-    // Initialize first option as selected
+    // Initialize first option as selected and load pricing plans
     document.querySelector('.ad-type-card[data-type="0"]').classList.add('selected');
+    updatePricingPlans();
 
     // Handle image upload
     document.getElementById('image').addEventListener('change', function(e) {
@@ -152,54 +312,273 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const imagePreview = document.getElementById('imagePreview');
-                imagePreview.src = e.target.result;
-                
-                document.getElementById('imagePreviewContainer').style.display = 'block';
-                
-                // Destroy existing cropper
-                if (cropper) {
-                    cropper.destroy();
-                }
-                
-                // Initialize new cropper
-                initializeCropper();
+                previewImage = document.getElementById('previewImage');
+                previewImage.src = e.target.result;
+                previewImage.onload = function() {
+                    imageLoaded = true;
+                    initializeCropper();
+                    document.getElementById('cropperContainer').style.display = 'block';
+                };
             };
             reader.readAsDataURL(file);
         }
     });
 
     function initializeCropper() {
-        const imagePreview = document.getElementById('imagePreview');
-        const aspectRatio = getAspectRatio();
+        cropBox = document.getElementById('cropBox');
+        previewCanvas = document.getElementById('previewCanvas');
+        previewCtx = previewCanvas.getContext('2d');
         
-        cropper = new Cropper(imagePreview, {
-            aspectRatio: aspectRatio,
-            viewMode: 1,
-            dragMode: 'move',
-            autoCropArea: 1,
-            restore: false,
-            guides: true,
-            center: true,
-            highlight: false,
-            cropBoxMovable: true,
-            cropBoxResizable: true,
-            toggleDragModeOnDblclick: false,
+        // Set up crop box
+        resetCrop();
+        
+        // Add event listeners
+        cropBox.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', endDrag);
+        
+        // Add resize handle listeners
+        document.querySelectorAll('.resize-handle').forEach(handle => {
+            handle.addEventListener('mousedown', startResize);
         });
     }
 
-    function updateCropperAspectRatio() {
-        if (cropper) {
-            const aspectRatio = getAspectRatio();
-            cropper.setAspectRatio(aspectRatio);
+    function resetCrop() {
+        if (!previewImage || !cropBox) return;
+        
+        const imageRect = previewImage.getBoundingClientRect();
+        const containerRect = document.getElementById('imageContainer').getBoundingClientRect();
+        
+        // Calculate crop box dimensions based on ad type
+        const dimensions = getAdDimensions();
+        const aspectRatio = dimensions.width / dimensions.height;
+        
+        // Calculate optimal crop box size
+        let cropWidth = imageRect.width * 0.6;
+        let cropHeight = cropWidth / aspectRatio;
+        
+        if (cropHeight > imageRect.height * 0.8) {
+            cropHeight = imageRect.height * 0.8;
+            cropWidth = cropHeight * aspectRatio;
+        }
+        
+        // Center the crop box
+        const left = (imageRect.width - cropWidth) / 2;
+        const top = (imageRect.height - cropHeight) / 2;
+        
+        cropBox.style.left = left + 'px';
+        cropBox.style.top = top + 'px';
+        cropBox.style.width = cropWidth + 'px';
+        cropBox.style.height = cropHeight + 'px';
+        cropBox.style.display = 'block';
+        
+        updatePreview();
+        updateHiddenFields();
+    }
+
+    function startDrag(e) {
+        if (e.target.classList.contains('resize-handle')) return;
+        
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        const rect = cropBox.getBoundingClientRect();
+        originalCropBox = {
+            left: parseInt(cropBox.style.left),
+            top: parseInt(cropBox.style.top)
+        };
+        
+        e.preventDefault();
+    }
+
+    function startResize(e) {
+        isResizing = true;
+        resizeDirection = e.target.dataset.direction;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        originalCropBox = {
+            left: parseInt(cropBox.style.left),
+            top: parseInt(cropBox.style.top),
+            width: parseInt(cropBox.style.width),
+            height: parseInt(cropBox.style.height)
+        };
+        
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function drag(e) {
+        if (isDragging) {
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            let newLeft = originalCropBox.left + deltaX;
+            let newTop = originalCropBox.top + deltaY;
+            
+            // Keep within image bounds
+            const imageRect = previewImage.getBoundingClientRect();
+            const containerRect = document.getElementById('imageContainer').getBoundingClientRect();
+            
+            newLeft = Math.max(0, Math.min(newLeft, imageRect.width - parseInt(cropBox.style.width)));
+            newTop = Math.max(0, Math.min(newTop, imageRect.height - parseInt(cropBox.style.height)));
+            
+            cropBox.style.left = newLeft + 'px';
+            cropBox.style.top = newTop + 'px';
+            
+            updatePreview();
+            updateHiddenFields();
+        }
+        
+        if (isResizing) {
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            const dimensions = getAdDimensions();
+            const aspectRatio = dimensions.width / dimensions.height;
+            
+            let newWidth = originalCropBox.width;
+            let newHeight = originalCropBox.height;
+            let newLeft = originalCropBox.left;
+            let newTop = originalCropBox.top;
+            
+            // Calculate new dimensions based on resize direction
+            if (resizeDirection.includes('e')) {
+                newWidth = originalCropBox.width + deltaX;
+            }
+            if (resizeDirection.includes('w')) {
+                newWidth = originalCropBox.width - deltaX;
+                newLeft = originalCropBox.left + deltaX;
+            }
+            if (resizeDirection.includes('s')) {
+                newHeight = originalCropBox.height + deltaY;
+            }
+            if (resizeDirection.includes('n')) {
+                newHeight = originalCropBox.height - deltaY;
+                newTop = originalCropBox.top + deltaY;
+            }
+            
+            // Maintain aspect ratio
+            if (newWidth / aspectRatio !== newHeight) {
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    newHeight = newWidth / aspectRatio;
+                    if (resizeDirection.includes('n')) {
+                        newTop = originalCropBox.top + originalCropBox.height - newHeight;
+                    }
+                } else {
+                    newWidth = newHeight * aspectRatio;
+                    if (resizeDirection.includes('w')) {
+                        newLeft = originalCropBox.left + originalCropBox.width - newWidth;
+                    }
+                }
+            }
+            
+            // Keep within bounds
+            const imageRect = previewImage.getBoundingClientRect();
+            newWidth = Math.max(50, Math.min(newWidth, imageRect.width - newLeft));
+            newHeight = Math.max(30, Math.min(newHeight, imageRect.height - newTop));
+            newLeft = Math.max(0, Math.min(newLeft, imageRect.width - newWidth));
+            newTop = Math.max(0, Math.min(newTop, imageRect.height - newHeight));
+            
+            cropBox.style.width = newWidth + 'px';
+            cropBox.style.height = newHeight + 'px';
+            cropBox.style.left = newLeft + 'px';
+            cropBox.style.top = newTop + 'px';
+            
+            updatePreview();
+            updateHiddenFields();
         }
     }
 
-    function getAspectRatio() {
+    function endDrag() {
+        isDragging = false;
+        isResizing = false;
+        resizeDirection = '';
+    }
+
+    function updatePreview() {
+        if (!previewImage || !previewCanvas || !cropBox) return;
+        
+        const imageRect = previewImage.getBoundingClientRect();
+        const containerRect = document.getElementById('imageContainer').getBoundingClientRect();
+        
+        // Get crop box position relative to image
+        const cropLeft = parseInt(cropBox.style.left);
+        const cropTop = parseInt(cropBox.style.top);
+        const cropWidth = parseInt(cropBox.style.width);
+        const cropHeight = parseInt(cropBox.style.height);
+        
+        // Calculate source coordinates on the actual image
+        const scaleX = previewImage.naturalWidth / imageRect.width;
+        const scaleY = previewImage.naturalHeight / imageRect.height;
+        
+        const sourceX = cropLeft * scaleX;
+        const sourceY = cropTop * scaleY;
+        const sourceWidth = cropWidth * scaleX;
+        const sourceHeight = cropHeight * scaleY;
+        
+        // Set preview canvas size
+        const dimensions = getAdDimensions();
+        const previewScale = Math.min(200 / dimensions.width, 150 / dimensions.height);
+        previewCanvas.width = dimensions.width * previewScale;
+        previewCanvas.height = dimensions.height * previewScale;
+        
+        // Draw cropped area to preview
+        previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+        previewCtx.drawImage(
+            previewImage,
+            sourceX, sourceY, sourceWidth, sourceHeight,
+            0, 0, previewCanvas.width, previewCanvas.height
+        );
+    }
+
+    function updateHiddenFields() {
+        if (!previewImage || !cropBox) return;
+        
+        const imageRect = previewImage.getBoundingClientRect();
+        
+        // Get crop box position relative to image
+        const cropLeft = parseInt(cropBox.style.left);
+        const cropTop = parseInt(cropBox.style.top);
+        const cropWidth = parseInt(cropBox.style.width);
+        const cropHeight = parseInt(cropBox.style.height);
+        
+        // Calculate coordinates on the actual image
+        const scaleX = previewImage.naturalWidth / imageRect.width;
+        const scaleY = previewImage.naturalHeight / imageRect.height;
+        
+        document.getElementById('cropX').value = Math.round(cropLeft * scaleX);
+        document.getElementById('cropY').value = Math.round(cropTop * scaleY);
+        document.getElementById('cropWidth').value = Math.round(cropWidth * scaleX);
+        document.getElementById('cropHeight').value = Math.round(cropHeight * scaleY);
+    }
+
+    function getAdDimensions() {
         if (currentAdType === 1) { // Hero Banner
-            return 600 / 180; // 3.33
+            return { width: 600, height: 180 };
         } else { // Bottom Page
-            return 728 / 90; // 8.09
+            return { width: 728, height: 90 };
         }
     }
+
+    // Reset crop button
+    document.getElementById('resetCrop').addEventListener('click', function() {
+        if (imageLoaded) {
+            resetCrop();
+        }
+    });
+
+    // Form submission - just use the hidden fields
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (imageLoaded) {
+            updateHiddenFields();
+            console.log('Submitting with crop coordinates:', {
+                x: document.getElementById('cropX').value,
+                y: document.getElementById('cropY').value,
+                width: document.getElementById('cropWidth').value,
+                height: document.getElementById('cropHeight').value
+            });
+        }
+    });
 </script>

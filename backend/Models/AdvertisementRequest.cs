@@ -34,6 +34,11 @@ namespace ServConnect.Models
 
         public AdvertisementType Type { get; set; } = AdvertisementType.BottomPage;
 
+        // New fields for pricing plans and duration
+        public int DurationInMonths { get; set; } = 1; // 1, 2, or 3 months
+        public DateTime? ExpiryDate { get; set; } // Calculated based on approval date + duration
+        public bool IsExpired { get; set; } = false;
+
         public string? AdminNote { get; set; }
         public DateTime? ReviewedAtUtc { get; set; }
     }
