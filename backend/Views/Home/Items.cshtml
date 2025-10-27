@@ -483,11 +483,19 @@
                                         <label class="form-label">Landmark</label>
                                         <input type="text" class="form-control" id="newLandmark" placeholder="Near..." />
                                     </div>
-                                    <div class="form-check">
+                                    <div class="form-check mb-3">
                                         <input class="form-check-input" type="checkbox" id="saveAddress" checked>
                                         <label class="form-check-label" for="saveAddress">
                                             Save this address for future orders
                                         </label>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-primary" id="saveNewAddressBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                            <i class="fas fa-save"></i> Save Address
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" id="cancelNewAddressBtn">
+                                            Cancel
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -612,19 +620,41 @@
         const container = document.getElementById('savedAddresses');
         if (!userAddresses || userAddresses.length === 0) {
             container.innerHTML = '<div class="text-muted">No saved addresses found. Add a new address below.</div>';
+            selectedAddressId = null;
             return;
         }
 
         const defaultAddr = userAddresses.find(a => a.isDefault);
-        const selectedId = selectedAddressId || (defaultAddr ? defaultAddr.id : userAddresses[0].id);
+        let selectedId = selectedAddressId;
+        
+        // If no address is currently selected, pick default or first address
+        if (!selectedId || !userAddresses.find(a => a.id === selectedId)) {
+            selectedId = defaultAddr ? defaultAddr.id : userAddresses[0].id;
+        }
+        
         selectedAddressId = selectedId;
 
         container.innerHTML = userAddresses.map(addr => addressCard(addr, addr.id === selectedId)).join('');
         
+        // Add click listeners to address cards
         document.querySelectorAll('.address-card').forEach(card => {
             card.addEventListener('click', () => {
-                selectedAddressId = card.getAttribute('data-id');
+                const addressId = card.getAttribute('data-id');
+                const radio = card.querySelector('.address-radio');
+                if (radio) {
+                    radio.checked = true;
+                }
+                selectedAddressId = addressId;
                 renderAddresses();
+            });
+        });
+
+        // Add change listener to radio buttons
+        document.querySelectorAll('.address-radio').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.currentTarget.checked) {
+                    selectedAddressId = e.currentTarget.value;
+                }
             });
         });
     }
@@ -712,6 +742,92 @@
         }
     });
 
+    document.getElementById('cancelNewAddressBtn').addEventListener('click', () => {
+        document.getElementById('newAddressForm').style.display = 'none';
+        document.querySelectorAll('#newAddressForm input, #newAddressForm textarea').forEach(input => input.value = '');
+        renderAddresses();
+    });
+
+    document.getElementById('saveNewAddressBtn').addEventListener('click', async () => {
+        const fullName = document.getElementById('newFullName').value.trim();
+        const phoneNumber = document.getElementById('newPhoneNumber').value.trim();
+        const addressLine1 = document.getElementById('newAddressLine1').value.trim();
+        const addressLine2 = document.getElementById('newAddressLine2').value.trim();
+        const city = document.getElementById('newCity').value.trim();
+        const state = document.getElementById('newState').value.trim();
+        const postalCode = document.getElementById('newPostalCode').value.trim();
+        const landmark = document.getElementById('newLandmark').value.trim();
+
+        if (!fullName || !phoneNumber || !addressLine1 || !city || !state || !postalCode) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/address', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    label: `${city}, ${state}`,
+                    fullName,
+                    phoneNumber,
+                    addressLine1,
+                    addressLine2,
+                    city,
+                    state,
+                    postalCode,
+                    landmark,
+                    isDefault: false
+                })
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Server error: ${errorText || res.statusText}`);
+            }
+
+            // Check if response has content
+            const contentLength = res.headers.get('content-length');
+            if (!contentLength || parseInt(contentLength) === 0) {
+                // Response is empty - reload addresses to get the newly created one
+                selectedAddressId = null;
+                document.getElementById('newAddressForm').style.display = 'none';
+                document.querySelectorAll('#newAddressForm input').forEach(input => input.value = '');
+                document.getElementById('saveAddress').checked = true;
+                await loadAddresses();
+                return;
+            }
+
+            const responseText = await res.text();
+            if (!responseText) {
+                // Response is empty after reading - reload addresses
+                selectedAddressId = null;
+                document.getElementById('newAddressForm').style.display = 'none';
+                document.querySelectorAll('#newAddressForm input').forEach(input => input.value = '');
+                document.getElementById('saveAddress').checked = true;
+                await loadAddresses();
+                return;
+            }
+
+            const newAddr = JSON.parse(responseText);
+            const addressId = newAddr?.id || newAddr?.Id;
+            if (newAddr && addressId) {
+                selectedAddressId = addressId;
+                document.getElementById('newAddressForm').style.display = 'none';
+                document.querySelectorAll('#newAddressForm input').forEach(input => input.value = '');
+                document.getElementById('saveAddress').checked = true;
+                await loadAddresses();
+            } else {
+                throw new Error('Invalid response from server: ' + JSON.stringify(newAddr));
+            }
+        } catch (err) {
+            document.getElementById('orderError').textContent = 'Error saving address: ' + err.message;
+            document.getElementById('orderError').style.display = 'block';
+            console.error('Address save error:', err);
+        }
+    });
+
     function ensureRazorpay() {
         return new Promise((resolve, reject) => {
             if (window.Razorpay) return resolve();
@@ -725,10 +841,23 @@
 
     function getOrderData() {
         const qty = parseInt(document.getElementById('orderQty').value || '1', 10);
+        
+        // Check if user is trying to add a new address inline
+        const newAddressForm = document.getElementById('newAddressForm');
+        if (newAddressForm.style.display !== 'none') {
+            // New address form is visible but not yet saved
+            document.getElementById('orderError').textContent = 'Please save the address first';
+            document.getElementById('orderError').style.display = 'block';
+            return null;
+        }
+        
         if (selectedAddressId) {
             const addr = userAddresses.find(a => a.id === selectedAddressId);
-            return { itemId: selectedItemId, quantity: qty, addressId: selectedAddressId, address: addr };
+            if (addr) {
+                return { itemId: selectedItemId, quantity: qty, addressId: selectedAddressId, address: addr };
+            }
         }
+        
         return null;
     }
 
@@ -742,40 +871,74 @@
 
         try {
             await ensureRazorpay();
-            const res = await fetch('/api/bookings/create-order', {
+            
+            // Build the order request with address details
+            const addr = data.address;
+            const orderRequest = {
+                itemId: data.itemId,
+                quantity: data.quantity,
+                userAddressId: data.addressId, // This is a saved address ID
+                fullName: addr.fullName || addr.FullName || '',
+                phoneNumber: addr.phoneNumber || addr.PhoneNumber || '',
+                addressLine1: addr.addressLine1 || addr.AddressLine1 || '',
+                addressLine2: addr.addressLine2 || addr.AddressLine2 || '',
+                city: addr.city || addr.City || '',
+                state: addr.state || addr.State || '',
+                postalCode: addr.postalCode || addr.PostalCode || '',
+                country: addr.country || addr.Country || 'India',
+                landmark: addr.landmark || addr.Landmark || '',
+                saveForFuture: false,
+                addressLabel: addr.label || addr.Label || 'Delivery Address'
+            };
+            
+            const res = await fetch('/api/orders/with-address', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
-                body: JSON.stringify({ itemId: data.itemId, quantity: data.quantity, addressId: data.addressId })
+                body: JSON.stringify(orderRequest)
             });
 
             if (!res.ok) {
-                const err = await res.json();
-                document.getElementById('orderError').textContent = err.message || 'Failed to create order';
+                const errorText = await res.text();
+                let errMsg = 'Failed to create order';
+                try {
+                    const err = JSON.parse(errorText);
+                    errMsg = err.message || errorText || 'Failed to create order';
+                } catch {
+                    errMsg = errorText || 'Failed to create order';
+                }
+                document.getElementById('orderError').textContent = errMsg;
                 document.getElementById('orderError').style.display = 'block';
                 return;
             }
 
             const order = await res.json();
             const options = {
-                key: 'rzp_test_RIlW2V6HMBx49X',
+                key: order.key, // Use key from server response
                 amount: order.amount,
-                currency: 'INR',
+                currency: order.currency || 'INR',
                 name: 'ServConnect',
-                order_id: order.id,
-                handler: async (res) => {
-                    const verifyRes = await fetch('/api/bookings/verify-payment', {
+                order_id: order.razorpayOrderId,
+                handler: async (response) => {
+                    const verifyRes = await fetch('/api/orders/verify-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'same-origin',
-                        body: JSON.stringify({ orderId: order.id, paymentId: res.razorpay_payment_id, signature: res.razorpay_signature })
+                        body: JSON.stringify({ 
+                            orderId: order.orderId, 
+                            razorpayOrderId: order.razorpayOrderId,
+                            razorpayPaymentId: response.razorpay_payment_id, 
+                            razorpaySignature: response.razorpay_signature 
+                        })
                     });
                     if (verifyRes.ok) {
                         bootstrap.Modal.getInstance(document.getElementById('orderModal'))?.hide();
                         alert('Order placed successfully!');
                         load();
                     } else {
-                        alert('Payment verification failed');
+                        const verifyErr = await verifyRes.text();
+                        console.error('Payment verification failed:', verifyErr);
+                        alert('Payment verification failed: ' + verifyErr);
                     }
                 }
             };
@@ -783,6 +946,7 @@
         } catch (err) {
             document.getElementById('orderError').textContent = err.message || 'An error occurred';
             document.getElementById('orderError').style.display = 'block';
+            console.error('Order creation error:', err);
         }
     });
 

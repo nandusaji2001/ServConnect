@@ -123,6 +123,8 @@ builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 // Email service
 builder.Services.AddScoped<IEmailService, EmailService>();
+// Revenue service for analytics and ML predictions
+builder.Services.AddScoped<IRevenueService, RevenueService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

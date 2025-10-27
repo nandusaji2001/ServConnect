@@ -1,0 +1,576 @@
+@{
+    ViewData["Title"] = "Revenue Analytics";
+    var analytics = ViewBag.Analytics as ServConnect.Models.RevenueAnalytics;
+    var predictions = ViewBag.Predictions as List<ServConnect.Models.RevenuePrediction>;
+}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+        --revenue-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --card-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .revenue-container {
+        padding: 2rem;
+        min-height: 100vh;
+    }
+
+    .revenue-header {
+        background: var(--revenue-gradient);
+        color: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .revenue-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(50px, -50px);
+    }
+
+    .revenue-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .revenue-header p {
+        margin: 1rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .analytics-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+    }
+
+    .analytics-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .card-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-subtitle {
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    .breakdown-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .breakdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .breakdown-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #4a5568;
+    }
+
+    .breakdown-value {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .predictions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .prediction-card {
+        background: #f7fafc;
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .prediction-card:hover {
+        border-color: #f093fb;
+        background: white;
+    }
+
+    .prediction-period {
+        font-size: 0.9rem;
+        color: #718096;
+        margin-bottom: 0.5rem;
+    }
+
+    .prediction-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+    }
+
+    .prediction-confidence {
+        font-size: 0.8rem;
+        color: #4a5568;
+    }
+
+    .chart-container {
+        height: 300px;
+        margin-top: 1rem;
+        background: #f7fafc;
+        border-radius: 12px;
+        padding: 1rem;
+        position: relative;
+    }
+
+    .sync-button {
+        background: var(--revenue-gradient);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .sync-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+    }
+
+    .sync-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .error-message {
+        background: #fed7d7;
+        color: #c53030;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="revenue-container">
+    <!-- Header -->
+    <div class="revenue-header">
+        <h1><i class="fas fa-chart-line"></i> Revenue Analytics</h1>
+        <p>Comprehensive revenue tracking with machine learning predictions</p>
+        <button class="sync-button" onclick="syncRevenueData()" id="syncButton">
+            <i class="fas fa-sync-alt"></i> Sync Revenue Data
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Error as string))
+    {
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            Error loading revenue data: @ViewBag.Error
+        </div>
+    }
+
+    @{
+        var paidServices = ViewBag.PaidServicePayments as List<ServConnect.Models.ServicePayment> ?? new List<ServConnect.Models.ServicePayment>();
+        var paidAds = ViewBag.PaidAdvertisements as List<ServConnect.Models.AdvertisementRequest> ?? new List<ServConnect.Models.AdvertisementRequest>();
+        decimal serviceRevenue = paidServices.Sum(p => p.AmountInRupees);
+        decimal adRevenue = (paidAds.Sum(a => a.AmountInPaise) / 100m);
+        decimal totalActualRevenue = serviceRevenue + adRevenue;
+        int totalActualTransactions = paidServices.Count + paidAds.Count;
+        decimal avgTransaction = totalActualTransactions > 0 ? totalActualRevenue / totalActualTransactions : 0;
+    }
+
+    @if (analytics != null)
+    {
+        <!-- Analytics Cards -->
+        <div class="analytics-grid">
+            <!-- Total Revenue -->
+            <div class="analytics-card">
+                <div class="card-title">
+                    <i class="fas fa-rupee-sign" style="color: #f093fb;"></i>
+                    Total Revenue (Actual)
+                </div>
+                <div class="card-value">₹@totalActualRevenue.ToString("N0")</div>
+                <div class="card-subtitle">
+                    From @totalActualTransactions actual paid transactions
+                    <br>Average: ₹@avgTransaction.ToString("N0") per transaction
+                </div>
+            </div>
+
+            <!-- Revenue Breakdown -->
+            <div class="analytics-card">
+                <div class="card-title">
+                    <i class="fas fa-chart-pie" style="color: #4facfe;"></i>
+                    Revenue Sources (Actual)
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">
+                        <i class="fas fa-cogs" style="color: #38a169;"></i>
+                        Service Publications
+                    </div>
+                    <div class="breakdown-value">₹@serviceRevenue.ToString("N0")</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">
+                        <i class="fas fa-ad" style="color: #ed8936;"></i>
+                        Advertisements
+                    </div>
+                    <div class="breakdown-value">₹@adRevenue.ToString("N0")</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">
+                        <i class="fas fa-percentage" style="color: #9f7aea;"></i>
+                        Booking Commissions
+                    </div>
+                    <div class="breakdown-value">₹@(analytics?.BookingCommissionRevenue ?? 0).ToString("N0")</div>
+                </div>
+            </div>
+
+            <!-- Monthly Trend -->
+            <div class="analytics-card">
+                <div class="card-title">
+                    <i class="fas fa-calendar-alt" style="color: #ed64a6;"></i>
+                    Monthly Revenue Trend
+                </div>
+                <div class="chart-container" id="monthlyChart">
+                    <!-- Chart will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ML Predictions -->
+        @if (predictions != null && predictions.Any())
+        {
+            <div class="analytics-card">
+                <div class="card-title">
+                    <i class="fas fa-brain" style="color: #f093fb;"></i>
+                    ML Revenue Predictions
+                    <small style="color: #718096; font-weight: normal;">(Using Time Series Forecasting)</small>
+                </div>
+                <div class="predictions-grid">
+                    @foreach (var prediction in predictions)
+                    {
+                        <div class="prediction-card">
+                            <div class="prediction-period">@prediction.Period</div>
+                            <div class="prediction-amount">₹@prediction.PredictedAmount.ToString("N0")</div>
+                            <div class="prediction-confidence">
+                                @((prediction.ConfidenceScore * 100).ToString("F0"))% confidence
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: linear-gradient(135deg, #edf2f7 0%, #e6fffa 100%); border-radius: 8px; font-size: 0.9rem; color: #4a5568; border-left: 3px solid #667eea;">
+                    <i class="fas fa-check-circle" style="color: #38a169;"></i>
+                    <strong>✓ Based on Actual Revenue Data:</strong> 
+                    These ML predictions are calculated from verified actual paid transactions (Service Publications: ₹@serviceRevenue.ToString("N0"), Advertisements: ₹@adRevenue.ToString("N0"))
+                    @if (predictions.FirstOrDefault()?.ModelFeatures.ContainsKey("Method") == true)
+                    {
+                        <span>| Method: @predictions.First().ModelFeatures["Method"]</span>
+                    }
+                    <br>
+                    <small>Predictions use historical revenue patterns and may vary based on market conditions.</small>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="analytics-card">
+            <div class="card-title">
+                <i class="fas fa-info-circle" style="color: #4299e1;"></i>
+                No Revenue Data
+            </div>
+            <p>No revenue data available. Click "Sync Revenue Data" to load data from payment sources.</p>
+        </div>
+    }
+
+    <!-- Actual Transaction Sources Section -->
+    <div class="analytics-card" style="margin-top: 2rem; border-top: 3px solid #f093fb; padding-top: 2rem;">
+        <div class="card-title">
+            <i class="fas fa-database" style="color: #f093fb;"></i>
+            Actual Revenue Sources (Direct from Payments)
+            <small style="color: #718096; font-weight: normal; display: block; margin-top: 0.5rem;">This data is directly pulled from verified paid transactions in the system</small>
+        </div>
+
+        <!-- Service Publication Revenue -->
+        <div style="margin-top: 1.5rem;">
+            <h4 style="color: #2d3748; margin-bottom: 1rem;">
+                <i class="fas fa-cogs" style="color: #38a169;"></i>
+                Service Publication Payments
+            </h4>
+            @if (paidServices.Any())
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="background: #f7fafc; border-bottom: 2px solid #e2e8f0;">
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Service Name</th>
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Amount (₹)</th>
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Duration</th>
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Start Date</th>
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payment in paidServices.OrderByDescending(p => p.UpdatedAt).Take(10))
+                            {
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
+                                    <td style="padding: 0.75rem; color: #2d3748;">@payment.ServiceName</td>
+                                    <td style="padding: 0.75rem; color: #2d3748; font-weight: 600;">₹@payment.AmountInRupees.ToString("N0")</td>
+                                    <td style="padding: 0.75rem; color: #2d3748;">@payment.DurationInMonths month(s)</td>
+                                    <td style="padding: 0.75rem; color: #2d3748;">@payment.PublicationStartDate?.ToString("yyyy-MM-dd")</td>
+                                    <td style="padding: 0.75rem;"><span style="background: #c6f6d5; color: #22543d; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 600;">Paid</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p style="margin-top: 0.5rem; color: #718096; font-size: 0.85rem;">Total Service Payments: @paidServices.Count | Total Revenue: ₹@paidServices.Sum(p => p.AmountInRupees).ToString("N0")</p>
+            }
+            else
+            {
+                <p style="color: #718096; padding: 1rem; background: #f7fafc; border-radius: 8px;"><i class="fas fa-info-circle"></i> No paid service publications yet</p>
+            }
+        </div>
+
+        <!-- Advertisement Revenue -->
+        <div style="margin-top: 2rem;">
+            <h4 style="color: #2d3748; margin-bottom: 1rem;">
+                <i class="fas fa-ad" style="color: #ed8936;"></i>
+                Advertisement Payments
+            </h4>
+            @if (paidAds.Any())
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="background: #f7fafc; border-bottom: 2px solid #e2e8f0;">
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Ad Type</th>
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Amount (₹)</th>
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Duration</th>
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Created Date</th>
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Expiry Date</th>
+                                <th style="padding: 0.75rem; text-align: left; color: #4a5568; font-weight: 600;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ad in paidAds.OrderByDescending(a => a.CreatedAt).Take(10))
+                            {
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
+                                    <td style="padding: 0.75rem; color: #2d3748;">@ad.Type</td>
+                                    <td style="padding: 0.75rem; color: #2d3748; font-weight: 600;">₹@((ad.AmountInPaise / 100m).ToString("N0"))</td>
+                                    <td style="padding: 0.75rem; color: #2d3748;">@ad.DurationInMonths month(s)</td>
+                                    <td style="padding: 0.75rem; color: #2d3748;">@ad.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                    <td style="padding: 0.75rem; color: #2d3748;">@ad.ExpiryDate?.ToString("yyyy-MM-dd")</td>
+                                    <td style="padding: 0.75rem;"><span style="background: #c6f6d5; color: #22543d; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 600;">Approved</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p style="margin-top: 0.5rem; color: #718096; font-size: 0.85rem;">Total Advertisement Payments: @paidAds.Count | Total Revenue: ₹@(paidAds.Sum(a => a.AmountInPaise) / 100m).ToString("N0")</p>
+            }
+            else
+            {
+                <p style="color: #718096; padding: 1rem; background: #f7fafc; border-radius: 8px;"><i class="fas fa-info-circle"></i> No paid advertisements yet</p>
+            }
+        </div>
+
+        <!-- Summary Statistics -->
+        <div style="margin-top: 2rem; padding: 1rem; background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 8px; border-left: 4px solid #f093fb;">
+            <h5 style="color: #2d3748; margin-bottom: 1rem;">✓ Verified Actual Revenue Summary</h5>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div>
+                    <p style="color: #718096; font-size: 0.9rem; margin-bottom: 0.25rem;">Service Publications</p>
+                    <p style="color: #2d3748; font-size: 1.5rem; font-weight: 700;">₹@serviceRevenue.ToString("N0")</p>
+                </div>
+                <div>
+                    <p style="color: #718096; font-size: 0.9rem; margin-bottom: 0.25rem;">Advertisements</p>
+                    <p style="color: #2d3748; font-size: 1.5rem; font-weight: 700;">₹@adRevenue.ToString("N0")</p>
+                </div>
+                <div>
+                    <p style="color: #718096; font-size: 0.9rem; margin-bottom: 0.25rem;">Combined Revenue</p>
+                    <p style="color: #2d3748; font-size: 1.5rem; font-weight: 700;">₹@(serviceRevenue + adRevenue).ToString("N0")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        generateMonthlyChart();
+    });
+
+    async function syncRevenueData() {
+        const button = document.getElementById('syncButton');
+        const originalText = button.innerHTML;
+        
+        button.disabled = true;
+        button.innerHTML = '<span class="loading"></span> Syncing...';
+        
+        try {
+            const response = await fetch('/api/admin/revenue/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                alert('Revenue data synchronized successfully!');
+                location.reload(); // Reload to show updated data
+            } else {
+                const error = await response.json();
+                alert('Error syncing data: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            alert('Error syncing data: ' + error.message);
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    }
+
+    function generateMonthlyChart() {
+        const chartContainer = document.getElementById('monthlyChart');
+        if (!chartContainer) return;
+
+        @if (analytics?.MonthlyRevenue != null)
+        {
+            <text>
+            const monthlyData = @Html.Raw(Json.Serialize(analytics.MonthlyRevenue));
+            const dataArray = Object.entries(monthlyData)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .slice(-12); // Last 12 months
+
+            if (dataArray.length === 0) {
+                chartContainer.innerHTML = '<div class="text-center text-muted">No monthly data available</div>';
+                return;
+            }
+
+            const maxValue = Math.max(...dataArray.map(([, value]) => value));
+            
+            chartContainer.innerHTML = '';
+            const chartDiv = document.createElement('div');
+            chartDiv.style.cssText = 'display: flex; align-items: end; height: 250px; gap: 8px; padding: 20px;';
+            
+            dataArray.forEach(([month, revenue]) => {
+                const barContainer = document.createElement('div');
+                barContainer.style.cssText = 'flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;';
+                
+                const bar = document.createElement('div');
+                const height = maxValue > 0 ? (revenue / maxValue) * 200 : 0;
+                bar.style.cssText = `
+                    width: 100%;
+                    height: ${Math.max(5, height)}px;
+                    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    border-radius: 4px;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                `;
+                bar.title = `${month}: ₹${revenue.toLocaleString()}`;
+                
+                bar.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scaleY(1.1)';
+                    this.style.boxShadow = '0 5px 15px rgba(240, 147, 251, 0.4)';
+                });
+                
+                bar.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scaleY(1)';
+                    this.style.boxShadow = 'none';
+                });
+                
+                const label = document.createElement('div');
+                label.textContent = month.split('-')[1]; // Show only month
+                label.style.cssText = 'font-size: 0.8rem; color: #718096; font-weight: 500;';
+                
+                barContainer.appendChild(bar);
+                barContainer.appendChild(label);
+                chartDiv.appendChild(barContainer);
+            });
+            
+            chartContainer.appendChild(chartDiv);
+            </text>
+        }
+        else
+        {
+            <text>
+            chartContainer.innerHTML = '<div class="text-center text-muted">No data available</div>';
+            </text>
+        }
+    }
+
+</script>
