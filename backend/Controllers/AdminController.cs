@@ -23,6 +23,7 @@ namespace ServConnect.Controllers
         private readonly IAdvertisementRequestService _adReqService;
 
         private readonly IServiceCatalog _serviceCatalog;
+        private readonly IRevenueService _revenueService;
 
         public AdminController(
             UserManager<Users> userManager,
@@ -32,7 +33,8 @@ namespace ServConnect.Controllers
             IWebHostEnvironment env,
             IComplaintService complaintService,
             IAdvertisementRequestService adReqService,
-            IServiceCatalog serviceCatalog)
+            IServiceCatalog serviceCatalog,
+            IRevenueService revenueService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -42,6 +44,7 @@ namespace ServConnect.Controllers
             _complaintService = complaintService;
             _adReqService = adReqService;
             _serviceCatalog = serviceCatalog;
+            _revenueService = revenueService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -76,6 +79,38 @@ namespace ServConnect.Controllers
                 ViewBag.PendingUsersCount = pendingUsers.Count;
             }
             catch { ViewBag.PendingUsersCount = 0; }
+
+            // Revenue analytics
+            try
+            {
+                // Sync revenue data from all sources
+                await _revenueService.SyncRevenueFromPaymentsAsync();
+                await _revenueService.SyncRevenueFromAdvertisementsAsync();
+                await _revenueService.SyncRevenueFromBookingPaymentsAsync();
+
+                var totalRevenue = await _revenueService.GetTotalRevenueAsync();
+                var monthlyRevenue = await _revenueService.GetMonthlyRevenueAsync(6);
+                var revenueBreakdown = await _revenueService.GetRevenueBreakdownAsync();
+                var growthRate = await _revenueService.GetRevenueGrowthRateAsync(3);
+
+                ViewBag.TotalRevenue = totalRevenue;
+                ViewBag.MonthlyRevenue = monthlyRevenue;
+                ViewBag.RevenueBreakdown = revenueBreakdown;
+                ViewBag.RevenueGrowthRate = growthRate;
+                ViewBag.ServicePublicationRevenue = revenueBreakdown.GetValueOrDefault(RevenueType.ServicePublication, 0);
+                ViewBag.AdvertisementRevenue = revenueBreakdown.GetValueOrDefault(RevenueType.AdvertisementPayment, 0);
+                ViewBag.BookingCommissionRevenue = revenueBreakdown.GetValueOrDefault(RevenueType.BookingCommission, 0);
+            }
+            catch 
+            { 
+                ViewBag.TotalRevenue = 0m;
+                ViewBag.MonthlyRevenue = new Dictionary<string, decimal>();
+                ViewBag.RevenueBreakdown = new Dictionary<RevenueType, decimal>();
+                ViewBag.RevenueGrowthRate = 0.0;
+                ViewBag.ServicePublicationRevenue = 0m;
+                ViewBag.AdvertisementRevenue = 0m;
+                ViewBag.BookingCommissionRevenue = 0m;
+            }
 
             return View();
         }
@@ -613,5 +648,115 @@ namespace ServConnect.Controllers
             TempData["AdMessage"] = "Advertisement deleted.";
             return RedirectToAction(nameof(Advertisements));
         }
+
+        // Revenue Analytics API Endpoints
+        [HttpGet]
+        [Route("api/admin/revenue/analytics")]
+        public async Task<IActionResult> GetRevenueAnalytics([FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
+        {
+            try
+            {
+                var analytics = await _revenueService.GetRevenueAnalyticsAsync(fromDate, toDate);
+                return Json(analytics);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("api/admin/revenue/predictions")]
+        public async Task<IActionResult> GetRevenuePredictions([FromQuery] string periods = "1,3,6,9,12")
+        {
+            try
+            {
+                var monthsList = periods.Split(',').Select(int.Parse).ToList();
+                var predictions = await _revenueService.PredictRevenueAsync(monthsList);
+                return Json(predictions);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("api/admin/revenue/monthly")]
+        public async Task<IActionResult> GetMonthlyRevenue([FromQuery] int months = 12)
+        {
+            try
+            {
+                var monthlyRevenue = await _revenueService.GetMonthlyRevenueAsync(months);
+                return Json(monthlyRevenue);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("api/admin/revenue/breakdown")]
+        public async Task<IActionResult> GetRevenueBreakdown([FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
+        {
+            try
+            {
+                var breakdown = await _revenueService.GetRevenueBreakdownAsync(fromDate, toDate);
+                return Json(breakdown);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/admin/revenue/sync")]
+        public async Task<IActionResult> SyncRevenueData()
+        {
+            try
+            {
+                await _revenueService.SyncRevenueFromPaymentsAsync();
+                await _revenueService.SyncRevenueFromAdvertisementsAsync();
+                await _revenueService.SyncRevenueFromBookingPaymentsAsync();
+                
+                return Json(new { success = true, message = "Revenue data synchronized successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        // Revenue Analytics Page
+        public async Task<IActionResult> Revenue()
+        {
+            try
+            {
+                // Sync revenue data
+                await _revenueService.SyncRevenueFromPaymentsAsync();
+                await _revenueService.SyncRevenueFromAdvertisementsAsync();
+                await _revenueService.SyncRevenueFromBookingPaymentsAsync();
+
+                var analytics = await _revenueService.GetRevenueAnalyticsAsync();
+                var predictions = await _revenueService.PredictRevenueAsync(new List<int> { 1, 3, 6, 9, 12 });
+                var detailedBreakdown = await _revenueService.GetDetailedRevenueBreakdownAsync();
+                
+                ViewBag.Analytics = analytics;
+                ViewBag.Predictions = predictions;
+                ViewBag.DetailedBreakdown = detailedBreakdown;
+                ViewBag.PaidServicePayments = await _revenueService.GetPaidServicePaymentsAsync();
+                ViewBag.PaidAdvertisements = await _revenueService.GetPaidAdvertisementsAsync();
+                
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View();
+            }
+        }
+
     }
 }
