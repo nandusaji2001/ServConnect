@@ -110,11 +110,38 @@ namespace ServConnect.Services
                 .Set(x => x.ProviderMessage, providerMessage)
                 .Set(x => x.RespondedAtUtc, DateTime.UtcNow);
             var res = await _bookings.UpdateOneAsync(x => x.Id == id && x.ProviderId == providerId, update);
-            if (res.ModifiedCount == 1 && status == BookingStatus.Accepted)
+            if (res.ModifiedCount != 1)
             {
-                // Send email to user
-                var booking = await _bookings.Find(x => x.Id == id).FirstOrDefaultAsync();
-                if (booking != null && !string.IsNullOrEmpty(booking.UserEmail))
+                return false;
+            }
+
+            var booking = await _bookings.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+            if (booking != null && status == BookingStatus.Accepted)
+            {
+                // Automatically reject other pending bookings for the same user, service, and day
+                var filterBuilder = Builders<Booking>.Filter;
+                var startOfDay = booking.ServiceDateTime.Date;
+                var nextDay = startOfDay.AddDays(1);
+
+                var duplicateFilter = filterBuilder.And(
+                    filterBuilder.Ne(b => b.Id, booking.Id),
+                    filterBuilder.Eq(b => b.UserId, booking.UserId),
+                    filterBuilder.Eq(b => b.ServiceName, booking.ServiceName),
+                    filterBuilder.Gte(b => b.ServiceDateTime, startOfDay),
+                    filterBuilder.Lt(b => b.ServiceDateTime, nextDay),
+                    filterBuilder.Eq(b => b.Status, BookingStatus.Pending)
+                );
+
+                var duplicateUpdate = Builders<Booking>.Update
+                    .Set(b => b.Status, BookingStatus.Rejected)
+                    .Set(b => b.ProviderMessage, "Automatically cancelled after another provider accepted this booking.")
+                    .Set(b => b.RespondedAtUtc, DateTime.UtcNow);
+
+                await _bookings.UpdateManyAsync(duplicateFilter, duplicateUpdate);
+
+                // Send email to user confirming acceptance
+                if (!string.IsNullOrEmpty(booking.UserEmail))
                 {
                     var subject = $"Your Booking for {booking.ServiceName} has been Accepted";
                     var body = $@"
@@ -139,7 +166,8 @@ namespace ServConnect.Services
                     await _emailService.SendEmailAsync(booking.UserEmail, subject, body);
                 }
             }
-            return res.ModifiedCount == 1;
+
+            return true;
         }
 
         public async Task<bool> CompleteAsync(string id, Guid userId, int? rating, string? feedback)

@@ -71,6 +71,7 @@
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                     <li class="dropdown-header">@displayName</li>
                     <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> @Localizer["Profile"]</a></li>
+                    <li><a class="dropdown-item" asp-controller="Account" asp-action="ProfileUpdate"><i class="bi bi-pencil-square"></i> Update Details</a></li>
                     <li><hr class="dropdown-divider" /></li>
                     @* Language toggle *@
                     @if (!string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase))

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ServConnect.ViewModels
 {
-    public class ProfileViewModel
+    public class ProfileUpdateViewModel
     {
         [Required(ErrorMessage = "Name is required")]
         [RegularExpression("^[A-Za-z\\s]+$", ErrorMessage = "Only alphabets and spaces are allowed.")]
@@ -28,30 +28,6 @@ namespace ServConnect.ViewModels
         [Display(Name = "Profile Image")]
         public IFormFile? Image { get; set; }
 
-        [Display(Name = "Identity Proof (PDF or Image)")]
-        public IFormFile? IdentityProof { get; set; }
-
-        public bool IsProfileCompleted { get; set; }
-        public bool IsAdminApproved { get; set; }
-        public bool CanUploadIdentityProof { get; set; }
-        public bool IdentityProofRequired { get; set; }
-        public bool ProfileImageRequired { get; set; }
         public string? ExistingProfileImageUrl { get; set; }
-        public string? ExistingIdentityProofUrl { get; set; }
-
-        // For password change
-        [DataType(DataType.Password)]
-        [Display(Name = "Current Password")]
-        public string? CurrentPassword { get; set; }
-
-        [DataType(DataType.Password)]
-        [Display(Name = "New Password")]
-        [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters")]
-        public string? NewPassword { get; set; }
-
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm New Password")]
-        [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
-        public string? ConfirmPassword { get; set; }
     }
 }

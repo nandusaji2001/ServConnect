@@ -318,6 +318,11 @@ namespace ServConnect.Controllers
             return NotFound();
         }
 
+        if (user.IsAdminApproved && user.IsProfileCompleted)
+        {
+            return RedirectToAction(nameof(ProfileUpdate));
+        }
+
         // Restrict navigation while profile is incomplete
         ViewBag.RestrictNav = !user.IsProfileCompleted;
 
@@ -328,7 +333,12 @@ namespace ServConnect.Controllers
             PhoneNumber = user.PhoneNumber,
             Address = user.Address,
             IsProfileCompleted = user.IsProfileCompleted,
-            IsAdminApproved = user.IsAdminApproved
+            IsAdminApproved = user.IsAdminApproved,
+            CanUploadIdentityProof = !user.IsAdminApproved,
+            IdentityProofRequired = !user.IsAdminApproved && string.IsNullOrWhiteSpace(user.IdentityProofUrl),
+            ProfileImageRequired = !user.IsAdminApproved && string.IsNullOrWhiteSpace(user.ProfileImageUrl),
+            ExistingProfileImageUrl = user.ProfileImageUrl,
+            ExistingIdentityProofUrl = user.IdentityProofUrl
         };
 
         return View(model);
@@ -348,10 +358,33 @@ namespace ServConnect.Controllers
         // Keep navbar restricted while profile incomplete
         ViewBag.RestrictNav = !user.IsProfileCompleted;
 
+        if (!user.IsAdminApproved)
+        {
+            if (model.Image == null && string.IsNullOrWhiteSpace(user.ProfileImageUrl))
+            {
+                ModelState.AddModelError(nameof(model.Image), "Profile image is required.");
+            }
+            if (model.IdentityProof == null && string.IsNullOrWhiteSpace(user.IdentityProofUrl))
+            {
+                ModelState.AddModelError(nameof(model.IdentityProof), "Identity proof is required.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
+            model.IsProfileCompleted = user.IsProfileCompleted;
+            model.IsAdminApproved = user.IsAdminApproved;
+            model.CanUploadIdentityProof = !user.IsAdminApproved;
+            model.IdentityProofRequired = !user.IsAdminApproved && string.IsNullOrWhiteSpace(user.IdentityProofUrl);
+            model.ProfileImageRequired = !user.IsAdminApproved && string.IsNullOrWhiteSpace(user.ProfileImageUrl);
+            model.ExistingProfileImageUrl = user.ProfileImageUrl;
+            model.ExistingIdentityProofUrl = user.IdentityProofUrl;
             return View(model);
         }
+
+        var adminApprovedBeforeUpdate = user.IsAdminApproved;
+        var profileImageBeforeUpdate = user.ProfileImageUrl;
+        var identityProofBeforeUpdate = user.IdentityProofUrl;
 
         // Update user properties
         user.FullName = model.Name;
@@ -360,7 +393,7 @@ namespace ServConnect.Controllers
         user.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : FormatPhoneNumber(model.PhoneNumber);
         user.Address = model.Address;
 
-        // Handle profile image upload
+        // Handle profile image upload (allowed for all, optional after approval)
         if (model.Image != null && model.Image.Length > 0)
         {
             var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "users");
@@ -373,9 +406,14 @@ namespace ServConnect.Controllers
             }
             user.ProfileImageUrl = $"/images/users/{uniqueFileName}";
         }
+        else if (user.IsAdminApproved && string.IsNullOrWhiteSpace(model.ExistingProfileImageUrl) && string.IsNullOrWhiteSpace(user.ProfileImageUrl))
+        {
+            // Preserve existing image requirement status when none provided post-approval
+            user.ProfileImageUrl = profileImageBeforeUpdate;
+        }
 
         // Handle identity proof upload
-        if (model.IdentityProof != null && model.IdentityProof.Length > 0)
+        if (!user.IsAdminApproved && model.IdentityProof != null && model.IdentityProof.Length > 0)
         {
             var proofsFolder = Path.Combine(_env.WebRootPath, "uploads", "identity");
             if (!Directory.Exists(proofsFolder)) Directory.CreateDirectory(proofsFolder);
@@ -389,13 +427,24 @@ namespace ServConnect.Controllers
             user.IdentityProofUrl = $"/uploads/identity/{uniqueProofName}";
         }
 
+        var hasIdentityProof = !string.IsNullOrWhiteSpace(user.IdentityProofUrl);
+
         // Mark profile completed when mandatory fields present
         user.IsProfileCompleted = !string.IsNullOrWhiteSpace(user.Address) && 
                                   !string.IsNullOrWhiteSpace(user.PhoneNumber) &&
                                   !string.IsNullOrWhiteSpace(user.ProfileImageUrl) &&
-                                  !string.IsNullOrWhiteSpace(user.IdentityProofUrl);
-        // Reset approval on changes requiring re-review
-        if (user.IsProfileCompleted)
+                                  hasIdentityProof;
+        // Reset approval only when identity proof is updated or approval not granted yet
+        if (!adminApprovedBeforeUpdate)
+        {
+            if (user.IsProfileCompleted)
+            {
+                user.IsAdminApproved = false;
+                user.AdminReviewNote = null;
+                user.AdminReviewedAtUtc = null;
+            }
+        }
+        else if (identityProofBeforeUpdate != user.IdentityProofUrl && !string.IsNullOrWhiteSpace(user.IdentityProofUrl))
         {
             user.IsAdminApproved = false;
             user.AdminReviewNote = null;
@@ -428,6 +477,119 @@ namespace ServConnect.Controllers
             ModelState.AddModelError(string.Empty, error.Description);
         }
 
+        return View(model);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> ProfileUpdate()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        if (!user.IsAdminApproved || !user.IsProfileCompleted)
+        {
+            return RedirectToAction(nameof(Profile));
+        }
+
+        var model = new ProfileUpdateViewModel
+        {
+            Name = user.FullName,
+            Email = user.Email ?? string.Empty,
+            PhoneNumber = NormalizePhoneNumberForForm(user.PhoneNumber),
+            Address = user.Address,
+            ExistingProfileImageUrl = user.ProfileImageUrl
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ProfileUpdate(ProfileUpdateViewModel model)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        if (!user.IsAdminApproved || !user.IsProfileCompleted)
+        {
+            return RedirectToAction(nameof(Profile));
+        }
+
+        if (!ModelState.IsValid)
+        {
+            model.ExistingProfileImageUrl = user.ProfileImageUrl;
+            return View(model);
+        }
+
+        var normalizedPhone = FormatPhoneNumber(model.PhoneNumber);
+        var emailOwner = await _userManager.FindByEmailAsync(model.Email);
+        if (emailOwner != null && emailOwner.Id != user.Id)
+        {
+            ModelState.AddModelError(nameof(model.Email), "This email address is already in use.");
+        }
+
+        var otherUsers = _userManager.Users.ToList();
+        var duplicatePhoneUser = otherUsers
+            .Where(u => !string.IsNullOrWhiteSpace(u.PhoneNumber) && u.Id != user.Id)
+            .FirstOrDefault(u => FormatPhoneNumber(u.PhoneNumber) == normalizedPhone);
+
+        if (duplicatePhoneUser != null)
+        {
+            ModelState.AddModelError(nameof(model.PhoneNumber), "This phone number is already registered with another account.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            model.ExistingProfileImageUrl = user.ProfileImageUrl;
+            return View(model);
+        }
+
+        user.FullName = model.Name;
+        user.Email = model.Email;
+        user.UserName = model.Email;
+        user.PhoneNumber = normalizedPhone;
+        user.Address = model.Address;
+
+        if (model.Image != null && model.Image.Length > 0)
+        {
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "users");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var uniqueFileName = $"user_{Guid.NewGuid()}" + Path.GetExtension(model.Image.FileName);
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await model.Image.CopyToAsync(fileStream);
+            }
+
+            user.ProfileImageUrl = $"/images/users/{uniqueFileName}";
+            model.ExistingProfileImageUrl = user.ProfileImageUrl;
+        }
+
+        var result = await _userManager.UpdateAsync(user);
+        if (result.Succeeded)
+        {
+            TempData["SuccessMessage"] = "Profile updated successfully.";
+            return RedirectToAction(nameof(ProfileUpdate));
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        model.ExistingProfileImageUrl = user.ProfileImageUrl;
         return View(model);
     }
 
@@ -1037,6 +1199,22 @@ namespace ServConnect.Controllers
         // Return original if we can't format it
         _logger?.LogWarning("Could not format phone number: {PhoneNumber}", phoneNumber);
         return phoneNumber;
+    }
+
+    private string? NormalizePhoneNumberForForm(string? storedPhoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(storedPhoneNumber))
+        {
+            return storedPhoneNumber;
+        }
+
+        // For now, strip the +91 prefix to keep the UI consistent with 10-digit entry
+        if (storedPhoneNumber.StartsWith("+91") && storedPhoneNumber.Length == 13)
+        {
+            return storedPhoneNumber.Substring(3);
+        }
+
+        return storedPhoneNumber;
     }
     
     #endregion
