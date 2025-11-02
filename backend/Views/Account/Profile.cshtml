@@ -67,19 +67,35 @@
 
                         <div class="form-group mb-3">
                             <label asp-for="Image" class="form-label"></label>
-                            <span class="text-danger">*</span>
+                            @if (Model.ProfileImageRequired)
+                            {
+                                <span class="text-danger">*</span>
+                            }
                             <input asp-for="Image" class="form-control" type="file" accept="image/*" />
-                            <small class="text-muted">Required: Upload your profile picture (JPEG, PNG, GIF, WebP - max 5MB)</small>
+                            <small class="text-muted">Upload your profile picture (JPEG, PNG, GIF, WebP - max 5MB)</small>
                             <span asp-validation-for="Image" class="text-danger"></span>
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label asp-for="IdentityProof" class="form-label"></label>
-                            <span class="text-danger">*</span>
-                            <input asp-for="IdentityProof" class="form-control" type="file" accept="image/*,.pdf" />
-                            <small class="text-muted">Required: Upload identity proof - images or PDF (max 10MB)</small>
-                            <span asp-validation-for="IdentityProof" class="text-danger"></span>
-                        </div>
+                        @if (Model.CanUploadIdentityProof)
+                        {
+                            <div class="form-group mb-3">
+                                <label asp-for="IdentityProof" class="form-label"></label>
+                                @if (Model.IdentityProofRequired)
+                                {
+                                    <span class="text-danger">*</span>
+                                }
+                                <input asp-for="IdentityProof" class="form-control" type="file" accept="image/*,.pdf" />
+                                <small class="text-muted">Upload identity proof - images or PDF (max 10MB)</small>
+                                <span asp-validation-for="IdentityProof" class="text-danger"></span>
+                            </div>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(Model.ExistingIdentityProofUrl))
+                        {
+                            <div class="alert alert-secondary d-flex align-items-center" role="alert">
+                                <i class="bi bi-shield-check me-2"></i>
+                                Identity proof on file. Contact support if you need to update it.
+                            </div>
+                        }
 
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <button type="submit" class="btn btn-primary">Update Profile</button>
