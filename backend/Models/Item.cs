@@ -1,6 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
+using System.Collections.Generic;
 
 namespace ServConnect.Models
 {
@@ -23,6 +24,10 @@ namespace ServConnect.Models
         public string? Category { get; set; }
         public string? SKU { get; set; }
         public int Stock { get; set; } = 0;
+
+        public string? Unit { get; set; }
+
+        public List<ProductVariant> Variants { get; set; } = new();
 
         // Image URL saved under wwwroot
         public string? ImageUrl { get; set; }

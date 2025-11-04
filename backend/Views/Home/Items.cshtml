@@ -420,12 +420,25 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div id="orderItemSummary" class="mb-4 p-3 bg-light rounded">
+                    <!-- Item summary will be populated here -->
+                </div>
                 <form id="orderForm">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Quantity</label>
                         <input type="number" class="form-control" id="orderQty" min="1" value="1" required />
+                        <div class="form-text text-muted" id="orderQtyMeta"></div>
+                        <div class="invalid-feedback" id="orderQtyFeedback"></div>
                     </div>
-                    
+
+                    <!-- Variants Selection -->
+                    <div id="variantsSection" class="mb-3" style="display: none;">
+                        <label class="form-label fw-bold">Select Variants</label>
+                        <div id="variantsContainer" class="row">
+                            <!-- Variants will be populated here -->
+                        </div>
+                    </div>
+
                     <!-- Address Selection -->
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -518,9 +531,11 @@
 <script>
     let allItems = [];
     let selectedItemId = null;
+    let selectedItem = null;
     let selectedAddressId = null;
     let userAddresses = [];
     let currentCategory = 'all';
+    const MAX_ORDER_QTY = 500;
 
     function extractCategories() {
         const categories = new Set(['all']);
@@ -562,15 +577,20 @@
         const badgeType = String(i.ownerRole).toLowerCase() === 'vendor' ? 'vendor' : 'provider';
         const badgeText = String(i.ownerRole).toLowerCase() === 'vendor' ? 'Vendor' : 'Service Provider';
         
+        const unitText = i.unit ? ` per ${i.unit}` : '';
+        const variantsText = i.variants && i.variants.length > 0
+            ? `<br><small class="text-muted"><i class="fas fa-tags"></i> ${i.variants.map(v => `${v.variantName}: ${Array.isArray(v.variantValues) ? v.variantValues.join(', ') : ''}`).join(' • ')}</small>`
+            : '';
+
         return `
         <div class="product-card">
             ${img}
             <span class="product-badge ${badgeType}">${badgeText}</span>
             <div class="product-content">
                 <h5 class="product-title">${i.title || ''}</h5>
-                <p class="product-description">${i.description || 'No description available'}</p>
+                <p class="product-description">${i.description || 'No description available'}${variantsText}</p>
                 <div class="product-footer">
-                    <span class="product-price">${price}</span>
+                    <span class="product-price">${price}${unitText}</span>
                     <span class="product-stock ${stock > 0 ? 'in-stock' : 'out-of-stock'}">
                         ${stock > 0 ? `<i class="fas fa-check-circle"></i> In Stock` : '<i class="fas fa-times-circle"></i> Out'}
                     </span>
@@ -682,13 +702,57 @@
         document.querySelectorAll('.order-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 selectedItemId = e.currentTarget.getAttribute('data-id');
+                selectedItem = allItems.find(i => i.id === selectedItemId);
                 const modalEl = document.getElementById('orderModal');
                 const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                
-                document.getElementById('orderQty').value = 1;
-                document.getElementById('orderError').style.display = 'none';
+
+                // Populate item summary
+                const summaryEl = document.getElementById('orderItemSummary');
+                const price = (selectedItem.price ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'});
+                const unitText = selectedItem.unit ? ` per ${selectedItem.unit}` : '';
+                const summaryVariantsText = (selectedItem.variants && selectedItem.variants.length > 0)
+                    ? `<p class="mb-0 small text-muted">${selectedItem.variants.map(v => `${v.variantName}: ${Array.isArray(v.variantValues) ? v.variantValues.join(', ') : ''}`).join(' • ')}</p>`
+                    : '';
+
+                summaryEl.innerHTML = `
+                    <h6>${selectedItem.title || ''}</h6>
+                    <p class="mb-1">${selectedItem.description || 'No description'}</p>
+                    <p class="mb-0"><strong>Price: ${price}${unitText}</strong></p>
+                    ${summaryVariantsText}
+                `;
+
+                // Populate variants if any
+                const variantsSection = document.getElementById('variantsSection');
+                const variantsContainer = document.getElementById('variantsContainer');
+                if (selectedItem.variants && selectedItem.variants.length > 0) {
+                    variantsSection.style.display = 'block';
+                    variantsContainer.innerHTML = selectedItem.variants.map(variant => `
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">${variant.variantName}</label>
+                            <select class="form-control variant-select" data-variant="${variant.variantName}">
+                                <option value="">Select ${variant.variantName}</option>
+                                ${variant.variantValues.map(value => `<option value="${value}">${value}</option>`).join('')}
+                            </select>
+                        </div>
+                    `).join('');
+                } else {
+                    variantsSection.style.display = 'none';
+                    variantsContainer.innerHTML = '';
+                }
+
+                const qtyInput = document.getElementById('orderQty');
+                const qtyFeedback = document.getElementById('orderQtyFeedback');
+                const orderErr = document.getElementById('orderError');
+
+                qtyInput.value = 1;
+                qtyInput.classList.remove('is-valid', 'is-invalid');
+                qtyFeedback.textContent = '';
+                qtyFeedback.style.display = 'none';
+                orderErr.style.display = 'none';
+
+                validateQuantity({ showErrors: false, syncOrderError: false });
                 document.getElementById('newAddressForm').style.display = 'none';
-                
+
                 await loadAddresses();
                 modal.show();
             });
@@ -839,33 +903,147 @@
         });
     }
 
+    function validateQuantity({ showErrors = true, syncOrderError = true } = {}) {
+        const qtyInput = document.getElementById('orderQty');
+        const qtyMeta = document.getElementById('orderQtyMeta');
+        const qtyFeedback = document.getElementById('orderQtyFeedback');
+        const orderErr = document.getElementById('orderError');
+
+        if (!qtyInput) return { valid: false, quantity: null, reason: 'Quantity field missing' };
+
+        const rawQty = qtyInput.value ?? '';
+        const trimmed = rawQty.trim();
+        const qty = trimmed ? Number.parseInt(trimmed, 10) : NaN;
+        const stockLimit = Number.isFinite(selectedItem?.stock) && selectedItem.stock > 0 ? selectedItem.stock : null;
+        const effectiveMax = stockLimit !== null ? Math.min(stockLimit, MAX_ORDER_QTY) : MAX_ORDER_QTY;
+
+        const errorState = (message) => {
+            if (!showErrors) {
+                qtyInput.classList.remove('is-valid', 'is-invalid');
+                qtyFeedback.textContent = '';
+                qtyFeedback.style.display = 'none';
+            } else {
+                qtyInput.classList.remove('is-valid');
+                qtyInput.classList.add('is-invalid');
+                qtyFeedback.textContent = message;
+                qtyFeedback.style.display = 'block';
+            }
+
+            if (syncOrderError && message) {
+                orderErr.textContent = message;
+                orderErr.style.display = 'block';
+            } else if (!showErrors) {
+                orderErr.style.display = 'none';
+            }
+        };
+
+        const successState = () => {
+            qtyInput.classList.remove('is-invalid');
+            qtyInput.classList.add('is-valid');
+            qtyFeedback.textContent = '';
+            qtyFeedback.style.display = 'none';
+            if (syncOrderError) {
+                orderErr.style.display = 'none';
+            }
+        };
+
+        // Update helper text and max attribute for user guidance
+        if (effectiveMax !== null) {
+            qtyMeta.textContent = `Max allowed: ${effectiveMax}${stockLimit !== null && stockLimit < MAX_ORDER_QTY ? ` (stock: ${stockLimit})` : ''}`;
+            qtyMeta.style.display = 'block';
+            qtyInput.setAttribute('max', String(effectiveMax));
+        } else {
+            qtyMeta.textContent = '';
+            qtyMeta.style.display = 'none';
+            qtyInput.removeAttribute('max');
+        }
+
+        if (!trimmed) {
+            errorState('Quantity is required.');
+            return { valid: false, quantity: null, reason: 'empty' };
+        }
+
+        if (!Number.isFinite(qty)) {
+            errorState('Quantity must be a number.');
+            return { valid: false, quantity: null, reason: 'nan' };
+        }
+
+        if (qty < 1) {
+            errorState('Quantity must be at least 1.');
+            return { valid: false, quantity: null, reason: 'min' };
+        }
+
+        if (effectiveMax !== null && qty > effectiveMax) {
+            const msg = stockLimit !== null && stockLimit < MAX_ORDER_QTY
+                ? `Quantity cannot exceed available stock (${stockLimit}).`
+                : `Quantity cannot exceed the maximum limit (${MAX_ORDER_QTY}).`;
+            errorState(msg);
+            return { valid: false, quantity: null, reason: 'max' };
+        }
+
+        successState();
+        return { valid: true, quantity: qty, reason: null };
+    }
+
     function getOrderData() {
-        const qty = parseInt(document.getElementById('orderQty').value || '1', 10);
-        
-        // Check if user is trying to add a new address inline
-        const newAddressForm = document.getElementById('newAddressForm');
-        if (newAddressForm.style.display !== 'none') {
-            // New address form is visible but not yet saved
-            document.getElementById('orderError').textContent = 'Please save the address first';
-            document.getElementById('orderError').style.display = 'block';
+        const qtyResult = validateQuantity();
+        if (!qtyResult.valid) {
             return null;
         }
-        
+
+        // Collect selected variants
+        const selectedVariants = {};
+        document.querySelectorAll('.variant-select').forEach(select => {
+            const value = select.value;
+            if (value) {
+                selectedVariants[select.getAttribute('data-variant')] = value;
+            }
+        });
+
+        // Check if user is trying to add a new address inline
+        const newAddressForm = document.getElementById('newAddressForm');
+        const orderErr = document.getElementById('orderError');
+        if (newAddressForm.style.display !== 'none') {
+            // New address form is visible but not yet saved
+            orderErr.textContent = 'Please save the address first';
+            orderErr.style.display = 'block';
+            return null;
+        }
+
         if (selectedAddressId) {
             const addr = userAddresses.find(a => a.id === selectedAddressId);
             if (addr) {
-                return { itemId: selectedItemId, quantity: qty, addressId: selectedAddressId, address: addr };
+                return {
+                    itemId: selectedItemId,
+                    quantity: qtyResult.quantity,
+                    addressId: selectedAddressId,
+                    address: addr,
+                    selectedVariants
+                };
             }
         }
-        
+
         return null;
     }
+
+    document.getElementById('orderQty').addEventListener('input', (event) => {
+        const val = event.target.value;
+        if (typeof val === 'string' && !/^\d*$/.test(val)) {
+            const digitsOnly = val.replace(/\D+/g, '');
+            event.target.value = digitsOnly;
+        }
+
+        validateQuantity({ showErrors: true, syncOrderError: false });
+    });
 
     document.getElementById('submitOrderBtn').addEventListener('click', async () => {
         const data = getOrderData();
         if (!data) {
-            document.getElementById('orderError').textContent = 'Please select an address';
-            document.getElementById('orderError').style.display = 'block';
+            const err = document.getElementById('orderError');
+            if (!err.textContent) {
+                err.textContent = 'Please fix the highlighted fields.';
+            }
+            err.style.display = 'block';
             return;
         }
 
@@ -877,6 +1055,7 @@
             const orderRequest = {
                 itemId: data.itemId,
                 quantity: data.quantity,
+                selectedVariants: data.selectedVariants,
                 userAddressId: data.addressId, // This is a saved address ID
                 fullName: addr.fullName || addr.FullName || '',
                 phoneNumber: addr.phoneNumber || addr.PhoneNumber || '',
