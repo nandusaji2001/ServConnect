@@ -29,6 +29,8 @@
                                     <th>@Localizer["Tbl.ProductName"]</th>
                                     <th>@Localizer["Tbl.Category"]</th>
                                     <th>@Localizer["Tbl.Price"]</th>
+                                    <th>Unit</th>
+                                    <th>Variants</th>
                                     <th>@Localizer["Tbl.Stock"]</th>
                                     <th>@Localizer["Tbl.Status"]</th>
                                     <th style="width:160px;">@Localizer["Tbl.Actions"]</th>
@@ -36,7 +38,7 @@
                             </thead>
                             <tbody id="myItemsBody">
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted">
+                                    <td colspan="9" class="text-center text-muted">
                                         @Localizer["Loading"]
                                     </td>
                                 </tr>
@@ -95,24 +97,52 @@
                         <textarea class="form-control" id="productDescription" rows="3"></textarea>
                     </div>
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="productPrice" class="form-label">@Localizer["Lbl.Price"] (₹)</label>
-                                <input type="number" class="form-control" id="productPrice" step="0.01" min="0">
+                                <input type="number" class="form-control" id="productPrice" step="0.01" min="0" max="1000000">
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="productUnit" class="form-label">Unit</label>
+                                <select class="form-control" id="productUnit">
+                                    <option value="">Select Unit</option>
+                                    <option value="Piece">Piece</option>
+                                    <option value="Kg">Kg</option>
+                                    <option value="Gram">Gram</option>
+                                    <option value="Litre">Litre</option>
+                                    <option value="ml">ml</option>
+                                    <option value="Meter">Meter</option>
+                                    <option value="Pair">Pair</option>
+                                    <option value="Dozen">Dozen</option>
+                                    <option value="Packet">Packet</option>
+                                    <option value="Box">Box</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="productStock" class="form-label">@Localizer["Lbl.StockQty"]</label>
-                                <input type="number" class="form-control" id="productStock" min="0">
+                                <input type="number" class="form-control" id="productStock" min="0" max="100000">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="productSKU" class="form-label">@Localizer["Lbl.SKU"]</label>
-                                <input type="text" class="form-control" id="productSKU">
+                                <input type="text" class="form-control" id="productSKU" readonly>
                             </div>
                         </div>
+
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Variants</label>
+                        <div id="variantsContainer">
+                            <!-- Variants will be added here -->
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="addVariantBtn">Add Variant</button>
                     </div>
                     <div class="mb-3">
                         <label for="productImage" class="form-label">@Localizer["Lbl.ProductImage"]</label>
@@ -138,13 +168,13 @@
 <script>
     async function loadMine(){
         const tbody = document.getElementById('myItemsBody');
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">@Localizer["Loading"]</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">@Localizer["Loading"]</td></tr>`;
         try{
             const res = await fetch('/api/items/mine', { credentials: 'same-origin' });
             if(!res.ok) throw new Error('Failed');
             const items = await res.json();
             if(!items || items.length === 0){
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">@Localizer["NoProductsYet"]</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">@Localizer["NoProductsYet"]</td></tr>`;
                 return;
             }
             tbody.innerHTML = items.map(i => `
@@ -153,6 +183,8 @@
                     <td>${i.title || ''}</td>
                     <td>${i.category || ''}</td>
                     <td>${(i.price ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'})}</td>
+                    <td>${i.unit || ''}</td>
+                    <td>${i.variants ? i.variants.map(v => `${v.variantName}: ${v.variantValues.join(', ')}`).join('; ') : ''}</td>
                     <td>${i.stock ?? 0}</td>
                     <td>${i.isActive ? `<span class="badge bg-success">@Localizer["Status.Active"]</span>` : `<span class="badge bg-secondary">@Localizer["Status.Inactive"]</span>`}</td>
                     <td>
@@ -174,7 +206,7 @@
                 });
             });
         }catch{
-            tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">@Localizer["Error.FailedToLoad"]</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="text-danger text-center">@Localizer["Error.FailedToLoad"]</td></tr>`;
         }
     }
 
@@ -187,6 +219,8 @@
         document.getElementById('productPrice').value = '';
         document.getElementById('productStock').value = '';
         document.getElementById('productSKU').value = '';
+        document.getElementById('productUnit').value = '';
+        clearVariants();
         document.getElementById('productIsActive').value = 'true';
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         modal.show();
@@ -201,12 +235,43 @@
         document.getElementById('productPrice').value = i.price || 0;
         document.getElementById('productStock').value = i.stock || 0;
         document.getElementById('productSKU').value = i.sku || '';
+        document.getElementById('productUnit').value = i.unit || '';
+        clearVariants();
+        if(i.variants && i.variants.length > 0){
+            i.variants.forEach(v => addVariant(v.variantName, v.variantValues.join(',')));
+        }
         document.getElementById('productIsActive').value = String(!!i.isActive);
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         modal.show();
     }
 
     document.getElementById('submitProduct').addEventListener('click', async () => {
+        // Validate all fields
+        const name = document.getElementById('productName');
+        const desc = document.getElementById('productDescription');
+        const price = document.getElementById('productPrice');
+        const stock = document.getElementById('productStock');
+        const category = document.getElementById('productCategory');
+
+        const validations = [
+            validateField(name, v => v.trim().length > 0 && v.length <= 100),
+            validateField(desc, v => v.length <= 500),
+            validateField(price, v => {
+                const val = parseFloat(v);
+                return !isNaN(val) && val >= 0 && val <= 1000000;
+            }),
+            validateField(stock, v => {
+                const val = parseInt(v);
+                return !isNaN(val) && val >= 0 && val <= 100000;
+            }),
+            validateField(category, v => v !== '')
+        ];
+
+        if (!validations.every(v => v)) {
+            alert('Please correct the errors in the form.');
+            return;
+        }
+
         const id = document.getElementById('productId').value;
         const isEdit = !!id;
 
@@ -217,6 +282,8 @@
                 description: document.getElementById('productDescription').value,
                 price: parseFloat(document.getElementById('productPrice').value || '0'),
                 category: document.getElementById('productCategory').value,
+                unit: document.getElementById('productUnit').value,
+                variants: getVariants(),
                 isActive: document.getElementById('productIsActive').value === 'true'
             };
             try{
@@ -239,6 +306,8 @@
             fd.append('category', document.getElementById('productCategory').value);
             fd.append('sku', document.getElementById('productSKU').value);
             fd.append('stock', document.getElementById('productStock').value || '0');
+            fd.append('unit', document.getElementById('productUnit').value);
+            fd.append('variants', JSON.stringify(getVariants()));
             const file = document.getElementById('productImage').files[0];
             if(file) fd.append('image', file);
             try{
@@ -251,4 +320,70 @@
     });
 
     document.addEventListener('DOMContentLoaded', loadMine);
+
+    // Variants management
+    let variantIndex = 0;
+    function addVariant(name = '', values = '') {
+        const container = document.getElementById('variantsContainer');
+        const div = document.createElement('div');
+        div.className = 'variant-row mb-2 d-flex align-items-center';
+        div.innerHTML = `
+            <input type="text" class="form-control me-2" placeholder="Variant Name (e.g., Color)" value="${name}" data-variant-name>
+            <input type="text" class="form-control me-2" placeholder="Values (comma separated, e.g., Red,Blue)" value="${values}" data-variant-values>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()">Remove</button>
+        `;
+        container.appendChild(div);
+    }
+
+    document.getElementById('addVariantBtn').addEventListener('click', () => addVariant());
+
+    function getVariants() {
+        const rows = document.querySelectorAll('#variantsContainer .variant-row');
+        return Array.from(rows).map(row => ({
+            variantName: row.querySelector('[data-variant-name]').value.trim(),
+            variantValues: row.querySelector('[data-variant-values]').value.split(',').map(v => v.trim()).filter(v => v)
+        })).filter(v => v.variantName && v.variantValues.length > 0);
+    }
+
+    function clearVariants() {
+        document.getElementById('variantsContainer').innerHTML = '';
+    }
+
+    // Live validations
+    function validateField(field, validator) {
+        const value = field.value;
+        const isValid = validator(value);
+        field.classList.toggle('is-invalid', !isValid);
+        field.classList.toggle('is-valid', isValid && value !== '');
+        return isValid;
+    }
+
+    // Title: required, max 100 chars
+    document.getElementById('productName').addEventListener('input', function() {
+        validateField(this, v => v.trim().length > 0 && v.length <= 100);
+    });
+
+    // Description: max 500 chars
+    document.getElementById('productDescription').addEventListener('input', function() {
+        validateField(this, v => v.length <= 500);
+    });
+
+    // Price: >=0, <=1000000
+    document.getElementById('productPrice').addEventListener('input', function() {
+        const val = parseFloat(this.value);
+        validateField(this, v => !isNaN(val) && val >= 0 && val <= 1000000);
+    });
+
+    // Stock: >=0, <=100000
+    document.getElementById('productStock').addEventListener('input', function() {
+        const val = parseInt(this.value);
+        validateField(this, v => !isNaN(val) && val >= 0 && val <= 100000);
+    });
+
+    // Category: required
+    document.getElementById('productCategory').addEventListener('change', function() {
+        validateField(this, v => v !== '');
+    });
+
+    // Unit: optional for now
 </script>

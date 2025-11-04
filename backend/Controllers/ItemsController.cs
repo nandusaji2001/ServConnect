@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using ServConnect.Models;
 using ServConnect.Services;
+using System.Text.Json;
 
 namespace ServConnect.Controllers
 {
@@ -96,6 +97,8 @@ namespace ServConnect.Controllers
             existing.IsActive = input.IsActive;
             // allow updating category too
             existing.Category = input.Category;
+            existing.Unit = input.Unit;
+            existing.Variants = input.Variants;
 
             var ok = await _itemService.UpdateAsync(existing);
             return ok ? NoContent() : StatusCode(500, "Update failed");
@@ -147,10 +150,22 @@ namespace ServConnect.Controllers
             [FromForm] string? category,
             [FromForm] string? sku,
             [FromForm] int stock,
+            [FromForm] string? unit,
+            [FromForm] string? variants,
             IFormFile? image)
         {
             var me = await _userManager.GetUserAsync(User);
             if (me == null) return Unauthorized();
+
+            // Validations
+            if (string.IsNullOrWhiteSpace(title))
+                return BadRequest("Title is required");
+            if (price < 0)
+                return BadRequest("Price must be greater than or equal to 0");
+            if (stock < 0)
+                return BadRequest("Stock must be greater than or equal to 0");
+            if (!string.IsNullOrWhiteSpace(description) && description.Length > 500)
+                return BadRequest("Description must be less than 500 characters");
 
             string? imageUrl = null;
             if (image != null && image.Length > 0)
@@ -169,6 +184,14 @@ namespace ServConnect.Controllers
             var roles = await _userManager.GetRolesAsync(me);
             var ownerRole = roles.Contains(RoleTypes.Vendor) ? RoleTypes.Vendor : RoleTypes.ServiceProvider;
 
+            // Auto-generate SKU if not provided
+            if (string.IsNullOrWhiteSpace(sku))
+            {
+                sku = $"{ownerRole[0]}{me.Id.ToString().Substring(0, 8).ToUpper()}-{title.Replace(" ", "").Substring(0, Math.Min(10, title.Length)).ToUpper()}-{DateTime.UtcNow.ToString("yyMMdd")}";
+            }
+
+            var parsedVariants = string.IsNullOrWhiteSpace(variants) ? new List<ProductVariant>() : JsonSerializer.Deserialize<List<ProductVariant>>(variants, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
             var item = new Item
             {
                 Id = null!,
@@ -180,6 +203,8 @@ namespace ServConnect.Controllers
                 Category = category,
                 SKU = sku,
                 Stock = stock,
+                Unit = unit,
+                Variants = parsedVariants,
                 ImageUrl = imageUrl,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,

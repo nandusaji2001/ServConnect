@@ -414,16 +414,10 @@ namespace ServConnect.Services
                     Console.WriteLine($"[DEBUG] Available provider: {service.ProviderName} - ProviderId: {service.ProviderId}");
                 }
                 
-                // For debugging: if no providers found, return all available services to see what's there
                 if (filteredServices.Count == 0)
                 {
-                    Console.WriteLine($"[DEBUG] No providers found after filtering. Returning all available services for debugging:");
-                    foreach (var service in availableServices)
-                    {
-                        Console.WriteLine($"[DEBUG] All services: {service.ProviderName} - ProviderId: {service.ProviderId}, IsActive: {service.IsActive}");
-                    }
-                    // Temporarily return all services for debugging (remove this later)
-                    return availableServices.Take(5).ToList(); // Limit to 5 for testing
+                    Console.WriteLine($"[DEBUG] No alternate providers found for service {providerServiceId}. Returning empty list.");
+                    return filteredServices;
                 }
                 
                 return filteredServices;
