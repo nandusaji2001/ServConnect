@@ -83,8 +83,10 @@ builder.Services.AddScoped<ServConnect.Filters.RequireApprovedUserFilter>();
 builder.Services.AddScoped<ServConnect.Filters.RequireApprovedUserApiFilter>();
 // Register custom services
 builder.Services.AddHttpClient<Fast2SmsOtpService>();
+builder.Services.AddHttpClient<NewsService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ISmsService, Fast2SmsOtpService>();
+builder.Services.AddScoped<INewsService, NewsService>();
 builder.Services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IItemService, ItemService>();

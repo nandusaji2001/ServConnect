@@ -3,6 +3,17 @@
    ServConnect - Modern Products Browse Page
    ============================================ */
 
+/* Font Declarations */
+* {
+    font-family: 'Avenir', sans-serif;
+    font-weight: 300;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+}
+
 :root {
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --primary-color: #667eea;
@@ -265,7 +276,7 @@
 .product-checkbox::after {
     content: '✓';
     color: var(--primary-color);
-    font-weight: bold;
+    font-weight: 300;
 }
 
 /* ============================================
@@ -416,7 +427,8 @@
 
 .breadcrumb-modern-item.active {
     color: var(--text-dark);
-    font-weight: 600;
+    font-family: 'Avenir', sans-serif;
+    font-weight: 300;
 }
 
 .breadcrumb-modern-separator {

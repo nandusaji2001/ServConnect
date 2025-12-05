@@ -6,13 +6,27 @@
     <title>@ViewData["Title"] - ServConnect</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@100;300&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/avenir" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ServConnect.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+    </style>
     
 </head>
 <body class="d-flex flex-column min-vh-100" data-authed="@((User?.Identity?.IsAuthenticated ?? false) ? "true" : "false")">
@@ -21,34 +35,34 @@
             <div class="container">
                 @if (ViewBag.RestrictNav == true)
                 {
-                    <span class="navbar-brand"><i class="bi bi-diagram-3-fill"></i> ServConnect</span>
+                    <span class="navbar-brand"><img src="~/images/logo.png" alt="Logo" class="navbar-logo" /> ServConnect</span>
                 }
                 else if (User?.Identity?.IsAuthenticated ?? false)
                 {
                     @if (User.IsInRole(RoleTypes.Admin))
                     {
-                        <a class="navbar-brand" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-diagram-3-fill"></i> ServConnect</a>
+                        <a class="navbar-brand" asp-controller="Admin" asp-action="Dashboard"><img src="~/images/logo.png" alt="Logo" class="navbar-logo" /> ServConnect</a>
                     }
                     else if (User.IsInRole(RoleTypes.ServiceProvider))
                     {
-                        <a class="navbar-brand" asp-controller="ServiceProvider" asp-action="Dashboard"><i class="bi bi-diagram-3-fill"></i> ServConnect</a>
+                        <a class="navbar-brand" asp-controller="ServiceProvider" asp-action="Dashboard"><img src="~/images/logo.png" alt="Logo" class="navbar-logo" /> ServConnect</a>
                     }
                     else if (User.IsInRole(RoleTypes.Vendor))
                     {
-                        <a class="navbar-brand" asp-controller="Vendor" asp-action="Dashboard"><i class="bi bi-diagram-3-fill"></i> ServConnect</a>
+                        <a class="navbar-brand" asp-controller="Vendor" asp-action="Dashboard"><img src="~/images/logo.png" alt="Logo" class="navbar-logo" /> ServConnect</a>
                     }
                     else if (User.IsInRole(RoleTypes.User))
                     {
-                        <a class="navbar-brand" asp-controller="Home" asp-action="Index"><i class="bi bi-diagram-3-fill"></i> ServConnect</a>
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index"><img src="~/images/logo.png" alt="Logo" class="navbar-logo" /> ServConnect</a>
                     }
                     else
                     {
-                        <a class="navbar-brand" asp-controller="Home" asp-action="Index"><i class="bi bi-diagram-3-fill"></i> ServConnect</a>
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index"><img src="~/images/logo.png" alt="Logo" class="navbar-logo" /> ServConnect</a>
                     }
                 }
                 else
                 {
-                    <a class="navbar-brand" asp-controller="Home" asp-action="Index"><i class="bi bi-diagram-3-fill"></i> ServConnect</a>
+                    <a class="navbar-brand" asp-controller="Home" asp-action="Index"><img src="~/images/logo.png" alt="Logo" class="navbar-logo" /> ServConnect</a>
                 }
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">

@@ -37,7 +37,8 @@
 /* Light Green Theme Styling - High Specificity */
 body .account-container .account-box .form-label{ 
     color: #1f2937 !important; 
-    font-weight: 600 !important; 
+    font-family: 'Avenir', sans-serif !important;
+    font-weight: 300 !important; 
     margin-bottom: 8px !important;
 }
 
@@ -64,7 +65,8 @@ body .account-container .account-box .btn-primary {
     border: none !important;
     border-radius: 12px !important;
     padding: 12px 24px !important;
-    font-weight: 600 !important;
+    font-family: 'Avenir', sans-serif !important;
+    font-weight: 300 !important;
     transition: all 0.3s ease !important;
 }
 .btn-primary:hover {
@@ -78,7 +80,8 @@ body .account-container .account-box .btn-primary {
     border: none;
     border-radius: 12px;
     padding: 12px 24px;
-    font-weight: 600;
+    font-family: 'Avenir', sans-serif;
+    font-weight: 300;
     transition: all 0.3s ease;
 }
 .btn-success:hover {
@@ -89,15 +92,17 @@ body .account-container .account-box .btn-primary {
 
 /* Headings */
 h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
     color: #1f2937;
-    font-weight: 700;
     margin-bottom: 30px;
 }
 
 /* Links */
 a {
     color: #10b981;
-    font-weight: 500;
+    font-family: 'Avenir', sans-serif;
+    font-weight: 300;
     transition: color 0.3s ease;
 }
 a:hover {
@@ -142,14 +147,14 @@ a:hover {
 }
 
 /* Google Button Styling */
-.btn-google { background-color: #4285f4; border-color: #4285f4; color: white; display:flex; align-items:center; justify-content:center; font-weight:500; transition: all 0.3s ease; border-radius: 8px; padding: 12px 16px; }
+.btn-google { background-color: #4285f4; border-color: #4285f4; color: white; display:flex; align-items:center; justify-content:center; font-family: 'Avenir', sans-serif; font-weight: 300; transition: all 0.3s ease; border-radius: 8px; padding: 12px 16px; }
 .btn-google:hover { background-color: #3367d6; border-color: #3367d6; color: white; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3); }
 .btn-google:focus { background-color: #3367d6; border-color: #3367d6; color: white; box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25); }
 .btn-google:active { background-color: #2d5aa0; border-color: #2d5aa0; color: white; }
 .btn-google .fab { font-size: 18px; margin-right: 8px; }
 
 /* Alternative Google button with white background */
-.btn-google-white { background-color: white; border: 2px solid #dadce0; color: #3c4043; display:flex; align-items:center; justify-content:center; font-weight:500; transition: all 0.3s ease; border-radius: 8px; padding: 12px 16px; }
+.btn-google-white { background-color: white; border: 2px solid #dadce0; color: #3c4043; display:flex; align-items:center; justify-content:center; font-family: 'Avenir', sans-serif; font-weight: 300; transition: all 0.3s ease; border-radius: 8px; padding: 12px 16px; }
 .btn-google-white:hover { background-color: #f8f9fa; border-color: #dadce0; color: #3c4043; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
 .btn-google-white:focus { background-color: #f8f9fa; border-color: #4285f4; color: #3c4043; box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25); }
 .btn-google-white .fab { font-size: 18px; margin-right: 8px; color: #4285f4; }
