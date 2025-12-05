@@ -8,131 +8,499 @@
 }
 
 <style>
-/* Replace this whole block with the new CSS I gave you */
-html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    overflow: hidden; /* Prevent page scrolling */
-}
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow-x: hidden;
+    }
 
-/* Background container */
-.account-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('@Url.Content("~/images/login_register.png")') center/cover no-repeat fixed;
-    display: flex;
-    justify-content: flex-start; /* align form to left */
-    align-items: center;
-    padding: 2rem;
-}
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        font-family: 'Avenir', sans-serif;
+    }
 
-.account-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 1;
-}
+    .register-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 2rem;
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
 
-/* Form box */
-.account-box {
-    background: rgba(240, 253, 244, 0.95);
-    padding: 40px;
-    border-radius: 20px;
-    border: 1px solid rgba(34, 197, 94, 0.2);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 600px;
-    margin-left: 5%;
-    position: relative;
-    z-index: 2;
-    backdrop-filter: blur(10px);
-    
-    /* Scrollable */
-    max-height: 90vh; /* prevent it from overflowing viewport */
-    overflow-y: auto;
-}
+    .register-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        max-width: 540px;
+        width: 100%;
+        padding: 48px;
+        margin: 20px 0;
+    }
 
-/* Optional: nice scrollbar */
-.account-box::-webkit-scrollbar {
-    width: 8px;
-}
-.account-box::-webkit-scrollbar-thumb {
-    background-color: rgba(16, 185, 129, 0.5);
-    border-radius: 4px;
-}
+    .brand-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 32px;
+    }
+
+    .brand-logo {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+    }
+
+    .brand-name {
+        font-family: 'Fraunces', serif;
+        font-size: 24px;
+        font-weight: 300;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .register-title {
+        font-family: 'Fraunces', serif;
+        font-size: 28px;
+        font-weight: 300;
+        color: #1a1a1a;
+        text-align: center;
+        margin-bottom: 8px;
+    }
+
+    .register-subtitle {
+        text-align: center;
+        color: #6b7280;
+        font-size: 15px;
+        margin-bottom: 32px;
+        font-weight: 300;
+    }
+
+    .account-type-label {
+        font-size: 14px;
+        font-weight: 300;
+        color: #374151;
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .role-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .role-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .role-card:hover {
+        border-color: #667eea;
+        background: #f9fafb;
+    }
+
+    .role-card.selected {
+        border-color: #667eea;
+        background: #eff6ff;
+    }
+
+    .role-card input[type="radio"] {
+        display: none;
+    }
+
+    .role-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 12px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+    }
+
+    .role-card:nth-child(1) .role-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .role-card:nth-child(2) .role-icon {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .role-card:nth-child(3) .role-icon {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .role-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+    }
+
+    .role-desc {
+        font-size: 12px;
+        color: #6b7280;
+        font-weight: 300;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 300;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 300;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #9ca3af;
+    }
+
+    .password-input-wrapper {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+    }
+
+    .terms-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 24px;
+        font-size: 14px;
+        font-weight: 300;
+    }
+
+    .terms-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .terms-checkbox a {
+        color: #667eea;
+        text-decoration: none;
+    }
+
+    .terms-checkbox a:hover {
+        text-decoration: underline;
+    }
+
+    .btn-create-account {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 300;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-create-account:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .signin-link {
+        text-align: center;
+        margin-top: 24px;
+        font-size: 14px;
+        font-weight: 300;
+        color: #6b7280;
+    }
+
+    .signin-link a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 400;
+    }
+
+    .signin-link a:hover {
+        text-decoration: underline;
+    }
+
+    .divider {
+        text-align: center;
+        margin: 24px 0;
+        position: relative;
+    }
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .divider span {
+        background: white;
+        padding: 0 16px;
+        position: relative;
+        color: #9ca3af;
+        font-size: 13px;
+        font-weight: 300;
+    }
+
+    .social-buttons {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .btn-social {
+        width: 100%;
+        padding: 12px;
+        border: 1.5px solid #e5e7eb;
+        background: white;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 300;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-social:hover {
+        border-color: #d1d5db;
+        background: #f9fafb;
+    }
+
+    .text-danger {
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-danger {
+        background: #fee;
+        color: #c00;
+        border: 1px solid #fcc;
+    }
+
+    .back-home-btn {
+        display: block;
+        text-align: center;
+        margin-top: 24px;
+        padding: 12px;
+        color: #6b7280;
+        text-decoration: none;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 300;
+        transition: all 0.3s ease;
+    }
+
+    .back-home-btn:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+        color: #374151;
+    }
+
+    @@media (max-width: 768px) {
+        .register-card {
+            padding: 32px 24px;
+        }
+
+        .role-options {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
-<div class="account-container">
-    <div class="account-box">
-            <h2 class="text-center mb-4">Create Account</h2>
+<div class="register-container">
+    <div class="register-card">
+        <!-- Brand Header -->
+        <div class="brand-header">
+            <img src="~/images/logo.png" alt="ServConnect Logo" class="brand-logo" />
+            <h1 class="brand-name">ServConnect</h1>
+        </div>
 
-            <form asp-action="Register" method="post" enctype="multipart/form-data">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <!-- Title -->
+        <h2 class="register-title">Create Your Account</h2>
+        <p class="register-subtitle">Join our community of service seekers and providers</p>
 
-                <!-- Name -->
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label">Full Name</label>
-                    <input asp-for="Name" class="form-control" />
+        <!-- Validation Summary -->
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form asp-action="Register" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <!-- Account Type Selection -->
+            <label class="account-type-label">Account Type</label>
+            <div class="role-options">
+                <label class="role-card" id="roleUser">
+                    <input type="radio" asp-for="Role" value="@RoleTypes.User" checked />
+                    <div class="role-icon">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div class="role-title">Regular User</div>
+                    <div class="role-desc">Book services and order products</div>
+                </label>
+
+                <label class="role-card" id="roleProvider">
+                    <input type="radio" asp-for="Role" value="@RoleTypes.ServiceProvider" />
+                    <div class="role-icon">
+                        <i class="bi bi-briefcase"></i>
+                    </div>
+                    <div class="role-title">Service Provider</div>
+                    <div class="role-desc">Offer professional services</div>
+                </label>
+
+                <label class="role-card" id="roleVendor">
+                    <input type="radio" asp-for="Role" value="@RoleTypes.Vendor" />
+                    <div class="role-icon">
+                        <i class="bi bi-shop"></i>
+                    </div>
+                    <div class="role-title">Vendor</div>
+                    <div class="role-desc">Sell products to customers</div>
+                </label>
+            </div>
+            <span asp-validation-for="Role" class="text-danger"></span>
+
+            <!-- Form Fields -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Name">Full Name</label>
+                    <input asp-for="Name" placeholder="John Doe" />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
-                <!-- Email -->
-                <div class="mb-3">
-                    <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" class="form-control" />
+                <div class="form-group">
+                    <label asp-for="Email">Email Address</label>
+                    <input asp-for="Email" placeholder="you@example.com" />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
+            </div>
 
-                <!-- Profile Image removed; will be completed in profile completion step -->
-
-                <!-- Password -->
-                <div class="mb-3">
-                    <label asp-for="Password" class="form-label"></label>
-                    <input asp-for="Password" class="form-control" />
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Password">Password</label>
+                    <div class="password-input-wrapper">
+                        <input asp-for="Password" type="password" id="password" placeholder="••••••••" />
+                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                            <i class="bi bi-eye" id="password-icon"></i>
+                        </button>
+                    </div>
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
-                <!-- Confirm Password -->
-                <div class="mb-3">
-                    <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
-                    <input asp-for="ConfirmPassword" class="form-control" />
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword">Confirm Password</label>
+                    <div class="password-input-wrapper">
+                        <input asp-for="ConfirmPassword" type="password" id="confirmPassword" placeholder="••••••••" />
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                            <i class="bi bi-eye" id="confirmPassword-icon"></i>
+                        </button>
+                    </div>
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
-
-                <!-- Role Selection -->
-                <div class="mb-3">
-                    <label asp-for="Role" class="form-label">Account Type</label>
-                    <select asp-for="Role" class="form-control">
-                        <option value="@RoleTypes.User">Regular User</option>
-                        <option value="@RoleTypes.ServiceProvider">Service Provider</option>
-                        <option value="@RoleTypes.Vendor">Vendor (Product Seller)</option>
-                    </select>
-                    <span asp-validation-for="Role" class="text-danger"></span>
-                </div>
-
-                <input type="submit" value="Register" class="btn btn-success w-100 p-2" />
-                <div class="text-center my-3 text-muted">or</div>
-                <button type="button" id="googleRegisterBtn" class="btn btn-outline-dark w-100 p-2">
-                    <i class="bi bi-google"></i> Continue with Google
-                </button>
-            </form>
-
-            <p class="text-center mt-2">
-                Already have an account?
-                <a asp-controller="Account" asp-action="Login" class="text-decoration-none">Login</a>
-            </p>
-            <div class="text-center">
-                <a asp-controller="Home" asp-action="Index" class="text-decoration-none mt-3">Back to Home</a>
             </div>
+
+            <!-- Terms Checkbox -->
+            <div class="terms-checkbox">
+                <input type="checkbox" id="terms" required />
+                <label for="terms">
+                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-create-account">Create Account</button>
+        </form>
+
+        <!-- Sign In Link -->
+        <div class="signin-link">
+            Already have an account? <a asp-controller="Account" asp-action="Login">Sign in</a>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+            <span>Or sign up with</span>
+        </div>
+
+        <!-- Social Login Buttons (No Apple) -->
+        <div class="social-buttons">
+            <button type="button" id="googleRegisterBtn" class="btn-social">
+                <i class="bi bi-google"></i>
+                Google
+            </button>
+        </div>
+
+        <!-- Back to Home -->
+        <a asp-controller="Home" asp-action="Index" class="back-home-btn">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
     </div>
 </div>
 
@@ -142,14 +510,49 @@ html, body {
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="~/js/firebase-auth.js" asp-append-version="true"></script>
     <script src="~/js/validation-live.js" asp-append-version="true"></script>
+    
     <script>
+        // Password toggle functionality
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(inputId + '-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+
+        // Role card selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleCards = document.querySelectorAll('.role-card');
+            roleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    roleCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    this.querySelector('input[type="radio"]').checked = true;
+                });
+            });
+
+            // Set initial selection
+            const checkedRadio = document.querySelector('.role-card input[type="radio"]:checked');
+            if (checkedRadio) {
+                checkedRadio.closest('.role-card').classList.add('selected');
+            }
+        });
+
+        // Google Sign-in
         (function() {
             const googleBtn = document.getElementById('googleRegisterBtn');
             if (!googleBtn) return;
 
             googleBtn.addEventListener('click', async function () {
                 googleBtn.disabled = true;
-                googleBtn.innerText = 'Please wait...';
+                googleBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Please wait...';
                 try {
                     const googleResult = await window.FirebaseAuth.signInWithGoogle();
                     if (!googleResult.success) {
@@ -169,7 +572,7 @@ html, body {
                     if (serverLogin.requiresRegistration) {
                         const nameInput = document.querySelector('input[name="Name"]');
                         const emailInput = document.querySelector('input[name="Email"]');
-                        const roleSelect = document.querySelector('select[name="Role"]');
+                        const roleInput = document.querySelector('input[name="Role"]:checked');
 
                         // Prefill fields for UX (optional)
                         if (serverLogin.name && nameInput) nameInput.value = serverLogin.name;
@@ -180,7 +583,7 @@ html, body {
                             email: emailInput ? emailInput.value : (serverLogin.email || ''),
                             phoneNumber: null,
                             address: null,
-                            role: roleSelect ? roleSelect.value : '@ServConnect.Models.RoleTypes.User',
+                            role: roleInput ? roleInput.value : '@ServConnect.Models.RoleTypes.User',
                             returnUrl: null,
                             photoUrl: googleResult.user?.photoURL || null
                         });
@@ -199,7 +602,7 @@ html, body {
                     alert('Something went wrong. Please try again.');
                 } finally {
                     googleBtn.disabled = false;
-                    googleBtn.innerText = 'Continue with Google';
+                    googleBtn.innerHTML = '<i class="bi bi-google"></i> Google';
                 }
             });
         })();

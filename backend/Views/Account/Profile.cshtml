@@ -1,109 +1,467 @@
 @model ServConnect.ViewModels.ProfileViewModel
 @{
-    ViewData["Title"] = "Profile";
+    ViewData["Title"] = "Complete Your Profile";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Manage Your Profile</h3>
-                </div>
-                <div class="card-body">
-                    @if (TempData["SuccessMessage"] != null)
+<style>
+    body {
+        background: #f5f5f5;
+        font-family: 'Avenir', sans-serif;
+    }
+
+    .profile-completion-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        max-width: 520px;
+        width: 100%;
+        padding: 40px;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .profile-header h2 {
+        font-family: 'Fraunces', serif;
+        font-size: 28px;
+        font-weight: 300;
+        color: #1a1a1a;
+        margin: 0 0 8px 0;
+    }
+
+    .profile-header p {
+        color: #9ca3af;
+        font-size: 14px;
+        font-weight: 300;
+        margin: 0;
+    }
+
+    .avatar-section {
+        text-align: center;
+        margin-bottom: 32px;
+        padding-bottom: 32px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 16px;
+    }
+
+    .avatar-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .avatar-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-icon {
+        font-size: 48px;
+        color: #9ca3af;
+    }
+
+    .required-indicator {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        background: #ef4444;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .upload-btn {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 300;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .upload-btn:hover {
+        background: #059669;
+    }
+
+    .upload-btn i {
+        font-size: 16px;
+    }
+
+    .file-info {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 8px;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 300;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .form-group label i {
+        font-size: 16px;
+        color: #6b7280;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 300;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #10b981;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .file-upload-group {
+        background: #f0fdf4;
+        border: 1.5px dashed #10b981;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .file-upload-group label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        color: #374151;
+    }
+
+    .file-upload-group i {
+        font-size: 20px;
+        color: #10b981;
+    }
+
+    .file-upload-info {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .btn-cancel {
+        flex: 1;
+        padding: 12px;
+        background: #f3f4f6;
+        color: #6b7280;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 300;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .btn-save {
+        flex: 1;
+        padding: 12px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 300;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .privacy-notice {
+        text-align: center;
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 24px;
+    }
+
+    .text-danger {
+        color: #ef4444;
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .alert-success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-warning {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fcd34d;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .alert-info {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #93c5fd;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .alert-secondary {
+        background: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .alert i {
+        font-size: 16px;
+    }
+
+    @@media (max-width: 640px) {
+        .profile-card {
+            padding: 24px;
+        }
+
+        .profile-header h2 {
+            font-size: 24px;
+        }
+
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="profile-completion-container">
+    <div class="profile-card">
+        <!-- Header -->
+        <div class="profile-header">
+            <h2>Complete Your Profile</h2>
+            <p>Keep your information up to date</p>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert-success">
+                <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @if (!Model.IsProfileCompleted)
+        {
+            <div class="alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> Please complete your profile to continue using the app.
+            </div>
+        }
+        else if (!Model.IsAdminApproved)
+        {
+            <div class="alert-info">
+                <i class="bi bi-info-circle"></i> Your profile is pending admin approval. Some features are disabled until approval.
+            </div>
+        }
+
+        <form method="post" enctype="multipart/form-data" id="profileForm">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                <div class="avatar-wrapper">
+                    <div class="avatar-circle" id="avatarPreview">
+                        @if (!string.IsNullOrWhiteSpace(Model.ExistingProfileImageUrl))
+                        {
+                            <img src="@Model.ExistingProfileImageUrl" alt="Profile" id="profileImage" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-person-fill avatar-icon" id="avatarIcon"></i>
+                        }
+                    </div>
+                    @if (Model.ProfileImageRequired)
                     {
-                        <div class="alert alert-success">
-                            @TempData["SuccessMessage"]
-                        </div>
+                        <span class="required-indicator"></span>
                     }
-
-                    <form method="post" enctype="multipart/form-data">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                        @if (!Model.IsProfileCompleted)
-                        {
-                            <div class="alert alert-warning d-flex align-items-center" role="alert">
-                                <i class="bi bi-exclamation-triangle me-2"></i>
-                                Please complete your profile to continue using the app.
-                            </div>
-                        }
-                        else if (!Model.IsAdminApproved)
-                        {
-                            <div class="alert alert-info d-flex align-items-center" role="alert">
-                                <i class="bi bi-info-circle me-2"></i>
-                                Your profile is pending admin approval. Some features are disabled until approval.
-                            </div>
-                        }
-
-                        <div class="form-group mb-3">
-                            <label asp-for="Name" class="form-label"></label>
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" class="form-control" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label asp-for="PhoneNumber" class="form-label"></label>
-                            <span class="text-danger">*</span>
-                            <input asp-for="PhoneNumber" class="form-control" placeholder="Enter 10-digit phone number (e.g., 9876543210)" />
-                            <small class="text-muted">Must be exactly 10 digits starting with 6-9</small>
-                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label asp-for="Address" class="form-label"></label>
-                            <span class="text-danger">*</span>
-                            <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter your complete address (minimum 10 characters)"></textarea>
-                            <small class="text-muted">Must be 10-200 characters with letters, numbers, and basic punctuation</small>
-                            <span asp-validation-for="Address" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label asp-for="Image" class="form-label"></label>
-                            @if (Model.ProfileImageRequired)
-                            {
-                                <span class="text-danger">*</span>
-                            }
-                            <input asp-for="Image" class="form-control" type="file" accept="image/*" />
-                            <small class="text-muted">Upload your profile picture (JPEG, PNG, GIF, WebP - max 5MB)</small>
-                            <span asp-validation-for="Image" class="text-danger"></span>
-                        </div>
-
-                        @if (Model.CanUploadIdentityProof)
-                        {
-                            <div class="form-group mb-3">
-                                <label asp-for="IdentityProof" class="form-label"></label>
-                                @if (Model.IdentityProofRequired)
-                                {
-                                    <span class="text-danger">*</span>
-                                }
-                                <input asp-for="IdentityProof" class="form-control" type="file" accept="image/*,.pdf" />
-                                <small class="text-muted">Upload identity proof - images or PDF (max 10MB)</small>
-                                <span asp-validation-for="IdentityProof" class="text-danger"></span>
-                            </div>
-                        }
-                        else if (!string.IsNullOrWhiteSpace(Model.ExistingIdentityProofUrl))
-                        {
-                            <div class="alert alert-secondary d-flex align-items-center" role="alert">
-                                <i class="bi bi-shield-check me-2"></i>
-                                Identity proof on file. Contact support if you need to update it.
-                            </div>
-                        }
-
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <button type="submit" class="btn btn-primary">Update Profile</button>
-                            <a asp-action="ChangePassword" asp-controller="Account" class="btn btn-outline-secondary">Change Password</a>
-                        </div>
-                    </form>
+                </div>
+                <div>
+                    <label for="profileImageInput" class="upload-btn">
+                        <i class="bi bi-upload"></i>
+                        Upload Photo
+                    </label>
+                    <input type="file" id="profileImageInput" asp-for="Image" accept="image/*" />
+                    <div class="file-info">JPEG, PNG, GIF, WebP • Max 5MB</div>
                 </div>
             </div>
+
+            <!-- Form Fields -->
+            <div class="form-group">
+                <label asp-for="Name">
+                    <i class="bi bi-person"></i> Full Name
+                </label>
+                <input asp-for="Name" placeholder="Shravan S" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email">
+                    <i class="bi bi-envelope"></i> Email Address
+                </label>
+                <input asp-for="Email" placeholder="shravans@gmail.com" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PhoneNumber">
+                    <i class="bi bi-telephone"></i> Phone Number
+                </label>
+                <input asp-for="PhoneNumber" placeholder="9685896325" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Address">
+                    <i class="bi bi-geo-alt"></i> Address
+                </label>
+                <textarea asp-for="Address" placeholder="Shravnam House"></textarea>
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <!-- ID Card Upload (Only for unapproved users) -->
+            @if (Model.CanUploadIdentityProof)
+            {
+                <div class="file-upload-group">
+                    <label for="idCardInput">
+                        <i class="bi bi-card-text"></i>
+                        <span>Choose ID Card (PDF or Image)</span>
+                    </label>
+                    <input type="file" id="idCardInput" asp-for="IdentityProof" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" />
+                    <div class="file-upload-info">JPEG, PNG, GIF, WebP, PDF • Max 10MB</div>
+                    @if (Model.IdentityProofRequired)
+                    {
+                        <span class="text-danger" style="display: block; margin-top: 8px;">This field is required for profile approval</span>
+                    }
+                </div>
+            }
+            else if (!string.IsNullOrWhiteSpace(Model.ExistingIdentityProofUrl))
+            {
+                <div class="alert-secondary">
+                    <i class="bi bi-shield-check"></i> Identity proof on file. Contact support if you need to update it.
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="window.location.href='@Url.Action("Index", "Home")'">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-save">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+
+        <!-- Privacy Notice -->
+        <div class="privacy-notice">
+            Your information is secure and will not be shared with third parties.
         </div>
     </div>
 </div>
@@ -113,4 +471,32 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script src="~/js/validation-live.js" asp-append-version="true"></script>
+    <script>
+        // Image preview functionality
+        document.getElementById('profileImageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    const existingImg = document.getElementById('profileImage');
+                    const avatarIcon = document.getElementById('avatarIcon');
+                    
+                    if (existingImg) {
+                        existingImg.src = event.target.result;
+                    } else {
+                        if (avatarIcon) {
+                            avatarIcon.remove();
+                        }
+                        const newImg = document.createElement('img');
+                        newImg.src = event.target.result;
+                        newImg.alt = 'Profile';
+                        newImg.id = 'profileImage';
+                        avatarPreview.appendChild(newImg);
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 }

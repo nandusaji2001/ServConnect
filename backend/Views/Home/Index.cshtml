@@ -1,5 +1,7 @@
 @{
     ViewData["Title"] = "ServConnect - Your Service Marketplace";
+    var newsLocations = ViewBag.NewsLocations as string[] ?? new[] { "Kattappana", "Nedumkandam", "Kanjirappally", "Kumily", "Kuttikkanam" };
+    var defaultNewsLocation = newsLocations.Length > 0 ? newsLocations[0] : "Kattappana";
 }
 
 <style>
@@ -191,6 +193,9 @@
     .action-btn i {
         font-size: 1.25rem;
         color: #10B981;
+    }
+    .top-news-trigger {
+        grid-column: span 2;
     }
 
     /* Staggered reveal for cards */
@@ -500,11 +505,18 @@
                 <div class="search-container">
                     <div class="search-wrap">
                         <select class="form-select search-select" id="searchLocation">
-                            <option selected>Kattappana</option>
-                            <option>Nedumkandam</option>
-                            <option>Kanjirappally</option>
-                            <option>Kumily</option>
-                            <option>Kuttikkanam</option>
+                            @for (var i = 0; i < newsLocations.Length; i++)
+                            {
+                                var place = newsLocations[i];
+                                if (i == 0)
+                                {
+                                    <option value="@place" selected>@place</option>
+                                }
+                                else
+                                {
+                                    <option value="@place">@place</option>
+                                }
+                            }
                         </select>
                         <input class="search-input" id="searchInput" placeholder="What are you looking for?" />
                         <button class="search-btn" id="searchBtn"><i class="bi bi-search"></i></button>
@@ -557,6 +569,13 @@
                 <!-- Spacer to push action buttons to center -->
                 <div class="flex-grow-1 d-flex align-items-center">
                     <div class="action-buttons">
+                        <a href="/Home/News" class="action-btn top-news-trigger">
+                            <i class="fas fa-newspaper"></i>
+                            <div>
+                                <div class="fw-bold">Top News</div>
+                                <small>Stay updated with your city</small>
+                            </div>
+                        </a>
                     @if (User.Identity?.IsAuthenticated ?? false)
                     {
                         <a href="/Services/Browse" class="action-btn">
@@ -692,6 +711,7 @@
         input.value = name;
         runHeroSearch();
     }
+    
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('searchBtn').addEventListener('click', (e)=>{ e.preventDefault(); runHeroSearch(); });
         document.getElementById('searchInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); runHeroSearch(); }});

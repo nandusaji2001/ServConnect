@@ -1,0 +1,372 @@
+@{
+    ViewData["Title"] = "Top News";
+    var newsLocations = ViewBag.NewsLocations as string[] ?? new[] { "Kattappana", "Nedumkandam", "Kanjirappally", "Kumily", "Kuttikkanam" };
+    var defaultLocation = ViewBag.Location as string ?? "India";
+}
+
+<style>
+    body {
+        background: #f9f9f9;
+    }
+
+    .news-hero {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        padding: 20px 0;
+        margin-bottom: 30px;
+    }
+
+    .news-hero h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .news-controls-wrapper {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .news-select {
+        border: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-weight: 500;
+        background: #fff;
+        min-width: 180px;
+        color: #1f2937;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .news-select:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+
+    .news-select::placeholder {
+        color: #9ca3af;
+    }
+
+    .news-search-btn {
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .news-search-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .news-refresh {
+        border: none;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .news-refresh:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .back-btn {
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: opacity 0.3s ease;
+    }
+
+    .back-btn:hover {
+        opacity: 0.8;
+        text-decoration: none;
+    }
+
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 28px;
+        margin: 40px 0;
+    }
+
+    .news-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .news-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .news-card-image {
+        width: 100%;
+        height: 200px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .news-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .news-card-image-placeholder {
+        color: #9ca3af;
+        font-size: 3rem;
+    }
+
+    .news-card-content {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .news-card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+    }
+
+    .news-card-source {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .news-card-date {
+        color: #9ca3af;
+    }
+
+    .news-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+
+    .news-card-description {
+        color: #6b7280;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 16px;
+        flex: 1;
+    }
+
+    .news-card-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: white;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        text-decoration: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        align-self: flex-start;
+    }
+
+    .news-card-link:hover {
+        transform: translateX(4px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .news-placeholder {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+    }
+
+    .news-placeholder-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f0f0f0;
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .news-error {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px 20px;
+        color: #b91c1c;
+        background: #fee;
+        border: 1px solid #fca5a5;
+        border-radius: 12px;
+    }
+
+    @@media (max-width: 768px) {
+        .news-hero h1 {
+            font-size: 1.25rem;
+        }
+
+        .news-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .news-controls-wrapper {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .news-select {
+            flex: 1;
+            min-width: 100px;
+        }
+    }
+</style>
+
+<div class="news-hero">
+    <div class="container">
+        <a href="/" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1>Top News Headlines</h1>
+
+        <div class="news-controls-wrapper">
+            <input type="text" id="newsLocationInput" class="news-select" placeholder="Enter location..." />
+            <button id="newsSearchBtn" class="news-search-btn">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button id="newsRefreshBtn" class="news-refresh" title="Refresh">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div id="newsContent" class="news-grid">
+        <div class="news-placeholder">
+            <div class="news-placeholder-spinner"></div>
+            <p>Loading headlines...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadNews(location) {
+        const container = document.getElementById('newsContent');
+        container.innerHTML = `
+            <div class="news-placeholder">
+                <div class="news-placeholder-spinner"></div>
+                <p>Loading headlines...</p>
+            </div>
+        `;
+        try {
+            const res = await fetch(`/api/news?location=${encodeURIComponent(location)}`);
+            const data = await res.json();
+            if (!data.articles || data.articles.length === 0) {
+                container.innerHTML = '<div class="news-placeholder">No headlines available for this location.</div>';
+                return;
+            }
+            container.innerHTML = data.articles.map(article => {
+                const pubDate = article.pubDate ? new Date(article.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                const imageHtml = article.imageUrl 
+                    ? `<img src="${article.imageUrl}" alt="${article.title}" onerror="this.style.display='none'">`
+                    : `<div class="news-card-image-placeholder"><i class="fas fa-newspaper"></i></div>`;
+                
+                return `<div class="news-card">
+                    <div class="news-card-image">${imageHtml}</div>
+                    <div class="news-card-content">
+                        <div class="news-card-meta">
+                            <span class="news-card-source">${article.source || 'News'}</span>
+                            <span class="news-card-date">${pubDate}</span>
+                        </div>
+                        <h3 class="news-card-title">${article.title}</h3>
+                        <p class="news-card-description">${article.description}</p>
+                        <a href="${article.link}" target="_blank" class="news-card-link">
+                            Read Full Article <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (error) {
+            console.error('Failed to load news:', error);
+            container.innerHTML = '<div class="news-error">Failed to load headlines. Please try again.</div>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const newsLocationInput = document.getElementById('newsLocationInput');
+        const newsSearchBtn = document.getElementById('newsSearchBtn');
+        const newsRefreshBtn = document.getElementById('newsRefreshBtn');
+
+        const performSearch = () => {
+            const location = newsLocationInput.value.trim() || '@defaultLocation';
+            loadNews(location);
+        };
+
+        if (newsSearchBtn) {
+            newsSearchBtn.addEventListener('click', performSearch);
+        }
+
+        if (newsLocationInput) {
+            newsLocationInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            newsLocationInput.value = '@defaultLocation';
+            loadNews('@defaultLocation');
+        }
+
+        if (newsRefreshBtn) {
+            newsRefreshBtn.addEventListener('click', () => {
+                const loc = newsLocationInput ? newsLocationInput.value.trim() : '@defaultLocation';
+                loadNews(loc || '@defaultLocation');
+            });
+        }
+    });
+</script>

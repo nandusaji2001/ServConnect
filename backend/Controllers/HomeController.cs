@@ -110,6 +110,14 @@ namespace ServConnect.Controllers
             return View();
         }
 
+        [AllowAnonymous]
+        public IActionResult News(string location = "India")
+        {
+            ViewBag.Location = location;
+            ViewBag.NewsLocations = new[] { "Kattappana", "Nedumkandam", "Kanjirappally", "Kumily", "Kuttikkanam" };
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

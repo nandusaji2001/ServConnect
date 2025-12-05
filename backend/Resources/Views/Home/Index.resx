@@ -14,7 +14,7 @@
   <data name="CTA.BookService.Desc" xml:space="preserve"><value>Schedule appointments</value></data>
   <data name="CTA.SearchLocal.Title" xml:space="preserve"><value>Search Local Service</value></data>
   <data name="CTA.SearchLocal.Desc" xml:space="preserve"><value>Find nearby providers</value></data>
-  <data name="CTA.VendorItems.Title" xml:space="preserve"><value>Vendor Items</value></data>
+  <data name="CTA.VendorItems.Title" xml:space="preserve"><value>Buy Products</value></data>
   <data name="CTA.VendorItems.Desc" xml:space="preserve"><value>Browse products</value></data>
   <data name="CTA.DailyEssentials.Title" xml:space="preserve"><value>Daily Essentials</value></data>
   <data name="CTA.DailyEssentials.Desc" xml:space="preserve"><value>Regular deliveries</value></data>

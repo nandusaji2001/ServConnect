@@ -43,9 +43,16 @@
 
 /* Base */
 html,body{
-  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: 'Avenir', sans-serif;
+  font-weight: 300;
   color: var(--text-primary);
   background: var(--bg-page);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
 }
 
 .container, .container-fluid {
@@ -80,7 +87,8 @@ a:hover { color: var(--accent-indigo-600); }
 .card-modern .card-header, .card .card-header{
   background: transparent;
   border-bottom: 1px solid var(--border);
-  font-weight: 600;
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
   color: var(--text-primary);
 }
 
@@ -119,7 +127,10 @@ a:hover { color: var(--accent-indigo-600); }
   display:flex; align-items:center; justify-content:center;
   background: #F3F4F6; color: #374151;
 }
-.tile-title{ font-weight:600; }
+.tile-title{ 
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+}
 .tile-sub{ color: var(--text-secondary); font-size:.9rem; }
 
 /* Dashboard header (neutral) */
