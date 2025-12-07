@@ -19,19 +19,77 @@
         .navbar-brand {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            font-size: 1.2rem;
         }
         .navbar-logo {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
+        }
+        
+        /* 3D Navbar Effect */
+        .app-navbar {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1000;
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+            min-height: 50px;
+        }
+        
+        .app-navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(6, 62, 28, 0.85) 0%, rgba(22, 88, 48, 0.85) 100%);
+            border-radius: 0;
+            z-index: -1;
+        }
+        
+        .navbar-nav .nav-link {
+            position: relative;
+            margin: 0 3px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            line-height: 1.2;
+            font-size: 0.95rem;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dropdown-menu {
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            border: none;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .dropdown-menu::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 15px;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid white;
         }
     </style>
     
 </head>
 <body class="d-flex flex-column min-vh-100" data-authed="@((User?.Identity?.IsAuthenticated ?? false) ? "true" : "false")">
     <header>
-        <nav class="navbar app-navbar navbar-expand-sm navbar-toggleable-sm navbar-dark mb-3">
+        <nav class="navbar app-navbar navbar-expand-sm navbar-toggleable-sm navbar-dark mb-2">
             <div class="container">
                 @if (ViewBag.RestrictNav == true)
                 {
@@ -76,7 +134,34 @@
                         }
                         else
                         {
-                            @* No inline nav items for authenticated users; only the profile dropdown is shown via _LoginPartial *@
+                            <!-- Main Navigation Items -->
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+                            
+                            <!-- Services Dropdown -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Services
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Bookings" asp-action="Create"><i class="fas fa-calendar-check me-2"></i>Book Services</a></li>
+                                    <li><a class="dropdown-item" asp-controller="LocalDirectory" asp-action="Discover"><i class="fas fa-map-marker-alt me-2"></i>Search Local Service</a></li>
+                                    <li><a class="dropdown-item" asp-controller="News" asp-action="Index"><i class="fas fa-newspaper me-2"></i>News</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Orders" asp-action="Create"><i class="fas fa-shopping-cart me-2"></i>Order Products</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Items" asp-action="Subscribe"><i class="fas fa-box me-2"></i>Subscribe Essentials</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-controller="Advertisements" asp-action="Create"><i class="fas fa-ad me-2"></i>Advertisements</a></li>
+                                </ul>
+                            </li>
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="About">About Us</a>
+                            </li>
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Contact">Contact</a>
+                            </li>
                         }
                     </ul>
                     <partial name="_LoginPartial" />

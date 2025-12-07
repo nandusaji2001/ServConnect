@@ -3,6 +3,8 @@ namespace ServConnect.Services
     public interface INewsService
     {
         Task<NewsResponse> GetNewsByLocationAsync(string location);
+        Task<NewsResponse> GetNewsByLocationAsync(string location, string language);
+        Task<NewsResponse> GetNewsByLocationAsync(string location, string language, string country);
     }
 
     public class NewsArticle

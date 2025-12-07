@@ -1,0 +1,181 @@
+@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="card-title text-center mb-4">Contact Us</h1>
+                    
+                    <div class="mb-4">
+                        <h3>Get in Touch</h3>
+                        <p>
+                            We'd love to hear from you! Whether you have a question about our services, need assistance, 
+                            or just want to provide feedback, our team is ready to help.
+                        </p>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="contact-info">
+                                <h4><i class="fas fa-map-marker-alt me-2"></i> Our Office</h4>
+                                <p>Thakidiyil<br>Kattappana<br>Kerala, India 685508</p>
+                                
+                                <h4><i class="fas fa-phone me-2"></i> Phone</h4>
+                                <p>+91 98765 43210</p>
+                                
+                                <h4><i class="fas fa-envelope me-2"></i> Email</h4>
+                                <p>servconnecthelp@gmail.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="contact-info">
+                                <h4><i class="fas fa-clock me-2"></i> Business Hours</h4>
+                                <p>Monday - Friday: 9:00 AM - 6:00 PM<br>
+                                Saturday: 10:00 AM - 4:00 PM<br>
+                                Sunday: Closed</p>
+                                
+                                <h4><i class="fas fa-headset me-2"></i> Support</h4>
+                                <p>24/7 Customer Support<br>
+                                <a href="#">servconnecthelp@gmail.com</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3>Send us a Message</h3>
+                        <form action="https://formspree.io/f/mnnezzyn" method="POST">
+                            <input type="hidden" name="_next" value="/Home/Contact">
+                            <input type="hidden" name="_subject" value="New Contact Form Submission">
+                            <input type="text" name="_gotcha" style="display:none">
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="name" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" placeholder="Your Name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="_replyto" placeholder="Your Email" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" name="subject" placeholder="Subject" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" name="message" rows="5" placeholder="Your Message" required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </form>
+                        
+                        <div id="formSuccess" class="alert alert-success mt-3" style="display: none;">
+                            <h5><i class="fas fa-check-circle me-2"></i>Thank You!</h5>
+                            <p>Your message has been sent successfully. We'll get back to you soon.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-title {
+        color: #10B981;
+        font-weight: 300;
+    }
+    
+    h3 {
+        color: #4F46E5;
+        margin-top: 1.5rem;
+    }
+    
+    h4 {
+        color: #374151;
+        margin-top: 1.5rem;
+    }
+    
+    .contact-info p {
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        padding: 10px 15px;
+    }
+    
+    .btn-primary {
+        background-color: #10B981;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0da271;
+    }
+    
+    /* Spinner styles */
+    .spinner-border {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        vertical-align: text-bottom;
+        border: 0.2em solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spinner-border 0.75s linear infinite;
+    }
+    
+    @@keyframes spinner-border {
+        to { transform: rotate(360deg); }
+    }
+    
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.2em;
+    }
+</style>
+
+<script>
+    // Handle form submission feedback
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Show success message if form was submitted
+        if (urlParams.has('_success')) {
+            document.getElementById('formSuccess').style.display = 'block';
+            // Scroll to success message
+            document.getElementById('formSuccess').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Show loading state
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerHTML;
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+                submitButton.disabled = true;
+                
+                // Formspree will handle the actual submission
+                // We just provide visual feedback
+            });
+        }
+    });
+</script>
