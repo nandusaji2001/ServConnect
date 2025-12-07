@@ -89,10 +89,12 @@ builder.Services.AddHttpClient<TranslationService>()
     {
         client.Timeout = TimeSpan.FromSeconds(30);
     });
+builder.Services.AddHttpClient<PexelsImageService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ISmsService, Fast2SmsOtpService>();
 builder.Services.AddScoped<INewsService, NewsService>();
 builder.Services.AddScoped<ITranslationService, TranslationService>();
+builder.Services.AddScoped<IPexelsImageService, PexelsImageService>();
 builder.Services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IItemService, ItemService>();
