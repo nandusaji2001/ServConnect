@@ -1,4 +1,5 @@
-using System.Xml.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ServConnect.Services
 {
@@ -6,102 +7,136 @@ namespace ServConnect.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<NewsService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public NewsService(HttpClient httpClient, ILogger<NewsService> logger)
+        public NewsService(HttpClient httpClient, ILogger<NewsService> logger, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _logger = logger;
+            _configuration = configuration;
         }
 
-        public async Task<NewsResponse> GetNewsByLocationAsync(string location)
+        public async Task<NewsResponse> GetNewsByLocationAsync(string location, string language = "en", string country = "in")
         {
             var response = new NewsResponse();
 
             try
             {
-                var rssUrl = $"https://news.google.com/rss/search?q={Uri.EscapeDataString(location)}&hl=en-US&gl=US&ceid=US:en";
+                var apiKey = _configuration["NewsDataIo:ApiKey"];
+                if (string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogWarning("NewsData.io API key is not configured");
+                    return response;
+                }
+
+                var urlBuilder = new System.Text.StringBuilder("https://newsdata.io/api/1/news?");
+                urlBuilder.Append($"apikey={apiKey}");
+                urlBuilder.Append($"&country={Uri.EscapeDataString(country)}");
+                urlBuilder.Append($"&language={Uri.EscapeDataString(language)}");
+                urlBuilder.Append($"&q={Uri.EscapeDataString(location)}");
                 
-                var httpResponse = await _httpClient.GetAsync(rssUrl);
+                var url = urlBuilder.ToString();
+                var httpResponse = await _httpClient.GetAsync(url);
+                
                 if (!httpResponse.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning($"Failed to fetch news for location: {location}");
+                    _logger.LogWarning($"Failed to fetch news for location: {location}, country: {country}, language: {language}. Status: {httpResponse.StatusCode}");
                     return response;
                 }
 
                 var content = await httpResponse.Content.ReadAsStringAsync();
-                var xdoc = XDocument.Parse(content);
+                var newsDataResponse = JsonSerializer.Deserialize<NewsDataResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                var items = xdoc.Descendants("item").Take(8).ToList();
-
-                foreach (var item in items)
+                if (newsDataResponse?.Results != null)
                 {
-                    try
+                    foreach (var item in newsDataResponse.Results.Take(8))
                     {
-                        var title = item.Element("title")?.Value ?? string.Empty;
-                        var description = item.Element("description")?.Value ?? string.Empty;
-                        var link = item.Element("link")?.Value ?? string.Empty;
-                        var pubDateStr = item.Element("pubDate")?.Value ?? string.Empty;
-                        var source = item.Element("source")?.Attribute("url")?.Value ?? "Google News";
-
-                        if (string.IsNullOrEmpty(title) && string.IsNullOrEmpty(description))
-                            continue;
-
-                        DateTime? pubDate = null;
-                        if (!string.IsNullOrEmpty(pubDateStr) && DateTime.TryParse(pubDateStr, out var parsed))
+                        try
                         {
-                            pubDate = parsed;
+                            if (string.IsNullOrEmpty(item.Title) && string.IsNullOrEmpty(item.Description))
+                                continue;
+
+                            DateTime? pubDate = null;
+                            if (!string.IsNullOrEmpty(item.PubDate) && DateTime.TryParse(item.PubDate, out var parsed))
+                            {
+                                pubDate = parsed;
+                            }
+
+                            var article = new NewsArticle
+                            {
+                                Title = item.Title ?? string.Empty,
+                                Description = item.Description ?? string.Empty,
+                                Link = item.Link ?? string.Empty,
+                                Source = item.SourceId ?? "NewsData.io",
+                                ImageUrl = item.ImageUrl ?? string.Empty,
+                                PubDate = pubDate
+                            };
+
+                            response.Articles.Add(article);
                         }
-
-                        var imageUrl = ExtractImageUrl(description);
-
-                        var article = new NewsArticle
+                        catch (Exception ex)
                         {
-                            Title = StripHtmlTags(title),
-                            Description = StripHtmlTags(description),
-                            Link = link,
-                            Source = source,
-                            ImageUrl = imageUrl,
-                            PubDate = pubDate
-                        };
-
-                        response.Articles.Add(article);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning($"Error parsing news item: {ex.Message}");
+                            _logger.LogWarning($"Error parsing news item: {ex.Message}");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error fetching news for location {location}: {ex.Message}");
+                _logger.LogError($"Error fetching news for location {location}, country: {country}, language {language}: {ex.Message}");
             }
 
             return response;
         }
 
-        private static string StripHtmlTags(string input)
+        public async Task<NewsResponse> GetNewsByLocationAsync(string location, string language)
         {
-            if (string.IsNullOrEmpty(input))
-                return input;
-
-            var result = System.Text.RegularExpressions.Regex.Replace(input, "<[^>]*>", string.Empty);
-            result = System.Net.WebUtility.HtmlDecode(result);
-            return result.Trim();
+            return await GetNewsByLocationAsync(location, language, "in");
         }
 
-        private static string ExtractImageUrl(string htmlContent)
+        public async Task<NewsResponse> GetNewsByLocationAsync(string location)
         {
-            if (string.IsNullOrEmpty(htmlContent))
-                return string.Empty;
+            return await GetNewsByLocationAsync(location, "en", "in");
+        }
 
-            var imgMatch = System.Text.RegularExpressions.Regex.Match(htmlContent, @"<img[^>]+src=[""']?([^""'>\s]+)[""']?");
-            if (imgMatch.Success)
-            {
-                return imgMatch.Groups[1].Value;
-            }
+        // Helper classes for NewsData.io API response
+        private class NewsDataResponse
+        {
+            [JsonPropertyName("results")]
+            public NewsDataResult[]? Results { get; set; }
+            
+            [JsonPropertyName("status")]
+            public string? Status { get; set; }
+            
+            [JsonPropertyName("totalResults")]
+            public int TotalResults { get; set; }
+        }
 
-            return string.Empty;
+        private class NewsDataResult
+        {
+            [JsonPropertyName("title")]
+            public string? Title { get; set; }
+            
+            [JsonPropertyName("description")]
+            public string? Description { get; set; }
+            
+            [JsonPropertyName("content")]
+            public string? Content { get; set; }
+            
+            [JsonPropertyName("link")]
+            public string? Link { get; set; }
+            
+            [JsonPropertyName("pubDate")]
+            public string? PubDate { get; set; }
+            
+            [JsonPropertyName("source_id")]
+            public string? SourceId { get; set; }
+            
+            [JsonPropertyName("image_url")]
+            public string? ImageUrl { get; set; }
+            
+            [JsonPropertyName("keywords")]
+            public string?[]? Keywords { get; set; }
         }
     }
 }

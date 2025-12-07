@@ -9,18 +9,21 @@
         background: #f9f9f9;
     }
 
-    .news-hero {
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        color: white;
-        padding: 20px 0;
-        margin-bottom: 30px;
+    /* Updated styles for a cleaner header without the large green box */
+    .news-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+        gap: 15px;
     }
 
-    .news-hero h1 {
-        font-size: 1.5rem;
+    .news-title {
+        font-size: 1.8rem;
         font-weight: 700;
-        margin-bottom: 12px;
-        margin-top: 0;
+        margin: 0;
+        color: #2d3748;
     }
 
     .news-controls-wrapper {
@@ -28,11 +31,11 @@
         gap: 12px;
         align-items: center;
         flex-wrap: wrap;
-        margin-top: 20px;
     }
 
-    .news-select {
-        border: none;
+    /* Input and button styles without the large box */
+    .news-location-input {
+        border: 1px solid #cbd5e0;
         border-radius: 8px;
         padding: 10px 14px;
         font-weight: 500;
@@ -43,29 +46,44 @@
         transition: all 0.3s ease;
     }
 
-    .news-select:focus {
+    .news-location-input:focus {
         outline: none;
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 0 3px rgba(34, 134, 58, 0.2);
+        border-color: #22863a;
     }
 
-    .news-select::placeholder {
-        color: #9ca3af;
+    .news-language-select {
+        border: 1px solid #cbd5e0;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-weight: 500;
+        background: #fff;
+        min-width: 120px;
+        color: #1f2937;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .news-language-select:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(34, 134, 58, 0.2);
+        border-color: #22863a;
     }
 
     .news-search-btn {
         border: none;
         border-radius: 8px;
         padding: 10px 16px;
-        background: rgba(255, 255, 255, 0.2);
+        background: linear-gradient(135deg, #22863a 0%, #28a745 100%);
         color: #fff;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .news-search-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(34, 134, 58, 0.3);
     }
 
     .news-refresh {
@@ -73,31 +91,31 @@
         border-radius: 50%;
         width: 44px;
         height: 44px;
-        background: rgba(255, 255, 255, 0.2);
-        color: #fff;
+        background: #f8f9fa;
+        color: #4a5568;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.3s ease;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid #e2e8f0;
     }
 
     .news-refresh:hover {
-        background: rgba(255, 255, 255, 0.3);
+        background: #edf2f7;
         transform: rotate(90deg);
     }
 
     .back-btn {
-        color: white;
+        color: #4a5568;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        margin-bottom: 8px;
         font-weight: 600;
         font-size: 0.9rem;
         transition: opacity 0.3s ease;
+        margin-bottom: 15px;
     }
 
     .back-btn:hover {
@@ -110,6 +128,8 @@
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 28px;
         margin: 40px 0;
+        grid-auto-rows: 1fr;
+        align-items: stretch;
     }
 
     .news-card {
@@ -121,6 +141,7 @@
         display: flex;
         flex-direction: column;
         height: 100%;
+        min-height: 0;
     }
 
     .news-card:hover {
@@ -165,7 +186,7 @@
     }
 
     .news-card-source {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #22863a 0%, #28a745 100%);
         color: white;
         padding: 4px 12px;
         border-radius: 20px;
@@ -198,7 +219,7 @@
         align-items: center;
         gap: 8px;
         color: white;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #22863a 0%, #28a745 100%);
         text-decoration: none;
         padding: 10px 16px;
         border-radius: 8px;
@@ -213,6 +234,44 @@
         text-decoration: none;
     }
 
+    .news-card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .news-translate-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: white;
+        background: linear-gradient(135deg, #22863a 0%, #28a745 100%);
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .news-translate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(34, 134, 58, 0.3);
+    }
+
+    .news-translate-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .news-card-title.translated,
+    .news-card-description.translated {
+        background: #f0fdf4;
+        padding: 8px;
+        border-left: 3px solid #22863a;
+    }
+
     .news-placeholder {
         grid-column: 1 / -1;
         text-align: center;
@@ -225,7 +284,7 @@
         width: 40px;
         height: 40px;
         border: 4px solid #f0f0f0;
-        border-top-color: #667eea;
+        border-top-color: #22863a;
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin-bottom: 20px;
@@ -246,36 +305,46 @@
     }
 
     @@media (max-width: 768px) {
-        .news-hero h1 {
-            font-size: 1.25rem;
+        .news-header {
+            flex-direction: column;
+            align-items: flex-start;
         }
-
+        
+        .news-title {
+            font-size: 1.5rem;
+        }
+        
         .news-grid {
             grid-template-columns: 1fr;
             gap: 20px;
         }
-
+        
         .news-controls-wrapper {
             width: 100%;
             flex-wrap: wrap;
         }
-
-        .news-select {
+        
+        .news-location-input {
             flex: 1;
             min-width: 100px;
         }
     }
 </style>
 
-<div class="news-hero">
-    <div class="container">
-        <a href="/" class="back-btn">
-            <i class="fas fa-arrow-left"></i>
-        </a>
-        <h1>Top News Headlines</h1>
-
+<div class="container">
+    <a href="/" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+    
+    <div class="news-header">
+        <h1 class="news-title">Top News Headlines</h1>
+        
         <div class="news-controls-wrapper">
-            <input type="text" id="newsLocationInput" class="news-select" placeholder="Enter location..." />
+            <input type="text" id="newsLocationInput" class="news-location-input" placeholder="Enter location..." value="@defaultLocation" />
+            <select id="newsLanguageSelect" class="news-language-select">
+                <option value="en">English</option>
+                <option value="ml">Malayalam</option>
+            </select>
             <button id="newsSearchBtn" class="news-search-btn">
                 <i class="fas fa-search"></i> Search
             </button>
@@ -284,9 +353,7 @@
             </button>
         </div>
     </div>
-</div>
-
-<div class="container">
+    
     <div id="newsContent" class="news-grid">
         <div class="news-placeholder">
             <div class="news-placeholder-spinner"></div>
@@ -296,7 +363,99 @@
 </div>
 
 <script>
-    async function loadNews(location) {
+    async function translateText(text, sourceLanguage = 'en', targetLanguage = 'ml') {
+        console.log('Starting translation of:', text.substring(0, 50) + '...');
+        try {
+            const requestBody = {
+                text: text,
+                sourceLanguage: sourceLanguage,
+                targetLanguage: targetLanguage
+            };
+            console.log('Request body:', JSON.stringify(requestBody));
+            
+            const res = await fetch('/api/news/translate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+            
+            console.log('Response status:', res.status);
+            
+            if (!res.ok) {
+                const errorData = await res.json();
+                console.error('Translation API error:', res.status, res.statusText, errorData);
+                return text;
+            }
+            
+            const data = await res.json();
+            console.log('Translation response:', data);
+            
+            if (data.translatedText) {
+                console.log('Translated successfully to:', data.translatedText.substring(0, 50) + '...');
+                return data.translatedText;
+            } else {
+                console.warn('No translatedText in response');
+                return text;
+            }
+        } catch (error) {
+            console.error('Translation fetch failed:', error);
+            return text;
+        }
+    }
+
+    async function handleTranslate(titleElement, descriptionElement, btn, sourceLanguage = 'en', targetLanguage = 'ml') {
+        console.log('handleTranslate called');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Translating...';
+        
+        try {
+            const originalTitle = titleElement.textContent;
+            const originalDesc = descriptionElement.textContent;
+            
+            console.log('Original title:', originalTitle);
+            console.log('Original description:', originalDesc);
+            
+            const translatedTitle = await translateText(originalTitle, sourceLanguage, targetLanguage);
+            const translatedDesc = await translateText(originalDesc, sourceLanguage, targetLanguage);
+            
+            console.log('Translated title:', translatedTitle);
+            console.log('Translated description:', translatedDesc);
+            
+            titleElement.textContent = translatedTitle;
+            descriptionElement.textContent = translatedDesc;
+            
+            titleElement.classList.add('translated');
+            descriptionElement.classList.add('translated');
+            
+            btn.innerHTML = '<i class="fas fa-undo"></i> Restore Original';
+            btn.dataset.translated = 'true';
+            btn.dataset.originalTitle = originalTitle;
+            btn.dataset.originalDesc = originalDesc;
+            btn.disabled = false;
+            
+            console.log('Translation completed successfully');
+        } catch (error) {
+            console.error('Error during translation:', error);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-language"></i> മലയാളം';
+        }
+    }
+
+    function handleRestore(titleElement, descriptionElement, btn) {
+        titleElement.textContent = btn.dataset.originalTitle;
+        descriptionElement.textContent = btn.dataset.originalDesc;
+        
+        titleElement.classList.remove('translated');
+        descriptionElement.classList.remove('translated');
+        
+        btn.innerHTML = '<i class="fas fa-language"></i> മലയാളം';
+        btn.dataset.translated = 'false';
+        btn.disabled = false;
+    }
+
+    async function loadNews(location, language = 'en') {
         const container = document.getElementById('newsContent');
         container.innerHTML = `
             <div class="news-placeholder">
@@ -305,17 +464,24 @@
             </div>
         `;
         try {
-            const res = await fetch(`/api/news?location=${encodeURIComponent(location)}`);
+            const res = await fetch(`/api/news?location=${encodeURIComponent(location)}&language=${encodeURIComponent(language)}`);
             const data = await res.json();
             if (!data.articles || data.articles.length === 0) {
                 container.innerHTML = '<div class="news-placeholder">No headlines available for this location.</div>';
                 return;
             }
-            container.innerHTML = data.articles.map(article => {
+            container.innerHTML = data.articles.map((article, index) => {
                 const pubDate = article.pubDate ? new Date(article.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-                const imageHtml = article.imageUrl 
-                    ? `<img src="${article.imageUrl}" alt="${article.title}" onerror="this.style.display='none'">`
-                    : `<div class="news-card-image-placeholder"><i class="fas fa-newspaper"></i></div>`;
+                let imageHtml = '';
+                if (article.imageUrl) {
+                    imageHtml = `<img src="${article.imageUrl}" alt="${article.title}" crossorigin="anonymous" onerror="this.parentElement.innerHTML='<div class=\\'news-card-image-placeholder\\'><i class=\\'fas fa-newspaper\\'></i></div>';" loading="lazy">`;
+                    console.log('Image URL:', article.imageUrl);
+                } else {
+                    imageHtml = `<div class="news-card-image-placeholder"><i class="fas fa-newspaper"></i></div>`;
+                    console.log('No image for:', article.title);
+                }
+                
+                const showTranslateBtn = language === 'en';
                 
                 return `<div class="news-card">
                     <div class="news-card-image">${imageHtml}</div>
@@ -324,14 +490,38 @@
                             <span class="news-card-source">${article.source || 'News'}</span>
                             <span class="news-card-date">${pubDate}</span>
                         </div>
-                        <h3 class="news-card-title">${article.title}</h3>
-                        <p class="news-card-description">${article.description}</p>
-                        <a href="${article.link}" target="_blank" class="news-card-link">
-                            Read Full Article <i class="fas fa-external-link-alt"></i>
-                        </a>
+                        <h3 class="news-card-title" id="title-${index}">${article.title}</h3>
+                        <p class="news-card-description" id="desc-${index}">${article.description}</p>
+                        <div class="news-card-actions">
+                            <a href="${article.link}" target="_blank" class="news-card-link">
+                                Read Full Article <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            ${showTranslateBtn ? `<button class="news-translate-btn" id="trans-${index}" data-index="${index}" data-translated="false" title="Translate to Malayalam">
+                                <i class="fas fa-language"></i> മലയാളം
+                            </button>` : ''}
+                        </div>
                     </div>
                 </div>`;
             }).join('');
+            
+            if (language === 'en') {
+                data.articles.forEach((_, index) => {
+                    const btn = document.getElementById(`trans-${index}`);
+                    if (btn) {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const titleEl = document.getElementById(`title-${index}`);
+                            const descEl = document.getElementById(`desc-${index}`);
+                            
+                            if (this.dataset.translated === 'true') {
+                                handleRestore(titleEl, descEl, this);
+                            } else {
+                                handleTranslate(titleEl, descEl, this, 'en', 'ml');
+                            }
+                        });
+                    }
+                });
+            }
         } catch (error) {
             console.error('Failed to load news:', error);
             container.innerHTML = '<div class="news-error">Failed to load headlines. Please try again.</div>';
@@ -340,16 +530,22 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         const newsLocationInput = document.getElementById('newsLocationInput');
+        const newsLanguageSelect = document.getElementById('newsLanguageSelect');
         const newsSearchBtn = document.getElementById('newsSearchBtn');
         const newsRefreshBtn = document.getElementById('newsRefreshBtn');
 
         const performSearch = () => {
             const location = newsLocationInput.value.trim() || '@defaultLocation';
-            loadNews(location);
+            const language = newsLanguageSelect.value || 'en';
+            loadNews(location, language);
         };
 
         if (newsSearchBtn) {
             newsSearchBtn.addEventListener('click', performSearch);
+        }
+
+        if (newsLanguageSelect) {
+            newsLanguageSelect.addEventListener('change', performSearch);
         }
 
         if (newsLocationInput) {
@@ -358,14 +554,15 @@
                     performSearch();
                 }
             });
-            newsLocationInput.value = '@defaultLocation';
-            loadNews('@defaultLocation');
+            // Load news for the default location on page load
+            loadNews('@defaultLocation', 'en');
         }
 
         if (newsRefreshBtn) {
             newsRefreshBtn.addEventListener('click', () => {
                 const loc = newsLocationInput ? newsLocationInput.value.trim() : '@defaultLocation';
-                loadNews(loc || '@defaultLocation');
+                const lang = newsLanguageSelect ? newsLanguageSelect.value : 'en';
+                loadNews(loc || '@defaultLocation', lang);
             });
         }
     });

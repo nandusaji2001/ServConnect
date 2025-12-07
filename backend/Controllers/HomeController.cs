@@ -118,6 +118,18 @@ namespace ServConnect.Controllers
             return View();
         }
 
+        [AllowAnonymous]
+        public IActionResult About()
+        {
+            return View();
+        }
+
+        [AllowAnonymous]
+        public IActionResult Contact()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
