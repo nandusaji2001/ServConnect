@@ -13,12 +13,14 @@ namespace ServConnect.Controllers
         private readonly IServiceCatalog _catalog;
         private readonly UserManager<Users> _userManager;
         private readonly IBookingService _bookingService;
+        private readonly IPexelsImageService _pexelsImageService;
 
-        public ServicesController(IServiceCatalog catalog, UserManager<Users> userManager, IBookingService bookingService)
+        public ServicesController(IServiceCatalog catalog, UserManager<Users> userManager, IBookingService bookingService, IPexelsImageService pexelsImageService)
         {
             _catalog = catalog;
             _userManager = userManager;
             _bookingService = bookingService;
+            _pexelsImageService = pexelsImageService;
         }
 
         // User-facing: page to browse all services
@@ -68,6 +70,29 @@ namespace ServConnect.Controllers
         {
             var names = await _catalog.GetAllAvailableServiceNamesAsync();
             return Ok(names);
+        }
+
+        // API: all services with images from Pexels
+        [HttpGet("/api/services/all/with-images")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllServicesWithImages()
+        {
+            var names = await _catalog.GetAllAvailableServiceNamesAsync();
+            var servicesWithImages = new List<ServiceWithImageDto>();
+
+            foreach (var name in names)
+            {
+                var imageResult = await _pexelsImageService.GetImageForServiceAsync(name);
+                servicesWithImages.Add(new ServiceWithImageDto
+                {
+                    Name = name,
+                    ImageUrl = imageResult.ImageUrl,
+                    PhotographerName = imageResult.PhotographerName,
+                    PhotographerUrl = imageResult.PhotographerUrl
+                });
+            }
+
+            return Ok(servicesWithImages);
         }
 
         // API: providers who offer a selected service
@@ -181,6 +206,14 @@ namespace ServConnect.Controllers
             public string Currency { get; set; } = "USD";
             public List<string> AvailableDays { get; set; } = new();
             public string AvailableHours { get; set; } = "9:00 AM - 6:00 PM";
+        }
+
+        public class ServiceWithImageDto
+        {
+            public string Name { get; set; } = string.Empty;
+            public string? ImageUrl { get; set; }
+            public string? PhotographerName { get; set; }
+            public string? PhotographerUrl { get; set; }
         }
     }
 }
