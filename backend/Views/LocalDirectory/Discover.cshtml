@@ -22,83 +22,253 @@
                 .osm-quick-cards { display:grid; grid-template-columns: repeat(4,1fr); gap:16px; }
                 .osm-card { 
                     background: linear-gradient(135deg, #ffffff 0%, #f6faff 100%);
-                    border:1px solid #e2e8f0; border-radius:16px; padding:18px 16px; cursor:pointer; 
-                    display:flex; align-items:center; gap:14px; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; box-shadow:0 2px 6px rgba(0,0,0,.04);
+                    border:1px solid #e2e8f0; border-radius:16px; padding:0; cursor:pointer; 
+                    transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; box-shadow:0 2px 6px rgba(0,0,0,.04);
+                    overflow: hidden;
+                    position: relative;
                 }
-                .osm-card i{ display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; background: linear-gradient(135deg, #3b82f6, #2563eb); color:#fff; font-size:18px; }
-                .osm-card span{ font-weight:600; font-size:1rem; color:#0f172a; }
-                .osm-card:hover{ box-shadow:0 12px 24px rgba(37,99,235,.15); transform: translateY(-3px); border-color:#c7d2fe; }
+                .osm-card-image-wrapper {
+                    width: 100%;
+                    height: 120px;
+                    overflow: hidden;
+                    position: relative;
+                }
+                .osm-card-image {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: transform .3s ease;
+                }
+                .osm-card .service-name {
+                    padding: 12px 16px;
+                    font-weight: 600;
+                    font-size: 1rem;
+                    color: #0f172a;
+                    text-align: center;
+                }
+                .osm-card:hover {
+                    box-shadow:0 12px 24px rgba(37,99,235,.15); 
+                    transform: translateY(-3px); 
+                    border-color:#c7d2fe;
+                }
+                .osm-card:hover .osm-card-image {
+                    transform: scale(1.05);
+                }
                 @@media (max-width: 992px){ .osm-quick-cards{ grid-template-columns: repeat(3,1fr);} }
                 @@media (max-width: 576px){ .osm-quick-cards{ grid-template-columns: repeat(2,1fr);} }
                 /* Category tiles */
                 .category-card.tile{ border-radius:12px; border:1px solid #e5e7eb; transition: box-shadow .2s ease, transform .2s ease; }
                 .category-card.tile:hover{ box-shadow:0 10px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
                 .category-card .card-title{ font-size:1.125rem; }
+                
+                /* Loading skeleton */
+                .image-placeholder {
+                    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                    background-size: 200% 100%;
+                    animation: loading 1.5s infinite;
+                }
+                @@keyframes loading {
+                    0% { background-position: 200% 0; }
+                    100% { background-position: -200% 0; }
+                }
             </style>
             <div class="osm-quick-cards" id="quickCards">
-                <div class="osm-card" data-name="Hospital"><i class="fas fa-hospital"></i><span>@Localizer["Quick.Hospital"]</span></div>
-                <div class="osm-card" data-name="Pharmacy"><i class="fas fa-prescription-bottle-alt"></i><span>@Localizer["Quick.Pharmacy"]</span></div>
-                <div class="osm-card" data-name="Clinic"><i class="fas fa-clinic-medical"></i><span>@Localizer["Quick.Clinic"]</span></div>
-                <div class="osm-card" data-name="Police Station"><i class="fas fa-shield-alt"></i><span>@Localizer["Quick.Police"]</span></div>
-                <div class="osm-card" data-name="Fuel / Gas Station"><i class="fas fa-gas-pump"></i><span>@Localizer["Quick.Fuel"]</span></div>
-                <div class="osm-card" data-name="Restaurant"><i class="fas fa-utensils"></i><span>@Localizer["Quick.Restaurant"]</span></div>
-                <div class="osm-card" data-name="Cafe"><i class="fas fa-coffee"></i><span>@Localizer["Quick.Cafe"]</span></div>
-                <div class="osm-card" data-name="Fast Food"><i class="fas fa-hamburger"></i><span>@Localizer["Quick.FastFood"]</span></div>
-                <div class="osm-card" data-name="Bank / ATM"><i class="fas fa-university"></i><span>@Localizer["Quick.BankATM"]</span></div>
-                <div class="osm-card" data-name="Post Office"><i class="fas fa-mail-bulk"></i><span>@Localizer["Quick.PostOffice"]</span></div>
-                <div class="osm-card" data-name="School"><i class="fas fa-school"></i><span>@Localizer["Quick.School"]</span></div>
-                <div class="osm-card" data-name="University"><i class="fas fa-graduation-cap"></i><span>@Localizer["Quick.University"]</span></div>
-                <div class="osm-card" data-name="Bus Stop"><i class="fas fa-bus"></i><span>@Localizer["Quick.BusStop"]</span></div>
-                <div class="osm-card" data-name="Train Station"><i class="fas fa-train"></i><span>@Localizer["Quick.Train"]</span></div>
-                <div class="osm-card" data-name="Airport"><i class="fas fa-plane"></i><span>@Localizer["Quick.Airport"]</span></div>
-                <div class="osm-card" data-name="Taxi Stand"><i class="fas fa-taxi"></i><span>@Localizer["Quick.Taxi"]</span></div>
-                <div class="osm-card" data-name="Park / Garden"><i class="fas fa-tree"></i><span>@Localizer["Quick.Park"]</span></div>
-                <div class="osm-card" data-name="Playground"><i class="fas fa-futbol"></i><span>@Localizer["Quick.Playground"]</span></div>
-                <div class="osm-card" data-name="Cinema / Movie Theater"><i class="fas fa-film"></i><span>@Localizer["Quick.Cinema"]</span></div>
-                <div class="osm-card" data-name="Museum"><i class="fas fa-landmark"></i><span>@Localizer["Quick.Museum"]</span></div>
-                <div class="osm-card" data-name="Art Gallery"><i class="fas fa-palette"></i><span>@Localizer["Quick.ArtGallery"]</span></div>
-                <div class="osm-card" data-name="Hotel"><i class="fas fa-bed"></i><span>@Localizer["Quick.Hotel"]</span></div>
-                <div class="osm-card" data-name="Guest House"><i class="fas fa-concierge-bell"></i><span>@Localizer["Quick.GuestHouse"]</span></div>
-                <div class="osm-card" data-name="Parking Lot / Garage"><i class="fas fa-parking"></i><span>@Localizer["Quick.Parking"]</span></div>
-                <div class="osm-card" data-name="Ferry Terminal"><i class="fas fa-ship"></i><span>@Localizer["Quick.Ferry"]</span></div>
+                <div class="osm-card" data-name="Hospital">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Hospital"]</div>
+                </div>
+                <div class="osm-card" data-name="Pharmacy">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Pharmacy"]</div>
+                </div>
+                <div class="osm-card" data-name="Clinic">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Clinic"]</div>
+                </div>
+                <div class="osm-card" data-name="Police Station">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Police"]</div>
+                </div>
+                <div class="osm-card" data-name="Fuel / Gas Station">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Fuel"]</div>
+                </div>
+                <div class="osm-card" data-name="Restaurant">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Restaurant"]</div>
+                </div>
+                <div class="osm-card" data-name="Cafe">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Cafe"]</div>
+                </div>
+                <div class="osm-card" data-name="Fast Food">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.FastFood"]</div>
+                </div>
+                <div class="osm-card" data-name="Bank / ATM">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.BankATM"]</div>
+                </div>
+                <div class="osm-card" data-name="Post Office">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.PostOffice"]</div>
+                </div>
+                <div class="osm-card" data-name="School">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.School"]</div>
+                </div>
+                <div class="osm-card" data-name="University">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.University"]</div>
+                </div>
+                <div class="osm-card" data-name="Bus Stop">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.BusStop"]</div>
+                </div>
+                <div class="osm-card" data-name="Train Station">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Train"]</div>
+                </div>
+                <div class="osm-card" data-name="Airport">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Airport"]</div>
+                </div>
+                <div class="osm-card" data-name="Taxi Stand">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Taxi"]</div>
+                </div>
+                <div class="osm-card" data-name="Park / Garden">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Park"]</div>
+                </div>
+                <div class="osm-card" data-name="Playground">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Playground"]</div>
+                </div>
+                <div class="osm-card" data-name="Cinema / Movie Theater">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Cinema"]</div>
+                </div>
+                <div class="osm-card" data-name="Museum">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Museum"]</div>
+                </div>
+                <div class="osm-card" data-name="Art Gallery">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.ArtGallery"]</div>
+                </div>
+                <div class="osm-card" data-name="Hotel">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Hotel"]</div>
+                </div>
+                <div class="osm-card" data-name="Guest House">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.GuestHouse"]</div>
+                </div>
+                <div class="osm-card" data-name="Parking Lot / Garage">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Parking"]</div>
+                </div>
+                <div class="osm-card" data-name="Ferry Terminal">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Ferry"]</div>
+                </div>
                 
-                <!-- Essential Services -->
-                <div class="osm-card" data-name="Grocery Store"><i class="fas fa-shopping-basket"></i><span>@Localizer["Quick.GroceryStore"]</span></div>
-                <div class="osm-card" data-name="Supermarket"><i class="fas fa-store"></i><span>@Localizer["Quick.Supermarket"]</span></div>
-                <div class="osm-card" data-name="Medical Store"><i class="fas fa-pills"></i><span>@Localizer["Quick.MedicalStore"]</span></div>
-                <div class="osm-card" data-name="Dentist"><i class="fas fa-tooth"></i><span>@Localizer["Quick.Dentist"]</span></div>
+                <div class="osm-card" data-name="Grocery Store">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.GroceryStore"]</div>
+                </div>
+                <div class="osm-card" data-name="Supermarket">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Supermarket"]</div>
+                </div>
+                <div class="osm-card" data-name="Medical Store">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.MedicalStore"]</div>
+                </div>
+                <div class="osm-card" data-name="Dentist">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Dentist"]</div>
+                </div>
                 
-                <!-- Professional Services -->
-                <div class="osm-card" data-name="Lawyer"><i class="fas fa-balance-scale"></i><span>@Localizer["Quick.Lawyer"]</span></div>
-                <div class="osm-card" data-name="Accountant"><i class="fas fa-calculator"></i><span>@Localizer["Quick.Accountant"]</span></div>
-                <div class="osm-card" data-name="Car Repair"><i class="fas fa-wrench"></i><span>@Localizer["Quick.CarRepair"]</span></div>
-                <div class="osm-card" data-name="Plumber"><i class="fas fa-tools"></i><span>@Localizer["Quick.Plumber"]</span></div>
-                <div class="osm-card" data-name="Electrician"><i class="fas fa-plug"></i><span>@Localizer["Quick.Electrician"]</span></div>
+                <div class="osm-card" data-name="Lawyer">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Lawyer"]</div>
+                </div>
+                <div class="osm-card" data-name="Accountant">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Accountant"]</div>
+                </div>
+                <div class="osm-card" data-name="Car Repair">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.CarRepair"]</div>
+                </div>
+                <div class="osm-card" data-name="Plumber">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Plumber"]</div>
+                </div>
+                <div class="osm-card" data-name="Electrician">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Electrician"]</div>
+                </div>
                 
-                <!-- Personal Care -->
-                <div class="osm-card" data-name="Barber Shop"><i class="fas fa-cut"></i><span>@Localizer["Quick.BarberShop"]</span></div>
-                <div class="osm-card" data-name="Beauty Salon"><i class="fas fa-spa"></i><span>@Localizer["Quick.BeautySalon"]</span></div>
-                <div class="osm-card" data-name="Gym"><i class="fas fa-dumbbell"></i><span>@Localizer["Quick.Gym"]</span></div>
+                <div class="osm-card" data-name="Barber Shop">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.BarberShop"]</div>
+                </div>
+                <div class="osm-card" data-name="Beauty Salon">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.BeautySalon"]</div>
+                </div>
+                <div class="osm-card" data-name="Gym">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Gym"]</div>
+                </div>
                 
-                <!-- Shopping -->
-                <div class="osm-card" data-name="Clothing Store"><i class="fas fa-tshirt"></i><span>@Localizer["Quick.ClothingStore"]</span></div>
-                <div class="osm-card" data-name="Electronics Store"><i class="fas fa-tv"></i><span>@Localizer["Quick.ElectronicsStore"]</span></div>
-                <div class="osm-card" data-name="Mobile Shop"><i class="fas fa-mobile"></i><span>@Localizer["Quick.MobileShop"]</span></div>
-                <div class="osm-card" data-name="Bakery"><i class="fas fa-bread-slice"></i><span>@Localizer["Quick.Bakery"]</span></div>
+                <div class="osm-card" data-name="Clothing Store">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.ClothingStore"]</div>
+                </div>
+                <div class="osm-card" data-name="Electronics Store">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.ElectronicsStore"]</div>
+                </div>
+                <div class="osm-card" data-name="Mobile Shop">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.MobileShop"]</div>
+                </div>
+                <div class="osm-card" data-name="Bakery">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Bakery"]</div>
+                </div>
                 
-                <!-- Transportation -->
-                <div class="osm-card" data-name="Auto Stand"><i class="fas fa-taxi"></i><span>@Localizer["Quick.AutoStand"]</span></div>
-                <div class="osm-card" data-name="Car Rental"><i class="fas fa-car"></i><span>@Localizer["Quick.CarRental"]</span></div>
+                <div class="osm-card" data-name="Auto Stand">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.AutoStand"]</div>
+                </div>
+                <div class="osm-card" data-name="Car Rental">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.CarRental"]</div>
+                </div>
                 
-                <!-- Religious -->
-                <div class="osm-card" data-name="Temple"><i class="fas fa-place-of-worship"></i><span>@Localizer["Quick.Temple"]</span></div>
-                <div class="osm-card" data-name="Church"><i class="fas fa-cross"></i><span>@Localizer["Quick.Church"]</span></div>
-                <div class="osm-card" data-name="Mosque"><i class="fas fa-mosque"></i><span>@Localizer["Quick.Mosque"]</span></div>
+                <div class="osm-card" data-name="Temple">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Temple"]</div>
+                </div>
+                <div class="osm-card" data-name="Church">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Church"]</div>
+                </div>
+                <div class="osm-card" data-name="Mosque">
+                    <div class="osm-card-image-wrapper image-placeholder"></div>
+                    <div class="service-name">@Localizer["Quick.Mosque"]</div>
+                </div>
             </div>
         </div>
         <div id="tileGrid" class="p-3">
             <div class="text-muted">@Localizer["LoadingCategories"]</div>
         </div>
+    </div>
 </div>
 <script>
     function navigateToBrowse(params){
@@ -163,8 +333,47 @@
         }catch{ document.getElementById('tileGrid').innerHTML = '<div class="text-danger">Failed to load categories.</div>'; }
     }
 
+    async function fetchPexelsImage(serviceName) {
+        try {
+            const response = await fetch(`/api/pexels/image?serviceName=${encodeURIComponent(serviceName)}`);
+            if (response.ok) {
+                const data = await response.json();
+                return data.imageUrl;
+            }
+        } catch (e) {
+            console.error('Error fetching Pexels image:', e);
+        }
+        return null;
+    }
+
+    // Optimized function to load all Pexels images concurrently
+    async function loadPexelsImages() {
+        const cards = document.querySelectorAll('#quickCards .osm-card');
+        
+        // Create an array of promises for all image fetches
+        const imagePromises = Array.from(cards).map(card => {
+            const name = card.getAttribute('data-name');
+            return fetchPexelsImage(name).then(imageUrl => ({ card, imageUrl }));
+        });
+        
+        // Wait for all promises to resolve
+        const results = await Promise.all(imagePromises);
+        
+        // Update all cards with their images
+        results.forEach(({ card, imageUrl }) => {
+            if (imageUrl) {
+                const wrapper = card.querySelector('.osm-card-image-wrapper');
+                if (wrapper) {
+                    wrapper.classList.remove('image-placeholder');
+                    wrapper.innerHTML = `<img src="${imageUrl}" alt="${card.querySelector('.service-name').textContent}" class="osm-card-image">`;
+                }
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', async ()=>{
         await loadCats();
+        await loadPexelsImages();
         document.getElementById('btnSearch').addEventListener('click', () => {
             const q = document.getElementById('q').value.trim();
             const cat = document.getElementById('cat').value;

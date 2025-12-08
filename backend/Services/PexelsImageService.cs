@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 
 namespace ServConnect.Services
@@ -8,16 +9,26 @@ namespace ServConnect.Services
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<PexelsImageService> _logger;
+        private readonly IMemoryCache _cache;
+        private readonly TimeSpan _cacheDuration = TimeSpan.FromHours(6);
 
-        public PexelsImageService(HttpClient httpClient, IConfiguration configuration, ILogger<PexelsImageService> logger)
+        public PexelsImageService(HttpClient httpClient, IConfiguration configuration, ILogger<PexelsImageService> logger, IMemoryCache cache)
         {
             _httpClient = httpClient;
             _configuration = configuration;
             _logger = logger;
+            _cache = cache;
         }
 
         public async Task<ServiceImageResult> GetImageForServiceAsync(string serviceName)
         {
+            // Check if result is cached
+            var cacheKey = $"pexels_image_{serviceName.ToLower().Trim()}";
+            if (_cache.TryGetValue(cacheKey, out ServiceImageResult cachedResult))
+            {
+                return cachedResult;
+            }
+
             try
             {
                 var apiKey = _configuration["PexelsApi:ApiKey"];
@@ -26,7 +37,9 @@ namespace ServConnect.Services
                 if (string.IsNullOrEmpty(apiKey) || apiKey == "YOUR_PEXELS_API_KEY_HERE")
                 {
                     _logger.LogWarning("Pexels API key not configured");
-                    return new ServiceImageResult();
+                    var emptyResult = new ServiceImageResult();
+                    _cache.Set(cacheKey, emptyResult, _cacheDuration);
+                    return emptyResult;
                 }
 
                 var query = serviceName.ToLower().Trim();
@@ -41,7 +54,9 @@ namespace ServConnect.Services
                     if (!response.IsSuccessStatusCode)
                     {
                         _logger.LogWarning($"Pexels API returned status {response.StatusCode}");
-                        return new ServiceImageResult();
+                        var emptyResult = new ServiceImageResult();
+                        _cache.Set(cacheKey, emptyResult, _cacheDuration);
+                        return emptyResult;
                     }
 
                     var content = await response.Content.ReadAsStringAsync();
@@ -66,12 +81,16 @@ namespace ServConnect.Services
                                 ? photogUrl.GetString()
                                 : "https://www.pexels.com";
 
-                            return new ServiceImageResult
+                            var result = new ServiceImageResult
                             {
                                 ImageUrl = imageUrl,
                                 PhotographerName = photographerName,
                                 PhotographerUrl = photographerUrl
                             };
+
+                            // Cache the result
+                            _cache.Set(cacheKey, result, _cacheDuration);
+                            return result;
                         }
                     }
                 }
@@ -81,7 +100,9 @@ namespace ServConnect.Services
                 _logger.LogError($"Error fetching image from Pexels: {ex.Message}");
             }
 
-            return new ServiceImageResult();
+            var fallbackResult = new ServiceImageResult();
+            _cache.Set(cacheKey, fallbackResult, _cacheDuration);
+            return fallbackResult;
         }
     }
 }

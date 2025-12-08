@@ -5,6 +5,8 @@ using ServConnect.Models;
 using ServConnect.Services;
 using System.Globalization; // Localization
 using Microsoft.AspNetCore.Localization; // Localization
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,8 +75,8 @@ builder.Services.AddControllersWithViews(options =>
 .AddDataAnnotationsLocalization()
 .AddJsonOptions(o =>
 {
-    // Helpful during debugging to see enums/Guids as strings when needed
     o.JsonSerializerOptions.WriteIndented = true;
+    o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 }); // Adds MVC + Razor views with global filters
 builder.Services.AddScoped<DatabaseSeeder>();
 

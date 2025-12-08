@@ -2,8 +2,11 @@
 @{
     ViewData["Title"] = "My Bookings";
 }
+
 <div class="container py-4">
-    <h2 class="mb-3">My Bookings</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">My Bookings</h2>
+    </div>
 
     @if (ViewBag.HasPendingPayments)
     {
@@ -33,152 +36,125 @@
         </div>
     </div>
 
+    <!-- Filter Section -->
+    <div class="card card-modern mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-primary filter-btn active" data-status="all">
+                    <i class="fas fa-list me-1"></i>All Bookings
+                </button>
+                <button class="btn btn-outline-warning filter-btn" data-status="inprogress">
+                    <i class="fas fa-sync-alt me-1"></i>In Progress
+                </button>
+                <button class="btn btn-outline-success filter-btn" data-status="completed">
+                    <i class="fas fa-check-circle me-1"></i>Completed
+                </button>
+                <button class="btn btn-outline-danger filter-btn" data-status="cancelled">
+                    <i class="fas fa-times-circle me-1"></i>Cancelled
+                </button>
+            </div>
+        </div>
+    </div>
+
     @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info">You have no bookings yet.</div>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Provider</th>
-                        <th>Service</th>
-                        <th>Price</th>
-                        <th>Date & Time</th>
-                        <th>Booking Status</th>
-                        <th>Service Status</th>
-                        <th>Message</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var b in Model)
-                    {
-                        <tr>
-                            <td>@b.ProviderName</td>
-                            <td>@b.ServiceName</td>
-                            <td>
-                                @if (b.Price > 0)
-                                {
-                                    <span>@b.Currency @b.Price.ToString("F2") @b.PriceUnit</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">Price on request</span>
-                                }
-                            </td>
-                            <td>@b.ServiceDateTime.ToLocalTime().ToString("f")</td>
-                            <td>
-                                @switch (b.Status)
-                                {
-                                    case ServConnect.Models.BookingStatus.Pending:
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                        break;
-                                    case ServConnect.Models.BookingStatus.Accepted:
-                                        <span class="badge bg-success">Accepted</span>
-                                        break;
-                                    case ServConnect.Models.BookingStatus.Rejected:
-                                        <span class="badge bg-danger">Rejected</span>
-                                        break;
-                                }
-                                @if (b.IsCompleted)
-                                {
-                                    <div><span class="badge bg-secondary mt-1">Completed</span></div>
-                                }
-                            </td>
-                            <td>
-                                @switch (b.ServiceStatus)
-                                {
-                                    case ServConnect.Models.ServiceStatus.NotStarted:
-                                        <span class="badge bg-secondary">Not Started</span>
-                                        break;
-                                    case ServConnect.Models.ServiceStatus.InProgress:
-                                        <span class="badge bg-primary">In Progress</span>
-                                        @if (b.ServiceStartedAt.HasValue)
-                                        {
-                                            <div class="small text-muted">Started: @b.ServiceStartedAt.Value.ToLocalTime().ToString("g")</div>
-                                        }
-                                        break;
-                                    case ServConnect.Models.ServiceStatus.Completed:
-                                        <span class="badge bg-success">Service Completed</span>
-                                        @if (b.ServiceCompletedAt.HasValue)
-                                        {
-                                            <div class="small text-muted">Completed: @b.ServiceCompletedAt.Value.ToLocalTime().ToString("g")</div>
-                                        }
-                                        break;
-                                    case ServConnect.Models.ServiceStatus.Cancelled:
-                                        <span class="badge bg-danger">Cancelled</span>
-                                        break;
-                                }
-                            </td>
-                            <td>@(string.IsNullOrWhiteSpace(b.ProviderMessage) ? "—" : b.ProviderMessage)</td>
-                            <td>
-                                @if (b.ServiceStatus == ServConnect.Models.ServiceStatus.Completed && !b.IsCompleted)
-                                {
-                                    <button class="btn btn-sm btn-success" onclick="completePayment('@b.Id')">
-                                        <i class="fas fa-credit-card me-1"></i> Complete Payment
-                                    </button>
-                                }
-                                else if (b.IsCompleted)
-                                {
-                                    <div class="small text-success">
-                                        <i class="fas fa-check-circle me-1"></i>Rated
-                                        @if (b.UserRating.HasValue)
-                                        {
-                                            <div class="mt-1">
-                                                @for (int i = 1; i <= 5; i++)
-                                                {
-                                                    <i class="fas fa-star @(i <= b.UserRating ? "text-warning" : "text-muted")"></i>
-                                                }
-                                            </div>
-                                        }
-                                    </div>
-                                }
-                                else if (b.Status == ServConnect.Models.BookingStatus.Pending)
-                                {
-                                    <span class="text-muted small">Waiting for response</span>
-                                }
-                                else if (b.Status == ServConnect.Models.BookingStatus.Rejected)
-                                {
-                                    <span class="text-muted small">Booking rejected</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted small">Waiting for service</span>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <!-- Card View Container -->
+        <div id="bookingsContainer" class="row g-4">
+            <!-- Bookings will be dynamically loaded here -->
         </div>
     }
 </div>
 
+<!-- Booking Detail Modal -->
+<div class="modal fade" id="bookingDetailModal" tabindex="-1" aria-labelledby="bookingDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookingDetailModalLabel">Booking Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="bookingDetailContent">
+                <!-- Booking details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
+    // Store all bookings data globally
+    const allBookings = @Html.Raw(Json.Serialize(Model));
+    
+    // Status mapping for display
+    const statusDisplayMap = {
+        'NotStarted': 'Not Started',
+        'InProgress': 'In Progress',
+        'Completed': 'Completed',
+        'Cancelled': 'Cancelled',
+        '0': 'Pending',
+        '1': 'Accepted',
+        '2': 'Rejected'
+    };
+    
+    // Status badge classes
+    const serviceStatusBadgeClasses = {
+        'NotStarted': 'bg-secondary',
+        'InProgress': 'bg-primary',
+        'Completed': 'bg-success',
+        'Cancelled': 'bg-danger'
+    };
+    
+    // Booking status badge classes
+    const bookingStatusBadgeClasses = {
+        'Pending': 'bg-warning text-dark',
+        '0': 'bg-warning text-dark',
+        'Accepted': 'bg-success',
+        '1': 'bg-success',
+        'Rejected': 'bg-danger',
+        '2': 'bg-danger'
+    };
+
     // Load transfer requests on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadTransferRequests();
+        renderBookings(allBookings); // Render all bookings initially
+        
+        // Add event listeners to filter buttons
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Filter and render bookings
+                const status = this.getAttribute('data-status');
+                filterBookings(status);
+            });
+        });
     });
 
-    async function loadTransferRequests() {
-        try {
-            const res = await fetch('/api/bookings/transfer/user');
-            if (res.ok) {
-                const transfers = await res.json();
+    function loadTransferRequests() {
+        fetch('/api/bookings/transfer/user')
+            .then(res => res.json())
+            .then(transfers => {
                 const pendingTransfers = transfers.filter(t => t.status === 'PendingUserApproval');
                 
                 if (pendingTransfers.length > 0) {
                     displayTransferRequests(pendingTransfers);
                     document.getElementById('transferRequestsSection').style.display = 'block';
                 }
-            }
-        } catch (error) {
-            console.error('Failed to load transfer requests:', error);
-        }
+            })
+            .catch(error => {
+                console.error('Failed to load transfer requests:', error);
+            });
     }
 
     function displayTransferRequests(transfers) {
@@ -223,19 +199,18 @@
         });
     }
 
-    async function approveTransfer(transferId) {
+    function approveTransfer(transferId) {
         const message = prompt('Optional message to the providers (Approve):') || '';
         
-        try {
-            const res = await fetch('/api/bookings/transfer/user-approve', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    transferId: transferId,
-                    message: message
-                })
-            });
-            
+        fetch('/api/bookings/transfer/user-approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transferId: transferId,
+                message: message
+            })
+        })
+        .then(res => {
             if (res.ok) {
                 alert('Transfer request approved! The new provider will be notified.');
                 // Remove the transfer card
@@ -250,28 +225,27 @@
                 // Reload page to show updated booking information
                 setTimeout(() => location.reload(), 1500);
             } else {
-                const error = await res.json();
-                alert('Failed to approve transfer: ' + (error.error || 'Unknown error'));
+                return res.json().then(error => { throw new Error(error.error || 'Unknown error'); });
             }
-        } catch (error) {
+        })
+        .catch(error => {
             console.error('Approve transfer error:', error);
-            alert('Failed to approve transfer. Please try again.');
-        }
+            alert('Failed to approve transfer: ' + error.message);
+        });
     }
 
-    async function rejectTransfer(transferId) {
+    function rejectTransfer(transferId) {
         const message = prompt('Optional message to the original provider (Reject):') || '';
         
-        try {
-            const res = await fetch('/api/bookings/transfer/user-reject', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    transferId: transferId,
-                    message: message
-                })
-            });
-            
+        fetch('/api/bookings/transfer/user-reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transferId: transferId,
+                message: message
+            })
+        })
+        .then(res => {
             if (res.ok) {
                 alert('Transfer request rejected. The service will remain with the original provider.');
                 // Remove the transfer card
@@ -283,38 +257,325 @@
                     document.getElementById('transferRequestsSection').style.display = 'none';
                 }
             } else {
-                const error = await res.json();
-                alert('Failed to reject transfer: ' + (error.error || 'Unknown error'));
+                return res.json().then(error => { throw new Error(error.error || 'Unknown error'); });
             }
-        } catch (error) {
+        })
+        .catch(error => {
             console.error('Reject transfer error:', error);
-            alert('Failed to reject transfer. Please try again.');
-        }
+            alert('Failed to reject transfer: ' + error.message);
+        });
     }
 
-    async function completePayment(bookingId) {
-        try {
-            // Create payment directly without rating first
-            const paymentRes = await fetch('/api/booking-payment/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    bookingId: bookingId,
-                    // Don't include rating and feedback - they'll be collected after payment
-                })
-            });
-            
-            if (paymentRes.ok) {
-                const paymentResult = await paymentRes.json();
-                // Redirect to payment page
-                window.location.href = paymentResult.redirectUrl;
+    function completePayment(bookingId) {
+        fetch('/api/booking-payment/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                bookingId: bookingId,
+            })
+        })
+        .then(res => {
+            if (res.ok) {
+                return res.json();
             } else {
-                const error = await paymentRes.json();
-                alert('Failed to create payment: ' + (error.error || 'Unknown error'));
+                return res.json().then(error => { throw new Error(error.error || 'Unknown error'); });
             }
-        } catch (error) {
+        })
+        .then(paymentResult => {
+            // Redirect to payment page
+            window.location.href = paymentResult.redirectUrl;
+        })
+        .catch(error => {
             console.error('Payment creation error:', error);
-            alert('Failed to create payment. Please try again.');
+            alert('Failed to create payment: ' + error.message);
+        });
+    }
+
+    // Render bookings as cards
+    function renderBookings(bookings) {
+        const container = document.getElementById('bookingsContainer');
+        container.innerHTML = '';
+        
+        if (bookings.length === 0) {
+            container.innerHTML = '<div class="col-12"><div class="alert alert-info">No bookings found for the selected filter.</div></div>';
+            return;
         }
+        
+        bookings.forEach(booking => {
+            // Determine if booking is completed
+            const isCompleted = booking.isCompleted;
+            
+            // Determine service status text and class
+            // If booking is completed by user, show service as completed regardless of actual service status
+            let serviceStatusText, serviceStatusClass;
+            if (isCompleted) {
+                serviceStatusText = 'Completed';
+                serviceStatusClass = 'bg-success';
+            } else {
+                serviceStatusText = statusDisplayMap[booking.serviceStatus] || booking.serviceStatus;
+                serviceStatusClass = serviceStatusBadgeClasses[booking.serviceStatus] || 'bg-secondary';
+            }
+            
+            // Determine booking status text and class (handle both string and numeric values)
+            let bookingStatusText = statusDisplayMap[booking.status.toString()] || booking.status.toString();
+            let bookingStatusClass = bookingStatusBadgeClasses[booking.status.toString()] || 'bg-secondary';
+            
+            // If booking is completed, show that instead
+            if (isCompleted) {
+                bookingStatusText = 'Completed';
+                bookingStatusClass = 'bg-success';
+            }
+            
+            // Format price
+            let priceDisplay = 'Price on request';
+            if (booking.price > 0) {
+                priceDisplay = `${booking.currency} ${booking.price.toFixed(2)} ${booking.priceUnit}`;
+            }
+            
+            const cardHtml = `
+                <div class="col-md-4 col-sm-6 booking-card" data-status="${getStatusFilterKey(booking)}">
+                    <div class="card card-modern card-hover h-100">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="card-title mb-1">${booking.serviceName}</h5>
+                                    <p class="card-text text-muted small mb-0">${booking.providerName}</p>
+                                </div>
+                                <span class="badge ${bookingStatusClass}">${bookingStatusText}</span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-muted">Service Status:</span>
+                                    <span class="badge ${serviceStatusClass}">${serviceStatusText}</span>
+                                </div>
+                                <div class="small text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    ${new Date(booking.serviceDateTime).toLocaleDateString()}
+                                </div>
+                                <div class="small text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    ${new Date(booking.serviceDateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="fw-bold">${priceDisplay}</span>
+                                </div>
+                                
+                                <button class="btn btn-primary w-100" onclick="showBookingDetails('${booking.id}')">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </button>
+                                
+                                ${getActionButtons(booking)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', cardHtml);
+        });
+    }
+    
+    // Get action buttons based on booking status
+    function getActionButtons(booking) {
+        // If service is completed by provider but user hasn't completed payment/rating
+        if ((booking.serviceStatus === 'Completed' || booking.serviceStatus === 2) && !booking.isCompleted) {
+            return `
+                <button class="btn btn-success w-100 mt-2" onclick="completePayment('${booking.id}')">
+                    <i class="fas fa-credit-card me-1"></i>Complete Payment & Rate
+                </button>
+            `;
+        } else if (booking.isCompleted) {
+            let ratingHtml = '';
+            if (booking.userRating) {
+                let stars = '';
+                for (let i = 1; i <= 5; i++) {
+                    stars += `<i class="fas fa-star ${i <= booking.userRating ? 'text-warning' : 'text-muted'}"></i>`;
+                }
+                ratingHtml = `<div class="mt-2">${stars}</div>`;
+            }
+            return `
+                <div class="alert alert-success small p-2 mt-2 mb-0 text-center">
+                    <i class="fas fa-check-circle me-1"></i>Completed${ratingHtml}
+                </div>
+            `;
+        } else if (booking.status === 'Pending' || booking.status === 0) {
+            return `
+                <div class="alert alert-warning small p-2 mt-2 mb-0 text-center">
+                    Waiting for response
+                </div>
+            `;
+        } else if (booking.status === 'Rejected' || booking.status === 2) {
+            return `
+                <div class="alert alert-danger small p-2 mt-2 mb-0 text-center">
+                    Booking rejected
+                </div>
+            `;
+        } else {
+            return `
+                <div class="alert alert-info small p-2 mt-2 mb-0 text-center">
+                    Waiting for service
+                </div>
+            `;
+        }
+    }
+    
+    // Show booking details in modal
+    function showBookingDetails(bookingId) {
+        const booking = allBookings.find(b => b.id === bookingId);
+        if (!booking) return;
+        
+        // Format dates
+        const requestedAt = new Date(booking.requestedAtUtc).toLocaleString();
+        const serviceDateTime = new Date(booking.serviceDateTime).toLocaleString();
+        const serviceStartedAt = booking.serviceStartedAt ? new Date(booking.serviceStartedAt).toLocaleString() : 'Not started';
+        const serviceCompletedAt = booking.serviceCompletedAt ? new Date(booking.serviceCompletedAt).toLocaleString() : 'Not completed';
+        const completedAt = booking.completedAtUtc ? new Date(booking.completedAtUtc).toLocaleString() : 'Not completed';
+        
+        // Format price
+        let priceDisplay = 'Price on request';
+        if (booking.price > 0) {
+            priceDisplay = `${booking.currency} ${booking.price.toFixed(2)} ${booking.priceUnit}`;
+        }
+        
+        // Determine service status text
+        // If booking is completed by user, show service as completed regardless of actual service status
+        const isCompleted = booking.isCompleted;
+        let serviceStatusText, serviceStatusClass;
+        if (isCompleted) {
+            serviceStatusText = 'Completed';
+            serviceStatusClass = 'bg-success';
+        } else {
+            serviceStatusText = statusDisplayMap[booking.serviceStatus] || booking.serviceStatus;
+            serviceStatusClass = serviceStatusBadgeClasses[booking.serviceStatus] || 'bg-secondary';
+        }
+        
+        // Determine booking status text (handle both string and numeric values)
+        let bookingStatusText = statusDisplayMap[booking.status.toString()] || booking.status.toString();
+        let bookingStatusClass = bookingStatusBadgeClasses[booking.status.toString()] || 'bg-secondary';
+        
+        // If booking is completed, show that instead
+        if (isCompleted) {
+            bookingStatusText = 'Completed';
+            bookingStatusClass = 'bg-success';
+        }
+        
+        const detailHtml = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Booking Information</h5>
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <td class="text-muted">Provider:</td>
+                            <td>${booking.providerName}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Service:</td>
+                            <td>${booking.serviceName}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Price:</td>
+                            <td>${priceDisplay}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Requested At:</td>
+                            <td>${requestedAt}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Service Date & Time:</td>
+                            <td>${serviceDateTime}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Contact Phone:</td>
+                            <td>${booking.contactPhone}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Address:</td>
+                            <td>${booking.address}</td>
+                        </tr>
+                        ${booking.note ? `<tr>
+                            <td class="text-muted">Note:</td>
+                            <td>${booking.note}</td>
+                        </tr>` : ''}
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Status Information</h5>
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <td class="text-muted">Booking Status:</td>
+                            <td><span class="badge ${bookingStatusClass}">${bookingStatusText}</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Service Status:</td>
+                            <td><span class="badge ${serviceStatusClass}">${serviceStatusText}</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Service Started:</td>
+                            <td>${serviceStartedAt}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Service Completed:</td>
+                            <td>${serviceCompletedAt}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Booking Completed:</td>
+                            <td>${completedAt}</td>
+                        </tr>
+                        ${booking.providerMessage ? `<tr>
+                            <td class="text-muted">Provider Message:</td>
+                            <td>${booking.providerMessage}</td>
+                        </tr>` : ''}
+                        ${booking.userRating ? `<tr>
+                            <td class="text-muted">Your Rating:</td>
+                            <td>
+                                ${Array.from({length: 5}, (_, i) => 
+                                    `<i class="fas fa-star ${i < booking.userRating ? 'text-warning' : 'text-muted'}"></i>`
+                                ).join('')}
+                            </td>
+                        </tr>` : ''}
+                        ${booking.userFeedback ? `<tr>
+                            <td class="text-muted">Your Feedback:</td>
+                            <td>${booking.userFeedback}</td>
+                        </tr>` : ''}
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('bookingDetailContent').innerHTML = detailHtml;
+        const modal = new bootstrap.Modal(document.getElementById('bookingDetailModal'));
+        modal.show();
+    }
+    
+    // Get status filter key for a booking
+    function getStatusFilterKey(booking) {
+        // Completed bookings (user has completed the booking process)
+        if (booking.isCompleted) return 'completed';
+        
+        // Cancelled bookings (rejected bookings)
+        if (booking.status === 'Rejected' || booking.status === 2) return 'cancelled';
+        
+        // In progress bookings (accepted by service provider or pending)
+        if (booking.status === 'Accepted' || booking.status === 1 || booking.status === 'Pending' || booking.status === 0) return 'inprogress';
+        
+        return 'all';
+    }
+    
+    // Filter bookings based on status
+    function filterBookings(status) {
+        if (status === 'all') {
+            renderBookings(allBookings);
+            return;
+        }
+        
+        const filteredBookings = allBookings.filter(booking => {
+            return getStatusFilterKey(booking) === status;
+        });
+        
+        renderBookings(filteredBookings);
     }
 </script>
