@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("UsersApp")]
 [assembly: System.Reflection.AssemblyCopyrightAttribute(" ")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d5b5f02c85a522a5cdeac05616c674dc0c1c380")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b7d6b9edd47fe003ccdd223e499e8cc3e2e818d9")]
 [assembly: System.Reflection.AssemblyProductAttribute("UsersApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UsersApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -78,21 +78,24 @@ namespace ServConnect.Controllers
         public async Task<IActionResult> GetAllServicesWithImages()
         {
             var names = await _catalog.GetAllAvailableServiceNamesAsync();
-            var servicesWithImages = new List<ServiceWithImageDto>();
-
-            foreach (var name in names)
+            
+            // Create a list of tasks to fetch images concurrently
+            var imageTasks = names.Select(async name =>
             {
                 var imageResult = await _pexelsImageService.GetImageForServiceAsync(name);
-                servicesWithImages.Add(new ServiceWithImageDto
+                return new ServiceWithImageDto
                 {
                     Name = name,
                     ImageUrl = imageResult.ImageUrl,
                     PhotographerName = imageResult.PhotographerName,
                     PhotographerUrl = imageResult.PhotographerUrl
-                });
-            }
+                };
+            }).ToList();
 
-            return Ok(servicesWithImages);
+            // Wait for all tasks to complete
+            var servicesWithImages = await Task.WhenAll(imageTasks);
+
+            return Ok(servicesWithImages.ToList());
         }
 
         // API: providers who offer a selected service

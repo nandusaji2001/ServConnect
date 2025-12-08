@@ -133,6 +133,25 @@ a:hover { color: var(--accent-indigo-600); }
 }
 .tile-sub{ color: var(--text-secondary); font-size:.9rem; }
 
+/* Responsive grid for booking cards */
+@media (min-width: 1200px) {
+  .booking-card-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .booking-card-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 991px) {
+  .booking-card-container {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Dashboard header (neutral) */
 .dashboard-header{
   background: var(--header-bg) !important;
