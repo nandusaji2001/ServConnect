@@ -90,7 +90,7 @@
 <body class="d-flex flex-column min-vh-100" data-authed="@((User?.Identity?.IsAuthenticated ?? false) ? "true" : "false")">
     <header>
         <nav class="navbar app-navbar navbar-expand-sm navbar-toggleable-sm navbar-dark mb-2">
-            <div class="container">
+            <div class="container-fluid">
                 @if (ViewBag.RestrictNav == true)
                 {
                     <span class="navbar-brand"><img src="~/images/logo.png" alt="Logo" class="navbar-logo" /> ServConnect</span>
@@ -169,7 +169,7 @@
             </div>
         </nav>
     </header>
-    <div class="container flex-fill">
+    <div class="container-fluid flex-fill">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
