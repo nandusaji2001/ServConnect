@@ -8,7 +8,77 @@
     body {
         background: #f9f9f9;
     }
-
+    
+    /* Live News Section */
+    .live-news-section {
+        margin: 20px 0 30px 0;
+        padding: 25px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .live-news-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .live-news-title i {
+        color: #e53e3e;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @@keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .live-news-container {
+        display: flex;
+        gap: 30px;
+        flex-wrap: nowrap;
+        justify-content: center;
+        margin: 0 -30px; /* Compensate for container padding */
+    }
+    
+    .live-news-channel {
+        flex: 1;
+        min-width: 380px;
+        max-width: 450px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .live-news-channel:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .live-news-video {
+        width: 100%;
+        height: 280px;
+        border: none;
+    }
+    
+    .channel-name {
+        padding: 20px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: #2d3748;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+    }
+    
     /* Updated styles for a cleaner header without the large green box */
     .news-header {
         display: flex;
@@ -18,21 +88,21 @@
         flex-wrap: wrap;
         gap: 15px;
     }
-
+    
     .news-title {
         font-size: 1.8rem;
         font-weight: 700;
         margin: 0;
         color: #2d3748;
     }
-
+    
     .news-controls-wrapper {
         display: flex;
         gap: 12px;
         align-items: center;
         flex-wrap: wrap;
     }
-
+    
     /* Input and button styles without the large box */
     .news-location-input {
         border: 1px solid #cbd5e0;
@@ -45,13 +115,13 @@
         font-size: 0.95rem;
         transition: all 0.3s ease;
     }
-
+    
     .news-location-input:focus {
         outline: none;
         box-shadow: 0 0 0 3px rgba(34, 134, 58, 0.2);
         border-color: #22863a;
     }
-
+    
     .news-language-select {
         border: 1px solid #cbd5e0;
         border-radius: 8px;
@@ -63,13 +133,13 @@
         font-size: 0.95rem;
         transition: all 0.3s ease;
     }
-
+    
     .news-language-select:focus {
         outline: none;
         box-shadow: 0 0 0 3px rgba(34, 134, 58, 0.2);
         border-color: #22863a;
     }
-
+    
     .news-search-btn {
         border: none;
         border-radius: 8px;
@@ -80,12 +150,12 @@
         cursor: pointer;
         transition: all 0.3s ease;
     }
-
+    
     .news-search-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(34, 134, 58, 0.3);
     }
-
+    
     .news-refresh {
         border: none;
         border-radius: 50%;
@@ -100,12 +170,12 @@
         transition: all 0.3s ease;
         border: 1px solid #e2e8f0;
     }
-
+    
     .news-refresh:hover {
         background: #edf2f7;
         transform: rotate(90deg);
     }
-
+    
     .back-btn {
         color: #4a5568;
         text-decoration: none;
@@ -117,12 +187,12 @@
         transition: opacity 0.3s ease;
         margin-bottom: 15px;
     }
-
+    
     .back-btn:hover {
         opacity: 0.8;
         text-decoration: none;
     }
-
+    
     .news-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -131,7 +201,7 @@
         grid-auto-rows: 1fr;
         align-items: stretch;
     }
-
+    
     .news-card {
         background: white;
         border-radius: 20px;
@@ -143,12 +213,12 @@
         height: 100%;
         min-height: 0;
     }
-
+    
     .news-card:hover {
         transform: translateY(-8px);
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
     }
-
+    
     .news-card-image {
         width: 100%;
         height: 200px;
@@ -158,25 +228,25 @@
         align-items: center;
         justify-content: center;
     }
-
+    
     .news-card-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
-
+    
     .news-card-image-placeholder {
         color: #9ca3af;
         font-size: 3rem;
     }
-
+    
     .news-card-content {
         padding: 24px;
         display: flex;
         flex-direction: column;
         flex: 1;
     }
-
+    
     .news-card-meta {
         display: flex;
         justify-content: space-between;
@@ -184,7 +254,7 @@
         margin-bottom: 12px;
         font-size: 0.85rem;
     }
-
+    
     .news-card-source {
         background: linear-gradient(135deg, #22863a 0%, #28a745 100%);
         color: white;
@@ -193,11 +263,11 @@
         font-weight: 600;
         display: inline-block;
     }
-
+    
     .news-card-date {
         color: #9ca3af;
     }
-
+    
     .news-card-title {
         font-size: 1.1rem;
         font-weight: 700;
@@ -205,7 +275,7 @@
         margin-bottom: 10px;
         line-height: 1.4;
     }
-
+    
     .news-card-description {
         color: #6b7280;
         font-size: 0.95rem;
@@ -213,7 +283,7 @@
         margin-bottom: 16px;
         flex: 1;
     }
-
+    
     .news-card-link {
         display: inline-flex;
         align-items: center;
@@ -227,19 +297,19 @@
         transition: all 0.3s ease;
         align-self: flex-start;
     }
-
+    
     .news-card-link:hover {
         transform: translateX(4px);
         color: white;
         text-decoration: none;
     }
-
+    
     .news-card-actions {
         display: flex;
         gap: 8px;
         margin-top: 12px;
     }
-
+    
     .news-translate-btn {
         display: inline-flex;
         align-items: center;
@@ -254,31 +324,31 @@
         cursor: pointer;
         transition: all 0.3s ease;
     }
-
+    
     .news-translate-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 2px 8px rgba(34, 134, 58, 0.3);
     }
-
+    
     .news-translate-btn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
     }
-
+    
     .news-card-title.translated,
     .news-card-description.translated {
         background: #f0fdf4;
         padding: 8px;
         border-left: 3px solid #22863a;
     }
-
+    
     .news-placeholder {
         grid-column: 1 / -1;
         text-align: center;
         padding: 60px 20px;
         color: #9ca3af;
     }
-
+    
     .news-placeholder-spinner {
         display: inline-block;
         width: 40px;
@@ -289,11 +359,11 @@
         animation: spin 1s linear infinite;
         margin-bottom: 20px;
     }
-
+    
     @@keyframes spin {
         to { transform: rotate(360deg); }
     }
-
+    
     .news-error {
         grid-column: 1 / -1;
         text-align: center;
@@ -303,8 +373,75 @@
         border: 1px solid #fca5a5;
         border-radius: 12px;
     }
-
+    
+    @@media (min-width: 1400px) {
+        .live-news-container {
+            gap: 40px;
+        }
+        
+        .live-news-channel {
+            min-width: 420px;
+            max-width: 500px;
+        }
+        
+        .live-news-video {
+            height: 320px;
+        }
+    }
+    
+    @@media (max-width: 1200px) {
+        .live-news-container {
+            gap: 25px;
+            margin: 0 -20px;
+        }
+        
+        .live-news-channel {
+            min-width: 350px;
+            max-width: 400px;
+        }
+        
+        .live-news-video {
+            height: 250px;
+        }
+    }
+    
+    @@media (max-width: 992px) {
+        .live-news-container {
+            gap: 20px;
+        }
+        
+        .live-news-channel {
+            min-width: 300px;
+            max-width: 350px;
+        }
+        
+        .live-news-video {
+            height: 220px;
+        }
+        
+        .live-news-section {
+            padding: 20px;
+        }
+    }
+    
     @@media (max-width: 768px) {
+        .live-news-container {
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            gap: 25px;
+        }
+        
+        .live-news-channel {
+            width: 100%;
+            max-width: 100%;
+            min-width: unset;
+        }
+        
+        .live-news-video {
+            height: 240px;
+        }
+        
         .news-header {
             flex-direction: column;
             align-items: flex-start;
@@ -336,6 +473,25 @@
         <i class="fas fa-arrow-left"></i> Back to Home
     </a>
     
+    <!-- Live News Section -->
+    <div class="live-news-section">
+        <h2 class="live-news-title"><i class="fas fa-circle"></i> Live News Channels</h2>
+        <div class="live-news-container">
+            <div class="live-news-channel">
+                <iframe class="live-news-video" src="https://www.youtube.com/embed/live_stream?channel=UCf8w5m0YsRa8MHQ5bwSGmbw" allowfullscreen></iframe>
+                <div class="channel-name">Asianet News</div>
+            </div>
+            <div class="live-news-channel">
+                <iframe class="live-news-video" src="https://www.youtube.com/embed/live_stream?channel=UCP0uG-mcMImgKnJz-VjJZmQ" allowfullscreen></iframe>
+                <div class="channel-name">Manorama News</div>
+            </div>
+            <div class="live-news-channel">
+                <iframe class="live-news-video" src="https://www.youtube.com/embed/live_stream?channel=UCFx1nseXKTc1Culiu3neeSQ" allowfullscreen></iframe>
+                <div class="channel-name">Reporter News</div>
+            </div>
+        </div>
+    </div>
+    
     <div class="news-header">
         <h1 class="news-title">Top News Headlines</h1>
         
@@ -363,6 +519,50 @@
 </div>
 
 <script>
+    // Video playback control - ensure only one video plays at a time
+    document.addEventListener('DOMContentLoaded', function() {
+        const iframes = document.querySelectorAll('.live-news-video');
+        let currentPlayer = null;
+        
+        // Function to pause all videos except the specified one
+        function pauseOtherVideos(currentVideo) {
+            iframes.forEach(iframe => {
+                if (iframe !== currentVideo) {
+                    // Reload iframe with autoplay disabled
+                    const src = iframe.src;
+                    if (src.includes('autoplay=1')) {
+                        iframe.src = src.replace('autoplay=1', 'autoplay=0');
+                    }
+                }
+            });
+        }
+        
+        // Add click event listeners to each video
+        iframes.forEach(iframe => {
+            iframe.addEventListener('click', function() {
+                // Pause other videos
+                pauseOtherVideos(this);
+                currentPlayer = this;
+                
+                // Ensure this video is playing
+                const src = this.src;
+                if (!src.includes('autoplay=1')) {
+                    this.src = src + (src.includes('?') ? '&' : '?') + 'autoplay=1';
+                }
+            });
+        });
+        
+        // Set the first video to autoplay by default
+        if (iframes.length > 0) {
+            const firstVideo = iframes[0];
+            const src = firstVideo.src;
+            if (!src.includes('autoplay=')) {
+                firstVideo.src = src + (src.includes('?') ? '&' : '?') + 'autoplay=1';
+            }
+            currentPlayer = firstVideo;
+        }
+    });
+    
     async function translateText(text, sourceLanguage = 'en', targetLanguage = 'ml') {
         console.log('Starting translation of:', text.substring(0, 50) + '...');
         try {
@@ -404,57 +604,56 @@
             return text;
         }
     }
-
-    async function handleTranslate(titleElement, descriptionElement, btn, sourceLanguage = 'en', targetLanguage = 'ml') {
-        console.log('handleTranslate called');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Translating...';
+    
+    async function handleTranslate(titleElement, descElement, button, sourceLang, targetLang) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Translating...';
         
         try {
             const originalTitle = titleElement.textContent;
-            const originalDesc = descriptionElement.textContent;
+            const originalDesc = descElement.textContent;
             
-            console.log('Original title:', originalTitle);
-            console.log('Original description:', originalDesc);
+            // Store original text in data attributes
+            titleElement.dataset.original = originalTitle;
+            descElement.dataset.original = originalDesc;
             
-            const translatedTitle = await translateText(originalTitle, sourceLanguage, targetLanguage);
-            const translatedDesc = await translateText(originalDesc, sourceLanguage, targetLanguage);
+            // Translate title and description
+            const translatedTitle = await translateText(originalTitle, sourceLang, targetLang);
+            const translatedDesc = await translateText(originalDesc, sourceLang, targetLang);
             
-            console.log('Translated title:', translatedTitle);
-            console.log('Translated description:', translatedDesc);
-            
+            // Update content
             titleElement.textContent = translatedTitle;
-            descriptionElement.textContent = translatedDesc;
+            descElement.textContent = translatedDesc;
             
+            // Add translated class for styling
             titleElement.classList.add('translated');
-            descriptionElement.classList.add('translated');
+            descElement.classList.add('translated');
             
-            btn.innerHTML = '<i class="fas fa-undo"></i> Restore Original';
-            btn.dataset.translated = 'true';
-            btn.dataset.originalTitle = originalTitle;
-            btn.dataset.originalDesc = originalDesc;
-            btn.disabled = false;
-            
-            console.log('Translation completed successfully');
+            // Update button
+            button.innerHTML = '<i class="fas fa-language"></i> English';
+            button.dataset.translated = 'true';
         } catch (error) {
-            console.error('Error during translation:', error);
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-language"></i> മലയാളം';
+            console.error('Translation error:', error);
+            alert('Failed to translate. Please try again.');
+        } finally {
+            button.disabled = false;
         }
     }
-
-    function handleRestore(titleElement, descriptionElement, btn) {
-        titleElement.textContent = btn.dataset.originalTitle;
-        descriptionElement.textContent = btn.dataset.originalDesc;
+    
+    function handleRestore(titleElement, descElement, button) {
+        // Restore original content
+        titleElement.textContent = titleElement.dataset.original || titleElement.textContent;
+        descElement.textContent = descElement.dataset.original || descElement.textContent;
         
+        // Remove translated class
         titleElement.classList.remove('translated');
-        descriptionElement.classList.remove('translated');
+        descElement.classList.remove('translated');
         
-        btn.innerHTML = '<i class="fas fa-language"></i> മലയാളം';
-        btn.dataset.translated = 'false';
-        btn.disabled = false;
+        // Update button
+        button.innerHTML = '<i class="fas fa-language"></i> മലയാളം';
+        button.dataset.translated = 'false';
     }
-
+    
     async function loadNews(location, language = 'en') {
         const container = document.getElementById('newsContent');
         container.innerHTML = `
@@ -527,27 +726,27 @@
             container.innerHTML = '<div class="news-error">Failed to load headlines. Please try again.</div>';
         }
     }
-
+    
     document.addEventListener('DOMContentLoaded', () => {
         const newsLocationInput = document.getElementById('newsLocationInput');
         const newsLanguageSelect = document.getElementById('newsLanguageSelect');
         const newsSearchBtn = document.getElementById('newsSearchBtn');
         const newsRefreshBtn = document.getElementById('newsRefreshBtn');
-
+        
         const performSearch = () => {
             const location = newsLocationInput.value.trim() || '@defaultLocation';
             const language = newsLanguageSelect.value || 'en';
             loadNews(location, language);
         };
-
+        
         if (newsSearchBtn) {
             newsSearchBtn.addEventListener('click', performSearch);
         }
-
+        
         if (newsLanguageSelect) {
             newsLanguageSelect.addEventListener('change', performSearch);
         }
-
+        
         if (newsLocationInput) {
             newsLocationInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -557,7 +756,7 @@
             // Load news for the default location on page load
             loadNews('@defaultLocation', 'en');
         }
-
+        
         if (newsRefreshBtn) {
             newsRefreshBtn.addEventListener('click', () => {
                 const loc = newsLocationInput ? newsLocationInput.value.trim() : '@defaultLocation';

@@ -89,7 +89,7 @@
 </head>
 <body class="d-flex flex-column min-vh-100" data-authed="@((User?.Identity?.IsAuthenticated ?? false) ? "true" : "false")">
     <header>
-        <nav class="navbar app-navbar navbar-expand-sm navbar-toggleable-sm navbar-dark mb-2">
+        <nav class="navbar app-navbar navbar-expand-sm navbar-toggleable-sm navbar-dark">
             <div class="container-fluid">
                 @if (ViewBag.RestrictNav == true)
                 {
@@ -169,8 +169,8 @@
             </div>
         </nav>
     </header>
-    <div class="container-fluid flex-fill">
-        <main role="main" class="pb-3">
+    <div class="container-fluid flex-fill" style="overflow: hidden;">
+        <main role="main" class="pb-3" style="overflow-y: auto; max-height: 100%; margin-top: 0;">
             @RenderBody()
         </main>
     </div>
