@@ -17,13 +17,11 @@
         text-align: left;
         margin: 0;
         background: url('@Url.Content("~/images/hero-bg.png")') center/cover no-repeat;
-        min-height: 100vh;
+        min-height: calc(100vh - 50px);
         display: flex;
         align-items: center;
         overflow: hidden;
-        width: 100vw;
-        margin-left: calc(-50vw + 50%);
-        margin-right: calc(-50vw + 50%);
+        width: 100%;
     }
     .hero-section:before{
         content: '';
@@ -31,11 +29,16 @@
         inset: 0;
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 100%);
     }
-    .hero-section > .container{ 
+    .hero-section > .container-fluid{ 
         position: relative; 
         z-index: 1; 
         margin: 0 auto;
-        padding: 0 15px;
+        padding: 0;
+    }
+    
+    /* Remove top margin from first section after hero */
+    .features-section:first-child {
+        margin-top: 0;
     }
     
     .hero-section h1 {
@@ -495,8 +498,8 @@
 
 <!-- Hero Section -->
 <div class="hero-section">
-    <div class="container">
-        <div class="row min-vh-100">
+    <div class="container-fluid">
+        <div class="row min-vh-100 mx-0">
             <div class="col-lg-6 d-flex flex-column justify-content-center">
                 <p class="mb-3 text-white-50">Order any service, anytime from anywhere</p>
                 <h1 class="text-white mb-4">Find the Perfect <span class="highlight-badge">Service</span> for Your Needs</h1>

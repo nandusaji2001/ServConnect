@@ -21,7 +21,7 @@
 
 /* Navbar specific color */
 .app-navbar.navbar {
-  background: linear-gradient(135deg, #063e1cdb 0%, #165830db 100%) !important; /* Dribbble green */
+  background: linear-gradient(135deg, #8ceab1db 0%, #75df9fdb 100%) !important; /* Dribbble green */
   box-shadow: var(--shadow-md);
 }
 
@@ -47,6 +47,7 @@ html,body{
   font-weight: 300;
   color: var(--text-primary);
   background: var(--bg-page);
+  overflow: auto;
 }
 
 /* Headings */
