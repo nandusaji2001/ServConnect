@@ -144,8 +144,64 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tcGxhaW50c1xUaGFua1lvdS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Confirm.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXENvbmZpcm0uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/DailyCheckIn.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXERhaWx5Q2hlY2tJbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXERhc2hib2FyZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/EditProfile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXEVkaXRQcm9maWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/EmergencySOS.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXEVtZXJnZW5jeVNPUy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/GuardianInfo.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXEd1YXJkaWFuSW5mby5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/MedicineReminders.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXE1lZGljaW5lUmVtaW5kZXJzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Messages.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXE1lc3NhZ2VzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Notes.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXE5vdGVzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/ProfileSetup.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXFByb2ZpbGVTZXR1cC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/RequestPending.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXFJlcXVlc3RQZW5kaW5nLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/WellnessTips.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXFdlbGxuZXNzVGlwcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3VhcmRpYW5cRGFzaGJvYXJkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/ElderMonitor.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3VhcmRpYW5cRWxkZXJNb25pdG9yLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/MonitoringDashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3VhcmRpYW5cTW9uaXRvcmluZ0Rhc2hib2FyZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/About.cshtml]

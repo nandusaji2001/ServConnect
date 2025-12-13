@@ -1,0 +1,302 @@
+@{
+    ViewData["Title"] = "Daily Check-in";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var alreadyCheckedIn = ViewBag.AlreadyCheckedIn ?? false;
+    var checkInTime = ViewBag.CheckInTime as DateTime?;
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .checkin-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .checkin-header {
+        text-align: center;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .checkin-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .checkin-form {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .mood-selector {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 25px 0;
+    }
+    
+    .mood-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        border: 3px solid #e0e0e0;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 100px;
+    }
+    
+    .mood-option:hover {
+        border-color: #11998e;
+        transform: translateY(-3px);
+    }
+    
+    .mood-option.selected {
+        border-color: #11998e;
+        background: #e8f5e9;
+    }
+    
+    .mood-option .emoji {
+        font-size: 3rem;
+        margin-bottom: 10px;
+    }
+    
+    .mood-option .label {
+        font-size: 1rem;
+        color: #333;
+    }
+    
+    .notes-section {
+        margin-top: 25px;
+    }
+    
+    .notes-section label {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        display: block;
+        margin-bottom: 10px;
+    }
+    
+    .notes-section textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        resize: none;
+    }
+    
+    .notes-section textarea:focus {
+        border-color: #11998e;
+        outline: none;
+    }
+    
+    .checkin-button {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.3rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 25px;
+    }
+    
+    .checkin-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+    }
+    
+    .checkin-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    
+    .already-checked-in {
+        text-align: center;
+        padding: 40px;
+        background: #e8f5e9;
+        border-radius: 20px;
+    }
+    
+    .already-checked-in .icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+    }
+    
+    .already-checked-in h2 {
+        color: #2e7d32;
+        margin-bottom: 15px;
+    }
+    
+    .already-checked-in p {
+        color: #666;
+        font-size: 1.1rem;
+    }
+    
+    .success-message {
+        background: #d4edda;
+        color: #155724;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        font-size: 1.2rem;
+        display: none;
+        margin-bottom: 20px;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        font-size: 1.1rem;
+        margin-top: 30px;
+    }
+    
+    .back-link:hover {
+        color: #333;
+    }
+</style>
+
+<div class="checkin-container">
+    <div class="checkin-header">
+        <h1>✅ @(isMalayalam ? "ദിവസേന ചെക്ക്-ഇൻ" : "Daily Check-in")</h1>
+        <p>@(isMalayalam ? "നിങ്ങൾ സുഖമാണെന്ന് ഞങ്ങളെ അറിയിക്കുക" : "Let us know you're doing well")</p>
+    </div>
+    
+    <div id="successMessage" class="success-message">
+        <i class="fas fa-check-circle me-2"></i>
+        @(isMalayalam ? "ചെക്ക്-ഇൻ വിജയകരമായി രേഖപ്പെടുത്തി!" : "Check-in recorded successfully!")
+    </div>
+    
+    @if ((bool)alreadyCheckedIn)
+    {
+        <div class="already-checked-in">
+            <div class="icon">✅</div>
+            <h2>@(isMalayalam ? "ഇന്നത്തെ ചെക്ക്-ഇൻ പൂർത്തിയായി!" : "Today's Check-in Complete!")</h2>
+            <p>@(isMalayalam ? "നിങ്ങൾ ഇന്ന് ചെക്ക്-ഇൻ ചെയ്തു" : "You checked in today at") @(checkInTime?.ToLocalTime().ToString("hh:mm tt") ?? "earlier")</p>
+            <p style="margin-top: 15px; color: #11998e; font-weight: 600;">
+                @(isMalayalam ? "നാളെ കാണാം! 😊" : "See you tomorrow! 😊")
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="checkin-form">
+            <h3 style="text-align: center; color: #333; margin-bottom: 20px;">
+                @(isMalayalam ? "ഇന്ന് നിങ്ങൾക്ക് എങ്ങനെ തോന്നുന്നു?" : "How are you feeling today?")
+            </h3>
+            
+            <div class="mood-selector">
+                <div class="mood-option" data-mood="Great" onclick="selectMood(this, 'Great')">
+                    <span class="emoji">😄</span>
+                    <span class="label">@(isMalayalam ? "മികച്ചത്" : "Great")</span>
+                </div>
+                <div class="mood-option" data-mood="Good" onclick="selectMood(this, 'Good')">
+                    <span class="emoji">🙂</span>
+                    <span class="label">@(isMalayalam ? "നല്ലത്" : "Good")</span>
+                </div>
+                <div class="mood-option" data-mood="Okay" onclick="selectMood(this, 'Okay')">
+                    <span class="emoji">😐</span>
+                    <span class="label">@(isMalayalam ? "ശരി" : "Okay")</span>
+                </div>
+                <div class="mood-option" data-mood="Not Good" onclick="selectMood(this, 'Not Good')">
+                    <span class="emoji">😔</span>
+                    <span class="label">@(isMalayalam ? "നല്ലതല്ല" : "Not Good")</span>
+                </div>
+            </div>
+            
+            <div class="notes-section">
+                <label for="checkinNotes">
+                    @(isMalayalam ? "എന്തെങ്കിലും കുറിപ്പുകൾ? (ഓപ്ഷണൽ)" : "Any notes? (Optional)")
+                </label>
+                <textarea id="checkinNotes" rows="4" placeholder="@(isMalayalam ? "നിങ്ങൾക്ക് എങ്ങനെ തോന്നുന്നുവെന്ന് പറയുക..." : "Share how you're feeling...")"></textarea>
+            </div>
+            
+            <button type="button" class="checkin-button" id="checkinBtn" onclick="performCheckIn()" disabled>
+                @(isMalayalam ? "ചെക്ക്-ഇൻ ചെയ്യുക" : "Check In") ✅
+            </button>
+        </div>
+    }
+    
+    <div class="text-center">
+        <a href="@Url.Action("Dashboard", "ElderCare")" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            @(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക" : "Back to Dashboard")
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var selectedMood = '';
+        
+        function selectMood(element, mood) {
+            // Remove selected from all
+            document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('selected'));
+            // Add selected to clicked
+            element.classList.add('selected');
+            selectedMood = mood;
+            // Enable button
+            document.getElementById('checkinBtn').disabled = false;
+        }
+        
+        function performCheckIn() {
+            if (!selectedMood) {
+                alert('@(isMalayalam ? "ദയവായി ഒരു മൂഡ് തിരഞ്ഞെടുക്കുക" : "Please select a mood")');
+                return;
+            }
+            
+            const notes = document.getElementById('checkinNotes').value;
+            const btn = document.getElementById('checkinBtn');
+            btn.disabled = true;
+            btn.textContent = '@(isMalayalam ? "രേഖപ്പെടുത്തുന്നു..." : "Recording...")';
+            
+            const formData = new FormData();
+            formData.append('mood', selectedMood);
+            formData.append('notes', notes);
+            
+            fetch('@Url.Action("PerformCheckIn", "ElderCare")', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    btn.textContent = '@(isMalayalam ? "പൂർത്തിയായി!" : "Done!") ✅';
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    alert(data.message);
+                    btn.disabled = false;
+                    btn.textContent = '@(isMalayalam ? "ചെക്ക്-ഇൻ ചെയ്യുക" : "Check In") ✅';
+                }
+            })
+            .catch(error => {
+                alert('@(isMalayalam ? "പിശക് സംഭവിച്ചു" : "An error occurred")');
+                btn.disabled = false;
+                btn.textContent = '@(isMalayalam ? "ചെക്ക്-ഇൻ ചെയ്യുക" : "Check In") ✅';
+            });
+        }
+    </script>
+    @Html.AntiForgeryToken()
+}

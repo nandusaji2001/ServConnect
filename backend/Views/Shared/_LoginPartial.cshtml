@@ -70,8 +70,28 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="margin-top: 8px; border-radius: 10px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);">
                     <li class="dropdown-header">@displayName</li>
-                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> @Localizer["Profile"]</a></li>
-                    <li><a class="dropdown-item" asp-controller="Account" asp-action="ProfileUpdate"><i class="bi bi-pencil-square"></i> Update Details</a></li>
+                    
+                    @* Elder-specific menu items *@
+                    @if (currentUser != null && currentUser.IsElder)
+                    {
+                        <li><a class="dropdown-item" asp-controller="ElderCare" asp-action="Dashboard"><i class="bi bi-house-heart"></i> Elder Dashboard</a></li>
+                        <li><a class="dropdown-item" asp-controller="ElderCare" asp-action="EmergencySOS"><i class="bi bi-exclamation-triangle text-danger"></i> Emergency SOS</a></li>
+                        <li><a class="dropdown-item" asp-controller="ElderCare" asp-action="DailyCheckIn"><i class="bi bi-check-circle"></i> Daily Check-in</a></li>
+                        <li><a class="dropdown-item" asp-controller="ElderCare" asp-action="GuardianInfo"><i class="bi bi-person-badge"></i> Guardian Info</a></li>
+                        <li><a class="dropdown-item" asp-controller="ElderCare" asp-action="EditProfile"><i class="bi bi-pencil-square"></i> Edit Profile</a></li>
+                    }
+                    else
+                    {
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> @Localizer["Profile"]</a></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="ProfileUpdate"><i class="bi bi-pencil-square"></i> Update Details</a></li>
+                        @if (currentUser == null || !currentUser.IsGuardian)
+                        {
+                            <li><a class="dropdown-item" asp-controller="ElderCare" asp-action="Confirm"><i class="bi bi-heart-pulse"></i> Enable Elder Care Mode</a></li>
+                        }
+                    }
+                    
+                    @* Guardian menu - show for all users who may be guardians *@
+                    <li><a class="dropdown-item" asp-controller="Guardian" asp-action="Dashboard"><i class="bi bi-shield-check"></i> Guardian Requests</a></li>
                     <li><hr class="dropdown-divider" /></li>
                     @* Language toggle *@
                     @if (!string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase))

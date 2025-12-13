@@ -1,0 +1,493 @@
+@model ServConnect.ViewModels.ElderProfileSetupViewModel
+@{
+    ViewData["Title"] = "Elder Profile Setup";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+    var isMalayalam = string.Equals(currentCulture, "ml-IN", StringComparison.OrdinalIgnoreCase);
+    var guardianNotRegistered = TempData["GuardianNotRegistered"] as bool? ?? false;
+    var guardianPhone = TempData["GuardianPhone"] as string ?? "";
+}
+
+<style>
+    .setup-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 40px 20px;
+    }
+
+    .setup-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        width: 100%;
+        padding: 40px;
+    }
+
+    .setup-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .setup-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+    .setup-icon i {
+        font-size: 32px;
+        color: white;
+    }
+
+    .setup-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .setup-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    .form-group label .required {
+        color: #dc2626;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .form-control[readonly] {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+    }
+
+    .form-control.is-invalid {
+        border-color: #dc2626;
+    }
+
+    .invalid-feedback {
+        color: #dc2626;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 16px;
+    }
+
+    .form-row .form-group {
+        flex: 1;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .guardian-lookup {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .guardian-lookup .form-control {
+        flex: 1;
+    }
+
+    .btn-lookup {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-lookup:hover {
+        background: #2563eb;
+    }
+
+    .btn-lookup:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .guardian-result {
+        margin-top: 12px;
+        padding: 16px;
+        border-radius: 8px;
+        display: none;
+    }
+
+    .guardian-result.success {
+        background: #ecfdf5;
+        border: 1px solid #10b981;
+        display: block;
+    }
+
+    .guardian-result.error {
+        background: #fef2f2;
+        border: 1px solid #dc2626;
+        display: block;
+    }
+
+    .guardian-info {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .guardian-name {
+        font-weight: 600;
+        color: #065f46;
+        font-size: 16px;
+    }
+
+    .guardian-label {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .btn-confirm-guardian {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-confirm-guardian:hover {
+        background: #059669;
+    }
+
+    .btn-confirm-guardian.confirmed {
+        background: #065f46;
+        cursor: default;
+    }
+
+    .confirmed-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #065f46;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .error-message {
+        color: #dc2626;
+        font-size: 14px;
+    }
+
+    .btn-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 24px;
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-submit:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .section-divider {
+        border: 0;
+        border-top: 1px solid #e5e7eb;
+        margin: 28px 0;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 16px;
+    }
+</style>
+
+<div class="setup-container">
+    <div class="setup-card">
+        @if (guardianNotRegistered)
+        {
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" style="border-radius: 12px; margin-bottom: 24px;">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>@(isMalayalam ? "Guardian രജിസ്റ്റർ ചെയ്തിട്ടില്ല" : "Guardian Not Registered")</strong><br/>
+                @(isMalayalam 
+                    ? $"ഈ ഫോൺ നമ്പർ ({guardianPhone}) ഉപയോഗിച്ച് Guardian രജിസ്റ്റർ ചെയ്തശേഷം തുടരുക."
+                    : $"The guardian must register using this phone number ({guardianPhone}) to continue.")
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        <div class="setup-header">
+            <div class="setup-icon">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <h1 class="setup-title">
+                @(isMalayalam ? "Elder Profile Setup" : "Elder Profile Setup")
+            </h1>
+            <p class="setup-subtitle">
+                @(isMalayalam ? "Elder Care സജീവമാക്കാൻ നിങ്ങളുടെ വിവരങ്ങൾ നൽകുക" : "Please provide your information to enable Elder Care features")
+            </p>
+        </div>
+
+        <form asp-action="ProfileSetup" method="post" id="elderProfileForm">
+            @Html.AntiForgeryToken()
+            
+            <!-- Personal Information -->
+            <div class="section-title">
+                <i class="bi bi-person me-2"></i>@(isMalayalam ? "വ്യക്തിഗത വിവരങ്ങൾ" : "Personal Information")
+            </div>
+
+            <div class="form-group">
+                <label>@(isMalayalam ? "പൂർണ്ണ നാമം" : "Full Name")</label>
+                <input type="text" asp-for="FullName" class="form-control" readonly />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>@(isMalayalam ? "പ്രായം" : "Age") <span class="required">*</span></label>
+                    <input type="number" asp-for="Age" class="form-control" min="50" max="120" placeholder="@(isMalayalam ? "പ്രായം നൽകുക" : "Enter age")" />
+                    <span asp-validation-for="Age" class="invalid-feedback"></span>
+                </div>
+                <div class="form-group">
+                    <label>@(isMalayalam ? "ലിംഗം" : "Gender") <span class="required">*</span></label>
+                    <select asp-for="Gender" class="form-control">
+                        <option value="">@(isMalayalam ? "തിരഞ്ഞെടുക്കുക" : "Select")</option>
+                        <option value="Male">@(isMalayalam ? "പുരുഷൻ" : "Male")</option>
+                        <option value="Female">@(isMalayalam ? "സ്ത്രീ" : "Female")</option>
+                        <option value="Other">@(isMalayalam ? "മറ്റുള്ളവ" : "Other")</option>
+                    </select>
+                    <span asp-validation-for="Gender" class="invalid-feedback"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>@(isMalayalam ? "രക്തഗ്രൂപ്പ്" : "Blood Group")</label>
+                <select asp-for="BloodGroup" class="form-control">
+                    <option value="">@(isMalayalam ? "തിരഞ്ഞെടുക്കുക" : "Select")</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                </select>
+            </div>
+
+            <hr class="section-divider" />
+
+            <!-- Medical Information -->
+            <div class="section-title">
+                <i class="bi bi-heart-pulse me-2"></i>@(isMalayalam ? "മെഡിക്കൽ വിവരങ്ങൾ" : "Medical Information")
+            </div>
+
+            <div class="form-group">
+                <label>@(isMalayalam ? "മെഡിക്കൽ അവസ്ഥകൾ" : "Medical Conditions")</label>
+                <textarea asp-for="MedicalConditions" class="form-control" rows="3" 
+                    placeholder="@(isMalayalam ? "നിങ്ങളുടെ മെഡിക്കൽ അവസ്ഥകൾ വിവരിക്കുക (ഉദാ: പ്രമേഹം, രക്താതിമർദ്ദം)" : "Describe any medical conditions (e.g., Diabetes, Hypertension)")"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>@(isMalayalam ? "നിലവിലെ മരുന്നുകൾ & ഉപയോഗം" : "Current Medications & Usage")</label>
+                <textarea asp-for="Medications" class="form-control" rows="3" 
+                    placeholder="@(isMalayalam ? "മരുന്നുകളുടെ പേരും ഉപയോഗവും നൽകുക (ഉദാ: Metformin 500mg - ദിവസം 2 തവണ)" : "List medications with usage (e.g., Metformin 500mg - twice daily)")"></textarea>
+            </div>
+
+            <hr class="section-divider" />
+
+            <!-- Emergency Contact -->
+            <div class="section-title">
+                <i class="bi bi-telephone me-2"></i>@(isMalayalam ? "അടിയന്തര ബന്ധപ്പെടൽ" : "Emergency Contact (Guardian)")
+            </div>
+
+            <div class="form-group">
+                <label>@(isMalayalam ? "അടിയന്തര ഫോൺ നമ്പർ" : "Emergency Phone Number") <span class="required">*</span></label>
+                <div class="guardian-lookup">
+                    <input type="tel" asp-for="EmergencyPhone" class="form-control" id="emergencyPhone"
+                        placeholder="@(isMalayalam ? "10 അക്ക മൊബൈൽ നമ്പർ" : "10-digit mobile number")" maxlength="10" />
+                    <button type="button" class="btn-lookup" id="btnLookup" onclick="lookupGuardian()">
+                        <i class="bi bi-search me-1"></i>@(isMalayalam ? "തിരയുക" : "Verify")
+                    </button>
+                </div>
+                <span asp-validation-for="EmergencyPhone" class="invalid-feedback"></span>
+                
+                <div class="guardian-result" id="guardianResult">
+                    <!-- Results will be shown here -->
+                </div>
+            </div>
+
+            <input type="hidden" asp-for="GuardianCandidateId" id="guardianCandidateId" />
+            <input type="hidden" asp-for="GuardianCandidateName" id="guardianCandidateName" />
+            <input type="hidden" asp-for="IsGuardianConfirmed" id="isGuardianConfirmed" value="false" />
+
+            <button type="submit" class="btn-submit" id="btnSubmit" disabled>
+                <i class="bi bi-arrow-right-circle me-2"></i>@(isMalayalam ? "തുടരുക" : "Continue to Guardian Request")
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let guardianConfirmed = false;
+
+        function lookupGuardian() {
+            const phone = document.getElementById('emergencyPhone').value.trim();
+            const resultDiv = document.getElementById('guardianResult');
+            const btnLookup = document.getElementById('btnLookup');
+            
+            if (!phone) {
+                showError('@(isMalayalam ? "ഫോൺ നമ്പർ നൽകുക" : "Please enter a phone number")');
+                return;
+            }
+
+            if (!/^[6-9]\d{9}$/.test(phone)) {
+                showError('@(isMalayalam ? "സാധുവായ 10 അക്ക മൊബൈൽ നമ്പർ നൽകുക" : "Please enter a valid 10-digit mobile number")');
+                return;
+            }
+
+            btnLookup.disabled = true;
+            btnLookup.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>@(isMalayalam ? "തിരയുന്നു..." : "Searching...")';
+
+            fetch(`/ElderCare/LookupGuardian?phone=${encodeURIComponent(phone)}`)
+                .then(response => response.json())
+                .then(data => {
+                    btnLookup.disabled = false;
+                    btnLookup.innerHTML = '<i class="bi bi-search me-1"></i>@(isMalayalam ? "തിരയുക" : "Verify")';
+
+                    if (data.success) {
+                        showGuardianFound(data.guardianId, data.guardianName);
+                    } else {
+                        showError(data.message);
+                        resetGuardianConfirmation();
+                    }
+                })
+                .catch(error => {
+                    btnLookup.disabled = false;
+                    btnLookup.innerHTML = '<i class="bi bi-search me-1"></i>@(isMalayalam ? "തിരയുക" : "Verify")';
+                    showError('@(isMalayalam ? "എന്തോ പിഴവ് സംഭവിച്ചു. വീണ്ടും ശ്രമിക്കുക." : "Something went wrong. Please try again.")');
+                    resetGuardianConfirmation();
+                });
+        }
+
+        function showGuardianFound(guardianId, guardianName) {
+            const resultDiv = document.getElementById('guardianResult');
+            resultDiv.className = 'guardian-result success';
+            resultDiv.innerHTML = `
+                <div class="guardian-label">@(isMalayalam ? "Guardian Candidate കണ്ടെത്തി" : "Guardian Candidate Found")</div>
+                <div class="guardian-info">
+                    <span class="guardian-name"><i class="bi bi-person-check me-2"></i>${guardianName}</span>
+                    <button type="button" class="btn-confirm-guardian" id="btnConfirmGuardian" onclick="confirmGuardian('${guardianId}', '${guardianName}')">
+                        <i class="bi bi-check-lg me-1"></i>@(isMalayalam ? "സ്ഥിരീകരിക്കുക" : "Confirm")
+                    </button>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            const resultDiv = document.getElementById('guardianResult');
+            resultDiv.className = 'guardian-result error';
+            resultDiv.innerHTML = `<span class="error-message"><i class="bi bi-exclamation-circle me-2"></i>${message}</span>`;
+        }
+
+        function confirmGuardian(guardianId, guardianName) {
+            document.getElementById('guardianCandidateId').value = guardianId;
+            document.getElementById('guardianCandidateName').value = guardianName;
+            document.getElementById('isGuardianConfirmed').value = 'true';
+            guardianConfirmed = true;
+
+            const resultDiv = document.getElementById('guardianResult');
+            resultDiv.innerHTML = `
+                <div class="guardian-label">@(isMalayalam ? "Guardian സ്ഥിരീകരിച്ചു" : "Guardian Confirmed")</div>
+                <div class="guardian-info">
+                    <span class="guardian-name"><i class="bi bi-person-check me-2"></i>${guardianName}</span>
+                    <span class="confirmed-badge"><i class="bi bi-check-circle"></i>@(isMalayalam ? "സ്ഥിരീകരിച്ചു" : "Confirmed")</span>
+                </div>
+            `;
+
+            // Enable submit button
+            document.getElementById('btnSubmit').disabled = false;
+        }
+
+        function resetGuardianConfirmation() {
+            document.getElementById('guardianCandidateId').value = '';
+            document.getElementById('guardianCandidateName').value = '';
+            document.getElementById('isGuardianConfirmed').value = 'false';
+            guardianConfirmed = false;
+            document.getElementById('btnSubmit').disabled = true;
+        }
+
+        // Reset confirmation when phone number changes
+        document.getElementById('emergencyPhone').addEventListener('input', function() {
+            if (guardianConfirmed) {
+                resetGuardianConfirmation();
+                document.getElementById('guardianResult').className = 'guardian-result';
+                document.getElementById('guardianResult').innerHTML = '';
+            }
+        });
+    </script>
+}

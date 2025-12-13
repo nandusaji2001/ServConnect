@@ -1,0 +1,352 @@
+@using ServConnect.Controllers
+@{
+    ViewData["Title"] = "Medicine Reminders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var medications = ViewBag.Medications as string ?? "";
+    var reminders = ViewBag.Reminders as List<MedicineReminder> ?? new List<MedicineReminder>();
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .medicine-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .medicine-header {
+        text-align: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .medicine-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .medicine-list {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+    }
+    
+    .medicine-list h3 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .medicine-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .medicine-item:hover {
+        background: #e9ecef;
+    }
+    
+    .medicine-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .medicine-info .icon {
+        font-size: 2.5rem;
+    }
+    
+    .medicine-info .details h4 {
+        margin: 0;
+        color: #333;
+        font-size: 1.2rem;
+    }
+    
+    .medicine-info .details p {
+        margin: 5px 0 0;
+        color: #666;
+        font-size: 1rem;
+    }
+    
+    .taken-btn {
+        padding: 12px 25px;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .taken-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+    }
+    
+    .taken-btn.taken {
+        background: #e0e0e0;
+        color: #666;
+    }
+    
+    .your-medications {
+        background: #fff3e0;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .your-medications h4 {
+        color: #e65100;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .your-medications p {
+        color: #333;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+    
+    .time-indicator {
+        display: inline-block;
+        padding: 5px 12px;
+        background: #667eea;
+        color: white;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        margin-right: 8px;
+    }
+    
+    .no-reminders {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+    
+    .no-reminders .icon {
+        font-size: 4rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        font-size: 1.1rem;
+        margin-top: 30px;
+    }
+    
+    .back-link:hover {
+        color: #333;
+    }
+    
+    /* Quick reminder times */
+    .reminder-times {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .time-slot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 15px 20px;
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .time-slot:hover {
+        background: #667eea;
+        color: white;
+    }
+    
+    .time-slot .time {
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+    
+    .time-slot .label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+    
+    .medicine-times {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    
+    .time-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        background: #667eea;
+        color: white;
+        border-radius: 20px;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+    
+    .instruction-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        background: #e65100;
+        color: white;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+    
+    @@media (max-width: 576px) {
+        .medicine-item {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .taken-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="medicine-container">
+    <div class="medicine-header">
+        <h1>💊 @(isMalayalam ? "മരുന്ന് ഓർമ്മപ്പെടുത്തലുകൾ" : "Medicine Reminders")</h1>
+        <p>@(isMalayalam ? "നിങ്ങളുടെ മരുന്നുകൾ ട്രാക്ക് ചെയ്യുക" : "Track your daily medications")</p>
+    </div>
+    
+    <div class="medicine-list">
+        <h3>
+            <i class="fas fa-clock"></i>
+            @(isMalayalam ? "ഇന്നത്തെ ഷെഡ്യൂൾ" : "Today's Schedule")
+        </h3>
+        
+        @if (reminders.Any())
+        {
+            @foreach (var reminder in reminders)
+            {
+                <div class="medicine-item" data-reminder-id="@reminder.Id">
+                    <div class="medicine-info">
+                        <span class="icon">💊</span>
+                        <div class="details">
+                            <h4>@reminder.MedicineName</h4>
+                            <p>@reminder.Dosage • @reminder.Frequency</p>
+                            <div class="medicine-times">
+                                @foreach (var time in reminder.Times)
+                                {
+                                    <span class="time-badge">@time</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(reminder.Instruction))
+                                {
+                                    <span class="instruction-badge">
+                                        <i class="fas fa-utensils"></i> 
+                                        @(isMalayalam ? (reminder.Instruction == "Before Food" ? "ഭക്ഷണത്തിന് മുമ്പ്" : "ഭക്ഷണത്തിന് ശേഷം") : reminder.Instruction)
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <button class="taken-btn" onclick="markTaken(this, '@reminder.Id')">
+                        @(isMalayalam ? "കഴിച്ചു" : "Taken") ✓
+                    </button>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-reminders">
+                <div class="icon">💊</div>
+                <p>@(isMalayalam ? "ഓർമ്മപ്പെടുത്തലുകൾ ഇല്ല" : "No medicine reminders set")</p>
+                <p style="font-size: 0.9rem; color: #999; margin-top: 10px;">@(isMalayalam ? "നിങ്ങളുടെ രക്ഷാധികാരി ഓർമ്മപ്പെടുത്തലുകൾ ചേർക്കും" : "Your guardian will add reminders for you")</p>
+            </div>
+        }
+        
+        @if (!string.IsNullOrWhiteSpace(medications))
+        {
+            <div class="your-medications">
+                <h4>
+                    <i class="fas fa-pills"></i>
+                    @(isMalayalam ? "നിങ്ങളുടെ മരുന്നുകൾ (പ്രൊഫൈലിൽ നിന്ന്)" : "Your Medications (From Profile)")
+                </h4>
+                <p>@medications</p>
+            </div>
+        }
+    </div>
+    
+    <div class="text-center">
+        <a href="@Url.Action("Dashboard", "ElderCare")" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            @(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക" : "Back to Dashboard")
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function markTaken(btn, medicineId) {
+            btn.classList.add('taken');
+            btn.disabled = true;
+            btn.innerHTML = '@(isMalayalam ? "കഴിച്ചു" : "Taken") ✅';
+            
+            // Store in localStorage for today
+            const today = new Date().toDateString();
+            const key = 'medicine_' + medicineId + '_' + today;
+            localStorage.setItem(key, 'taken');
+            
+            // Send to server
+            fetch('@Url.Action("MarkMedicineTaken", "ElderCare")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: 'medicineId=' + encodeURIComponent(medicineId)
+            });
+        }
+        
+        // Check localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toDateString();
+            document.querySelectorAll('.medicine-item').forEach(item => {
+                const id = item.dataset.reminderId;
+                const key = 'medicine_' + id + '_' + today;
+                if (localStorage.getItem(key) === 'taken') {
+                    const btn = item.querySelector('.taken-btn');
+                    if (btn) {
+                        btn.classList.add('taken');
+                        btn.disabled = true;
+                        btn.innerHTML = '@(isMalayalam ? "കഴിച്ചു" : "Taken") ✅';
+                    }
+                }
+            });
+        });
+    </script>
+    @Html.AntiForgeryToken()
+}

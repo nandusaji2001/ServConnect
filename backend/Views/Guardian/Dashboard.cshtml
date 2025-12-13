@@ -192,10 +192,12 @@
                             <td>
                                 <div class="action-buttons">
                                     <form method="post" action="@Url.Action("ApproveRequest", "Guardian")" style="display: inline;">
+                                        @Html.AntiForgeryToken()
                                         <input type="hidden" name="requestId" value="@request.Id" />
                                         <button type="submit" class="btn-approve">Approve</button>
                                     </form>
                                     <form method="post" action="@Url.Action("RejectRequest", "Guardian")" style="display: inline;">
+                                        @Html.AntiForgeryToken()
                                         <input type="hidden" name="requestId" value="@request.Id" />
                                         <button type="submit" class="btn-reject">Reject</button>
                                     </form>

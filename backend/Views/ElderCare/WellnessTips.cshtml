@@ -1,0 +1,285 @@
+@{
+    ViewData["Title"] = "Wellness Tips";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .wellness-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .wellness-header {
+        text-align: center;
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .wellness-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .tip-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .tip-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .tip-icon {
+        font-size: 3rem;
+        flex-shrink: 0;
+    }
+    
+    .tip-content h3 {
+        color: #333;
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+    }
+    
+    .tip-content p {
+        color: #666;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    .category-section {
+        margin-bottom: 35px;
+    }
+    
+    .category-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.5rem;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #4facfe;
+    }
+    
+    .daily-quote {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .daily-quote .icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    
+    .daily-quote blockquote {
+        font-size: 1.4rem;
+        font-style: italic;
+        margin: 0;
+        line-height: 1.6;
+    }
+    
+    .daily-quote .author {
+        margin-top: 15px;
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        font-size: 1.1rem;
+        margin-top: 30px;
+    }
+    
+    .back-link:hover {
+        color: #333;
+    }
+</style>
+
+<div class="wellness-container">
+    <div class="wellness-header">
+        <h1>🧘 @(isMalayalam ? "ക്ഷേമ നുറുങ്ങുകൾ" : "Wellness Tips")</h1>
+        <p>@(isMalayalam ? "ആരോഗ്യകരമായി ജീവിക്കാൻ ദിവസേന ഓർമ്മപ്പെടുത്തലുകൾ" : "Daily reminders for healthy living")</p>
+    </div>
+    
+    <!-- Daily Quote -->
+    <div class="daily-quote">
+        <div class="icon">💭</div>
+        <blockquote>
+            @(isMalayalam 
+                ? "\"ആരോഗ്യം സമ്പത്താണ്. മനസ്സിന്റെ ശാന്തത സന്തോഷമാണ്.\""
+                : "\"Health is wealth. Peace of mind is happiness.\"")
+        </blockquote>
+        <div class="author">— @(isMalayalam ? "ഒരു പഴഞ്ചൊല്ല്" : "An old saying")</div>
+    </div>
+    
+    <!-- Physical Health -->
+    <div class="category-section">
+        <h2 class="category-title">
+            <span>🏃</span>
+            @(isMalayalam ? "ശാരീരിക ആരോഗ്യം" : "Physical Health")
+        </h2>
+        
+        <div class="tip-card">
+            <div class="tip-icon">🚶</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "ദിവസേന നടത്തം" : "Daily Walking")</h3>
+                <p>@(isMalayalam 
+                    ? "ദിവസവും 30 മിനിറ്റ് നടക്കുക. ഇത് ഹൃദയ ആരോഗ്യം മെച്ചപ്പെടുത്തുകയും മനസ്സിനെ ഉണർത്തുകയും ചെയ്യും."
+                    : "Walk for 30 minutes daily. It improves heart health and keeps your mind active.")</p>
+            </div>
+        </div>
+        
+        <div class="tip-card">
+            <div class="tip-icon">💧</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "ധാരാളം വെള്ളം കുടിക്കുക" : "Stay Hydrated")</h3>
+                <p>@(isMalayalam 
+                    ? "ദിവസം 8-10 ഗ്ലാസ് വെള്ളം കുടിക്കുക. നിർജലീകരണം തടയുകയും ശരീരം ആരോഗ്യമായി നിലനിർത്തുകയും ചെയ്യും."
+                    : "Drink 8-10 glasses of water daily. It prevents dehydration and keeps your body healthy.")</p>
+            </div>
+        </div>
+        
+        <div class="tip-card">
+            <div class="tip-icon">🧘‍♀️</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "ലളിതമായ വ്യായാമങ്ങൾ" : "Simple Stretching")</h3>
+                <p>@(isMalayalam 
+                    ? "ഓരോ മണിക്കൂറിലും എഴുന്നേറ്റ് ചെറിയ സ്ട്രെച്ചിംഗ് ചെയ്യുക. ഇത് ശരീരത്തിന്റെ വഴക്കം നിലനിർത്തും."
+                    : "Stand up and do light stretching every hour. It maintains body flexibility.")</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mental Health -->
+    <div class="category-section">
+        <h2 class="category-title">
+            <span>🧠</span>
+            @(isMalayalam ? "മാനസിക ആരോഗ്യം" : "Mental Health")
+        </h2>
+        
+        <div class="tip-card">
+            <div class="tip-icon">📖</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "വായനയുടെ ശീലം" : "Reading Habit")</h3>
+                <p>@(isMalayalam 
+                    ? "ദിവസവും ചെറിയ സമയം വായിക്കുക. പുസ്തകങ്ങൾ, പത്രങ്ങൾ അല്ലെങ്കിൽ മാസികകൾ - ഇത് മനസ്സിനെ സജീവമാക്കും."
+                    : "Read a little every day. Books, newspapers, or magazines - it keeps your mind sharp.")</p>
+            </div>
+        </div>
+        
+        <div class="tip-card">
+            <div class="tip-icon">🎵</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "സംഗീതം കേൾക്കുക" : "Listen to Music")</h3>
+                <p>@(isMalayalam 
+                    ? "നിങ്ങൾക്കിഷ്ടമുള്ള സംഗീതം കേൾക്കുക. ഇത് മൂഡ് മെച്ചപ്പെടുത്തുകയും സമ്മർദ്ദം കുറയ്ക്കുകയും ചെയ്യും."
+                    : "Listen to music you love. It improves mood and reduces stress.")</p>
+            </div>
+        </div>
+        
+        <div class="tip-card">
+            <div class="tip-icon">🙏</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "ധ്യാനം / പ്രാർത്ഥന" : "Meditation / Prayer")</h3>
+                <p>@(isMalayalam 
+                    ? "ദിവസവും ചെറിയ സമയം ധ്യാനത്തിനോ പ്രാർത്ഥനയ്ക്കോ മാറ്റിവെക്കുക. ഇത് മനസ്സിന് ശാന്തി നൽകും."
+                    : "Set aside time daily for meditation or prayer. It brings peace to your mind.")</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Nutrition -->
+    <div class="category-section">
+        <h2 class="category-title">
+            <span>🥗</span>
+            @(isMalayalam ? "പോഷകാഹാരം" : "Nutrition")
+        </h2>
+        
+        <div class="tip-card">
+            <div class="tip-icon">🥬</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "പച്ചക്കറികൾ കഴിക്കുക" : "Eat Vegetables")</h3>
+                <p>@(isMalayalam 
+                    ? "ഓരോ ഭക്ഷണത്തിലും പച്ചക്കറികൾ ഉൾപ്പെടുത്തുക. അവ വിറ്റാമിനുകളും ധാതുക്കളും നൽകും."
+                    : "Include vegetables in every meal. They provide essential vitamins and minerals.")</p>
+            </div>
+        </div>
+        
+        <div class="tip-card">
+            <div class="tip-icon">🍎</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "പഴങ്ങൾ കഴിക്കുക" : "Eat Fruits")</h3>
+                <p>@(isMalayalam 
+                    ? "ദിവസവും ഒരു പഴമെങ്കിലും കഴിക്കുക. പഴങ്ങൾ പ്രകൃതിയുടെ മധുരമാണ്."
+                    : "Eat at least one fruit daily. Fruits are nature's sweet treats.")</p>
+            </div>
+        </div>
+        
+        <div class="tip-card">
+            <div class="tip-icon">🍵</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "ഉണക്ക പഴങ്ങൾ" : "Dry Fruits & Nuts")</h3>
+                <p>@(isMalayalam 
+                    ? "ബദാം, വാൽനട്ട്, ഈത്തപ്പഴം എന്നിവ ദിവസവും ചെറിയ അളവിൽ കഴിക്കുക."
+                    : "Have a handful of almonds, walnuts, and dates daily for energy.")</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Social Connection -->
+    <div class="category-section">
+        <h2 class="category-title">
+            <span>👨‍👩‍👧‍👦</span>
+            @(isMalayalam ? "സാമൂഹിക ബന്ധങ്ങൾ" : "Social Connection")
+        </h2>
+        
+        <div class="tip-card">
+            <div class="tip-icon">📞</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "കുടുംബവുമായി സംസാരിക്കുക" : "Talk to Family")</h3>
+                <p>@(isMalayalam 
+                    ? "ദിവസവും കുടുംബാംഗങ്ങളുമായി സംസാരിക്കുക. അവർ നിങ്ങളെ സ്നേഹിക്കുന്നു."
+                    : "Talk to your family members daily. They love you and care about you.")</p>
+            </div>
+        </div>
+        
+        <div class="tip-card">
+            <div class="tip-icon">🤝</div>
+            <div class="tip-content">
+                <h3>@(isMalayalam ? "സുഹൃത്തുക്കളുമായി ബന്ധപ്പെടുക" : "Stay Connected with Friends")</h3>
+                <p>@(isMalayalam 
+                    ? "പഴയ സുഹൃത്തുക്കളുമായി ബന്ധം നിലനിർത്തുക. നല്ല ഓർമ്മകൾ പങ്കുവെക്കുക."
+                    : "Stay in touch with old friends. Share good memories together.")</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a href="@Url.Action("Dashboard", "ElderCare")" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            @(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക" : "Back to Dashboard")
+        </a>
+    </div>
+</div>

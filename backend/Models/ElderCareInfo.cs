@@ -13,7 +13,6 @@ namespace ServConnect.Models
         public string? Id { get; set; }
 
         [Required]
-        [BsonRepresentation(BsonType.ObjectId)]
         public string UserId { get; set; } = string.Empty;
 
         [Required]
@@ -29,6 +28,8 @@ namespace ServConnect.Models
         [Required]
         public string Gender { get; set; } = string.Empty;
 
+        public string? BloodGroup { get; set; }
+
         public string? MedicalConditions { get; set; }
 
         [Required]
@@ -37,7 +38,6 @@ namespace ServConnect.Models
         [Required]
         public string EmergencyPhone { get; set; } = string.Empty;
 
-        [BsonRepresentation(BsonType.ObjectId)]
         public string? GuardianUserId { get; set; }
 
         public bool IsGuardianAssigned { get; set; } = false;

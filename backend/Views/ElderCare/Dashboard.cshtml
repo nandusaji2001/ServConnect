@@ -1,0 +1,448 @@
+@{
+    ViewData["Title"] = "Elder Care Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userName = ViewBag.UserName as string ?? "Friend";
+    var guardianName = ViewBag.GuardianName as string ?? "Guardian";
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    /* Elder-friendly large UI styles */
+    .elder-dashboard {
+        width: 100%;
+        margin: 0;
+        padding: 20px 30px;
+    }
+    
+    .elder-greeting {
+        text-align: center;
+        padding: 30px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        color: white;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    .elder-greeting h1 {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .elder-greeting p {
+        font-size: 1.3rem;
+        opacity: 0.9;
+    }
+    
+    .elder-buttons-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    /* Responsive grid */
+    @@media (max-width: 1200px) {
+        .elder-buttons-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @@media (max-width: 900px) {
+        .elder-buttons-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .elder-buttons-grid {
+            grid-template-columns: 1fr;
+        }
+        .elder-dashboard {
+            padding: 15px;
+        }
+    }
+    
+    .elder-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 35px 25px;
+        border-radius: 20px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        min-height: 180px;
+        text-align: center;
+    }
+    
+    .elder-button:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+    }
+    
+    .elder-button .icon {
+        font-size: 3.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .elder-button .label {
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+    
+    .elder-button .sublabel {
+        font-size: 1rem;
+        opacity: 0.8;
+        margin-top: 5px;
+    }
+    
+    /* SOS Button - Red & Prominent */
+    .btn-sos {
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        color: white;
+        border: 3px solid #ff2a00;
+        animation: pulse-sos 2s infinite;
+    }
+    
+    .btn-sos:hover {
+        color: white;
+        background: linear-gradient(135deg, #ff2a00 0%, #ff0000 100%);
+    }
+    
+    @@keyframes pulse-sos {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.7); }
+        50% { box-shadow: 0 0 0 15px rgba(255, 65, 108, 0); }
+    }
+    
+    /* Check-in Button - Green */
+    .btn-checkin {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+    
+    .btn-checkin:hover {
+        color: white;
+    }
+    
+    /* Medicine Button - Blue */
+    .btn-medicine {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-medicine:hover {
+        color: white;
+    }
+    
+    /* Notes Button - Orange */
+    .btn-notes {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+    
+    .btn-notes:hover {
+        color: white;
+    }
+    
+    /* Wellness Button - Teal */
+    .btn-wellness {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+    
+    .btn-wellness:hover {
+        color: white;
+    }
+    
+    /* Guardian Button - Purple */
+    .btn-guardian {
+        background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        color: #333;
+    }
+    
+    .btn-guardian:hover {
+        color: #333;
+    }
+    
+    /* Edit Profile Button - Gray */
+    .btn-editprofile {
+        background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
+        color: white;
+    }
+    
+    .btn-editprofile:hover {
+        color: white;
+    }
+    
+    /* Messages Button - Indigo */
+    .btn-messages {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-messages:hover {
+        color: white;
+    }
+    
+    /* Notification Badge */
+    .elder-button {
+        position: relative;
+    }
+    
+    .notification-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 700;
+        animation: badge-pulse 2s infinite;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+    }
+    
+    .notification-badge.hidden {
+        display: none;
+    }
+    
+    @@keyframes badge-pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    /* Alert text under button */
+    .alert-sublabel {
+        color: #fbbf24;
+        font-weight: 600;
+        animation: blink 1.5s infinite;
+    }
+    
+    @@keyframes blink {
+        0%, 50%, 100% { opacity: 1; }
+        25%, 75% { opacity: 0.5; }
+    }
+    
+    /* Guardian info card */
+    .guardian-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .guardian-card .icon {
+        font-size: 2rem;
+        color: #667eea;
+    }
+    
+    .guardian-card .info h5 {
+        margin: 0;
+        color: #333;
+        font-size: 1.1rem;
+    }
+    
+    .guardian-card .info p {
+        margin: 0;
+        color: #666;
+        font-size: 0.95rem;
+    }
+    
+    /* Success message */
+    .elder-success {
+        background: #d4edda;
+        color: #155724;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+        text-align: center;
+    }
+    
+    /* Mobile responsiveness */
+    @@media (max-width: 576px) {
+        .elder-greeting h1 {
+            font-size: 1.8rem;
+        }
+        
+        .elder-button {
+            padding: 25px 20px;
+            min-height: 150px;
+        }
+        
+        .elder-button .icon {
+            font-size: 2.5rem;
+        }
+        
+        .elder-button .label {
+            font-size: 1.2rem;
+        }
+    }
+</style>
+
+<div class="elder-dashboard">
+    @if (TempData["Success"] != null)
+    {
+        <div class="elder-success">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        </div>
+    }
+
+    <div class="elder-greeting">
+        <h1>@(isMalayalam ? "സ്വാഗതം" : "Welcome"), @userName! 👋</h1>
+        <p>@(isMalayalam ? "ഇന്ന് നിങ്ങൾക്ക് എങ്ങനെ സഹായിക്കാനാകും?" : "How can we help you today?")</p>
+    </div>
+    
+    <!-- Guardian Info Card -->
+    <div class="guardian-card mb-4">
+        <div class="icon">
+            <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="info">
+            <h5>@(isMalayalam ? "നിങ്ങളുടെ രക്ഷാധികാരി" : "Your Guardian")</h5>
+            <p>@guardianName • @ViewBag.GuardianPhone</p>
+        </div>
+    </div>
+
+    <div class="elder-buttons-grid">
+        <!-- Emergency SOS -->
+        <a href="@Url.Action("EmergencySOS", "ElderCare")" class="elder-button btn-sos">
+            <span class="icon">🆘</span>
+            <span class="label">@(isMalayalam ? "അടിയന്തര SOS" : "Emergency SOS")</span>
+            <span class="sublabel">@(isMalayalam ? "ഉടൻ സഹായം ലഭിക്കുക" : "Get immediate help")</span>
+        </a>
+
+        <!-- Daily Check-in -->
+        <a href="@Url.Action("DailyCheckIn", "ElderCare")" class="elder-button btn-checkin" id="checkinBtn">
+            <span class="notification-badge hidden" id="checkinBadge">!</span>
+            <span class="icon">✅</span>
+            <span class="label">@(isMalayalam ? "ദിവസേന ചെക്ക്-ഇൻ" : "Daily Check-in")</span>
+            <span class="sublabel" id="checkinSublabel">@(isMalayalam ? "നിങ്ങളുടെ സുഖം അറിയിക്കുക" : "Let us know you're okay")</span>
+        </a>
+
+        <!-- Medicine Reminders -->
+        <a href="@Url.Action("MedicineReminders", "ElderCare")" class="elder-button btn-medicine" id="medicineBtn">
+            <span class="notification-badge hidden" id="medicineBadge">0</span>
+            <span class="icon">💊</span>
+            <span class="label">@(isMalayalam ? "മരുന്ന് ഓർമ്മപ്പെടുത്തലുകൾ" : "Medicine Reminders")</span>
+            <span class="sublabel">@(isMalayalam ? "മരുന്ന് ട്രാക്ക് ചെയ്യുക" : "Track your medications")</span>
+        </a>
+
+        <!-- Messages from Guardian -->
+        <a href="@Url.Action("Messages", "ElderCare")" class="elder-button btn-messages" id="messagesBtn">
+            <span class="notification-badge hidden" id="messagesBadge">0</span>
+            <span class="icon">💬</span>
+            <span class="label">@(isMalayalam ? "സന്ദേശങ്ങൾ" : "Messages")</span>
+            <span class="sublabel">@(isMalayalam ? "രക്ഷാധികാരിയുമായി സംസാരിക്കുക" : "Chat with guardian")</span>
+        </a>
+
+        <!-- Notes / Diary -->
+        <a href="@Url.Action("Notes", "ElderCare")" class="elder-button btn-notes">
+            <span class="icon">📓</span>
+            <span class="label">@(isMalayalam ? "കുറിപ്പുകൾ / ഡയറി" : "Notes / Diary")</span>
+            <span class="sublabel">@(isMalayalam ? "നിങ്ങളുടെ ചിന്തകൾ എഴുതുക" : "Write your thoughts")</span>
+        </a>
+
+        <!-- Wellness Tips -->
+        <a href="@Url.Action("WellnessTips", "ElderCare")" class="elder-button btn-wellness">
+            <span class="icon">🧘</span>
+            <span class="label">@(isMalayalam ? "ക്ഷേമ നുറുങ്ങുകൾ" : "Wellness Tips")</span>
+            <span class="sublabel">@(isMalayalam ? "ആരോഗ്യകരമായി ജീവിക്കുക" : "Stay healthy & active")</span>
+        </a>
+
+        <!-- Guardian Info -->
+        <a href="@Url.Action("GuardianInfo", "ElderCare")" class="elder-button btn-guardian">
+            <span class="icon">👤</span>
+            <span class="label">@(isMalayalam ? "രക്ഷാധികാരി വിവരങ്ങൾ" : "Guardian Info")</span>
+            <span class="sublabel">@(isMalayalam ? "രക്ഷാധികാരിയെ കുറിച്ച്" : "About your guardian")</span>
+        </a>
+
+        <!-- Edit Profile -->
+        <a href="@Url.Action("EditProfile", "ElderCare")" class="elder-button btn-editprofile">
+            <span class="icon">⚙️</span>
+            <span class="label">@(isMalayalam ? "പ്രൊഫൈൽ എഡിറ്റ് ചെയ്യുക" : "Edit Profile")</span>
+            <span class="sublabel">@(isMalayalam ? "വിവരങ്ങൾ അപ്ഡേറ്റ് ചെയ്യുക" : "Update your info")</span>
+        </a>
+    </div>
+
+    <div class="text-center mt-4">
+        <p class="text-muted" style="font-size: 1.1rem;">
+            @(isMalayalam ? "എപ്പോഴും നിങ്ങൾക്ക് വേണ്ടി ഇവിടെയുണ്ട്" : "Always here for you") ❤️
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Load dashboard alerts
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAlerts();
+            // Refresh alerts every 30 seconds
+            setInterval(loadAlerts, 30000);
+        });
+        
+        function loadAlerts() {
+            fetch('@Url.Action("GetElderDashboardAlerts", "ElderCare")')
+                .then(r => r.json())
+                .then(data => {
+                    // Check-in alert
+                    const checkinBadge = document.getElementById('checkinBadge');
+                    const checkinSublabel = document.getElementById('checkinSublabel');
+                    if (!data.checkedInToday) {
+                        checkinBadge.classList.remove('hidden');
+                        checkinSublabel.classList.add('alert-sublabel');
+                        checkinSublabel.textContent = '@(isMalayalam ? "ഇന്ന് ചെക്ക്-ഇൻ ചെയ്തില്ല!" : "Not checked in today!")';
+                    } else {
+                        checkinBadge.classList.add('hidden');
+                        checkinSublabel.classList.remove('alert-sublabel');
+                    }
+                    
+                    // Messages badge
+                    const messagesBadge = document.getElementById('messagesBadge');
+                    if (data.unreadMessages > 0) {
+                        messagesBadge.textContent = data.unreadMessages;
+                        messagesBadge.classList.remove('hidden');
+                    } else {
+                        messagesBadge.classList.add('hidden');
+                    }
+                    
+                    // Medicine badge
+                    const medicineBadge = document.getElementById('medicineBadge');
+                    if (data.reminderCount > 0) {
+                        medicineBadge.textContent = data.reminderCount;
+                        medicineBadge.classList.remove('hidden');
+                    } else {
+                        medicineBadge.classList.add('hidden');
+                    }
+                });
+        }
+        
+        // Auto-refresh time display
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            // Could add a time display element if needed
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+    </script>
+}

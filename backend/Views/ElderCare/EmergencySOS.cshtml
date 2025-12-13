@@ -1,0 +1,251 @@
+@{
+    ViewData["Title"] = "Emergency SOS";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var guardianName = ViewBag.GuardianName as string ?? "Guardian";
+    var emergencyPhone = ViewBag.EmergencyPhone as string ?? "";
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .sos-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .sos-header {
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .sos-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .sos-button-container {
+        margin: 40px 0;
+    }
+    
+    .sos-button {
+        width: 250px;
+        height: 250px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        border: 8px solid #ff2a00;
+        color: white;
+        font-size: 3rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        animation: pulse 2s infinite;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        box-shadow: 0 10px 40px rgba(255, 65, 108, 0.5);
+    }
+    
+    .sos-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 50px rgba(255, 65, 108, 0.7);
+    }
+    
+    .sos-button:active {
+        transform: scale(0.95);
+    }
+    
+    .sos-button .icon {
+        font-size: 5rem;
+        margin-bottom: 10px;
+    }
+    
+    @@keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.7); }
+        50% { box-shadow: 0 0 0 30px rgba(255, 65, 108, 0); }
+    }
+    
+    .emergency-info {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-top: 30px;
+    }
+    
+    .emergency-info h4 {
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .emergency-contact {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        font-size: 1.3rem;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .emergency-contact i {
+        color: #ff416c;
+        font-size: 1.5rem;
+    }
+    
+    .call-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 30px;
+        background: #28a745;
+        color: white;
+        border-radius: 50px;
+        text-decoration: none;
+        font-size: 1.2rem;
+        margin-top: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .call-button:hover {
+        background: #218838;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        font-size: 1.1rem;
+        margin-top: 30px;
+    }
+    
+    .back-link:hover {
+        color: #333;
+    }
+    
+    /* Success/Error messages */
+    .sos-success {
+        background: #d4edda;
+        color: #155724;
+        padding: 20px;
+        border-radius: 15px;
+        margin: 20px 0;
+        font-size: 1.2rem;
+        display: none;
+    }
+    
+    .sos-error {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 20px;
+        border-radius: 15px;
+        margin: 20px 0;
+        font-size: 1.2rem;
+        display: none;
+    }
+</style>
+
+<div class="sos-container">
+    <div class="sos-header">
+        <h1>🆘 @(isMalayalam ? "അടിയന്തര SOS" : "Emergency SOS")</h1>
+        <p>@(isMalayalam ? "സഹായത്തിനായി ബട്ടൺ അമർത്തുക" : "Press the button to call for help")</p>
+    </div>
+    
+    <div id="sosSuccess" class="sos-success">
+        <i class="fas fa-check-circle me-2"></i>
+        @(isMalayalam ? "SOS നിങ്ങളുടെ രക്ഷാധികാരിക്ക് അയച്ചു!" : "SOS sent to your guardian!")
+    </div>
+    
+    <div id="sosError" class="sos-error">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span id="sosErrorText">Error sending SOS</span>
+    </div>
+    
+    <div class="sos-button-container">
+        <button type="button" class="sos-button" id="sosButton" onclick="triggerSOS()">
+            <span class="icon">🆘</span>
+            <span>SOS</span>
+        </button>
+    </div>
+    
+    <p style="font-size: 1.2rem; color: #666; margin-top: 20px;">
+        @(isMalayalam ? "ഈ ബട്ടൺ അമർത്തുമ്പോൾ, നിങ്ങളുടെ രക്ഷാധികാരിക്ക് ഉടൻ അറിയിപ്പ് ലഭിക്കും" : "When you press this button, your guardian will be notified immediately")
+    </p>
+    
+    <div class="emergency-info">
+        <h4>@(isMalayalam ? "അടിയന്തര ബന്ധപ്പെടൽ" : "Emergency Contact")</h4>
+        <div class="emergency-contact">
+            <i class="fas fa-user-shield"></i>
+            <div>
+                <strong>@guardianName</strong><br>
+                <span>@(string.IsNullOrEmpty(emergencyPhone) ? "N/A" : "+91 " + emergencyPhone)</span>
+            </div>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(emergencyPhone))
+        {
+            <a href="tel:+91@emergencyPhone" class="call-button">
+                <i class="fas fa-phone"></i>
+                @(isMalayalam ? "നേരിട്ട് വിളിക്കുക" : "Call Directly")
+            </a>
+        }
+    </div>
+    
+    <a href="@Url.Action("Dashboard", "ElderCare")" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        @(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക" : "Back to Dashboard")
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        function triggerSOS() {
+            const btn = document.getElementById('sosButton');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="icon">⏳</span><span>Sending...</span>';
+            
+            fetch('@Url.Action("TriggerSOS", "ElderCare")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('sosSuccess').style.display = 'block';
+                    document.getElementById('sosError').style.display = 'none';
+                    btn.innerHTML = '<span class="icon">✅</span><span>Sent!</span>';
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<span class="icon">🆘</span><span>SOS</span>';
+                    }, 5000);
+                } else {
+                    document.getElementById('sosError').style.display = 'block';
+                    document.getElementById('sosErrorText').textContent = data.message;
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="icon">🆘</span><span>SOS</span>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('sosError').style.display = 'block';
+                document.getElementById('sosErrorText').textContent = 'Network error. Please try again.';
+                btn.disabled = false;
+                btn.innerHTML = '<span class="icon">🆘</span><span>SOS</span>';
+            });
+        }
+    </script>
+    @Html.AntiForgeryToken()
+}
