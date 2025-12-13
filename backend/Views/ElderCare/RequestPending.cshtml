@@ -1,0 +1,199 @@
+@{
+    ViewData["Title"] = "Guardian Request Pending";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+    var isMalayalam = string.Equals(currentCulture, "ml-IN", StringComparison.OrdinalIgnoreCase);
+    var guardianName = ViewBag.GuardianName as string ?? "Guardian";
+    var guardianPhone = ViewBag.GuardianPhone as string ?? "";
+    var requestDate = ViewBag.RequestDate as DateTime? ?? DateTime.UtcNow;
+}
+
+<style>
+    .pending-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+    }
+
+    .pending-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        width: 100%;
+        padding: 48px 40px;
+        text-align: center;
+    }
+
+    .pending-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.9; }
+    }
+
+    .pending-icon i {
+        font-size: 48px;
+        color: white;
+    }
+
+    .pending-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 16px;
+    }
+
+    .pending-message {
+        font-size: 16px;
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .guardian-info {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .guardian-label {
+        font-size: 12px;
+        color: #92400e;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .guardian-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: #78350f;
+        margin-bottom: 4px;
+    }
+
+    .guardian-phone {
+        font-size: 14px;
+        color: #92400e;
+    }
+
+    .request-date {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 24px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fef3c7;
+        color: #92400e;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 24px;
+    }
+
+    .status-badge i {
+        animation: spin 2s linear infinite;
+    }
+
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .btn-dashboard {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+    .btn-dashboard:hover {
+        background: #4b5563;
+        color: white;
+    }
+
+    .info-note {
+        background: #f3f4f6;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 20px;
+        font-size: 13px;
+        color: #6b7280;
+        text-align: left;
+    }
+
+    .info-note i {
+        color: #3b82f6;
+        margin-right: 8px;
+    }
+</style>
+
+<div class="pending-container">
+    <div class="pending-card">
+        <div class="pending-icon">
+            <i class="bi bi-hourglass-split"></i>
+        </div>
+        
+        <h1 class="pending-title">
+            @(isMalayalam ? "Guardian അഭ്യർത്ഥന അയച്ചു" : "Guardian Request Sent")
+        </h1>
+        
+        <p class="pending-message">
+            @(isMalayalam 
+                ? "നിങ്ങളുടെ Guardian അഭ്യർത്ഥന അയച്ചിരിക്കുന്നു. Guardian സ്വീകരിക്കുന്നതുവരെ കാത്തിരിക്കുക."
+                : "Your guardian request has been sent. Please wait for the guardian to accept.")
+        </p>
+
+        <div class="status-badge">
+            <i class="bi bi-arrow-repeat"></i>
+            @(isMalayalam ? "അനുമതിക്കായി കാത്തിരിക്കുന്നു" : "Waiting for Approval")
+        </div>
+
+        <div class="guardian-info">
+            <div class="guardian-label">@(isMalayalam ? "Guardian" : "Guardian")</div>
+            <div class="guardian-name"><i class="bi bi-person-check me-2"></i>@guardianName</div>
+            <div class="guardian-phone"><i class="bi bi-telephone me-2"></i>@guardianPhone</div>
+        </div>
+
+        <div class="request-date">
+            <i class="bi bi-calendar-event me-1"></i>
+            @(isMalayalam ? "അഭ്യർത്ഥന തീയതി:" : "Request sent on:") @requestDate.ToString("MMM dd, yyyy hh:mm tt")
+        </div>
+
+        <a asp-controller="Home" asp-action="Index" class="btn-dashboard">
+            <i class="bi bi-house me-2"></i>@(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് പോകുക" : "Go to Dashboard")
+        </a>
+
+        <div class="info-note">
+            <i class="bi bi-info-circle"></i>
+            @(isMalayalam 
+                ? "Guardian അഭ്യർത്ഥന സ്വീകരിച്ചാൽ, Elder Care മോഡ് സ്വയമേവ സജീവമാകും. നിങ്ങൾക്ക് ഒരു അറിയിപ്പ് ലഭിക്കും."
+                : "Once the guardian accepts the request, Elder Care mode will be automatically activated. You will receive a notification.")
+        </div>
+    </div>
+</div>

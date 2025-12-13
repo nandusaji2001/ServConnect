@@ -162,6 +162,19 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Home" asp-action="Contact">Contact</a>
                             </li>
+                            
+                            @if (User?.Identity?.IsAuthenticated == true)
+                            {
+                                var currentUser = await UserManager.GetUserAsync(User);
+                                if (currentUser?.IsGuardian == true)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Guardian" asp-action="MonitoringDashboard" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); border-radius: 8px; color: white !important; font-weight: 600; padding: 6px 14px;">
+                                            <i class="fas fa-user-shield me-1"></i> Guardian
+                                        </a>
+                                    </li>
+                                }
+                            }
                         }
                     </ul>
                     <partial name="_LoginPartial" />
@@ -169,8 +182,8 @@
             </div>
         </nav>
     </header>
-    <div class="container-fluid flex-fill" style="overflow: hidden;">
-        <main role="main" class="pb-3" style="overflow-y: auto; max-height: 100%; margin-top: 0;">
+    <div class="container-fluid flex-fill px-0" style="overflow: hidden;">
+        <main role="main" class="pb-3" style="overflow-y: auto; max-height: 100%; margin-top: 0; padding: 0;">
             @RenderBody()
         </main>
     </div>

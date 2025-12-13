@@ -1,0 +1,577 @@
+@using ServConnect.Controllers
+@model List<ServConnect.Controllers.ElderMonitorViewModel>
+@{
+    ViewData["Title"] = "Guardian Monitoring Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var guardianName = ViewBag.GuardianName as string ?? "Guardian";
+    var pendingCount = ViewBag.PendingRequestsCount as long? ?? 0;
+    var sosAlerts = ViewBag.SOSAlerts as List<SOSAlert> ?? new List<SOSAlert>();
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .guardian-dashboard {
+        width: 100%;
+        padding: 20px 30px;
+        box-sizing: border-box;
+    }
+    
+    /* SOS Alert Banner */
+    .sos-alert-banner {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        animation: sos-flash 1s infinite;
+        box-shadow: 0 4px 20px rgba(220, 38, 38, 0.5);
+    }
+    
+    @@keyframes sos-flash {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.85; }
+    }
+    
+    .sos-alert-banner h3 {
+        margin: 0 0 10px;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .sos-alert-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255,255,255,0.15);
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .sos-alert-info h4 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+    
+    .sos-alert-info p {
+        margin: 5px 0 0;
+        opacity: 0.9;
+    }
+    
+    .sos-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .sos-call-btn {
+        padding: 10px 20px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .sos-call-btn:hover {
+        background: #059669;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .sos-ack-btn {
+        padding: 10px 20px;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 2px solid white;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    
+    .sos-ack-btn:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    
+    .guardian-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .guardian-header h1 {
+        font-size: 2rem;
+        margin: 0;
+    }
+    
+    .guardian-header p {
+        margin: 5px 0 0;
+        opacity: 0.9;
+    }
+    
+    .header-actions {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .header-btn {
+        padding: 12px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .header-btn-primary {
+        background: white;
+        color: #1e3c72;
+    }
+    
+    .header-btn-primary:hover {
+        background: #f0f0f0;
+        color: #1e3c72;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    .header-btn-warning {
+        background: #f59e0b;
+        color: white;
+    }
+    
+    .header-btn-warning:hover {
+        background: #d97706;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    @@media (max-width: 1000px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+    
+    .stat-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .stat-card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+    }
+    
+    .stat-card .label {
+        color: #666;
+        font-size: 0.95rem;
+    }
+    
+    .elders-section h2 {
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .elders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+    
+    .elder-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .elder-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .elder-card-header {
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .elder-info h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        color: #333;
+    }
+    
+    .elder-info .meta {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+    
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .status-badge.success {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-badge.warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-badge.danger {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-badge.secondary {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+    
+    .elder-card-body {
+        padding: 20px;
+    }
+    
+    .check-in-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .check-in-info .icon {
+        font-size: 1.5rem;
+    }
+    
+    .check-in-info .details {
+        flex: 1;
+    }
+    
+    .check-in-info .details .label {
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    .check-in-info .details .value {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .medical-preview {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 15px;
+    }
+    
+    .medical-preview strong {
+        color: #333;
+    }
+    
+    .elder-card-footer {
+        padding: 15px 20px;
+        background: #f8f9fa;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-btn {
+        flex: 1;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+    
+    .action-btn-primary {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+    }
+    
+    .action-btn-primary:hover {
+        opacity: 0.9;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .action-btn-secondary {
+        background: #e9ecef;
+        color: #333;
+    }
+    
+    .action-btn-secondary:hover {
+        background: #dee2e6;
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .no-elders {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .no-elders .icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .no-elders h3 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .no-elders p {
+        color: #666;
+    }
+</style>
+
+<div class="guardian-dashboard">
+    
+    @if (sosAlerts.Any())
+    {
+        <div class="sos-alert-banner">
+            <h3>🚨 @(isMalayalam ? "അടിയന്തര SOS അലർട്ട്!" : "EMERGENCY SOS ALERT!")</h3>
+            @foreach (var sos in sosAlerts)
+            {
+                <div class="sos-alert-item" id="sos-@sos.Id">
+                    <div class="sos-alert-info">
+                        <h4>@sos.ElderName @(isMalayalam ? "അടിയന്തര സഹായം ആവശ്യപ്പെട്ടു!" : "needs immediate help!")</h4>
+                        <p><i class="fas fa-clock"></i> @sos.TriggeredAt.ToLocalTime().ToString("MMM dd, hh:mm tt") • <i class="fas fa-phone"></i> @sos.ElderPhone</p>
+                    </div>
+                    <div class="sos-actions">
+                        <a href="tel:@sos.ElderPhone" class="sos-call-btn">
+                            <i class="fas fa-phone"></i> @(isMalayalam ? "ഇപ്പോൾ വിളിക്കുക" : "Call Now")
+                        </a>
+                        <button class="sos-ack-btn" onclick="acknowledgeSOS('@sos.Id')">
+                            <i class="fas fa-check"></i> @(isMalayalam ? "സ്വീകരിച്ചു" : "Acknowledged")
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    
+    <div class="guardian-header">
+        <div>
+            <h1>🛡️ @(isMalayalam ? "രക്ഷാധികാരി ഡാഷ്ബോർഡ്" : "Guardian Dashboard")</h1>
+            <p>@(isMalayalam ? "സ്വാഗതം" : "Welcome"), @guardianName</p>
+        </div>
+        <div class="header-actions">
+            @if (pendingCount > 0)
+            {
+                <a href="@Url.Action("Dashboard", "Guardian")" class="header-btn header-btn-warning">
+                    <i class="fas fa-bell"></i>
+                    @pendingCount @(isMalayalam ? "പെൻഡിംഗ് അഭ്യർത്ഥനകൾ" : "Pending Requests")
+                </a>
+            }
+            <a href="@Url.Action("Index", "Home")" class="header-btn header-btn-primary">
+                <i class="fas fa-home"></i>
+                @(isMalayalam ? "ഹോം" : "Home")
+            </a>
+        </div>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="icon">👴</div>
+            <div class="value">@Model.Count</div>
+            <div class="label">@(isMalayalam ? "ആകെ മുതിർന്നവർ" : "Total Elders")</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">✅</div>
+            <div class="value">@Model.Count(e => e.Status == "Active")</div>
+            <div class="label">@(isMalayalam ? "സജീവം" : "Active Today")</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">⚠️</div>
+            <div class="value">@Model.Count(e => e.Status == "Check Soon")</div>
+            <div class="label">@(isMalayalam ? "ശ്രദ്ധ വേണം" : "Need Attention")</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">🔔</div>
+            <div class="value">@Model.Count(e => e.Status == "Missed Check-in")</div>
+            <div class="label">@(isMalayalam ? "ചെക്ക്-ഇൻ മിസ്സായി" : "Missed Check-in")</div>
+        </div>
+    </div>
+    
+    <!-- Elders List -->
+    <div class="elders-section">
+        <h2>
+            <i class="fas fa-users"></i>
+            @(isMalayalam ? "നിങ്ങളുടെ മുതിർന്നവർ" : "Your Elders")
+        </h2>
+        
+        @if (Model.Any())
+        {
+            <div class="elders-grid">
+                @foreach (var elder in Model)
+                {
+                    <div class="elder-card">
+                        <div class="elder-card-header">
+                            <div class="elder-info">
+                                <h3>@elder.FullName</h3>
+                                <div class="meta">
+                                    @elder.Age @(isMalayalam ? "വയസ്സ്" : "years") • @elder.BloodGroup
+                                </div>
+                            </div>
+                            <span class="status-badge @elder.StatusClass">@elder.Status</span>
+                        </div>
+                        <div class="elder-card-body">
+                            <div class="check-in-info">
+                                <span class="icon">🕐</span>
+                                <div class="details">
+                                    <div class="label">@(isMalayalam ? "അവസാന ചെക്ക്-ഇൻ" : "Last Check-in")</div>
+                                    <div class="value">
+                                        @if (elder.LastCheckInTime.HasValue)
+                                        {
+                                            @elder.LastCheckInTime.Value.ToLocalTime().ToString("MMM dd, hh:mm tt")
+                                            <span style="color: #666; font-weight: normal;">(@elder.LastMood)</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: #999;">@(isMalayalam ? "ചെക്ക്-ഇൻ ഇല്ല" : "No check-in yet")</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="medical-preview">
+                                <strong>@(isMalayalam ? "ആരോഗ്യ പ്രശ്നങ്ങൾ:" : "Medical Conditions:")</strong>
+                                @(elder.MedicalConditions.Length > 50 ? elder.MedicalConditions.Substring(0, 50) + "..." : elder.MedicalConditions)
+                            </div>
+                        </div>
+                        <div class="elder-card-footer">
+                            <a href="@Url.Action("ElderMonitor", "Guardian", new { id = elder.UserId })" class="action-btn action-btn-primary">
+                                <i class="fas fa-eye"></i> @(isMalayalam ? "വിശദമായി കാണുക" : "View Details")
+                            </a>
+                            <a href="tel:@elder.Phone" class="action-btn action-btn-secondary">
+                                <i class="fas fa-phone"></i> @(isMalayalam ? "വിളിക്കുക" : "Call")
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="no-elders">
+                <div class="icon">👴</div>
+                <h3>@(isMalayalam ? "മുതിർന്നവർ ഇല്ല" : "No Elders Assigned")</h3>
+                <p>@(isMalayalam ? "നിങ്ങൾക്ക് ഇതുവരെ മുതിർന്നവരെ നിയമിച്ചിട്ടില്ല." : "You don't have any elders assigned to you yet.")</p>
+                @if (pendingCount > 0)
+                {
+                    <a href="@Url.Action("Dashboard", "Guardian")" class="action-btn action-btn-primary" style="display: inline-block; margin-top: 15px;">
+                        @(isMalayalam ? "പെൻഡിംഗ് അഭ്യർത്ഥനകൾ കാണുക" : "View Pending Requests")
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function acknowledgeSOS(sosId) {
+            try {
+                const response = await fetch('/Guardian/AcknowledgeSOS', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(sosId)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const alertItem = document.getElementById('sos-' + sosId);
+                    if (alertItem) {
+                        alertItem.style.animation = 'fadeOut 0.3s ease forwards';
+                        setTimeout(() => {
+                            alertItem.remove();
+                            // Check if there are any more alerts
+                            const banner = document.querySelector('.sos-alert-banner');
+                            const remainingAlerts = document.querySelectorAll('.sos-alert-item');
+                            if (remainingAlerts.length === 0 && banner) {
+                                banner.remove();
+                            }
+                        }, 300);
+                    }
+                } else {
+                    alert('Failed to acknowledge SOS alert: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error acknowledging SOS alert');
+            }
+        }
+    </script>
+    <style>
+        @@keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+    </style>
+}

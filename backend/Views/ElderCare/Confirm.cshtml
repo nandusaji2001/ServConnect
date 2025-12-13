@@ -1,0 +1,139 @@
+@{
+    ViewData["Title"] = "Enable Elder Care Mode";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+    var isMalayalam = string.Equals(currentCulture, "ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .confirm-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+    }
+
+    .confirm-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        width: 100%;
+        padding: 48px 40px;
+        text-align: center;
+    }
+
+    .confirm-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+
+    .confirm-icon i {
+        font-size: 36px;
+        color: white;
+    }
+
+    .confirm-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 16px;
+    }
+
+    .confirm-message {
+        font-size: 16px;
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 8px;
+    }
+
+    .confirm-warning {
+        font-size: 14px;
+        color: #dc2626;
+        font-weight: 500;
+        margin-bottom: 32px;
+    }
+
+    .confirm-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+    }
+
+    .btn-confirm {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        padding: 12px 32px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-confirm:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-cancel {
+        background: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #d1d5db;
+        padding: 12px 32px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-cancel:hover {
+        background: #e5e7eb;
+        color: #374151;
+    }
+</style>
+
+<div class="confirm-container">
+    <div class="confirm-card">
+        <div class="confirm-icon">
+            <i class="bi bi-heart-pulse"></i>
+        </div>
+        
+        @if (isMalayalam)
+        {
+            <h1 class="confirm-title">Elder Care മോഡ് സജീവമാക്കുക</h1>
+            <p class="confirm-message">നിങ്ങൾ Elder Care മോഡ് സജീവമാക്കാൻ ഉറപ്പാണോ?</p>
+            <p class="confirm-warning">ഇത് പിന്നീടു മാറ്റാൻ കഴിയില്ല.</p>
+        }
+        else
+        {
+            <h1 class="confirm-title">Enable Elder Care Mode</h1>
+            <p class="confirm-message">Are you sure you want to enable Elder Care mode?</p>
+            <p class="confirm-warning">This action cannot be reversed.</p>
+        }
+        
+        <div class="confirm-buttons">
+            <a asp-controller="Home" asp-action="Index" class="btn-cancel">
+                @(isMalayalam ? "റദ്ദാക്കുക" : "Cancel")
+            </a>
+            <form asp-controller="ElderCare" asp-action="Confirm" method="post" style="display: inline;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="confirmed" value="true" />
+                <button type="submit" class="btn-confirm">
+                    @(isMalayalam ? "സ്ഥിരീകരിക്കുക" : "Confirm")
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,286 @@
+@using ServConnect.Controllers
+@{
+    ViewData["Title"] = "Messages";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var messages = ViewBag.Messages as List<GuardianMessage> ?? new List<GuardianMessage>();
+    var guardianName = ViewBag.GuardianName as string ?? "Guardian";
+    var guardianId = ViewBag.GuardianId as string;
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .messages-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .messages-header {
+        text-align: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .messages-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .messages-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .chat-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .chat-header {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .chat-header .avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.3rem;
+    }
+    
+    .chat-header .info h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #333;
+    }
+    
+    .chat-header .info p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8f9fa;
+    }
+    
+    .message-bubble {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        margin-bottom: 12px;
+        font-size: 1.05rem;
+        line-height: 1.4;
+    }
+    
+    .message-bubble.received {
+        background: white;
+        color: #333;
+        border-bottom-left-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .message-bubble.sent {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-top: 5px;
+    }
+    
+    .no-messages {
+        text-align: center;
+        padding: 50px 20px;
+        color: #666;
+    }
+    
+    .no-messages .icon {
+        font-size: 4rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .chat-input {
+        display: flex;
+        padding: 15px;
+        gap: 10px;
+        border-top: 1px solid #e0e0e0;
+        background: white;
+    }
+    
+    .chat-input input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        outline: none;
+    }
+    
+    .chat-input input:focus {
+        border-color: #667eea;
+    }
+    
+    .send-btn {
+        padding: 15px 25px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .send-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        font-size: 1.1rem;
+        margin-top: 30px;
+    }
+    
+    .back-link:hover {
+        color: #333;
+    }
+</style>
+
+<div class="messages-container">
+    <div class="messages-header">
+        <h1>💬 @(isMalayalam ? "സന്ദേശങ്ങൾ" : "Messages")</h1>
+        <p>@(isMalayalam ? "നിങ്ങളുടെ രക്ഷാധികാരിയുമായി സംസാരിക്കുക" : "Chat with your guardian")</p>
+    </div>
+    
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="avatar">👤</div>
+            <div class="info">
+                <h4>@guardianName</h4>
+                <p>@(isMalayalam ? "നിങ്ങളുടെ രക്ഷാധികാരി" : "Your Guardian")</p>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            @if (messages.Any())
+            {
+                @foreach (var msg in messages.OrderBy(m => m.SentAt))
+                {
+                    var isFromGuardian = msg.SenderId == guardianId;
+                    <div class="message-bubble @(isFromGuardian ? "received" : "sent")">
+                        <div>@msg.Message</div>
+                        <div class="message-time">@msg.SentAt.ToLocalTime().ToString("MMM dd, hh:mm tt")</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-messages" id="noMessages">
+                    <div class="icon">💬</div>
+                    <p>@(isMalayalam ? "സന്ദേശങ്ങൾ ഇല്ല" : "No messages yet")</p>
+                    <p style="font-size: 0.9rem;">@(isMalayalam ? "നിങ്ങളുടെ രക്ഷാധികാരിക്ക് ഒരു സന്ദേശം അയയ്ക്കുക" : "Send a message to your guardian")</p>
+                </div>
+            }
+        </div>
+        
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="@(isMalayalam ? "സന്ദേശം ടൈപ്പ് ചെയ്യുക..." : "Type a message...")" />
+            <button class="send-btn" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+                @(isMalayalam ? "അയയ്ക്കുക" : "Send")
+            </button>
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a href="@Url.Action("Dashboard", "ElderCare")" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            @(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക" : "Back to Dashboard")
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const formData = new FormData();
+            formData.append('message', message);
+            
+            fetch('@Url.Action("SendMessageToGuardian", "ElderCare")', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove "no messages" placeholder
+                    const noMsg = document.getElementById('noMessages');
+                    if (noMsg) noMsg.remove();
+                    
+                    // Add message to UI
+                    const container = document.getElementById('chatMessages');
+                    const bubble = document.createElement('div');
+                    bubble.className = 'message-bubble sent';
+                    bubble.innerHTML = `<div>${message}</div><div class="message-time">Just now</div>`;
+                    container.appendChild(bubble);
+                    container.scrollTop = container.scrollHeight;
+                    
+                    input.value = '';
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+        
+        // Send on Enter
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        // Scroll to bottom on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('chatMessages');
+            container.scrollTop = container.scrollHeight;
+        });
+    </script>
+    @Html.AntiForgeryToken()
+}

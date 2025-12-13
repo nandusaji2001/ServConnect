@@ -1,0 +1,242 @@
+@{
+    ViewData["Title"] = "Guardian Info";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var guardianName = ViewBag.GuardianName as string ?? "Not Assigned";
+    var guardianPhone = ViewBag.GuardianPhone as string ?? "";
+    var guardianEmail = ViewBag.GuardianEmail as string ?? "N/A";
+    var elderInfo = ViewBag.ElderInfo;
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .guardian-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .guardian-header {
+        text-align: center;
+        background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        color: #333;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .guardian-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .guardian-profile {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    
+    .guardian-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 4rem;
+    }
+    
+    .guardian-name {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .guardian-role {
+        color: #a18cd1;
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 25px;
+    }
+    
+    .contact-info {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .contact-item:last-child {
+        border-bottom: none;
+    }
+    
+    .contact-item .icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .contact-item .details {
+        flex: 1;
+        text-align: left;
+    }
+    
+    .contact-item .details .label {
+        color: #999;
+        font-size: 0.9rem;
+    }
+    
+    .contact-item .details .value {
+        color: #333;
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+    
+    .call-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 35px;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        border-radius: 50px;
+        text-decoration: none;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-top: 25px;
+        transition: all 0.3s ease;
+    }
+    
+    .call-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(17, 153, 142, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .info-note {
+        background: #fff3e0;
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin-top: 25px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .info-note .icon {
+        color: #e65100;
+        font-size: 1.3rem;
+    }
+    
+    .info-note p {
+        margin: 0;
+        color: #333;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        font-size: 1.1rem;
+        margin-top: 30px;
+    }
+    
+    .back-link:hover {
+        color: #333;
+    }
+</style>
+
+<div class="guardian-container">
+    <div class="guardian-header">
+        <h1>👤 @(isMalayalam ? "രക്ഷാധികാരി വിവരങ്ങൾ" : "Guardian Info")</h1>
+        <p>@(isMalayalam ? "നിങ്ങളുടെ സംരക്ഷകനെ കുറിച്ച്" : "About your protector")</p>
+    </div>
+    
+    <div class="guardian-profile">
+        <div class="guardian-avatar">
+            🛡️
+        </div>
+        
+        <div class="guardian-name">@guardianName</div>
+        <div class="guardian-role">@(isMalayalam ? "നിങ്ങളുടെ രക്ഷാധികാരി" : "Your Guardian")</div>
+        
+        <div class="contact-info">
+            <div class="contact-item">
+                <div class="icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="details">
+                    <div class="label">@(isMalayalam ? "ഫോൺ നമ്പർ" : "Phone Number")</div>
+                    <div class="value">@(string.IsNullOrEmpty(guardianPhone) ? "N/A" : "+91 " + guardianPhone)</div>
+                </div>
+            </div>
+            
+            <div class="contact-item">
+                <div class="icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="details">
+                    <div class="label">@(isMalayalam ? "ഇമെയിൽ" : "Email")</div>
+                    <div class="value">@guardianEmail</div>
+                </div>
+            </div>
+            
+            <div class="contact-item">
+                <div class="icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="details">
+                    <div class="label">@(isMalayalam ? "സ്ഥിതി" : "Status")</div>
+                    <div class="value" style="color: #11998e;">@(isMalayalam ? "സജീവം" : "Active") ✓</div>
+                </div>
+            </div>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(guardianPhone))
+        {
+            <a href="tel:+91@guardianPhone" class="call-button">
+                <i class="fas fa-phone"></i>
+                @(isMalayalam ? "ഇപ്പോൾ വിളിക്കുക" : "Call Now")
+            </a>
+        }
+        
+        <div class="info-note">
+            <span class="icon"><i class="fas fa-info-circle"></i></span>
+            <p>
+                @(isMalayalam 
+                    ? "നിങ്ങളുടെ രക്ഷാധികാരിക്ക് നിങ്ങളുടെ ചെക്ക്-ഇൻ സ്ഥിതി, SOS അലേർട്ടുകൾ, മരുന്ന് ട്രാക്കിംഗ് എന്നിവ കാണാൻ കഴിയും."
+                    : "Your guardian can see your check-in status, SOS alerts, and medicine tracking information.")
+            </p>
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a href="@Url.Action("Dashboard", "ElderCare")" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            @(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക" : "Back to Dashboard")
+        </a>
+    </div>
+</div>

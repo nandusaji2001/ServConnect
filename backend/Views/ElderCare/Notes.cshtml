@@ -1,0 +1,314 @@
+@{
+    ViewData["Title"] = "Notes & Diary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var notes = ViewBag.Notes as List<dynamic> ?? new List<dynamic>();
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .notes-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .notes-header {
+        text-align: center;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .notes-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .note-form {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+    }
+    
+    .note-form h3 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.3rem;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 1.1rem;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+        border-color: #f093fb;
+        outline: none;
+    }
+    
+    .save-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(240, 147, 251, 0.4);
+    }
+    
+    .notes-list {
+        margin-top: 30px;
+    }
+    
+    .notes-list h3 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .note-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        margin-bottom: 15px;
+        border-left: 4px solid #f093fb;
+    }
+    
+    .note-card .title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .note-card .content {
+        color: #555;
+        font-size: 1rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+    
+    .note-card .date {
+        color: #999;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+    
+    .no-notes {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        background: #f8f9fa;
+        border-radius: 15px;
+    }
+    
+    .no-notes .icon {
+        font-size: 4rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .success-message {
+        background: #d4edda;
+        color: #155724;
+        padding: 15px 20px;
+        border-radius: 12px;
+        text-align: center;
+        font-size: 1.1rem;
+        display: none;
+        margin-bottom: 20px;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        font-size: 1.1rem;
+        margin-top: 30px;
+    }
+    
+    .back-link:hover {
+        color: #333;
+    }
+</style>
+
+<div class="notes-container">
+    <div class="notes-header">
+        <h1>📓 @(isMalayalam ? "കുറിപ്പുകൾ / ഡയറി" : "Notes / Diary")</h1>
+        <p>@(isMalayalam ? "നിങ്ങളുടെ ചിന്തകളും ഓർമ്മകളും എഴുതുക" : "Write your thoughts and memories")</p>
+    </div>
+    
+    <div id="successMessage" class="success-message">
+        <i class="fas fa-check-circle me-2"></i>
+        @(isMalayalam ? "കുറിപ്പ് സേവ് ചെയ്തു!" : "Note saved!")
+    </div>
+    
+    <div class="note-form">
+        <h3>📝 @(isMalayalam ? "പുതിയ കുറിപ്പ് എഴുതുക" : "Write a New Note")</h3>
+        
+        <div class="form-group">
+            <label for="noteTitle">@(isMalayalam ? "തലക്കെട്ട്" : "Title")</label>
+            <input type="text" id="noteTitle" placeholder="@(isMalayalam ? "നിങ്ങളുടെ കുറിപ്പിന് ഒരു തലക്കെട്ട് നൽകുക" : "Give your note a title")" />
+        </div>
+        
+        <div class="form-group">
+            <label for="noteContent">@(isMalayalam ? "ഉള്ളടക്കം" : "Content")</label>
+            <textarea id="noteContent" rows="6" placeholder="@(isMalayalam ? "നിങ്ങളുടെ ചിന്തകൾ ഇവിടെ എഴുതുക..." : "Write your thoughts here...")"></textarea>
+        </div>
+        
+        <button type="button" class="save-btn" onclick="saveNote()">
+            @(isMalayalam ? "കുറിപ്പ് സേവ് ചെയ്യുക" : "Save Note") 💾
+        </button>
+    </div>
+    
+    <div class="notes-list">
+        <h3>
+            <i class="fas fa-history"></i>
+            @(isMalayalam ? "മുൻ കുറിപ്പുകൾ" : "Previous Notes")
+        </h3>
+        
+        <div id="notesList">
+            <!-- Notes will be loaded here -->
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a href="@Url.Action("Dashboard", "ElderCare")" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            @(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക" : "Back to Dashboard")
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Load notes from localStorage
+        function loadNotes() {
+            const notesContainer = document.getElementById('notesList');
+            const notes = JSON.parse(localStorage.getItem('elderNotes') || '[]');
+            
+            if (notes.length === 0) {
+                notesContainer.innerHTML = `
+                    <div class="no-notes">
+                        <div class="icon">📝</div>
+                        <p>@(isMalayalam ? "ഇതുവരെ കുറിപ്പുകളൊന്നുമില്ല. നിങ്ങളുടെ ആദ്യ കുറിപ്പ് എഴുതുക!" : "No notes yet. Write your first note!")</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by date, newest first
+            notes.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            notesContainer.innerHTML = notes.map(note => `
+                <div class="note-card">
+                    <div class="title">${escapeHtml(note.title)}</div>
+                    <div class="content">${escapeHtml(note.content)}</div>
+                    <div class="date">${formatDate(note.date)}</div>
+                </div>
+            `).join('');
+        }
+        
+        function saveNote() {
+            const title = document.getElementById('noteTitle').value.trim();
+            const content = document.getElementById('noteContent').value.trim();
+            
+            if (!title || !content) {
+                alert('@(isMalayalam ? "ദയവായി തലക്കെട്ടും ഉള്ളടക്കവും നൽകുക" : "Please enter both title and content")');
+                return;
+            }
+            
+            const notes = JSON.parse(localStorage.getItem('elderNotes') || '[]');
+            notes.push({
+                id: Date.now(),
+                title: title,
+                content: content,
+                date: new Date().toISOString()
+            });
+            
+            localStorage.setItem('elderNotes', JSON.stringify(notes));
+            
+            // Clear form
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteContent').value = '';
+            
+            // Show success
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+            
+            // Reload notes
+            loadNotes();
+            
+            // Also save to server
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('content', content);
+            
+            fetch('@Url.Action("SaveNote", "ElderCare")', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: formData
+            }).catch(err => console.log('Server save failed, but local save succeeded'));
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Load notes on page load
+        document.addEventListener('DOMContentLoaded', loadNotes);
+    </script>
+    @Html.AntiForgeryToken()
+}

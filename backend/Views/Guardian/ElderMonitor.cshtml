@@ -1,0 +1,823 @@
+@using ServConnect.Controllers
+@{
+    ViewData["Title"] = "Elder Monitor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var elderInfo = ViewBag.ElderInfo as ServConnect.Models.ElderCareInfo;
+    var elderUser = ViewBag.ElderUser as ServConnect.Models.Users;
+    var checkIns = ViewBag.CheckIns as List<ElderCheckIn> ?? new List<ElderCheckIn>();
+    var reminders = ViewBag.Reminders as List<MedicineReminder> ?? new List<MedicineReminder>();
+    var messages = ViewBag.Messages as List<GuardianMessage> ?? new List<GuardianMessage>();
+    var currentUserId = ViewBag.CurrentUserId as string;
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .elder-monitor {
+        width: 100%;
+        margin: 0;
+        padding: 20px 30px;
+    }
+    
+    .back-nav {
+        margin-bottom: 20px;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        font-size: 1rem;
+    }
+    
+    .back-link:hover {
+        color: #333;
+    }
+    
+    .elder-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .elder-profile {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .elder-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+    }
+    
+    .elder-details h1 {
+        font-size: 1.8rem;
+        margin: 0;
+    }
+    
+    .elder-details .meta {
+        opacity: 0.9;
+        margin-top: 5px;
+    }
+    
+    .quick-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .quick-btn {
+        padding: 12px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .quick-btn-call {
+        background: #10b981;
+        color: white;
+    }
+    
+    .quick-btn-call:hover {
+        background: #059669;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .quick-btn-sos {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .monitor-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 25px;
+    }
+    
+    @@media (max-width: 1000px) {
+        .monitor-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .panel {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+    
+    .panel-header {
+        padding: 20px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .panel-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .panel-body {
+        padding: 20px;
+    }
+    
+    /* Medical Info */
+    .medical-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .medical-item {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .medical-item .label {
+        font-size: 0.8rem;
+        color: #666;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+    
+    .medical-item .value {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .medical-item.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    /* Check-in History */
+    .checkin-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .checkin-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .checkin-item:last-child {
+        border-bottom: none;
+    }
+    
+    .checkin-mood {
+        font-size: 2rem;
+    }
+    
+    .checkin-details {
+        flex: 1;
+    }
+    
+    .checkin-details .time {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .checkin-details .notes {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 3px;
+    }
+    
+    /* Medicine Reminders */
+    .reminder-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .reminder-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .reminder-info h4 {
+        margin: 0;
+        font-size: 1rem;
+        color: #333;
+    }
+    
+    .reminder-info .meta {
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .reminder-delete {
+        background: #fee2e2;
+        color: #dc2626;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .reminder-delete:hover {
+        background: #fecaca;
+    }
+    
+    /* Add Reminder Form */
+    .add-reminder-form {
+        display: none;
+        padding: 20px;
+        background: #f0f9ff;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    .add-reminder-form.show {
+        display: block;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+    
+    /* Messaging */
+    .messages-container {
+        max-height: 350px;
+        overflow-y: auto;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .message-bubble {
+        max-width: 80%;
+        padding: 12px 15px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+    
+    .message-bubble.sent {
+        background: #1e3c72;
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message-bubble.received {
+        background: white;
+        color: #333;
+        border-bottom-left-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-top: 5px;
+    }
+    
+    .message-input-container {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .message-input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 25px;
+        font-size: 1rem;
+    }
+    
+    .message-input:focus {
+        border-color: #1e3c72;
+        outline: none;
+    }
+    
+    .send-btn {
+        padding: 12px 25px;
+        background: #1e3c72;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .send-btn:hover {
+        background: #2a5298;
+    }
+    
+    .add-btn {
+        padding: 8px 16px;
+        background: #1e3c72;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .add-btn:hover {
+        background: #2a5298;
+    }
+    
+    .save-btn {
+        padding: 10px 20px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    
+    .cancel-btn {
+        padding: 10px 20px;
+        background: #e5e7eb;
+        color: #333;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+    }
+</style>
+
+<div class="elder-monitor">
+    <div class="back-nav">
+        <a href="@Url.Action("MonitoringDashboard", "Guardian")" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            @(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക" : "Back to Dashboard")
+        </a>
+    </div>
+    
+    <div class="elder-header">
+        <div class="elder-profile">
+            <div class="elder-avatar">👴</div>
+            <div class="elder-details">
+                <h1>@elderInfo?.FullName</h1>
+                <div class="meta">
+                    @elderInfo?.Age @(isMalayalam ? "വയസ്സ്" : "years") • @(elderInfo?.BloodGroup ?? "N/A") • @elderUser?.PhoneNumber
+                </div>
+            </div>
+        </div>
+        <div class="quick-actions">
+            <a href="tel:@elderUser?.PhoneNumber" class="quick-btn quick-btn-call">
+                <i class="fas fa-phone"></i>
+                @(isMalayalam ? "വിളിക്കുക" : "Call Elder")
+            </a>
+        </div>
+    </div>
+    
+    <div class="monitor-grid">
+        <!-- Left Column -->
+        <div>
+            <!-- Medical Information -->
+            <div class="panel" style="margin-bottom: 25px;">
+                <div class="panel-header">
+                    <h3><i class="fas fa-notes-medical"></i> @(isMalayalam ? "മെഡിക്കൽ വിവരങ്ങൾ" : "Medical Information")</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="medical-grid">
+                        <div class="medical-item">
+                            <div class="label">@(isMalayalam ? "രക്ത ഗ്രൂപ്പ്" : "Blood Group")</div>
+                            <div class="value">@(elderInfo?.BloodGroup ?? "N/A")</div>
+                        </div>
+                        <div class="medical-item">
+                            <div class="label">@(isMalayalam ? "പ്രായം" : "Age")</div>
+                            <div class="value">@elderInfo?.Age @(isMalayalam ? "വയസ്സ്" : "years")</div>
+                        </div>
+                        <div class="medical-item">
+                            <div class="label">@(isMalayalam ? "ലിംഗഭേദം" : "Gender")</div>
+                            <div class="value">@(elderInfo?.Gender ?? "N/A")</div>
+                        </div>
+                        <div class="medical-item">
+                            <div class="label">@(isMalayalam ? "അടിയന്തര ഫോൺ" : "Emergency Phone")</div>
+                            <div class="value">@(elderInfo?.EmergencyPhone ?? "N/A")</div>
+                        </div>
+                        <div class="medical-item full-width">
+                            <div class="label">@(isMalayalam ? "ആരോഗ്യ പ്രശ്നങ്ങൾ" : "Medical Conditions")</div>
+                            <div class="value">@(string.IsNullOrWhiteSpace(elderInfo?.MedicalConditions) ? "None listed" : elderInfo.MedicalConditions)</div>
+                        </div>
+                        <div class="medical-item full-width">
+                            <div class="label">@(isMalayalam ? "മരുന്നുകൾ" : "Current Medications")</div>
+                            <div class="value">@(string.IsNullOrWhiteSpace(elderInfo?.Medications) ? "None listed" : elderInfo.Medications)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Check-in History -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-history"></i> @(isMalayalam ? "ചെക്ക്-ഇൻ ചരിത്രം" : "Check-in History")</h3>
+                </div>
+                <div class="panel-body">
+                    @if (checkIns.Any())
+                    {
+                        <div class="checkin-list">
+                            @foreach (var checkIn in checkIns)
+                            {
+                                var moodEmoji = checkIn.Mood switch
+                                {
+                                    "Great" => "😄",
+                                    "Good" => "🙂",
+                                    "Okay" => "😐",
+                                    "Not Good" => "😔",
+                                    _ => "🙂"
+                                };
+                                <div class="checkin-item">
+                                    <span class="checkin-mood">@moodEmoji</span>
+                                    <div class="checkin-details">
+                                        <div class="time">@checkIn.CheckInTime.ToLocalTime().ToString("MMM dd, yyyy - hh:mm tt")</div>
+                                        @if (!string.IsNullOrWhiteSpace(checkIn.Notes))
+                                        {
+                                            <div class="notes">"@checkIn.Notes"</div>
+                                        }
+                                    </div>
+                                    <span class="badge bg-@(checkIn.Mood == "Not Good" ? "warning" : "success")">@checkIn.Mood</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-data">
+                            <p>@(isMalayalam ? "ചെക്ക്-ഇൻ ഇല്ല" : "No check-ins recorded yet")</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div>
+            <!-- Medicine Reminders -->
+            <div class="panel" style="margin-bottom: 25px;">
+                <div class="panel-header">
+                    <h3><i class="fas fa-pills"></i> @(isMalayalam ? "മരുന്ന് ഓർമ്മപ്പെടുത്തലുകൾ" : "Medicine Reminders")</h3>
+                    <button class="add-btn" onclick="toggleReminderForm()">
+                        <i class="fas fa-plus"></i> @(isMalayalam ? "ചേർക്കുക" : "Add")
+                    </button>
+                </div>
+                <div class="panel-body">
+                    <div class="reminder-list">
+                        @if (reminders.Any())
+                        {
+                            @foreach (var reminder in reminders)
+                            {
+                                <div class="reminder-item" id="reminder-@reminder.Id">
+                                    <div class="reminder-info">
+                                        <h4>💊 @reminder.MedicineName</h4>
+                                        <div class="meta">@reminder.Dosage • @reminder.Frequency</div>
+                                        @if (reminder.Times.Any())
+                                        {
+                                            <div class="meta" style="color: #1e3c72;">@string.Join(", ", reminder.Times)</div>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(reminder.Instruction))
+                                        {
+                                            <div class="meta" style="color: #e65100;">
+                                                <i class="fas fa-utensils"></i> @reminder.Instruction
+                                            </div>
+                                        }
+                                    </div>
+                                    <button class="reminder-delete" onclick="deleteReminder('@reminder.Id')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="no-data" id="noReminders">
+                                <p>@(isMalayalam ? "ഓർമ്മപ്പെടുത്തലുകൾ ഇല്ല" : "No reminders set")</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="add-reminder-form" id="reminderForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>@(isMalayalam ? "മരുന്നിന്റെ പേര്" : "Medicine Name")</label>
+                            <input type="text" id="medicineName" placeholder="e.g., Metformin" />
+                        </div>
+                        <div class="form-group">
+                            <label>@(isMalayalam ? "ഡോസേജ്" : "Dosage")</label>
+                            <input type="text" id="dosage" placeholder="e.g., 500mg" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>@(isMalayalam ? "ഫ്രീക്വൻസി" : "Frequency")</label>
+                            <select id="frequency" onchange="updateTimeFields()">
+                                <option value="Once daily">Once daily</option>
+                                <option value="Twice daily">Twice daily</option>
+                                <option value="Three times daily">Three times daily</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>@(isMalayalam ? "നിർദ്ദേശം" : "Instruction")</label>
+                            <div style="display: flex; gap: 20px; margin-top: 5px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                    <input type="radio" name="instruction" value="Before Food" style="width: auto; margin: 0;"> 
+                                    @(isMalayalam ? "ഭക്ഷണത്തിന് മുമ്പ്" : "Before Food")
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                    <input type="radio" name="instruction" value="After Food" checked style="width: auto; margin: 0;"> 
+                                    @(isMalayalam ? "ഭക്ഷണത്തിന് ശേഷം" : "After Food")
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="timeFieldsContainer">
+                        <label style="font-weight: 600; color: #333; margin-bottom: 10px; display: block;">@(isMalayalam ? "സമയങ്ങൾ" : "Medicine Times")</label>
+                        <div class="form-row" id="timeFields">
+                            <div class="form-group time-field">
+                                <label>@(isMalayalam ? "സമയം 1" : "Time 1")</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="time" class="time-input" name="times" style="flex: 1;" />
+                                    <select class="ampm-select" style="width: 80px;">
+                                        <option value="AM">AM</option>
+                                        <option value="PM">PM</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="save-btn" onclick="saveReminder()">@(isMalayalam ? "സേവ് ചെയ്യുക" : "Save Reminder")</button>
+                        <button class="cancel-btn" onclick="toggleReminderForm()">@(isMalayalam ? "റദ്ദാക്കുക" : "Cancel")</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Secure Messaging -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-comments"></i> @(isMalayalam ? "സന്ദേശങ്ങൾ" : "Messages")</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="messages-container" id="messagesContainer">
+                        @if (messages.Any())
+                        {
+                            @foreach (var msg in messages)
+                            {
+                                var isSent = msg.SenderId == currentUserId;
+                                <div class="message-bubble @(isSent ? "sent" : "received")">
+                                    <div>@msg.Message</div>
+                                    <div class="message-time">@msg.SentAt.ToLocalTime().ToString("MMM dd, hh:mm tt")</div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="no-data" id="noMessages">
+                                <p>@(isMalayalam ? "സന്ദേശങ്ങൾ ഇല്ല" : "No messages yet")</p>
+                            </div>
+                        }
+                    </div>
+                    <div class="message-input-container">
+                        <input type="text" class="message-input" id="messageInput" placeholder="@(isMalayalam ? "സന്ദേശം ടൈപ്പ് ചെയ്യുക..." : "Type a message...")" />
+                        <button class="send-btn" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const elderId = '@elderInfo?.UserId';
+        
+        function toggleReminderForm() {
+            const form = document.getElementById('reminderForm');
+            form.classList.toggle('show');
+            if (form.classList.contains('show')) {
+                updateTimeFields(); // Initialize time fields
+            }
+        }
+        
+        function updateTimeFields() {
+            const frequency = document.getElementById('frequency').value;
+            const container = document.getElementById('timeFields');
+            let numFields = 1;
+            
+            if (frequency === 'Twice daily') numFields = 2;
+            else if (frequency === 'Three times daily') numFields = 3;
+            
+            const labels = ['Morning', 'Afternoon', 'Night'];
+            const malayalamLabels = ['രാവിലെ', 'ഉച്ച', 'രാത്രി'];
+            const defaultTimes = ['08:00', '13:00', '21:00'];
+            const isMalayalam = '@(isMalayalam ? "true" : "false")' === 'true';
+            
+            let html = '';
+            for (let i = 0; i < numFields; i++) {
+                const label = isMalayalam ? malayalamLabels[i] : labels[i];
+                html += `
+                    <div class="form-group time-field" style="margin-bottom: 15px;">
+                        <label>${label} (${isMalayalam ? 'സമയം' : 'Time'} ${i + 1})</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="time" class="time-input" name="times" value="${defaultTimes[i]}" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px;" />
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+        
+        function saveReminder() {
+            const name = document.getElementById('medicineName').value;
+            const dosage = document.getElementById('dosage').value;
+            const frequency = document.getElementById('frequency').value;
+            const instruction = document.querySelector('input[name="instruction"]:checked')?.value || 'After Food';
+            
+            // Collect all times
+            const timeInputs = document.querySelectorAll('.time-input');
+            const times = [];
+            timeInputs.forEach(input => {
+                if (input.value) {
+                    // Convert 24hr to 12hr format
+                    const [hours, minutes] = input.value.split(':');
+                    const h = parseInt(hours);
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    const hour12 = h % 12 || 12;
+                    times.push(`${hour12}:${minutes} ${ampm}`);
+                }
+            });
+            
+            if (!name || !dosage) {
+                alert('@(isMalayalam ? "മരുന്നിന്റെ പേരും ഡോസേജും ആവശ്യമാണ്" : "Medicine name and dosage are required")');
+                return;
+            }
+            
+            if (times.length === 0) {
+                alert('@(isMalayalam ? "കുറഞ്ഞത് ഒരു സമയം തിരഞ്ഞെടുക്കുക" : "Please select at least one time")');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('elderId', elderId);
+            formData.append('medicineName', name);
+            formData.append('dosage', dosage);
+            formData.append('frequency', frequency);
+            formData.append('instruction', instruction);
+            times.forEach(t => formData.append('times', t));
+            
+            fetch('@Url.Action("AddReminder", "Guardian")', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('@(isMalayalam ? "ഓർമ്മപ്പെടുത്തൽ ചേർത്തു!" : "Reminder added!")');
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+        
+        function deleteReminder(reminderId) {
+            if (!confirm('@(isMalayalam ? "ഈ ഓർമ്മപ്പെടുത്തൽ ഇല്ലാതാക്കണോ?" : "Delete this reminder?")')) return;
+            
+            const formData = new FormData();
+            formData.append('reminderId', reminderId);
+            formData.append('elderId', elderId);
+            
+            fetch('@Url.Action("DeleteReminder", "Guardian")', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('reminder-' + reminderId).remove();
+                }
+            });
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const formData = new FormData();
+            formData.append('elderId', elderId);
+            formData.append('message', message);
+            
+            fetch('@Url.Action("SendMessage", "Guardian")', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Add message to UI
+                    const container = document.getElementById('messagesContainer');
+                    const noMsg = document.getElementById('noMessages');
+                    if (noMsg) noMsg.remove();
+                    
+                    const bubble = document.createElement('div');
+                    bubble.className = 'message-bubble sent';
+                    bubble.innerHTML = `<div>${message}</div><div class="message-time">Just now</div>`;
+                    container.appendChild(bubble);
+                    container.scrollTop = container.scrollHeight;
+                    
+                    input.value = '';
+                }
+            });
+        }
+        
+        // Send on Enter
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        // Scroll to bottom of messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        });
+    </script>
+    @Html.AntiForgeryToken()
+}

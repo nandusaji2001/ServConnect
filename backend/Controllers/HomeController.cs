@@ -31,6 +31,16 @@ namespace ServConnect.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Check if user is an elder - redirect to Elder Dashboard
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser != null && currentUser.IsElder)
+                {
+                    return RedirectToAction("Dashboard", "ElderCare");
+                }
+            }
+
             try
             {
                 // Get dynamic statistics
@@ -81,11 +91,19 @@ namespace ServConnect.Controllers
 
         // Role-aware dashboard: redirect regular users to hero home (Index)
         [Authorize]
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
             if (User.IsInRole(RoleTypes.Admin)) return RedirectToAction("Dashboard", "Admin");
             if (User.IsInRole(RoleTypes.Vendor)) return RedirectToAction("Dashboard", "Vendor");
             if (User.IsInRole(RoleTypes.ServiceProvider)) return RedirectToAction("Dashboard", "ServiceProvider");
+            
+            // Check if user is an elder - redirect to Elder Dashboard
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null && currentUser.IsElder)
+            {
+                return RedirectToAction("Dashboard", "ElderCare");
+            }
+            
             // For normal users, show the hero/landing with actions
             return RedirectToAction("Index", "Home");
         }
