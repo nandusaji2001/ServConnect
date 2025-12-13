@@ -28,6 +28,13 @@ namespace ServConnect.Models
         public int OtpAttempts { get; set; } = 0;
         public DateTime? LastOtpRequestTime { get; set; }
 
+        // User Type Identification
+        public bool IsElder { get; set; } = false;
+        public bool IsGuardian { get; set; } = false;
+
+        // User Preferences
+        public string FontSizePreference { get; set; } = "normal";
+
         // Role-specific properties
         public string? LicenseNumber { get; set; } // For ServiceProviders
         public string? Organization { get; set; }  // For Admins/Providers

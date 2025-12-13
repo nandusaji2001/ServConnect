@@ -1,4 +1,4 @@
-﻿@using ServConnect.ViewModels
+@using ServConnect.ViewModels
 @model LoginViewModel
 
 @{
@@ -15,7 +15,7 @@
     }
 
     body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        background: url('/images/login_register_bg.png') center/cover no-repeat;
         font-family: 'Avenir', sans-serif;
     }
 
@@ -30,13 +30,14 @@
     }
 
     .login-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.55);
         border-radius: 20px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         max-width: 440px;
         width: 100%;
         padding: 48px;
         margin: 20px 0;
+        backdrop-filter: blur(5px);
     }
 
     .brand-header {
