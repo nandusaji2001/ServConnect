@@ -1,0 +1,406 @@
+@model ServConnect.ViewModels.ElderCareRegistrationViewModel
+@{
+    ViewData["Title"] = "Elder Care Registration";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    body {
+        background: #f5f5f5;
+        font-family: 'Avenir', sans-serif;
+    }
+
+    .elder-care-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+    }
+
+    .elder-care-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        max-width: 800px;
+        width: 100%;
+        padding: 40px;
+    }
+
+    .elder-care-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .elder-care-header h2 {
+        font-family: 'Fraunces', serif;
+        font-size: 28px;
+        font-weight: 300;
+        color: #1a1a1a;
+        margin: 0 0 8px 0;
+    }
+
+    .elder-care-header p {
+        color: #9ca3af;
+        font-size: 14px;
+        font-weight: 300;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.2s;
+        background-color: #f9fafb;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .form-control:disabled, .form-control[readonly] {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 16px;
+        background-color: #f9fafb;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+    }
+
+    .invalid-feedback {
+        color: #ef4444;
+        font-size: 14px;
+        margin-top: 6px;
+        display: none;
+    }
+
+    .is-invalid ~ .invalid-feedback {
+        display: block;
+    }
+
+    .is-invalid {
+        border-color: #ef4444;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .btn-submit {
+        flex: 1;
+        padding: 14px;
+        background: linear-gradient(to right, #10b981, #059669);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-submit:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    .btn-cancel {
+        flex: 1;
+        padding: 14px;
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+        background: #e5e7eb;
+    }
+
+    .btn-outline-primary {
+        color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .btn-outline-primary:hover {
+        color: #fff;
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    @@media (max-width: 640px) {
+        .elder-care-card {
+            padding: 24px;
+        }
+
+        .elder-care-header h2 {
+            font-size: 24px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        /* Adjust medication entries for mobile */
+        .medication-entry .col-md-4,
+        .medication-entry .col-md-3,
+        .medication-entry .col-md-1 {
+            margin-bottom: 10px;
+        }
+    }
+</style>
+
+<div class="elder-care-container">
+    <div class="elder-care-card">
+        <!-- Header -->
+        <div class="elder-care-header">
+            <h2>Elder Care Registration</h2>
+            <p>Please provide your information for elder care services</p>
+        </div>
+
+        <form id="elderCareForm" method="post" action="/Account/ElderCareRegistration">
+            @Html.AntiForgeryToken()
+            
+            <!-- Name (Auto-filled) -->
+            <div class="form-group">
+                <label for="fullName">
+                    <i class="bi bi-person"></i> Full Name
+                </label>
+                <input type="text" id="fullName" name="FullName" class="form-control" value="@Model.FullName" readonly>
+            </div>
+
+            <!-- Address (Auto-filled) -->
+            <div class="form-group">
+                <label for="address">
+                    <i class="bi bi-geo-alt"></i> Address
+                </label>
+                <textarea id="address" name="Address" class="form-control" rows="3" readonly>@Model.Address</textarea>
+            </div>
+
+            <!-- Age -->
+            <div class="form-group">
+                <label for="age">
+                    <i class="bi bi-calendar"></i> Age (Between 50-120)
+                </label>
+                <input type="number" id="age" name="Age" class="form-control" min="50" max="120" required>
+                <div class="invalid-feedback">Please enter a valid age between 50 and 120.</div>
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+                <label for="gender">
+                    <i class="bi bi-gender-ambiguous"></i> Gender
+                </label>
+                <select id="gender" name="Gender" class="form-select" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+                <div class="invalid-feedback">Please select your gender.</div>
+            </div>
+
+            <!-- Medical Conditions (Optional) -->
+            <div class="form-group">
+                <label for="medicalConditions">
+                    <i class="bi bi-heart-pulse"></i> Medical Conditions (Optional)
+                </label>
+                <textarea id="medicalConditions" name="MedicalConditions" class="form-control" rows="3" placeholder="List any medical conditions..."></textarea>
+            </div>
+
+            <!-- Medications -->
+            <div class="form-group">
+                <label>
+                    <i class="bi bi-capsule"></i> Medications (Optional)
+                </label>
+                <div id="medicationsContainer">
+                    <!-- Medication entry template -->
+                    <div class="medication-entry">
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
+                                <input type="text" name="Medications[0].Name" class="form-control" placeholder="Medicine name">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="Medications[0].Use" class="form-control" placeholder="Use/dosage">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="time" name="Medications[0].Time" class="form-control">
+                            </div>
+                            <div class="col-md-1">
+                                <select name="Medications[0].Period" class="form-select">
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="addMedicationBtn" class="btn btn-outline-primary btn-sm mt-2">
+                    <i class="bi bi-plus-lg"></i> Add Another Medication
+                </button>
+            </div>
+
+            <!-- Emergency Phone Number -->
+            <div class="form-group">
+                <label for="emergencyPhone">
+                    <i class="bi bi-telephone"></i> Emergency Phone Number (Unique)
+                </label>
+                <input type="tel" id="emergencyPhone" name="EmergencyPhone" class="form-control" placeholder="Enter emergency contact number" required>
+                <div class="invalid-feedback">Please enter a valid emergency phone number.</div>
+                <div class="form-text">This number will be used to assign a guardian. Each phone number can only be used once.</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="window.location.href='@Url.Action("Profile", "Account")'">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-submit">
+                    Submit Registration
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Auto-fill name and address from user profile
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const form = document.getElementById('elderCareForm');
+        const ageInput = document.getElementById('age');
+        const genderSelect = document.getElementById('gender');
+        const emergencyPhoneInput = document.getElementById('emergencyPhone');
+        
+        // Add medication button functionality
+        const addMedicationBtn = document.getElementById('addMedicationBtn');
+        const medicationsContainer = document.getElementById('medicationsContainer');
+        
+        let medicationIndex = 1;
+        
+        addMedicationBtn.addEventListener('click', function() {
+            const medicationEntry = document.createElement('div');
+            medicationEntry.className = 'medication-entry';
+            medicationEntry.innerHTML = `
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4">
+                        <input type="text" name="Medications[${medicationIndex}].Name" class="form-control" placeholder="Medicine name">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="Medications[${medicationIndex}].Use" class="form-control" placeholder="Use/dosage">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="time" name="Medications[${medicationIndex}].Time" class="form-control">
+                    </div>
+                    <div class="col-md-1">
+                        <select name="Medications[${medicationIndex}].Period" class="form-select">
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            medicationsContainer.appendChild(medicationEntry);
+            medicationIndex++;
+        });
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            let isValid = true;
+            
+            // Validate age
+            const age = parseInt(ageInput.value);
+            if (isNaN(age) || age < 50 || age > 120) {
+                ageInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                ageInput.classList.remove('is-invalid');
+            }
+            
+            // Validate gender
+            if (!genderSelect.value) {
+                genderSelect.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                genderSelect.classList.remove('is-invalid');
+            }
+            
+            // Validate emergency phone
+            if (!emergencyPhoneInput.value.trim()) {
+                emergencyPhoneInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                emergencyPhoneInput.classList.remove('is-invalid');
+            }
+            
+            // If form is valid, submit it
+            if (isValid) {
+                form.submit();
+            }
+        });
+        
+        // Live validation for age
+        ageInput.addEventListener('input', function() {
+            const age = parseInt(this.value);
+            if (isNaN(age) || age < 50 || age > 120) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+        
+        // Live validation for gender
+        genderSelect.addEventListener('change', function() {
+            if (!this.value) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+        
+        // Live validation for emergency phone
+        emergencyPhoneInput.addEventListener('input', function() {
+            if (!this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+</script>
