@@ -46,6 +46,29 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromDays(30); // persist up to 30 days when RememberMe is checked
     options.ReturnUrlParameter = "returnUrl";
+    
+    // Return 401 for API requests instead of redirecting to login page
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+    
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 403;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
 });
 
 // Localization services
@@ -137,6 +160,12 @@ builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 // Revenue service for analytics and ML predictions
 builder.Services.AddScoped<IRevenueService, RevenueService>();
+// Rental property service for house rentals module
+builder.Services.AddScoped<IRentalPropertyService, RentalPropertyService>();
+// Rental subscription service for house rentals subscription management
+builder.Services.AddScoped<IRentalSubscriptionService, RentalSubscriptionService>();
+// Rental query service for user-owner messaging
+builder.Services.AddScoped<IRentalQueryService, RentalQueryService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

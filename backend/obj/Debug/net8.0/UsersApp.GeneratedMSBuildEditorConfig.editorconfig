@@ -216,6 +216,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxEYXNoYm9hcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/ExploreServices.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxFeHBsb3JlU2VydmljZXMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -258,6 +262,34 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Notifications/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/AddProperty.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXEFkZFByb3BlcnR5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/EditProperty.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXEVkaXRQcm9wZXJ0eS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/HouseRentals.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXEhvdXNlUmVudGFscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/ManageListings.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXE1hbmFnZUxpc3RpbmdzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/MyQueries.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXE15UXVlcmllcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/PropertyDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXFByb3BlcnR5RGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ServicePayment/Pay.cshtml]
