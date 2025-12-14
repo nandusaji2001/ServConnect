@@ -1,0 +1,1938 @@
+@{
+    ViewData["Title"] = "Property Details - ServConnect";
+}
+
+<style>
+    :root {
+        --rental-primary: #6366F1;
+        --rental-primary-dark: #4F46E5;
+        --rental-gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    }
+
+    body {
+        background: #f8fafc;
+    }
+
+    .property-details-container {
+        width: 100%;
+        padding: 30px 40px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        color: #374151;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+
+    .back-btn:hover {
+        transform: translateX(-5px);
+        color: var(--rental-primary);
+    }
+
+    .loading-container {
+        text-align: center;
+        padding: 100px 20px;
+    }
+
+    .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #e5e7eb;
+        border-top-color: var(--rental-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    /* Property Gallery */
+    .gallery-section {
+        margin-bottom: 32px;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    .gallery-main {
+        position: relative;
+        height: 500px;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        margin-bottom: 16px;
+    }
+
+    .gallery-main img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .gallery-main:hover img {
+        transform: scale(1.02);
+    }
+
+    .gallery-nav {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+    }
+
+    .gallery-nav button {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.5);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .gallery-nav button.active {
+        background: white;
+        transform: scale(1.3);
+    }
+
+    .gallery-arrows {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
+
+    .gallery-arrow {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.9);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .gallery-arrow:hover {
+        transform: scale(1.1);
+        background: white;
+    }
+
+    .gallery-arrow i {
+        font-size: 1.2rem;
+        color: #374151;
+    }
+
+    .gallery-thumbnails {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 8px 0;
+    }
+
+    .gallery-thumb {
+        width: 100px;
+        height: 70px;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .gallery-thumb.active {
+        border-color: var(--rental-primary);
+    }
+
+    .gallery-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-images {
+        height: 400px;
+        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 24px;
+    }
+
+    .no-images i {
+        font-size: 4rem;
+        color: var(--rental-primary);
+        opacity: 0.5;
+        margin-bottom: 16px;
+    }
+
+    .no-images p {
+        color: #6366f1;
+        font-size: 1.1rem;
+    }
+
+    /* Property Content */
+    .property-content {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 32px;
+        animation: fadeInUp 0.6s ease 0.2s both;
+    }
+
+    /* Left Column - Details */
+    .property-main {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .property-card {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+    }
+
+    .property-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .property-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #1f2937;
+        margin-bottom: 10px;
+    }
+
+    .property-badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge.type {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        color: var(--rental-primary);
+    }
+
+    .badge.furnishing {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #d97706;
+    }
+
+    .badge.available {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #059669;
+    }
+
+    .badge.unavailable {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+    }
+
+    .property-id {
+        font-family: monospace;
+        color: #94a3b8;
+        font-size: 0.9rem;
+        background: #f1f5f9;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
+
+    .property-location {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #64748b;
+        margin-top: 10px;
+    }
+
+    .property-location i {
+        color: var(--rental-primary);
+    }
+
+    /* Property Stats */
+    .property-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        padding-top: 24px;
+        border-top: 2px solid #f1f5f9;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 14px;
+    }
+
+    .stat-item i {
+        font-size: 1.5rem;
+        color: var(--rental-primary);
+        margin-bottom: 10px;
+    }
+
+    .stat-item .value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .stat-item .label {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    /* Description */
+    .card-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        color: var(--rental-primary);
+    }
+
+    .description-text {
+        color: #64748b;
+        line-height: 1.8;
+    }
+
+    /* Amenities */
+    .amenities-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .amenity-tag {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 50px;
+        color: #16a34a;
+        font-weight: 500;
+    }
+
+    .amenity-tag i {
+        font-size: 0.9rem;
+    }
+
+    /* Preferences */
+    .preferences-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .pref-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 14px;
+    }
+
+    .pref-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pref-icon.yes {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #059669;
+    }
+
+    .pref-icon.no {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+    }
+
+    .pref-info span {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .pref-info small {
+        color: #64748b;
+    }
+
+    /* Map */
+    .map-wrapper {
+        height: 300px;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    #detailsMap {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Right Column - Sidebar */
+    .property-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .pricing-card {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+        position: sticky;
+        top: 20px;
+    }
+
+    .price-main {
+        text-align: center;
+        padding-bottom: 24px;
+        border-bottom: 2px solid #f1f5f9;
+        margin-bottom: 24px;
+    }
+
+    .rent-amount {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--rental-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .rent-period {
+        color: #64748b;
+        font-size: 1.1rem;
+    }
+
+    .deposit-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 0;
+        border-bottom: 1px dashed #e5e7eb;
+    }
+
+    .deposit-row span {
+        color: #64748b;
+    }
+
+    .deposit-row strong {
+        color: #1f2937;
+    }
+
+    /* Owner Notice Badge */
+    .owner-notice {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 14px;
+        text-align: center;
+        margin-top: 24px;
+    }
+
+    .owner-notice i {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .owner-notice span {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .owner-notice .manage-link {
+        display: inline-block;
+        background: white;
+        color: #059669;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .owner-notice .manage-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .contact-btn {
+        width: 100%;
+        padding: 16px;
+        background: var(--rental-gradient);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .contact-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+    }
+
+    .contact-btn.secondary {
+        background: white;
+        color: var(--rental-primary);
+        border: 2px solid var(--rental-primary);
+        margin-top: 12px;
+    }
+
+    .contact-btn.secondary:hover {
+        background: #eef2ff;
+        box-shadow: none;
+    }
+
+    /* Owner Info */
+    .owner-card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+    }
+
+    /* Subscription Paywall */
+    .subscription-paywall {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 16px;
+        padding: 24px;
+        text-align: center;
+        margin-top: 24px;
+        border: 2px solid #f59e0b;
+    }
+
+    .paywall-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+    .paywall-icon i {
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .subscription-paywall h4 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #92400e;
+        margin-bottom: 8px;
+    }
+
+    .subscription-paywall p {
+        color: #a16207;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+    }
+
+    .subscribe-btn {
+        width: 100%;
+        padding: 14px 20px;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .subscribe-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+    }
+
+    .paywall-features {
+        margin-top: 16px;
+        text-align: left;
+    }
+
+    .paywall-feature {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        color: #92400e;
+        font-size: 0.9rem;
+    }
+
+    .paywall-feature i {
+        color: #16a34a;
+    }
+
+    /* Subscription Modal */
+    .subscription-modal {
+        max-width: 950px;
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 32px;
+        box-sizing: border-box;
+    }
+
+    .subscription-modal .modal-header {
+        position: sticky;
+        top: 0;
+        background: white;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+        z-index: 10;
+    }
+
+    .subscription-modal .modal-close {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 44px;
+        height: 44px;
+        background: #f1f5f9;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 20;
+    }
+
+    .subscription-modal .modal-close:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .subscription-subtitle {
+        color: #64748b;
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .subscription-plans {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        align-items: stretch;
+    }
+
+    .plan-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 28px 24px;
+        text-align: center;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-height: 380px;
+    }
+
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    }
+
+    .plan-card.popular {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        border-color: var(--rental-primary);
+        transform: scale(1.02);
+    }
+
+    .plan-card.popular:hover {
+        transform: scale(1.02) translateY(-5px);
+    }
+
+    .popular-tag {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--rental-gradient);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .plan-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        background: white;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 12px;
+    }
+
+    .plan-card.popular .plan-badge {
+        background: var(--rental-primary);
+        color: white;
+    }
+
+    .plan-duration {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .plan-price {
+        font-size: 2.2rem;
+        font-weight: 800;
+        background: var(--rental-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 4px;
+    }
+
+    .plan-savings {
+        font-size: 0.85rem;
+        color: #16a34a;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 20px 0;
+        text-align: left;
+        flex-grow: 1;
+    }
+
+    .plan-features li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        color: #374151;
+        font-size: 0.9rem;
+    }
+
+    .plan-features li i {
+        color: #16a34a;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+
+    .plan-select-btn {
+        width: 100%;
+        padding: 14px;
+        background: white;
+        color: var(--rental-primary);
+        border: 2px solid var(--rental-primary);
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: auto;
+    }
+
+    .plan-select-btn:hover {
+        background: var(--rental-gradient);
+        color: white;
+        border-color: transparent;
+    }
+
+    .plan-card.popular .plan-select-btn {
+        background: var(--rental-gradient);
+        color: white;
+        border-color: transparent;
+    }
+
+    .plan-card.popular .plan-select-btn:hover {
+        opacity: 0.9;
+        transform: scale(1.02);
+    }
+
+    .subscription-footer {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+    }
+
+    .secure-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .secure-badge i {
+        color: #16a34a;
+    }
+
+    /* Contact Info Blur for Non-Subscribers */
+    .contact-blurred {
+        filter: blur(5px);
+        user-select: none;
+        pointer-events: none;
+    }
+
+    .owner-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .owner-avatar {
+        width: 60px;
+        height: 60px;
+        background: var(--rental-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        font-weight: 700;
+    }
+
+    .owner-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .owner-label {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .owner-contact {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 12px;
+    }
+
+    .contact-item i {
+        color: var(--rental-primary);
+        width: 20px;
+    }
+
+    .contact-item span {
+        color: #374151;
+    }
+
+    /* Inquiry Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 24px;
+        padding: 40px;
+        max-width: 500px;
+        width: 90%;
+        animation: modalIn 0.4s ease;
+    }
+
+    /* Query Button */
+    .query-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .query-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+    }
+
+    .query-btn.outline {
+        background: white;
+        color: #10B981;
+        border: 2px solid #10B981;
+    }
+
+    .query-btn.outline:hover {
+        background: #f0fdf4;
+        box-shadow: none;
+    }
+
+    /* Query Modal */
+    .query-modal {
+        max-width: 600px;
+        width: 95%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .query-modal .modal-header {
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 16px;
+        margin-bottom: 20px;
+    }
+
+    .query-input-area {
+        margin-bottom: 16px;
+    }
+
+    .query-input-area textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        resize: vertical;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    .query-input-area textarea:focus {
+        border-color: #10B981;
+        outline: none;
+    }
+
+    .send-query-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .send-query-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+
+    .send-query-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .query-helper-text {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .query-helper-text i {
+        color: #f59e0b;
+    }
+
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+    .modal-header h2 {
+        font-size: 1.5rem;
+        color: #1f2937;
+    }
+
+    .modal-close {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .modal-close:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .inquiry-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .inquiry-form input,
+    .inquiry-form textarea {
+        padding: 14px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .inquiry-form input:focus,
+    .inquiry-form textarea:focus {
+        border-color: var(--rental-primary);
+        outline: none;
+    }
+
+    .inquiry-form textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .submit-inquiry {
+        padding: 14px;
+        background: var(--rental-gradient);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .submit-inquiry:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Animations */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .property-content {
+            grid-template-columns: 1fr;
+        }
+
+        .pricing-card {
+            position: static;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .property-details-container {
+            padding: 20px 16px;
+        }
+
+        .gallery-main {
+            height: 300px;
+        }
+
+        .property-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .preferences-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .property-title {
+            font-size: 1.4rem;
+        }
+
+        .subscription-plans {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .plan-card {
+            min-height: auto;
+        }
+
+        .plan-card.popular {
+            transform: none;
+            order: -1;
+        }
+
+        .plan-card.popular:hover {
+            transform: translateY(-5px);
+        }
+
+        .subscription-modal {
+            padding: 24px;
+            max-height: 95vh;
+        }
+    }
+</style>
+
+<div class="property-details-container">
+    <a href="/Rental" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Rentals
+    </a>
+
+    <div class="loading-container" id="loadingContainer">
+        <div class="loading-spinner"></div>
+        <p>Loading property details...</p>
+    </div>
+
+    <div id="propertyDetails" style="display: none;">
+        <!-- Gallery -->
+        <div class="gallery-section">
+            <div class="gallery-main" id="galleryMain">
+                <img id="mainImage" src="" alt="Property Image" />
+                <div class="gallery-arrows">
+                    <button class="gallery-arrow" onclick="prevImage()"><i class="fas fa-chevron-left"></i></button>
+                    <button class="gallery-arrow" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="gallery-nav" id="galleryNav"></div>
+            </div>
+            <div class="gallery-thumbnails" id="galleryThumbs"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="property-content">
+            <!-- Left Column -->
+            <div class="property-main">
+                <!-- Header Card -->
+                <div class="property-card">
+                    <div class="property-header">
+                        <div>
+                            <h1 class="property-title" id="propertyTitle"></h1>
+                            <div class="property-badges" id="propertyBadges"></div>
+                            <div class="property-location" id="propertyLocation">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span></span>
+                            </div>
+                        </div>
+                        <span class="property-id" id="propertyId"></span>
+                    </div>
+                    <div class="property-stats" id="propertyStats"></div>
+                </div>
+
+                <!-- Description -->
+                <div class="property-card" id="descriptionCard">
+                    <h3 class="card-title"><i class="fas fa-align-left"></i> Description</h3>
+                    <p class="description-text" id="propertyDescription"></p>
+                </div>
+
+                <!-- Amenities -->
+                <div class="property-card" id="amenitiesCard">
+                    <h3 class="card-title"><i class="fas fa-list-check"></i> Amenities</h3>
+                    <div class="amenities-grid" id="amenitiesList"></div>
+                </div>
+
+                <!-- Preferences -->
+                <div class="property-card">
+                    <h3 class="card-title"><i class="fas fa-sliders-h"></i> Property Preferences</h3>
+                    <div class="preferences-grid" id="preferencesList"></div>
+                </div>
+
+                <!-- Map -->
+                <div class="property-card" id="mapCard">
+                    <h3 class="card-title"><i class="fas fa-map"></i> Location on Map</h3>
+                    <div class="map-wrapper">
+                        <div id="detailsMap"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="property-sidebar">
+                <!-- Pricing -->
+                <div class="pricing-card">
+                    <div class="price-main">
+                        <div class="rent-amount" id="rentAmount">₹0</div>
+                        <div class="rent-period">per month</div>
+                    </div>
+                    <div class="deposit-row">
+                        <span>Security Deposit</span>
+                        <strong id="depositAmount">₹0</strong>
+                    </div>
+                    <div class="deposit-row">
+                        <span>Listed On</span>
+                        <strong id="listedDate">-</strong>
+                    </div>
+                    <!-- Owner Badge (shown when owner views their own listing) -->
+                    <div class="owner-notice" id="ownerBadge" style="display: none;">
+                        <i class="fas fa-user-check"></i>
+                        <span>This is your listing</span>
+                        <a href="/Rental/ManageListings" class="manage-link">Manage Listings</a>
+                    </div>
+                    <!-- Subscription Paywall (shown when user doesn't have subscription) -->
+                    <div class="subscription-paywall" id="subscriptionPaywall" style="display: none;">
+                        <div class="paywall-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h4>Unlock Contact Details</h4>
+                        <p>Subscribe to view owner contact information and connect directly</p>
+                        <button class="subscribe-btn" onclick="showSubscriptionModal()">
+                            <i class="fas fa-crown"></i> View Subscription Plans
+                        </button>
+                        <div class="paywall-features">
+                            <div class="paywall-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Direct owner contact</span>
+                            </div>
+                            <div class="paywall-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Unlimited property access</span>
+                            </div>
+                            <div class="paywall-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Send inquiries directly</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Contact Buttons (hidden for owner and non-subscribers) -->
+                    <div id="contactButtons">
+                        <button class="contact-btn" onclick="showInquiryModal()">
+                            <i class="fas fa-envelope"></i> Send Inquiry
+                        </button>
+                        <button class="contact-btn secondary" onclick="callOwner()">
+                            <i class="fas fa-phone"></i> Call Owner
+                        </button>
+                    </div>
+                    <!-- Query Button (available for all logged-in users, hidden for owners) -->
+                    <div id="queryButtonContainer">
+                        <button class="query-btn outline" onclick="showQueryModal()">
+                            <i class="fas fa-comments"></i> Ask a Question
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Owner Info -->
+                <div class="owner-card">
+                    <div class="owner-header">
+                        <div class="owner-avatar" id="ownerAvatar">O</div>
+                        <div>
+                            <div class="owner-name" id="ownerName">Owner</div>
+                            <div class="owner-label">Property Owner</div>
+                        </div>
+                    </div>
+                    <div class="owner-contact" id="ownerContact"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inquiry Modal -->
+<div class="modal-overlay" id="inquiryModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Send Inquiry</h2>
+            <button class="modal-close" onclick="closeInquiryModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form class="inquiry-form" onsubmit="submitInquiry(event)">
+            <input type="text" id="inquiryName" placeholder="Your Name" required />
+            <input type="email" id="inquiryEmail" placeholder="Your Email" required />
+            <input type="tel" id="inquiryPhone" placeholder="Your Phone Number" required />
+            <textarea id="inquiryMessage" placeholder="Your message to the owner..."></textarea>
+            <button type="submit" class="submit-inquiry">
+                <i class="fas fa-paper-plane"></i> Send Inquiry
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Subscription Modal -->
+<div class="modal-overlay" id="subscriptionModal">
+    <div class="modal-content subscription-modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-crown" style="color: #F59E0B; margin-right: 10px;"></i> Choose Your Plan</h2>
+            <button class="modal-close" onclick="closeSubscriptionModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <p class="subscription-subtitle">Unlock access to owner contact details for all rental properties</p>
+        
+        <div class="subscription-plans" id="subscriptionPlans">
+            <div class="plan-card" data-plan="1">
+                <div class="plan-badge">Starter</div>
+                <div class="plan-duration">1 Week</div>
+                <div class="plan-price">₹49</div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> 7 days access</li>
+                    <li><i class="fas fa-check"></i> Unlimited property contacts</li>
+                    <li><i class="fas fa-check"></i> Send unlimited inquiries</li>
+                </ul>
+                <button class="plan-select-btn" onclick="selectPlan(1, 49)">Select Plan</button>
+            </div>
+            
+            <div class="plan-card popular" data-plan="2">
+                <div class="popular-tag">Most Popular</div>
+                <div class="plan-badge">Standard</div>
+                <div class="plan-duration">1 Month</div>
+                <div class="plan-price">₹149</div>
+                <div class="plan-savings">Save 24%</div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> 30 days access</li>
+                    <li><i class="fas fa-check"></i> Unlimited property contacts</li>
+                    <li><i class="fas fa-check"></i> Send unlimited inquiries</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                </ul>
+                <button class="plan-select-btn" onclick="selectPlan(2, 149)">Select Plan</button>
+            </div>
+            
+            <div class="plan-card" data-plan="3">
+                <div class="plan-badge">Premium</div>
+                <div class="plan-duration">3 Months</div>
+                <div class="plan-price">₹349</div>
+                <div class="plan-savings">Save 41%</div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> 90 days access</li>
+                    <li><i class="fas fa-check"></i> Unlimited property contacts</li>
+                    <li><i class="fas fa-check"></i> Send unlimited inquiries</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                    <li><i class="fas fa-check"></i> Early access to new listings</li>
+                </ul>
+                <button class="plan-select-btn" onclick="selectPlan(3, 349)">Select Plan</button>
+            </div>
+        </div>
+        
+        <div class="subscription-footer">
+            <div class="secure-badge">
+                <i class="fas fa-shield-alt"></i>
+                <span>Secure Payment via Razorpay</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Query Modal -->
+<div class="modal-overlay" id="queryModal">
+    <div class="modal-content query-modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-comments" style="color: #10B981; margin-right: 10px;"></i> Ask a Question</h2>
+            <button class="modal-close" onclick="closeQueryModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <p style="color: #64748b; margin-bottom: 20px;">
+            Have a question about this property? Send your query directly to the owner. They will respond within the messaging system.
+        </p>
+        <div class="query-input-area">
+            <textarea id="queryMessage" placeholder="Type your question here... e.g., Is the property still available? Are utilities included in the rent?"></textarea>
+        </div>
+        <button class="send-query-btn" onclick="sendQuery()" id="sendQueryBtn">
+            <i class="fas fa-paper-plane"></i> Send Question
+        </button>
+        <div class="query-helper-text">
+            <i class="fas fa-info-circle"></i>
+            <span>Messages are automatically deleted after 7 days. View your queries in your dashboard.</span>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Razorpay -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    let property = null;
+    let isOwner = false;
+    let hasSubscription = false;
+    let currentImageIndex = 0;
+    let map;
+
+    const houseTypes = ['', '1 BHK', '2 BHK', '3 BHK', '4+ BHK', 'Studio', 'PG/Hostel', 'Villa', 'Independent House', 'Single Room', 'Shared Room'];
+    const furnishingTypes = ['Unfurnished', 'Semi-Furnished', 'Fully Furnished'];
+
+    // Get property ID from URL
+    const urlParts = window.location.pathname.split('/');
+    const propertyId = urlParts[urlParts.length - 1];
+
+    async function loadProperty() {
+        try {
+            const response = await fetch(`/api/rentalapi/properties/${propertyId}`);
+            const result = await response.json();
+
+            if (result.success && result.property) {
+                property = result.property;
+                isOwner = result.isOwner || false;
+                hasSubscription = result.hasSubscription || false;
+                renderProperty();
+            } else {
+                alert('Property not found');
+                window.location.href = '/Rental';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to load property');
+        }
+    }
+
+    function renderProperty() {
+        document.getElementById('loadingContainer').style.display = 'none';
+        document.getElementById('propertyDetails').style.display = 'block';
+
+        // If owner is viewing, hide contact buttons, query button and show owner badge
+        if (isOwner) {
+            document.getElementById('contactButtons').style.display = 'none';
+            document.getElementById('queryButtonContainer').style.display = 'none';
+            document.getElementById('ownerBadge').style.display = 'block';
+        } else if (!hasSubscription) {
+            // Show subscription paywall for non-subscribers
+            document.getElementById('contactButtons').style.display = 'none';
+            document.getElementById('subscriptionPaywall').style.display = 'block';
+        }
+
+        // Gallery
+        const images = property.imageUrls || [];
+        if (images.length > 0) {
+            document.getElementById('mainImage').src = images[0];
+            
+            const nav = document.getElementById('galleryNav');
+            const thumbs = document.getElementById('galleryThumbs');
+            
+            images.forEach((img, idx) => {
+                // Nav dots
+                const dot = document.createElement('button');
+                dot.className = idx === 0 ? 'active' : '';
+                dot.onclick = () => goToImage(idx);
+                nav.appendChild(dot);
+
+                // Thumbnails
+                const thumb = document.createElement('div');
+                thumb.className = `gallery-thumb ${idx === 0 ? 'active' : ''}`;
+                thumb.innerHTML = `<img src="${img}" alt="Thumbnail ${idx + 1}" />`;
+                thumb.onclick = () => goToImage(idx);
+                thumbs.appendChild(thumb);
+            });
+        } else {
+            document.getElementById('galleryMain').innerHTML = `
+                <div class="no-images">
+                    <i class="fas fa-image"></i>
+                    <p>No images available</p>
+                </div>
+            `;
+        }
+
+        // Title and badges
+        document.getElementById('propertyTitle').textContent = property.title;
+        document.getElementById('propertyId').textContent = property.propertyId;
+
+        const badges = document.getElementById('propertyBadges');
+        badges.innerHTML = `
+            <span class="badge type">${houseTypes[property.houseType] || 'Property'}</span>
+            <span class="badge furnishing">${furnishingTypes[property.furnishing] || 'Unknown'}</span>
+            <span class="badge ${property.isAvailable ? 'available' : 'unavailable'}">
+                ${property.isAvailable ? 'Available' : 'Unavailable'}
+            </span>
+        `;
+
+        // Location
+        document.querySelector('#propertyLocation span').textContent = 
+            `${property.area || ''} ${property.area ? ',' : ''} ${property.city || 'Location not specified'}`;
+
+        // Stats
+        const stats = document.getElementById('propertyStats');
+        stats.innerHTML = `
+            ${property.bedrooms ? `<div class="stat-item"><i class="fas fa-bed"></i><div class="value">${property.bedrooms}</div><div class="label">Bedrooms</div></div>` : ''}
+            ${property.bathrooms ? `<div class="stat-item"><i class="fas fa-bath"></i><div class="value">${property.bathrooms}</div><div class="label">Bathrooms</div></div>` : ''}
+            ${property.squareFeet ? `<div class="stat-item"><i class="fas fa-vector-square"></i><div class="value">${property.squareFeet}</div><div class="label">Sq.Ft</div></div>` : ''}
+            ${property.floorNumber != null ? `<div class="stat-item"><i class="fas fa-building"></i><div class="value">${property.floorNumber}${property.totalFloors ? '/' + property.totalFloors : ''}</div><div class="label">Floor</div></div>` : ''}
+        `;
+
+        // Description
+        if (property.description) {
+            document.getElementById('propertyDescription').textContent = property.description;
+        } else {
+            document.getElementById('descriptionCard').style.display = 'none';
+        }
+
+        // Amenities
+        const amenities = property.amenities || [];
+        if (amenities.length > 0) {
+            const amenitiesList = document.getElementById('amenitiesList');
+            amenities.forEach(amenity => {
+                amenitiesList.innerHTML += `<div class="amenity-tag"><i class="fas fa-check"></i> ${amenity}</div>`;
+            });
+        } else {
+            document.getElementById('amenitiesCard').style.display = 'none';
+        }
+
+        // Preferences
+        const prefs = document.getElementById('preferencesList');
+        prefs.innerHTML = `
+            <div class="pref-item">
+                <div class="pref-icon ${property.bachelorsAllowed ? 'yes' : 'no'}">
+                    <i class="fas fa-${property.bachelorsAllowed ? 'check' : 'times'}"></i>
+                </div>
+                <div class="pref-info">
+                    <span>Bachelors</span>
+                    <small>${property.bachelorsAllowed ? 'Allowed' : 'Not Allowed'}</small>
+                </div>
+            </div>
+            <div class="pref-item">
+                <div class="pref-icon ${property.petsAllowed ? 'yes' : 'no'}">
+                    <i class="fas fa-${property.petsAllowed ? 'check' : 'times'}"></i>
+                </div>
+                <div class="pref-info">
+                    <span>Pets</span>
+                    <small>${property.petsAllowed ? 'Allowed' : 'Not Allowed'}</small>
+                </div>
+            </div>
+            <div class="pref-item">
+                <div class="pref-icon ${property.isAvailable ? 'yes' : 'no'}">
+                    <i class="fas fa-${property.isAvailable ? 'check' : 'times'}"></i>
+                </div>
+                <div class="pref-info">
+                    <span>Availability</span>
+                    <small>${property.isAvailable ? 'Available Now' : 'Currently Unavailable'}</small>
+                </div>
+            </div>
+        `;
+
+        // Pricing
+        document.getElementById('rentAmount').textContent = `₹${(property.rentAmount || 0).toLocaleString()}`;
+        document.getElementById('depositAmount').textContent = `₹${(property.depositAmount || 0).toLocaleString()}`;
+        document.getElementById('listedDate').textContent = new Date(property.createdAt).toLocaleDateString();
+
+        // Owner info
+        document.getElementById('ownerName').textContent = property.ownerName || 'Property Owner';
+        document.getElementById('ownerAvatar').textContent = (property.ownerName || 'O')[0].toUpperCase();
+        
+        const ownerContact = document.getElementById('ownerContact');
+        ownerContact.innerHTML = '';
+        
+        // Apply blur if not owner and not subscribed
+        const ownerCard = document.querySelector('.owner-card');
+        if (!isOwner && !hasSubscription) {
+            ownerContact.classList.add('contact-blurred');
+        }
+        
+        if (property.ownerPhone) {
+            ownerContact.innerHTML += `
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>${property.ownerPhone}</span>
+                </div>
+            `;
+        }
+        if (property.ownerEmail) {
+            ownerContact.innerHTML += `
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>${property.ownerEmail}</span>
+                </div>
+            `;
+        }
+        
+        // If no subscription and not owner, add a "Subscribe to view" message
+        if (!isOwner && !hasSubscription) {
+            ownerContact.innerHTML += `
+                <div class="subscribe-to-view" style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 12px; text-align: center;">
+                    <p style="color: #92400e; font-size: 0.85rem; margin: 0;">
+                        <i class="fas fa-lock" style="margin-right: 6px;"></i>
+                        <a href="javascript:showSubscriptionModal()" style="color: #d97706; font-weight: 600; text-decoration: underline;">Subscribe</a> to view contact details
+                    </p>
+                </div>
+            `;
+        }
+
+        // Map
+        if (property.latitude && property.longitude) {
+            setTimeout(() => {
+                map = L.map('detailsMap').setView([property.latitude, property.longitude], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+                L.marker([property.latitude, property.longitude]).addTo(map)
+                    .bindPopup(property.title)
+                    .openPopup();
+            }, 300);
+        } else {
+            document.getElementById('mapCard').style.display = 'none';
+        }
+    }
+
+    function goToImage(index) {
+        const images = property.imageUrls || [];
+        currentImageIndex = index;
+        document.getElementById('mainImage').src = images[index];
+        
+        // Update nav dots
+        document.querySelectorAll('.gallery-nav button').forEach((btn, i) => {
+            btn.classList.toggle('active', i === index);
+        });
+        
+        // Update thumbnails
+        document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
+            thumb.classList.toggle('active', i === index);
+        });
+    }
+
+    function nextImage() {
+        const images = property.imageUrls || [];
+        if (images.length > 0) {
+            goToImage((currentImageIndex + 1) % images.length);
+        }
+    }
+
+    function prevImage() {
+        const images = property.imageUrls || [];
+        if (images.length > 0) {
+            goToImage((currentImageIndex - 1 + images.length) % images.length);
+        }
+    }
+
+    function showInquiryModal() {
+        document.getElementById('inquiryModal').classList.add('active');
+    }
+
+    function closeInquiryModal() {
+        document.getElementById('inquiryModal').classList.remove('active');
+    }
+
+    // Subscription Modal Functions
+    function showSubscriptionModal() {
+        document.getElementById('subscriptionModal').classList.add('active');
+    }
+
+    function closeSubscriptionModal() {
+        document.getElementById('subscriptionModal').classList.remove('active');
+    }
+
+    // Query Modal Functions
+    function showQueryModal() {
+        document.getElementById('queryModal').classList.add('active');
+    }
+
+    function closeQueryModal() {
+        document.getElementById('queryModal').classList.remove('active');
+        document.getElementById('queryMessage').value = '';
+    }
+
+    async function sendQuery() {
+        const message = document.getElementById('queryMessage').value.trim();
+        if (!message) {
+            alert('Please enter your question');
+            return;
+        }
+
+        const sendBtn = document.getElementById('sendQueryBtn');
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        try {
+            const response = await fetch('/api/rentalquery/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    propertyId: property.id,
+                    message: message
+                })
+            });
+
+            if (response.status === 401) {
+                alert('Please login to send a query');
+                window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                return;
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                if (result.isExisting) {
+                    alert('Your message has been added to your existing conversation with the owner.');
+                } else {
+                    alert('Your question has been sent to the owner. Check your dashboard for their response.');
+                }
+                closeQueryModal();
+            } else {
+                alert(result.message || 'Failed to send query');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to send query. Please try again.');
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Question';
+        }
+    }
+
+    let selectedPlan = null;
+    let selectedAmount = null;
+
+    async function selectPlan(planIndex, amount) {
+        selectedPlan = planIndex;
+        selectedAmount = amount;
+
+        // Check if user is logged in
+        try {
+            const statusResponse = await fetch('/api/rentalsubscription/status');
+            
+            if (statusResponse.status === 401) {
+                alert('Please login to subscribe');
+                window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            
+            if (!statusResponse.ok) {
+                const errorText = await statusResponse.text();
+                console.error('Status API error:', statusResponse.status, errorText);
+                alert('Unable to check subscription status. Please try again.');
+                return;
+            }
+
+            // Create subscription order
+            const createResponse = await fetch('/api/rentalsubscription/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan: planIndex })
+            });
+
+            if (!createResponse.ok) {
+                const errorText = await createResponse.text();
+                console.error('Create API error:', createResponse.status, errorText);
+                alert('Failed to create subscription. Please try again.');
+                return;
+            }
+
+            const result = await createResponse.json();
+
+            if (result.success) {
+                // Initialize Razorpay payment
+                initiateRazorpayPayment(result);
+            } else {
+                alert(result.error || 'Failed to create subscription order');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to process subscription: ' + error.message);
+        }
+    }
+
+    function initiateRazorpayPayment(orderData) {
+        const options = {
+            key: orderData.razorpayKey,
+            amount: orderData.subscription.amountInPaise,
+            currency: 'INR',
+            name: 'ServConnect',
+            description: `Rental Subscription - ${orderData.subscription.planName}`,
+            handler: async function (response) {
+                // Verify payment
+                try {
+                    const verifyResponse = await fetch('/api/rentalsubscription/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpayOrderId: response.razorpay_order_id || '',
+                            razorpaySignature: response.razorpay_signature || '',
+                            subscriptionId: orderData.subscription.id
+                        })
+                    });
+
+                    const verifyResult = await verifyResponse.json();
+
+                    if (verifyResult.success) {
+                        alert('Subscription activated successfully! You now have access to all contact details.');
+                        closeSubscriptionModal();
+                        // Reload page to show unlocked content
+                        window.location.reload();
+                    } else {
+                        alert(verifyResult.error || 'Payment verification failed');
+                    }
+                } catch (error) {
+                    console.error('Verification error:', error);
+                    alert('Payment verification failed. Please contact support.');
+                }
+            },
+            prefill: {
+                name: '',
+                email: '',
+                contact: ''
+            },
+            theme: {
+                color: '#6366F1'
+            },
+            modal: {
+                ondismiss: function() {
+                    console.log('Payment modal closed');
+                }
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+            alert('Payment failed: ' + response.error.description);
+        });
+        rzp.open();
+    }
+
+    function getPlanName(planIndex) {
+        const plans = { 1: '1 Week', 2: '1 Month', 3: '3 Months' };
+        return plans[planIndex] || 'Subscription';
+    }
+
+    function callOwner() {
+        if (property.ownerPhone) {
+            window.location.href = `tel:${property.ownerPhone}`;
+        } else {
+            alert('Owner phone number not available');
+        }
+    }
+
+    async function submitInquiry(event) {
+        event.preventDefault();
+
+        const data = {
+            propertyId: property.id,
+            name: document.getElementById('inquiryName').value,
+            email: document.getElementById('inquiryEmail').value,
+            phone: document.getElementById('inquiryPhone').value,
+            message: document.getElementById('inquiryMessage').value
+        };
+
+        try {
+            const response = await fetch('/api/rentalapi/inquiries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Inquiry sent successfully! The owner will contact you soon.');
+                closeInquiryModal();
+                document.querySelector('.inquiry-form').reset();
+            } else {
+                alert(result.error || 'Failed to send inquiry');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to send inquiry. Please try again.');
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadProperty);
+</script>

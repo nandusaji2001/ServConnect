@@ -1,0 +1,1328 @@
+@{
+    ViewData["Title"] = "Manage My Listings - ServConnect";
+}
+
+<style>
+    :root {
+        --rental-primary: #6366F1;
+        --rental-primary-dark: #4F46E5;
+        --rental-gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    }
+
+    body {
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+
+    .manage-container {
+        width: 100%;
+        padding: 30px 40px;
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 32px;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .back-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        background: white;
+        color: #374151;
+        border-radius: 14px;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        transform: translateX(-5px);
+        color: var(--rental-primary);
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        background: var(--rental-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-title p {
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    .add-new-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
+        background: var(--rental-gradient);
+        color: white;
+        border-radius: 14px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+    }
+
+    .add-new-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Stats Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
+        margin-bottom: 32px;
+        animation: fadeInUp 0.6s ease 0.1s both;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-icon.total {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        color: var(--rental-primary);
+    }
+
+    .stat-icon.active {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #059669;
+    }
+
+    .stat-icon.paused {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #d97706;
+    }
+
+    .stat-icon.inquiries {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+    }
+
+    .stat-icon.queries {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        color: #2563eb;
+    }
+
+    .stat-card.clickable {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card.clickable:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    }
+
+    .unread-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #dc2626;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-info h3 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #1f2937;
+    }
+
+    .stat-info p {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    /* Listings Table */
+    .listings-section {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+        overflow: hidden;
+        animation: fadeInUp 0.6s ease 0.2s both;
+    }
+
+    .section-header {
+        padding: 24px 28px;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .section-header h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+    }
+
+    .filter-tab {
+        padding: 8px 20px;
+        border: none;
+        background: #f1f5f9;
+        color: #64748b;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-tab.active {
+        background: var(--rental-gradient);
+        color: white;
+    }
+
+    .filter-tab:hover:not(.active) {
+        background: #e2e8f0;
+    }
+
+    /* Listing Cards */
+    .listings-grid {
+        padding: 24px;
+    }
+
+    .listing-card {
+        display: grid;
+        grid-template-columns: 180px 1fr auto;
+        gap: 24px;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 16px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+        align-items: center;
+    }
+
+    .listing-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .listing-card.paused {
+        opacity: 0.7;
+    }
+
+    .listing-image {
+        width: 180px;
+        height: 120px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .listing-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .listing-image.no-image {
+        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .listing-image.no-image i {
+        font-size: 2.5rem;
+        color: var(--rental-primary);
+        opacity: 0.5;
+    }
+
+    .listing-info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .listing-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .listing-meta {
+        display: flex;
+        gap: 16px;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .listing-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .listing-meta i {
+        color: var(--rental-primary);
+    }
+
+    .listing-badges {
+        display: flex;
+        gap: 8px;
+    }
+
+    .listing-badge {
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .listing-badge.active {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #059669;
+    }
+
+    .listing-badge.paused {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #d97706;
+    }
+
+    .listing-badge.type {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        color: var(--rental-primary);
+    }
+
+    .listing-price {
+        font-size: 1.25rem;
+        font-weight: 800;
+        background: var(--rental-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .listing-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        min-width: 130px;
+    }
+
+    .action-btn.edit {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        color: var(--rental-primary);
+    }
+
+    .action-btn.edit:hover {
+        background: var(--rental-gradient);
+        color: white;
+    }
+
+    .action-btn.pause {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #d97706;
+    }
+
+    .action-btn.pause:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        color: white;
+    }
+
+    .action-btn.resume {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #059669;
+    }
+
+    .action-btn.resume:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: white;
+    }
+
+    .action-btn.delete {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+    }
+
+    .action-btn.delete:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #d1d5db;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        color: #374151;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #64748b;
+        margin-bottom: 24px;
+    }
+
+    .empty-state .add-new-btn {
+        display: inline-flex;
+    }
+
+    /* Loading */
+    .loading-container {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #e5e7eb;
+        border-top-color: var(--rental-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+    }
+
+    /* Delete Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 24px;
+        padding: 40px;
+        text-align: center;
+        max-width: 400px;
+        animation: modalIn 0.4s ease;
+    }
+
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .modal-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+
+    .modal-icon i {
+        font-size: 2rem;
+        color: #dc2626;
+    }
+
+    .modal-content h3 {
+        font-size: 1.5rem;
+        color: #1f2937;
+        margin-bottom: 10px;
+    }
+
+    .modal-content p {
+        color: #64748b;
+        margin-bottom: 24px;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .modal-btn {
+        flex: 1;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .modal-btn.cancel {
+        background: #f1f5f9;
+        color: #374151;
+    }
+
+    .modal-btn.confirm {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+    }
+
+    /* Queries Section */
+    .queries-section {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+        overflow: hidden;
+        margin-top: 32px;
+        animation: fadeInUp 0.6s ease 0.3s both;
+    }
+
+    .query-card {
+        display: flex;
+        gap: 16px;
+        padding: 20px;
+        border-bottom: 1px solid #f1f5f9;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .query-card:last-child {
+        border-bottom: none;
+    }
+
+    .query-card:hover {
+        background: #f8fafc;
+    }
+
+    .query-card.unread {
+        background: #eff6ff;
+    }
+
+    .query-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--rental-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .query-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .query-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 6px;
+    }
+
+    .query-user {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .query-property {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .query-time {
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+
+    .query-preview {
+        color: #64748b;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .query-unread-indicator {
+        width: 10px;
+        height: 10px;
+        background: #2563eb;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    /* Query Chat Modal */
+    .chat-modal {
+        max-width: 600px;
+        width: 95%;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+    }
+
+    .chat-header-info h3 {
+        font-size: 1.1rem;
+        color: #1f2937;
+        margin-bottom: 4px;
+    }
+
+    .chat-header-info p {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-height: 300px;
+        max-height: 400px;
+    }
+
+    .chat-message {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 0.95rem;
+    }
+
+    .chat-message.received {
+        background: white;
+        border: 1px solid #e5e7eb;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+    }
+
+    .chat-message.sent {
+        background: var(--rental-gradient);
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+    }
+
+    .chat-message-meta {
+        font-size: 0.75rem;
+        margin-top: 6px;
+        opacity: 0.7;
+    }
+
+    .chat-input {
+        padding: 16px 20px;
+        border-top: 1px solid #e5e7eb;
+        background: white;
+        display: flex;
+        gap: 12px;
+    }
+
+    .chat-input input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+    .chat-input input:focus {
+        border-color: var(--rental-primary);
+    }
+
+    .chat-send-btn {
+        padding: 12px 24px;
+        background: var(--rental-gradient);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .chat-send-btn:hover {
+        transform: scale(1.05);
+    }
+
+    .chat-send-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .chat-expire-notice {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #f59e0b;
+        padding: 8px;
+        background: #fef3c7;
+        border-radius: 8px;
+        margin: 0 20px 16px;
+    }
+    }
+
+    /* Animations */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .listing-card {
+            grid-template-columns: 1fr;
+        }
+
+        .listing-image {
+            width: 100%;
+            height: 180px;
+        }
+
+        .listing-actions {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .manage-container {
+            padding: 20px 16px;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .page-title h1 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="manage-container">
+    <div class="page-header">
+        <div class="header-left">
+            <a href="/Rental" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="page-title">
+                <h1><i class="fas fa-building"></i> Manage My Listings</h1>
+                <p>View and manage all your rental properties</p>
+            </div>
+        </div>
+        <a href="/Rental/AddProperty" class="add-new-btn">
+            <i class="fas fa-plus"></i> Add New Property
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon total"><i class="fas fa-home"></i></div>
+            <div class="stat-info">
+                <h3 id="totalCount">0</h3>
+                <p>Total Listings</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon active"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-info">
+                <h3 id="activeCount">0</h3>
+                <p>Active</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon paused"><i class="fas fa-pause-circle"></i></div>
+            <div class="stat-info">
+                <h3 id="pausedCount">0</h3>
+                <p>Paused</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon inquiries"><i class="fas fa-envelope"></i></div>
+            <div class="stat-info">
+                <h3 id="inquiriesCount">0</h3>
+                <p>Total Inquiries</p>
+            </div>
+        </div>
+        <div class="stat-card clickable" onclick="scrollToQueries()" style="position: relative;">
+            <div class="stat-icon queries"><i class="fas fa-comments"></i></div>
+            <div class="stat-info">
+                <h3 id="queriesCount">0</h3>
+                <p>User Questions</p>
+            </div>
+            <span class="unread-badge" id="unreadBadge" style="display: none;">0</span>
+        </div>
+    </div>
+
+    <!-- Listings -->
+    <div class="listings-section">
+        <div class="section-header">
+            <h2>My Properties</h2>
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterListings('all')">All</button>
+                <button class="filter-tab" onclick="filterListings('active')">Active</button>
+                <button class="filter-tab" onclick="filterListings('paused')">Paused</button>
+            </div>
+        </div>
+        
+        <div class="listings-grid" id="listingsGrid">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>Loading your listings...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-icon">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <h3>Delete Property?</h3>
+        <p>This action cannot be undone. The property will be permanently removed.</p>
+        <div class="modal-actions">
+            <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button class="modal-btn confirm" onclick="confirmDelete()">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Queries Section -->
+<div class="queries-section" id="queriesSection" style="display: none;">
+    <div class="section-header">
+        <h2><i class="fas fa-comments" style="color: #2563eb; margin-right: 10px;"></i> User Questions</h2>
+        <span style="color: #64748b; font-size: 0.9rem;">Messages auto-delete after 7 days</span>
+    </div>
+    <div id="queriesList">
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Loading questions...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Query Chat Modal -->
+<div class="modal-overlay" id="chatModal">
+    <div class="modal-content chat-modal">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <h3 id="chatUserName">User</h3>
+                <p id="chatPropertyTitle">Property</p>
+            </div>
+            <button class="modal-close" onclick="closeChatModal()" style="position: static;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-expire-notice">
+            <i class="fas fa-clock"></i> This conversation will expire in <span id="expireTime">7 days</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be loaded here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type your reply..." onkeypress="handleChatKeyPress(event)" />
+            <button class="chat-send-btn" onclick="sendChatMessage()" id="sendChatBtn">
+                <i class="fas fa-paper-plane"></i> Send
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let allListings = [];
+    let allQueries = [];
+    let currentQuery = null;
+    let currentFilter = 'all';
+    let deletePropertyId = null;
+
+    const houseTypes = ['', '1 BHK', '2 BHK', '3 BHK', '4+ BHK', 'Studio', 'PG/Hostel', 'Villa', 'Independent House', 'Single Room', 'Shared Room'];
+
+    async function loadListings() {
+        try {
+            const response = await fetch('/api/rentalapi/my-properties');
+            const result = await response.json();
+
+            if (result.success) {
+                allListings = result.properties || [];
+                updateStats();
+                renderListings();
+                loadQueries(); // Load queries after listings
+            } else {
+                document.getElementById('listingsGrid').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Failed to load listings</h3>
+                        <p>${result.error || 'Please try again later'}</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('listingsGrid').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h3>Connection Error</h3>
+                    <p>Please check your connection and try again</p>
+                </div>
+            `;
+        }
+    }
+
+    async function loadQueries() {
+        try {
+            const response = await fetch('/api/rentalquery/owner');
+            const result = await response.json();
+
+            if (result.success) {
+                allQueries = result.queries || [];
+                document.getElementById('queriesCount').textContent = allQueries.length;
+                
+                // Show unread badge
+                const unreadCount = result.unreadCount || 0;
+                const badge = document.getElementById('unreadBadge');
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                // Show queries section if there are queries
+                if (allQueries.length > 0) {
+                    document.getElementById('queriesSection').style.display = 'block';
+                    renderQueries();
+                }
+            }
+        } catch (error) {
+            console.error('Error loading queries:', error);
+        }
+    }
+
+    function renderQueries() {
+        const container = document.getElementById('queriesList');
+        
+        if (allQueries.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state" style="padding: 40px;">
+                    <i class="fas fa-comments" style="font-size: 2.5rem;"></i>
+                    <h3>No questions yet</h3>
+                    <p>When users ask questions about your properties, they'll appear here</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = allQueries.map(query => {
+            const lastMessage = query.messages[query.messages.length - 1];
+            const isUnread = query.unreadCountForOwner > 0;
+            const timeAgo = getTimeAgo(new Date(query.lastUpdatedAt));
+            
+            return `
+                <div class="query-card ${isUnread ? 'unread' : ''}" onclick="openChat('${query.id}')">
+                    <div class="query-avatar">${(query.userName || 'U')[0].toUpperCase()}</div>
+                    <div class="query-content">
+                        <div class="query-header">
+                            <div>
+                                <div class="query-user">${query.userName || 'User'}</div>
+                                <div class="query-property">Re: ${query.propertyTitle}</div>
+                            </div>
+                            <span class="query-time">${timeAgo}</span>
+                        </div>
+                        <div class="query-preview">${lastMessage?.message || 'No messages'}</div>
+                    </div>
+                    ${isUnread ? '<div class="query-unread-indicator"></div>' : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function scrollToQueries() {
+        const section = document.getElementById('queriesSection');
+        if (section.style.display !== 'none') {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    async function openChat(queryId) {
+        try {
+            const response = await fetch(`/api/rentalquery/${queryId}`);
+            const result = await response.json();
+
+            if (result.success) {
+                currentQuery = result.query;
+                document.getElementById('chatUserName').textContent = currentQuery.userName || 'User';
+                document.getElementById('chatPropertyTitle').textContent = currentQuery.propertyTitle;
+                
+                // Calculate expire time
+                const expireDate = new Date(currentQuery.expireAt);
+                const now = new Date();
+                const daysLeft = Math.ceil((expireDate - now) / (1000 * 60 * 60 * 24));
+                document.getElementById('expireTime').textContent = daysLeft > 0 ? `${daysLeft} days` : 'soon';
+
+                renderChatMessages();
+                document.getElementById('chatModal').classList.add('active');
+                
+                // Refresh queries to update unread status
+                loadQueries();
+            } else {
+                alert(result.message || 'Failed to load conversation');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to load conversation');
+        }
+    }
+
+    function renderChatMessages() {
+        const container = document.getElementById('chatMessages');
+        const currentUserId = '@User.Identity?.Name'; // This will be the current user's ID
+        
+        container.innerHTML = currentQuery.messages.map(msg => {
+            const isSent = msg.senderRole === 'Owner';
+            const time = new Date(msg.sentAt).toLocaleString();
+            
+            return `
+                <div class="chat-message ${isSent ? 'sent' : 'received'}">
+                    <div>${msg.message}</div>
+                    <div class="chat-message-meta">
+                        ${msg.senderName} • ${time}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Scroll to bottom
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function closeChatModal() {
+        document.getElementById('chatModal').classList.remove('active');
+        currentQuery = null;
+        document.getElementById('chatInput').value = '';
+    }
+
+    function handleChatKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendChatMessage();
+        }
+    }
+
+    async function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        
+        if (!message || !currentQuery) return;
+
+        const sendBtn = document.getElementById('sendChatBtn');
+        sendBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/rentalquery/reply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    queryId: currentQuery.id,
+                    message: message
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                currentQuery = result.query;
+                renderChatMessages();
+                input.value = '';
+            } else {
+                alert(result.message || 'Failed to send message');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to send message');
+        } finally {
+            sendBtn.disabled = false;
+        }
+    }
+
+    function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        
+        if (seconds < 60) return 'Just now';
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+        if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+        return date.toLocaleDateString();
+    }
+
+    function updateStats() {
+        const total = allListings.length;
+        const active = allListings.filter(l => !l.isPaused && l.isAvailable).length;
+        const paused = allListings.filter(l => l.isPaused).length;
+
+        document.getElementById('totalCount').textContent = total;
+        document.getElementById('activeCount').textContent = active;
+        document.getElementById('pausedCount').textContent = paused;
+        
+        // Load inquiries count
+        loadInquiriesCount();
+    }
+
+    async function loadInquiriesCount() {
+        try {
+            const response = await fetch('/api/rentalapi/my-inquiries');
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('inquiriesCount').textContent = result.inquiries?.length || 0;
+            }
+        } catch (e) {
+            console.error('Error loading inquiries:', e);
+        }
+    }
+
+    function renderListings() {
+        const grid = document.getElementById('listingsGrid');
+        
+        let filtered = allListings;
+        if (currentFilter === 'active') {
+            filtered = allListings.filter(l => !l.isPaused && l.isAvailable);
+        } else if (currentFilter === 'paused') {
+            filtered = allListings.filter(l => l.isPaused);
+        }
+
+        if (filtered.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-home"></i>
+                    <h3>No properties found</h3>
+                    <p>${currentFilter === 'all' ? "You haven't listed any properties yet" : `No ${currentFilter} properties`}</p>
+                    ${currentFilter === 'all' ? '<a href="/Rental/AddProperty" class="add-new-btn"><i class="fas fa-plus"></i> Add Your First Property</a>' : ''}
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = filtered.map(listing => `
+            <div class="listing-card ${listing.isPaused ? 'paused' : ''}">
+                <div class="listing-image ${!listing.imageUrls?.length ? 'no-image' : ''}">
+                    ${listing.imageUrls?.length ? 
+                        `<img src="${listing.imageUrls[0]}" alt="${listing.title}" />` : 
+                        '<i class="fas fa-image"></i>'
+                    }
+                </div>
+                <div class="listing-info">
+                    <div class="listing-title">${listing.title}</div>
+                    <div class="listing-meta">
+                        <span><i class="fas fa-map-marker-alt"></i> ${listing.city || 'Location not set'}</span>
+                        <span><i class="fas fa-calendar"></i> ${new Date(listing.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="listing-badges">
+                        <span class="listing-badge type">${houseTypes[listing.houseType] || 'Property'}</span>
+                        <span class="listing-badge ${listing.isPaused ? 'paused' : 'active'}">
+                            ${listing.isPaused ? 'Paused' : 'Active'}
+                        </span>
+                    </div>
+                    <div class="listing-price">₹${(listing.rentAmount || 0).toLocaleString()}/month</div>
+                </div>
+                <div class="listing-actions">
+                    <a href="/Rental/Details/${listing.id}" class="action-btn edit">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                    <a href="/Rental/EditProperty/${listing.id}" class="action-btn edit">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    ${listing.isPaused ? 
+                        `<button class="action-btn resume" onclick="togglePause('${listing.id}', false)">
+                            <i class="fas fa-play"></i> Resume
+                        </button>` : 
+                        `<button class="action-btn pause" onclick="togglePause('${listing.id}', true)">
+                            <i class="fas fa-pause"></i> Pause
+                        </button>`
+                    }
+                    <button class="action-btn delete" onclick="showDeleteModal('${listing.id}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function filterListings(filter) {
+        currentFilter = filter;
+        
+        // Update active tab
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.textContent.toLowerCase() === filter);
+        });
+
+        renderListings();
+    }
+
+    async function togglePause(propertyId, pause) {
+        try {
+            const response = await fetch(`/api/rentalapi/properties/${propertyId}/toggle-pause`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pause })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Update local data
+                const listing = allListings.find(l => l.id === propertyId);
+                if (listing) {
+                    listing.isPaused = pause;
+                }
+                updateStats();
+                renderListings();
+            } else {
+                alert(result.error || 'Failed to update property');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to update property. Please try again.');
+        }
+    }
+
+    function showDeleteModal(propertyId) {
+        deletePropertyId = propertyId;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function closeDeleteModal() {
+        deletePropertyId = null;
+        document.getElementById('deleteModal').classList.remove('active');
+    }
+
+    async function confirmDelete() {
+        if (!deletePropertyId) return;
+
+        try {
+            const response = await fetch(`/api/rentalapi/properties/${deletePropertyId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                allListings = allListings.filter(l => l.id !== deletePropertyId);
+                updateStats();
+                renderListings();
+                closeDeleteModal();
+            } else {
+                alert(result.error || 'Failed to delete property');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to delete property. Please try again.');
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadListings);
+</script>

@@ -1,0 +1,1123 @@
+@{
+    ViewData["Title"] = "Property Details - ServConnect";
+}
+
+<style>
+    :root {
+        --rental-primary: #6366F1;
+        --rental-primary-dark: #4F46E5;
+        --rental-gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    }
+
+    body {
+        background: #f8fafc;
+    }
+
+    .property-details-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        color: #374151;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+
+    .back-btn:hover {
+        transform: translateX(-5px);
+        color: var(--rental-primary);
+    }
+
+    .loading-container {
+        text-align: center;
+        padding: 100px 20px;
+    }
+
+    .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #e5e7eb;
+        border-top-color: var(--rental-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    /* Property Gallery */
+    .gallery-section {
+        margin-bottom: 32px;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    .gallery-main {
+        position: relative;
+        height: 500px;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        margin-bottom: 16px;
+    }
+
+    .gallery-main img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .gallery-main:hover img {
+        transform: scale(1.02);
+    }
+
+    .gallery-nav {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+    }
+
+    .gallery-nav button {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.5);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .gallery-nav button.active {
+        background: white;
+        transform: scale(1.3);
+    }
+
+    .gallery-arrows {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
+
+    .gallery-arrow {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.9);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .gallery-arrow:hover {
+        transform: scale(1.1);
+        background: white;
+    }
+
+    .gallery-arrow i {
+        font-size: 1.2rem;
+        color: #374151;
+    }
+
+    .gallery-thumbnails {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 8px 0;
+    }
+
+    .gallery-thumb {
+        width: 100px;
+        height: 70px;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .gallery-thumb.active {
+        border-color: var(--rental-primary);
+    }
+
+    .gallery-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-images {
+        height: 400px;
+        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 24px;
+    }
+
+    .no-images i {
+        font-size: 4rem;
+        color: var(--rental-primary);
+        opacity: 0.5;
+        margin-bottom: 16px;
+    }
+
+    .no-images p {
+        color: #6366f1;
+        font-size: 1.1rem;
+    }
+
+    /* Property Content */
+    .property-content {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 32px;
+        animation: fadeInUp 0.6s ease 0.2s both;
+    }
+
+    /* Left Column - Details */
+    .property-main {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .property-card {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+    }
+
+    .property-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .property-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #1f2937;
+        margin-bottom: 10px;
+    }
+
+    .property-badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge.type {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        color: var(--rental-primary);
+    }
+
+    .badge.furnishing {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #d97706;
+    }
+
+    .badge.available {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #059669;
+    }
+
+    .badge.unavailable {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+    }
+
+    .property-id {
+        font-family: monospace;
+        color: #94a3b8;
+        font-size: 0.9rem;
+        background: #f1f5f9;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
+
+    .property-location {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #64748b;
+        margin-top: 10px;
+    }
+
+    .property-location i {
+        color: var(--rental-primary);
+    }
+
+    /* Property Stats */
+    .property-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        padding-top: 24px;
+        border-top: 2px solid #f1f5f9;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 14px;
+    }
+
+    .stat-item i {
+        font-size: 1.5rem;
+        color: var(--rental-primary);
+        margin-bottom: 10px;
+    }
+
+    .stat-item .value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .stat-item .label {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    /* Description */
+    .card-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        color: var(--rental-primary);
+    }
+
+    .description-text {
+        color: #64748b;
+        line-height: 1.8;
+    }
+
+    /* Amenities */
+    .amenities-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .amenity-tag {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 50px;
+        color: #16a34a;
+        font-weight: 500;
+    }
+
+    .amenity-tag i {
+        font-size: 0.9rem;
+    }
+
+    /* Preferences */
+    .preferences-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .pref-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 14px;
+    }
+
+    .pref-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pref-icon.yes {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #059669;
+    }
+
+    .pref-icon.no {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+    }
+
+    .pref-info span {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .pref-info small {
+        color: #64748b;
+    }
+
+    /* Map */
+    .map-wrapper {
+        height: 300px;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    #detailsMap {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Right Column - Sidebar */
+    .property-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .pricing-card {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+        position: sticky;
+        top: 20px;
+    }
+
+    .price-main {
+        text-align: center;
+        padding-bottom: 24px;
+        border-bottom: 2px solid #f1f5f9;
+        margin-bottom: 24px;
+    }
+
+    .rent-amount {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--rental-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .rent-period {
+        color: #64748b;
+        font-size: 1.1rem;
+    }
+
+    .deposit-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 0;
+        border-bottom: 1px dashed #e5e7eb;
+    }
+
+    .deposit-row span {
+        color: #64748b;
+    }
+
+    .deposit-row strong {
+        color: #1f2937;
+    }
+
+    .contact-btn {
+        width: 100%;
+        padding: 16px;
+        background: var(--rental-gradient);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .contact-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+    }
+
+    .contact-btn.secondary {
+        background: white;
+        color: var(--rental-primary);
+        border: 2px solid var(--rental-primary);
+        margin-top: 12px;
+    }
+
+    .contact-btn.secondary:hover {
+        background: #eef2ff;
+        box-shadow: none;
+    }
+
+    /* Owner Info */
+    .owner-card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+    }
+
+    .owner-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .owner-avatar {
+        width: 60px;
+        height: 60px;
+        background: var(--rental-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        font-weight: 700;
+    }
+
+    .owner-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .owner-label {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .owner-contact {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 12px;
+    }
+
+    .contact-item i {
+        color: var(--rental-primary);
+        width: 20px;
+    }
+
+    .contact-item span {
+        color: #374151;
+    }
+
+    /* Inquiry Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 24px;
+        padding: 40px;
+        max-width: 500px;
+        width: 90%;
+        animation: modalIn 0.4s ease;
+    }
+
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+    .modal-header h2 {
+        font-size: 1.5rem;
+        color: #1f2937;
+    }
+
+    .modal-close {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .modal-close:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .inquiry-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .inquiry-form input,
+    .inquiry-form textarea {
+        padding: 14px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .inquiry-form input:focus,
+    .inquiry-form textarea:focus {
+        border-color: var(--rental-primary);
+        outline: none;
+    }
+
+    .inquiry-form textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .submit-inquiry {
+        padding: 14px;
+        background: var(--rental-gradient);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .submit-inquiry:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Animations */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .property-content {
+            grid-template-columns: 1fr;
+        }
+
+        .pricing-card {
+            position: static;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .gallery-main {
+            height: 300px;
+        }
+
+        .property-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .preferences-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .property-title {
+            font-size: 1.4rem;
+        }
+    }
+</style>
+
+<div class="property-details-container">
+    <a href="/Rental" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Rentals
+    </a>
+
+    <div class="loading-container" id="loadingContainer">
+        <div class="loading-spinner"></div>
+        <p>Loading property details...</p>
+    </div>
+
+    <div id="propertyDetails" style="display: none;">
+        <!-- Gallery -->
+        <div class="gallery-section">
+            <div class="gallery-main" id="galleryMain">
+                <img id="mainImage" src="" alt="Property Image" />
+                <div class="gallery-arrows">
+                    <button class="gallery-arrow" onclick="prevImage()"><i class="fas fa-chevron-left"></i></button>
+                    <button class="gallery-arrow" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="gallery-nav" id="galleryNav"></div>
+            </div>
+            <div class="gallery-thumbnails" id="galleryThumbs"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="property-content">
+            <!-- Left Column -->
+            <div class="property-main">
+                <!-- Header Card -->
+                <div class="property-card">
+                    <div class="property-header">
+                        <div>
+                            <h1 class="property-title" id="propertyTitle"></h1>
+                            <div class="property-badges" id="propertyBadges"></div>
+                            <div class="property-location" id="propertyLocation">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span></span>
+                            </div>
+                        </div>
+                        <span class="property-id" id="propertyId"></span>
+                    </div>
+                    <div class="property-stats" id="propertyStats"></div>
+                </div>
+
+                <!-- Description -->
+                <div class="property-card" id="descriptionCard">
+                    <h3 class="card-title"><i class="fas fa-align-left"></i> Description</h3>
+                    <p class="description-text" id="propertyDescription"></p>
+                </div>
+
+                <!-- Amenities -->
+                <div class="property-card" id="amenitiesCard">
+                    <h3 class="card-title"><i class="fas fa-list-check"></i> Amenities</h3>
+                    <div class="amenities-grid" id="amenitiesList"></div>
+                </div>
+
+                <!-- Preferences -->
+                <div class="property-card">
+                    <h3 class="card-title"><i class="fas fa-sliders-h"></i> Property Preferences</h3>
+                    <div class="preferences-grid" id="preferencesList"></div>
+                </div>
+
+                <!-- Map -->
+                <div class="property-card" id="mapCard">
+                    <h3 class="card-title"><i class="fas fa-map"></i> Location on Map</h3>
+                    <div class="map-wrapper">
+                        <div id="detailsMap"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="property-sidebar">
+                <!-- Pricing -->
+                <div class="pricing-card">
+                    <div class="price-main">
+                        <div class="rent-amount" id="rentAmount">₹0</div>
+                        <div class="rent-period">per month</div>
+                    </div>
+                    <div class="deposit-row">
+                        <span>Security Deposit</span>
+                        <strong id="depositAmount">₹0</strong>
+                    </div>
+                    <div class="deposit-row">
+                        <span>Listed On</span>
+                        <strong id="listedDate">-</strong>
+                    </div>
+                    <button class="contact-btn" onclick="showInquiryModal()">
+                        <i class="fas fa-envelope"></i> Send Inquiry
+                    </button>
+                    <button class="contact-btn secondary" onclick="callOwner()">
+                        <i class="fas fa-phone"></i> Call Owner
+                    </button>
+                </div>
+
+                <!-- Owner Info -->
+                <div class="owner-card">
+                    <div class="owner-header">
+                        <div class="owner-avatar" id="ownerAvatar">O</div>
+                        <div>
+                            <div class="owner-name" id="ownerName">Owner</div>
+                            <div class="owner-label">Property Owner</div>
+                        </div>
+                    </div>
+                    <div class="owner-contact" id="ownerContact"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inquiry Modal -->
+<div class="modal-overlay" id="inquiryModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Send Inquiry</h2>
+            <button class="modal-close" onclick="closeInquiryModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form class="inquiry-form" onsubmit="submitInquiry(event)">
+            <input type="text" id="inquiryName" placeholder="Your Name" required />
+            <input type="email" id="inquiryEmail" placeholder="Your Email" required />
+            <input type="tel" id="inquiryPhone" placeholder="Your Phone Number" required />
+            <textarea id="inquiryMessage" placeholder="Your message to the owner..."></textarea>
+            <button type="submit" class="submit-inquiry">
+                <i class="fas fa-paper-plane"></i> Send Inquiry
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Leaflet Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    let property = null;
+    let currentImageIndex = 0;
+    let map;
+
+    const houseTypes = ['', '1 BHK', '2 BHK', '3 BHK', '4+ BHK', 'Studio', 'PG/Hostel', 'Villa', 'Independent House', 'Single Room', 'Shared Room'];
+    const furnishingTypes = ['Unfurnished', 'Semi-Furnished', 'Fully Furnished'];
+
+    // Get property ID from URL
+    const urlParts = window.location.pathname.split('/');
+    const propertyId = urlParts[urlParts.length - 1];
+
+    async function loadProperty() {
+        try {
+            const response = await fetch(`/api/rentalapi/properties/${propertyId}`);
+            const result = await response.json();
+
+            if (result.success && result.property) {
+                property = result.property;
+                renderProperty();
+            } else {
+                alert('Property not found');
+                window.location.href = '/Rental';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to load property');
+        }
+    }
+
+    function renderProperty() {
+        document.getElementById('loadingContainer').style.display = 'none';
+        document.getElementById('propertyDetails').style.display = 'block';
+
+        // Gallery
+        const images = property.imageUrls || [];
+        if (images.length > 0) {
+            document.getElementById('mainImage').src = images[0];
+            
+            const nav = document.getElementById('galleryNav');
+            const thumbs = document.getElementById('galleryThumbs');
+            
+            images.forEach((img, idx) => {
+                // Nav dots
+                const dot = document.createElement('button');
+                dot.className = idx === 0 ? 'active' : '';
+                dot.onclick = () => goToImage(idx);
+                nav.appendChild(dot);
+
+                // Thumbnails
+                const thumb = document.createElement('div');
+                thumb.className = `gallery-thumb ${idx === 0 ? 'active' : ''}`;
+                thumb.innerHTML = `<img src="${img}" alt="Thumbnail ${idx + 1}" />`;
+                thumb.onclick = () => goToImage(idx);
+                thumbs.appendChild(thumb);
+            });
+        } else {
+            document.getElementById('galleryMain').innerHTML = `
+                <div class="no-images">
+                    <i class="fas fa-image"></i>
+                    <p>No images available</p>
+                </div>
+            `;
+        }
+
+        // Title and badges
+        document.getElementById('propertyTitle').textContent = property.title;
+        document.getElementById('propertyId').textContent = property.propertyId;
+
+        const badges = document.getElementById('propertyBadges');
+        badges.innerHTML = `
+            <span class="badge type">${houseTypes[property.houseType] || 'Property'}</span>
+            <span class="badge furnishing">${furnishingTypes[property.furnishing] || 'Unknown'}</span>
+            <span class="badge ${property.isAvailable ? 'available' : 'unavailable'}">
+                ${property.isAvailable ? 'Available' : 'Unavailable'}
+            </span>
+        `;
+
+        // Location
+        document.querySelector('#propertyLocation span').textContent = 
+            `${property.area || ''} ${property.area ? ',' : ''} ${property.city || 'Location not specified'}`;
+
+        // Stats
+        const stats = document.getElementById('propertyStats');
+        stats.innerHTML = `
+            ${property.bedrooms ? `<div class="stat-item"><i class="fas fa-bed"></i><div class="value">${property.bedrooms}</div><div class="label">Bedrooms</div></div>` : ''}
+            ${property.bathrooms ? `<div class="stat-item"><i class="fas fa-bath"></i><div class="value">${property.bathrooms}</div><div class="label">Bathrooms</div></div>` : ''}
+            ${property.squareFeet ? `<div class="stat-item"><i class="fas fa-vector-square"></i><div class="value">${property.squareFeet}</div><div class="label">Sq.Ft</div></div>` : ''}
+            ${property.floorNumber != null ? `<div class="stat-item"><i class="fas fa-building"></i><div class="value">${property.floorNumber}${property.totalFloors ? '/' + property.totalFloors : ''}</div><div class="label">Floor</div></div>` : ''}
+        `;
+
+        // Description
+        if (property.description) {
+            document.getElementById('propertyDescription').textContent = property.description;
+        } else {
+            document.getElementById('descriptionCard').style.display = 'none';
+        }
+
+        // Amenities
+        const amenities = property.amenities || [];
+        if (amenities.length > 0) {
+            const amenitiesList = document.getElementById('amenitiesList');
+            amenities.forEach(amenity => {
+                amenitiesList.innerHTML += `<div class="amenity-tag"><i class="fas fa-check"></i> ${amenity}</div>`;
+            });
+        } else {
+            document.getElementById('amenitiesCard').style.display = 'none';
+        }
+
+        // Preferences
+        const prefs = document.getElementById('preferencesList');
+        prefs.innerHTML = `
+            <div class="pref-item">
+                <div class="pref-icon ${property.bachelorsAllowed ? 'yes' : 'no'}">
+                    <i class="fas fa-${property.bachelorsAllowed ? 'check' : 'times'}"></i>
+                </div>
+                <div class="pref-info">
+                    <span>Bachelors</span>
+                    <small>${property.bachelorsAllowed ? 'Allowed' : 'Not Allowed'}</small>
+                </div>
+            </div>
+            <div class="pref-item">
+                <div class="pref-icon ${property.petsAllowed ? 'yes' : 'no'}">
+                    <i class="fas fa-${property.petsAllowed ? 'check' : 'times'}"></i>
+                </div>
+                <div class="pref-info">
+                    <span>Pets</span>
+                    <small>${property.petsAllowed ? 'Allowed' : 'Not Allowed'}</small>
+                </div>
+            </div>
+            <div class="pref-item">
+                <div class="pref-icon ${property.isAvailable ? 'yes' : 'no'}">
+                    <i class="fas fa-${property.isAvailable ? 'check' : 'times'}"></i>
+                </div>
+                <div class="pref-info">
+                    <span>Availability</span>
+                    <small>${property.isAvailable ? 'Available Now' : 'Currently Unavailable'}</small>
+                </div>
+            </div>
+        `;
+
+        // Pricing
+        document.getElementById('rentAmount').textContent = `₹${(property.rentAmount || 0).toLocaleString()}`;
+        document.getElementById('depositAmount').textContent = `₹${(property.depositAmount || 0).toLocaleString()}`;
+        document.getElementById('listedDate').textContent = new Date(property.createdAt).toLocaleDateString();
+
+        // Owner info
+        document.getElementById('ownerName').textContent = property.ownerName || 'Property Owner';
+        document.getElementById('ownerAvatar').textContent = (property.ownerName || 'O')[0].toUpperCase();
+        
+        const ownerContact = document.getElementById('ownerContact');
+        ownerContact.innerHTML = '';
+        if (property.ownerPhone) {
+            ownerContact.innerHTML += `
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>${property.ownerPhone}</span>
+                </div>
+            `;
+        }
+        if (property.ownerEmail) {
+            ownerContact.innerHTML += `
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>${property.ownerEmail}</span>
+                </div>
+            `;
+        }
+
+        // Map
+        if (property.latitude && property.longitude) {
+            setTimeout(() => {
+                map = L.map('detailsMap').setView([property.latitude, property.longitude], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+                L.marker([property.latitude, property.longitude]).addTo(map)
+                    .bindPopup(property.title)
+                    .openPopup();
+            }, 300);
+        } else {
+            document.getElementById('mapCard').style.display = 'none';
+        }
+    }
+
+    function goToImage(index) {
+        const images = property.imageUrls || [];
+        currentImageIndex = index;
+        document.getElementById('mainImage').src = images[index];
+        
+        // Update nav dots
+        document.querySelectorAll('.gallery-nav button').forEach((btn, i) => {
+            btn.classList.toggle('active', i === index);
+        });
+        
+        // Update thumbnails
+        document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
+            thumb.classList.toggle('active', i === index);
+        });
+    }
+
+    function nextImage() {
+        const images = property.imageUrls || [];
+        if (images.length > 0) {
+            goToImage((currentImageIndex + 1) % images.length);
+        }
+    }
+
+    function prevImage() {
+        const images = property.imageUrls || [];
+        if (images.length > 0) {
+            goToImage((currentImageIndex - 1 + images.length) % images.length);
+        }
+    }
+
+    function showInquiryModal() {
+        document.getElementById('inquiryModal').classList.add('active');
+    }
+
+    function closeInquiryModal() {
+        document.getElementById('inquiryModal').classList.remove('active');
+    }
+
+    function callOwner() {
+        if (property.ownerPhone) {
+            window.location.href = `tel:${property.ownerPhone}`;
+        } else {
+            alert('Owner phone number not available');
+        }
+    }
+
+    async function submitInquiry(event) {
+        event.preventDefault();
+
+        const data = {
+            propertyId: property.id,
+            name: document.getElementById('inquiryName').value,
+            email: document.getElementById('inquiryEmail').value,
+            phone: document.getElementById('inquiryPhone').value,
+            message: document.getElementById('inquiryMessage').value
+        };
+
+        try {
+            const response = await fetch('/api/rentalapi/inquiries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Inquiry sent successfully! The owner will contact you soon.');
+                closeInquiryModal();
+                document.querySelector('.inquiry-form').reset();
+            } else {
+                alert(result.error || 'Failed to send inquiry');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to send inquiry. Please try again.');
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadProperty);
+</script>
