@@ -5,14 +5,20 @@
 }
 
 <style>
-    /* CSS Variables for consistent theming */
+    /* CSS Variables for Light Theme */
     :root {
         --primary: #10B981;
         --primary-dark: #059669;
         --primary-light: #34D399;
         --accent: #3B82F6;
+        --bg-light: #ffffff;
+        --bg-section: #f8fafc;
+        --bg-card: #ffffff;
+        --bg-card-hover: #f9fafb;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
         --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        --gradient-hero: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
         --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
         --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
         --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.15);
@@ -22,374 +28,322 @@
     body, html {
         margin: 0;
         padding: 0;
+        background: var(--bg-light) !important;
     }
 
-    /* Hero Section with Enhanced Design */
+    /* Hero Section with 3D Model */
     .hero-section {
         position: relative;
         color: white;
         padding: 0;
-        text-align: left;
+        text-align: center;
         margin: 0;
-        background: url('@Url.Content("~/images/hero-bg.png")') center/cover no-repeat;
-        min-height: calc(100vh - 50px);
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        min-height: 100vh;
         display: flex;
         align-items: center;
+        justify-content: center;
         overflow: hidden;
         width: 100%;
     }
 
-    .hero-section:before {
-        content: '';
+    /* 3D Canvas Container */
+    #hero-canvas-container {
         position: absolute;
-        inset: 0;
-        background: var(--gradient-hero);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        cursor: grab;
     }
 
-    /* Animated floating particles */
-    .hero-particles {
+    #hero-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: grab;
+    }
+
+    #hero-canvas:active {
+        cursor: grabbing;
+    }
+
+    /* Subtle gradient overlay */
+    .hero-overlay {
         position: absolute;
-        inset: 0;
-        overflow: hidden;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 40%, transparent 70%);
+        z-index: 2;
         pointer-events: none;
-    }
-
-    .particle {
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        animation: float 15s infinite ease-in-out;
-    }
-
-    .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
-    .particle:nth-child(2) { left: 20%; top: 80%; animation-delay: 2s; width: 15px; height: 15px; }
-    .particle:nth-child(3) { left: 60%; top: 40%; animation-delay: 4s; }
-    .particle:nth-child(4) { left: 80%; top: 60%; animation-delay: 6s; width: 8px; height: 8px; }
-    .particle:nth-child(5) { left: 40%; top: 10%; animation-delay: 8s; width: 12px; height: 12px; }
-    .particle:nth-child(6) { left: 90%; top: 30%; animation-delay: 10s; }
-
-    @@keyframes float {
-        0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
-        50% { transform: translateY(-100px) rotate(180deg); opacity: 0.8; }
     }
 
     .hero-section > .container-fluid { 
         position: relative; 
-        z-index: 1; 
+        z-index: 3; 
         margin: 0 auto;
         padding: 0;
+        width: 100%;
+        pointer-events: none;
     }
 
-    /* Animated Hero Title */
-    .hero-section h1 {
-        font-size: 4rem;
+    /* Enable pointer events on interactive elements inside container */
+    .hero-section .search-wrap,
+    .hero-section .search-select,
+    .hero-section .search-input,
+    .hero-section .search-btn,
+    .hero-section a,
+    .hero-section button {
+        pointer-events: auto;
+    }
+
+    /* Modern Minimal Hero Content */
+    .hero-content {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+        animation: fadeIn 1s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-subtitle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+        animation: fadeInDown 0.8s ease-out 0.2s both;
+        text-shadow: 
+            -1px -1px 0 #fff,
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff,
+            0 0 20px rgba(255, 255, 255, 1),
+            0 0 40px rgba(255, 255, 255, 0.8);
+    }
+
+    .hero-subtitle i {
+        font-size: 1rem;
+        filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
         font-weight: 800;
-        letter-spacing: -0.02em;
-        margin-bottom: 24px;
+        letter-spacing: -0.03em;
+        margin-bottom: 20px;
         line-height: 1.1;
-        animation: fadeInUp 0.8s ease-out;
+        color: var(--text-primary);
+        animation: fadeInUp 0.8s ease-out 0.3s both;
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
+        paint-order: stroke fill;
+        text-shadow: 
+            -2px -2px 0 #fff,
+            2px -2px 0 #fff,
+            -2px 2px 0 #fff,
+            2px 2px 0 #fff,
+            0 0 30px rgba(255, 255, 255, 1),
+            0 0 60px rgba(255, 255, 255, 0.9),
+            0 4px 8px rgba(0, 0, 0, 0.15);
     }
 
-    .hero-section p {
-        font-size: 1.25rem;
-        margin-bottom: 40px;
-        opacity: 1;
-        font-weight: 400;
-        line-height: 1.6;
-        animation: fadeInUp 0.8s ease-out 0.2s both;
-    }
-
-    /* Animated highlight badge */
-    .highlight-badge { 
+    .hero-title .highlight-badge {
         background: var(--gradient-primary);
-        color: #fff; 
-        padding: 8px 20px; 
-        border-radius: 12px; 
-        font-weight: 700; 
-        display: inline-block;
-        margin-left: 8px;
-        box-shadow: var(--shadow-glow);
-        animation: pulse 2s ease-in-out infinite;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        -webkit-text-stroke: 0;
+        text-shadow: none;
+        filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.7)) drop-shadow(0 0 50px rgba(16, 185, 129, 0.4));
     }
 
-    @@keyframes pulse {
-        0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
-        50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); }
+    .hero-section h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 20px;
+        line-height: 1.1;
+        color: var(--text-primary);
+        animation: fadeInUp 0.8s ease-out 0.3s both;
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
+        paint-order: stroke fill;
+        text-shadow: 
+            -2px -2px 0 #fff,
+            2px -2px 0 #fff,
+            -2px 2px 0 #fff,
+            2px 2px 0 #fff,
+            0 0 30px rgba(255, 255, 255, 1),
+            0 0 60px rgba(255, 255, 255, 0.9),
+            0 4px 8px rgba(0, 0, 0, 0.15);
     }
 
-    /* Modern Search Container */
-    .search-container {
-        max-width: 100%;
-        margin: 0;
-        position: relative;
+    .hero-section h1 .highlight-text {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-description {
+        font-size: 1.15rem;
+        margin-bottom: 32px;
+        font-weight: 500;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
         animation: fadeInUp 0.8s ease-out 0.4s both;
+        text-shadow: 
+            -1px -1px 0 #fff,
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff,
+            0 0 20px rgba(255, 255, 255, 1),
+            0 0 40px rgba(255, 255, 255, 0.8);
+    }
+
+    /* Hero Stats - Minimal Inline */
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 32px;
+        margin-top: 40px;
+        animation: fadeInUp 0.8s ease-out 0.6s both;
+    }
+
+    .hero-stat-item {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+    }
+
+    .hero-stat-number {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--primary);
+        -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.5);
+        paint-order: stroke fill;
+        text-shadow: 
+            -1px -1px 0 #fff,
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff,
+            0 0 20px rgba(255, 255, 255, 1),
+            0 0 40px rgba(16, 185, 129, 0.5);
+    }
+
+    .hero-stat-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        text-shadow: 
+            -1px -1px 0 #fff,
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff,
+            0 0 15px rgba(255, 255, 255, 1);
+    }
+
+    .hero-stat-divider {
+        display: none;
+    }
+
+    /* Minimal Floating Search */
+    .search-container {
+        max-width: 520px;
+        margin: 0 auto;
+        position: relative;
+        animation: fadeInUp 0.8s ease-out 0.5s both;
     }
 
     .search-wrap {
-        background: rgba(255, 255, 255, 0.98);
-        border-radius: 20px;
-        padding: 14px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 60px;
+        padding: 6px 6px 6px 20px;
         display: grid;
-        grid-template-columns: 180px 1fr 60px;
-        gap: 12px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        grid-template-columns: 120px 1fr 48px;
+        gap: 4px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
         align-items: center;
-        max-width: 620px;
-        backdrop-filter: blur(20px);
         transition: all 0.3s ease;
     }
 
     .search-wrap:focus-within {
-        transform: translateY(-4px);
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        border-color: rgba(16, 185, 129, 0.3);
     }
 
     .search-select { 
-        border: 2px solid #e5e7eb; 
-        border-radius: 14px; 
-        padding: 16px 20px; 
-        font-weight: 600; 
-        font-size: 1rem;
-        background: #fff;
+        border: none; 
+        border-radius: 8px; 
+        padding: 12px 8px; 
+        font-weight: 500; 
+        font-size: 0.85rem;
+        background: transparent;
+        color: var(--text-secondary);
         transition: all 0.3s ease;
+        cursor: pointer;
+        border-right: 1px solid rgba(0,0,0,0.08);
     }
 
     .search-select:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        outline: none;
+        color: var(--text-primary);
     }
 
     .search-input {
         width: 100%;
-        padding: 16px 20px;
-        border: 2px solid #e5e7eb;
-        border-radius: 14px;
-        font-size: 1rem;
-        background: #fff;
+        padding: 12px 16px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: transparent;
+        color: var(--text-primary);
         transition: all 0.3s ease;
     }
 
+    .search-input::placeholder {
+        color: #9ca3af;
+    }
+
     .search-input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         outline: none;
     }
 
     .search-btn {
         background: var(--gradient-primary);
         border: none;
-        border-radius: 14px;
-        padding: 16px 20px;
+        border-radius: 50%;
+        width: 42px;
+        height: 42px;
+        padding: 0;
         color: white;
         font-weight: 600;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
     }
 
     .search-btn:hover { 
-        transform: scale(1.08);
-        box-shadow: var(--shadow-glow);
-    }
-
-    /* Modern Category Chips with animation */
-    .category-chips { 
-        display: flex; 
-        gap: 12px; 
-        flex-wrap: wrap; 
-        justify-content: flex-start; 
-        margin-top: 32px;
-        animation: fadeInUp 0.8s ease-out 0.6s both;
-    }
-
-    .category-chip { 
-        background: rgba(255, 255, 255, 0.15); 
-        color: #fff; 
-        border: 1px solid rgba(255, 255, 255, 0.25); 
-        padding: 14px 24px; 
-        border-radius: 50px; 
-        font-size: 0.95rem; 
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        backdrop-filter: blur(10px);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .category-chip::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s ease;
-    }
-
-    .category-chip:hover::before {
-        left: 100%;
-    }
-
-    .category-chip:hover { 
-        background: rgba(255, 255, 255, 0.25); 
-        color: #fff; 
-        transform: translateY(-4px) scale(1.05);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Hero advertisement container */
-    .hero-ad-container {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        margin-top: 0;
-    }
-    
-    .hero-ad-container-top {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        margin-top: 0;
-        margin-bottom: 1.5rem;
-        width: 100%;
-        animation: fadeInDown 0.8s ease-out;
-    }
-
-    /* Modern Action Buttons Grid */
-    .action-buttons {
-        margin-top: 24px;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-        width: 100%;
-        max-width: 520px;
-        animation: fadeInRight 0.8s ease-out 0.4s both;
-    }
-
-    .action-btn {
-        background: rgba(255, 255, 255, 0.98);
-        border: none;
-        border-radius: 20px;
-        padding: 24px 20px;
-        text-decoration: none;
-        color: #1f2937;
-        font-weight: 600;
-        font-size: 1rem;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        position: relative;
-        overflow: hidden;
-        backdrop-filter: blur(20px);
-    }
-
-    .action-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--gradient-primary);
-        transform: scaleY(0);
-        transition: transform 0.3s ease;
-    }
-
-    .action-btn:hover::before {
-        transform: scaleY(1);
-    }
-
-    .action-btn:hover {
-        transform: translateY(-6px) translateX(4px);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        color: #1f2937;
-        text-decoration: none;
-    }
-
-    .action-btn i {
-        font-size: 1.5rem;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-        border-radius: 14px;
-        color: var(--primary);
-        transition: all 0.3s ease;
-    }
-
-    .action-btn:hover i {
-        transform: scale(1.1) rotate(5deg);
-        background: var(--gradient-primary);
-        color: white;
-    }
-
-    /* Explore Services Button - Special Styling */
-    .explore-more-btn {
-        grid-column: span 2;
-        background: var(--gradient-primary);
-        color: white !important;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .explore-more-btn::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-        transform: rotate(45deg);
-        animation: shimmer 3s infinite;
-    }
-
-    @@keyframes shimmer {
-        0% { transform: translateX(-100%) rotate(45deg); }
-        100% { transform: translateX(100%) rotate(45deg); }
-    }
-
-    .explore-more-btn i {
-        background: rgba(255, 255, 255, 0.2) !important;
-        color: white !important;
-    }
-
-    .explore-more-btn:hover {
-        transform: translateY(-6px) scale(1.02);
-        box-shadow: 0 25px 60px rgba(16, 185, 129, 0.4);
-        color: white !important;
-    }
-
-    .explore-more-btn:hover i {
-        background: rgba(255, 255, 255, 0.3) !important;
-    }
-
-    .top-news-trigger {
-        grid-column: span 2;
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-        color: white !important;
-    }
-
-    .top-news-trigger i {
-        background: rgba(255, 255, 255, 0.2) !important;
-        color: white !important;
-    }
-
-    .top-news-trigger:hover {
-        color: white !important;
-    }
-
-    .top-news-trigger:hover i {
-        background: rgba(255, 255, 255, 0.3) !important;
+        transform: scale(1.1);
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
     }
 
     /* Animation keyframes */
@@ -399,7 +353,7 @@
     }
 
     @@keyframes fadeInDown {
-        from { opacity: 0; transform: translateY(-30px); }
+        from { opacity: 0; transform: translateY(-20px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
@@ -415,42 +369,180 @@
     .section-stagger.revealed .stagger-item:nth-child(2) { animation-delay: 0.2s; }
     .section-stagger.revealed .stagger-item:nth-child(3) { animation-delay: 0.3s; }
     .section-stagger.revealed .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+    .section-stagger.revealed .stagger-item:nth-child(5) { animation-delay: 0.5s; }
+    .section-stagger.revealed .stagger-item:nth-child(6) { animation-delay: 0.6s; }
 
     @@keyframes sc-fade-up {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Modern Features Section */
-    .features-section {
-        padding: 100px 0;
-        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    /* Cards Section - Light Theme */
+    .cards-section {
+        padding: 80px 0;
+        background: var(--bg-section);
         position: relative;
     }
 
-    .features-section::before {
+    .section-title {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .section-title h2 {
+        font-size: 2.5rem;
+        color: var(--text-primary);
+        margin-bottom: 20px;
+        font-weight: 800;
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: var(--gradient-primary);
+        border-radius: 2px;
+    }
+
+    .section-title p {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+        margin-top: 24px;
+    }
+
+    /* Modern Action Cards - Light Theme */
+    .action-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
+        width: 100%;
+    }
+
+    .action-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 28px 24px;
+        text-decoration: none;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .action-card::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        height: 200px;
-        background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, #f8fafc 100%);
-        transform: translateY(-100%);
+        width: 4px;
+        height: 100%;
+        background: var(--gradient-primary);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .action-card:hover::before {
+        transform: scaleY(1);
+    }
+
+    .action-card:hover {
+        transform: translateY(-6px);
+        background: var(--bg-card-hover);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+
+    .action-card i {
+        font-size: 1.5rem;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 14px;
+        color: var(--primary);
+        transition: all 0.3s ease;
+    }
+
+    .action-card:hover i {
+        transform: scale(1.1) rotate(5deg);
+        background: var(--gradient-primary);
+        color: white;
+    }
+
+    .action-card .card-content small {
+        color: var(--text-secondary);
+    }
+
+    /* Special card styles */
+    .action-card.news-card {
+        border-color: rgba(59, 130, 246, 0.3);
+    }
+    .action-card.news-card i {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        color: #3B82F6;
+    }
+    .action-card.news-card:hover i {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        color: white;
+    }
+
+    .action-card.explore-card {
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+    .action-card.explore-card i {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: var(--primary);
+    }
+
+    /* Advertisement Container - Light Theme */
+    .ad-section {
+        padding: 60px 0;
+        background: var(--bg-light);
+    }
+
+    .ad-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Features Section - Light Theme */
+    .features-section {
+        padding: 100px 0;
+        background: linear-gradient(180deg, var(--bg-section) 0%, var(--bg-light) 100%);
+        position: relative;
     }
 
     .feature-card {
-        background: #fff;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
         padding: 48px 36px;
         border-radius: 24px;
         text-align: center;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         margin-bottom: 30px;
         height: 100%;
-        border: 1px solid rgba(0, 0, 0, 0.04);
         position: relative;
         overflow: hidden;
+        box-shadow: var(--shadow-sm);
     }
 
     .feature-card::before {
@@ -471,7 +563,9 @@
 
     .feature-card:hover {
         transform: translateY(-12px);
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+        background: var(--bg-card-hover);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
     }
 
     .feature-icon {
@@ -495,70 +589,36 @@
     }
 
     .feature-card h3 {
-        color: #1f2937;
+        color: var(--text-primary);
         margin-bottom: 16px;
         font-size: 1.5rem;
         font-weight: 700;
     }
 
     .feature-card p {
-        color: #6b7280;
+        color: var(--text-secondary);
         line-height: 1.7;
         font-size: 1rem;
     }
 
-    /* Modern Services Section */
+    /* Services Section - Light Theme */
     .services-section {
         padding: 100px 0;
-        background: #fff;
+        background: var(--bg-light);
     }
 
-    .section-title {
-        text-align: center;
-        margin-bottom: 60px;
-    }
-
-    .section-title h2 {
-        font-size: 3rem;
-        color: #1f2937;
-        margin-bottom: 20px;
-        font-weight: 800;
-        position: relative;
-        display: inline-block;
-    }
-
-    .section-title h2::after {
-        content: '';
-        position: absolute;
-        bottom: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 80px;
-        height: 4px;
-        background: var(--gradient-primary);
-        border-radius: 2px;
-    }
-
-    .section-title p {
-        font-size: 1.25rem;
-        color: #6b7280;
-        font-weight: 400;
-        margin-top: 24px;
-    }
-
-    /* Modern Service Category Cards */
     .service-category {
-        background: #fff;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
         border-radius: 24px;
         padding: 44px 32px;
         text-align: center;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         margin-bottom: 30px;
         cursor: pointer;
-        border: 1px solid rgba(0, 0, 0, 0.04);
         position: relative;
         overflow: hidden;
+        box-shadow: var(--shadow-sm);
     }
 
     .service-category::before {
@@ -568,25 +628,18 @@
         left: 0;
         right: 0;
         height: 5px;
-        background: currentColor;
         opacity: 0.8;
     }
 
     .service-category:hover {
         transform: translateY(-12px) scale(1.02);
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+        background: var(--bg-card-hover);
+        box-shadow: var(--shadow-lg);
     }
 
-    .service-category.home-services { color: #10B981; }
     .service-category.home-services::before { background: linear-gradient(90deg, #10B981, #34D399); }
-
-    .service-category.tech-services { color: #3B82F6; }
     .service-category.tech-services::before { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
-
-    .service-category.beauty-services { color: #EC4899; }
     .service-category.beauty-services::before { background: linear-gradient(90deg, #EC4899, #F472B6); }
-
-    .service-category.business-services { color: #F59E0B; }
     .service-category.business-services::before { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
 
     .service-icon {
@@ -594,6 +647,11 @@
         margin-bottom: 24px;
         transition: all 0.4s ease;
     }
+
+    .service-category.home-services .service-icon { color: #10B981; }
+    .service-category.tech-services .service-icon { color: #3B82F6; }
+    .service-category.beauty-services .service-icon { color: #EC4899; }
+    .service-category.business-services .service-icon { color: #F59E0B; }
 
     .service-category:hover .service-icon {
         transform: scale(1.15) rotate(5deg);
@@ -606,14 +664,14 @@
     }
 
     .service-category h4 {
-        color: #1f2937;
+        color: var(--text-primary);
         margin-bottom: 14px;
         font-size: 1.4rem;
         font-weight: 700;
     }
 
     .service-category p {
-        color: #6b7280;
+        color: var(--text-secondary);
         margin-bottom: 24px;
         font-size: 1rem;
         line-height: 1.6;
@@ -624,7 +682,7 @@
         padding: 10px 20px;
         border-radius: 50px;
         font-size: 0.9rem;
-        color: #059669;
+        color: var(--primary);
         display: inline-block;
         font-weight: 600;
         transition: all 0.3s ease;
@@ -636,7 +694,49 @@
         transform: translateY(-2px);
     }
 
-    /* Modern CTA Section */
+    /* Stats Section - Light Theme */
+    .stats-section {
+        padding: 100px 0;
+        background: linear-gradient(180deg, var(--bg-section) 0%, var(--bg-light) 100%);
+    }
+
+    .stat-item {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 30px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        transition: all 0.4s ease;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .stat-item:hover {
+        transform: translateY(-8px);
+        background: var(--bg-card-hover);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-number {
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 12px;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 600;
+    }
+
+    /* CTA Section - Light Theme */
     .cta-section {
         background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
         color: white;
@@ -709,91 +809,102 @@
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     }
 
-    /* Modern Stats Section */
-    .stats-section {
-        padding: 100px 0;
-        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    /* Hero Results - Light Theme */
+    .hero-results { margin-top:16px; }
+    .service-card { 
+        border: 1px solid var(--border-color); 
+        border-radius: 12px; 
+        padding: 12px 16px; 
+        background: var(--bg-card); 
+        margin-bottom: 10px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        box-shadow: var(--shadow-sm);
     }
+    .service-title { font-weight: 600; color: var(--text-primary); }
+    .service-meta { font-size: .9rem; color: var(--text-secondary); }
 
-    .stat-item {
-        text-align: center;
-        margin-bottom: 30px;
-        padding: 30px;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
-        transition: all 0.4s ease;
-    }
-
-    .stat-item:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-number {
-        font-size: 3.5rem;
-        font-weight: 800;
-        background: var(--gradient-primary);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 12px;
-    }
-
-    .stat-label {
-        color: #6b7280;
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-weight: 600;
-    }
-
-    /* Responsive Design */
-    @@media (max-width: 768px) {
+    /* Responsive Design - Minimal Theme */
+    @@media (max-width: 991px) {
+        .hero-title,
         .hero-section h1 {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
         }
 
-        .hero-section p {
-            font-size: 1.1rem;
+        .hero-content {
+            padding: 16px;
         }
 
-        .hero-ad-container,
-        .hero-ad-container-top {
-            margin-bottom: 20px;
+        .action-cards-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .hero-title,
+        .hero-section h1 {
+            font-size: 2.2rem;
         }
 
-        .action-buttons {
-            margin-top: 20px;
-            grid-template-columns: 1fr;
+        .hero-description {
+            font-size: 1rem;
         }
 
-        .top-news-trigger,
-        .explore-more-btn {
-            grid-column: span 1;
+        .hero-overlay {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.5) 50%, transparent 80%);
+        }
+
+        .action-cards-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
         }
 
         .section-title h2 {
-            font-size: 2.25rem;
+            font-size: 2rem;
         }
-    }
 
-    @@media (max-width: 991px) {
-        .hero-ad-container,
-        .hero-ad-container-top {
-            margin-bottom: 30px;
+        .hero-stats {
+            gap: 20px;
+        }
+
+        .hero-stat-number {
+            font-size: 1.4rem;
+        }
+
+        .hero-stat-label {
+            font-size: 0.75rem;
         }
     }
 
     @@media (max-width: 576px) {
-        .search-wrap {
-            grid-template-columns: 1fr;
-            gap: 12px;
-            border-radius: 16px;
+        .hero-title,
+        .hero-section h1 {
+            font-size: 1.8rem;
         }
 
-        .search-select, .search-input, .search-btn {
-            padding: 14px 16px;
+        .search-wrap {
+            grid-template-columns: 1fr;
+            border-radius: 20px;
+            padding: 12px;
+            gap: 8px;
+        }
+
+        .search-select {
+            border-right: none;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .search-input {
+            text-align: center;
+        }
+
+        .search-btn {
+            width: 100%;
+            border-radius: 12px;
+            height: 44px;
         }
 
         .cta-buttons {
@@ -802,265 +913,185 @@
         }
 
         .section-title h2 {
-            font-size: 2rem;
+            font-size: 1.8rem;
         }
 
-        .category-chips {
-            gap: 8px;
+        .hero-stats {
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
-        .category-chip {
-            padding: 10px 18px;
-            font-size: 0.9rem;
+        .hero-stat-item {
+            flex: 0 0 auto;
+        }
+
+        .action-cards-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
         }
     }
 </style>
 
+<!-- Three.js with ES Module imports for proper GLTFLoader -->
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+
 <!-- Hero Section -->
 <div class="hero-section">
-    <!-- Animated floating particles -->
-    <div class="hero-particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
+    <!-- 3D Canvas Container -->
+    <div id="hero-canvas-container">
+        <canvas id="hero-canvas"></canvas>
     </div>
+    
+    <!-- Gradient overlay for text readability -->
+    <div class="hero-overlay"></div>
+    
     <div class="container-fluid">
-        <div class="row min-vh-100 mx-0">
-            <div class="col-lg-6 d-flex flex-column justify-content-center">
-                <p class="mb-3 text-white-50">Order any service, anytime from anywhere</p>
-                <h1 class="text-white mb-4">Find the Perfect <span class="highlight-badge">Service</span> for Your Needs</h1>
-                <p class="text-white-50 mb-5">Connect with trusted service providers and vendors in your area. Get quality services delivered right to your doorstep.</p>
+        <div class="row min-vh-100 mx-0 justify-content-center align-items-center">
+            <div class="col-12 text-center">
+                <!-- Minimal Hero Content -->
+                <div class="hero-content">
+                    <span class="hero-subtitle">
+                        <i class="bi bi-geo-alt-fill"></i> Your Local Service Marketplace
+                    </span>
+                    <h1 class="hero-title">Find the Perfect<br><span class="highlight-badge">Service</span> Near You</h1>
+                    <p class="hero-description">Connect with trusted professionals in your area. Fast, reliable, and hassle-free.</p>
 
-                <div class="search-container">
-                    <div class="search-wrap">
-                        <select class="form-select search-select" id="searchLocation">
-                            @for (var i = 0; i < newsLocations.Length; i++)
-                            {
-                                var place = newsLocations[i];
-                                if (i == 0)
+                    <div class="search-container">
+                        <div class="search-wrap">
+                            <select class="form-select search-select" id="searchLocation">
+                                @for (var i = 0; i < newsLocations.Length; i++)
                                 {
-                                    <option value="@place" selected>@place</option>
+                                    var place = newsLocations[i];
+                                    if (i == 0)
+                                    {
+                                        <option value="@place" selected>@place</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@place">@place</option>
+                                    }
                                 }
-                                else
-                                {
-                                    <option value="@place">@place</option>
-                                }
-                            }
-                        </select>
-                        <input class="search-input" id="searchInput" placeholder="What are you looking for?" />
-                        <button class="search-btn" id="searchBtn"><i class="bi bi-search"></i></button>
-                        
-                        <style>
-                            .hero-results { margin-top:16px; }
-                            .service-card { border:1px solid #e5e7eb; border-radius:12px; padding:12px 16px; background:#fff; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
-                            .service-title { font-weight:600; }
-                            .service-meta { font-size:.9rem; color:#6b7280; }
-                        </style>
-                    </div>
-                </div>
-                <style>
-                    .osm-quick-cards { margin-top: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-                    .osm-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; cursor: pointer; display:flex; align-items:center; gap:8px; transition: transform .1s ease, box-shadow .1s ease; }
-                    .osm-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,.08); }
-                    .osm-card i { color:#0ea5e9; }
-                    @@media (max-width: 768px){ .osm-quick-cards{ grid-template-columns: repeat(2, 1fr);} }
-                </style>
-                <!-- Moved OSM quick cards into LocalDirectory/Discover search; removing from hero -->
-                <div class="osm-quick-cards d-none"></div>
-
-                <div class="category-chips">
-                    @if (User.Identity?.IsAuthenticated ?? false)
-                    {
-                        <a href="/Services/Browse?q=Plumber" class="category-chip">@Localizer["Category.Plumber"]</a>
-                        <a href="/Services/Browse?q=Electrician" class="category-chip">@Localizer["Category.Electrician"]</a>
-                        <a href="/Services/Browse?q=Cleaner" class="category-chip">@Localizer["Category.Cleaner"]</a>
-                        <a href="/Services/Browse?q=Painting" class="category-chip">@Localizer["Category.Painting"]</a>
-                        <a href="/Services/Browse?q=Salon" class="category-chip">@Localizer["Category.Salon"]</a>
-                        <a href="/Services/Browse" class="category-chip">@Localizer["Category.More"]</a>
-                    }
-                    else
-                    {
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Plumber" class="category-chip">@Localizer["Category.Plumber"]</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Electrician" class="category-chip">@Localizer["Category.Electrician"]</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Cleaner" class="category-chip">@Localizer["Category.Cleaner"]</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Painting" class="category-chip">@Localizer["Category.Painting"]</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse?q=Salon" class="category-chip">@Localizer["Category.Salon"]</a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="category-chip">@Localizer["Category.More"]</a>
-                    }
-                </div>
-            </div>
-            <div class="col-lg-6 d-flex flex-column justify-content-start align-items-center">
-                <!-- Hero Advertisement Banner -->
-                <div class="hero-ad-container-top mb-4">
-                    @await Component.InvokeAsync("HeroAdvertisement")
-                </div>
-                
-                <!-- Spacer to push action buttons to center -->
-                <div class="flex-grow-1 d-flex align-items-center">
-                    <div class="action-buttons">
-                        <a href="/Home/News" class="action-btn top-news-trigger">
-                            <i class="fas fa-newspaper"></i>
-                            <div>
-                                <div class="fw-bold">Top News</div>
-                                <small>Stay updated with your city</small>
-                            </div>
-                        </a>
-                        <!-- New Explore More Services Button -->
-                        <a href="/Home/ExploreServices" class="action-btn explore-more-btn">
-                            <i class="fas fa-compass"></i>
-                            <div>
-                                <div class="fw-bold">Explore More Services</div>
-                                <small>Discover all available services</small>
-                            </div>
-                        </a>
-                    @if (User.Identity?.IsAuthenticated ?? false)
-                    {
-                        <a href="/Services/Browse" class="action-btn">
-                            <i class="fas fa-calendar-check"></i>
-                            <div>
-                                <div class="fw-bold">@Localizer["CTA.BookService.Title"]</div>
-                                <small class="text-muted">@Localizer["CTA.BookService.Desc"]</small>
-                            </div>
-                        </a>
-                        <a href="/LocalDirectory/Discover" class="action-btn">
-                            <i class="fas fa-search-location"></i>
-                            <div>
-                                <div class="fw-bold">@Localizer["CTA.SearchLocal.Title"]</div>
-                                <small class="text-muted">@Localizer["CTA.SearchLocal.Desc"]</small>
-                            </div>
-                        </a>
-                    }
-                    else
-                    {
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="action-btn">
-                            <i class="fas fa-calendar-check"></i>
-                            <div>
-                                <div class="fw-bold">@Localizer["CTA.BookService.Title"]</div>
-                                <small class="text-muted">@Localizer["CTA.BookService.Desc"]</small>
-                            </div>
-                        </a>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/LocalDirectory/Discover" class="action-btn">
-                            <i class="fas fa-search-location"></i>
-                            <div>
-                                <div class="fw-bold">@Localizer["CTA.SearchLocal.Title"]</div>
-                                <small class="text-muted">@Localizer["CTA.SearchLocal.Desc"]</small>
-                            </div>
-                        </a>
-                    }
-                    @if (User.Identity?.IsAuthenticated ?? false)
-                    {
-                        <a href="/Home/Items?role=Vendor" class="action-btn">
-                            <i class="fas fa-store"></i>
-                            <div>
-                                <div class="fw-bold">@Localizer["CTA.VendorItems.Title"]</div>
-                                <small class="text-muted">@Localizer["CTA.VendorItems.Desc"]</small>
-                            </div>
-                        </a>
-                    }
-                    else
-                    {
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Home/Items?role=Vendor" class="action-btn">
-                            <i class="fas fa-store"></i>
-                            <div>
-                                <div class="fw-bold">@Localizer["CTA.VendorItems.Title"]</div>
-                                <small class="text-muted">@Localizer["CTA.VendorItems.Desc"]</small>
-                            </div>
-                        </a>
-                    }
-                    <a href="#" class="action-btn" onclick="alert('@Localizer["Msg.NoResults"]');return false;">
-                        <i class="fas fa-sync-alt"></i>
-                        <div>
-                            <div class="fw-bold">@Localizer["CTA.DailyEssentials.Title"]</div>
-                            <small class="text-muted">@Localizer["CTA.DailyEssentials.Desc"]</small>
+                            </select>
+                            <input class="search-input" id="searchInput" placeholder="Search services..." />
+                            <button class="search-btn" id="searchBtn"><i class="bi bi-search"></i></button>
                         </div>
-                    </a>
-                </div>
+                    </div>
+                    
+                    <div class="hero-stats">
+                        <div class="hero-stat-item">
+                            <span class="hero-stat-number">@(ViewBag.ServiceProviders > 0 ? ViewBag.ServiceProviders.ToString() + "+" : "0")</span>
+                            <span class="hero-stat-label">Providers</span>
+                        </div>
+                        <div class="hero-stat-item">
+                            <span class="hero-stat-number">@(ViewBag.CompletedServices > 0 ? ViewBag.CompletedServices.ToString("N0") + "+" : "0")</span>
+                            <span class="hero-stat-label">Services</span>
+                        </div>
+                        <div class="hero-stat-item">
+                            <span class="hero-stat-number">@(ViewBag.TotalUsers > 0 ? ViewBag.TotalUsers.ToString("N0") + "+" : "0")</span>
+                            <span class="hero-stat-label">Users</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    // Hero search: fetch from local directory API with location
-    async function runHeroSearch(){
-        const loc = document.getElementById('searchLocation').value;
-        const q = (document.getElementById('searchInput').value || '').trim();
-        const url = new URL(location.origin + '/api/local/services');
-        if(q) url.searchParams.set('q', q);
-        url.searchParams.set('locationName', loc);
-        try{
-            const res = await fetch(url);
-            const list = await res.json();
-            const containerId = 'heroResults';
-            let container = document.getElementById(containerId);
-            if(!container){
-                container = document.createElement('div');
-                container.id = containerId;
-                container.className = 'hero-results';
-                document.querySelector('.search-container').appendChild(container);
-            }
-            if(!Array.isArray(list) || list.length === 0){
-                container.innerHTML = '<div class="text-white-50 mt-3">No results found.</div>';
-                return;
-            }
-            list.sort((a,b)=> (b.rating||0)-(a.rating||0));
-            container.innerHTML = list.map(s => {
-                const stars = (s.rating||0) > 0 ? `<span class="badge bg-warning text-dark ms-2"><i class="fas fa-star"></i> ${Number(s.rating).toFixed(1)}${s.ratingCount?` (${s.ratingCount})`:''}</span>` : '';
-                const addr = s.address ? `<div class="service-meta">${s.address}</div>` : '';
-                const mapHref = s.mapUrl ? s.mapUrl : `/local/services/${s.id}/map`;
-                const rate = `<div class="mt-2">
-                    <span class="me-2">Rate:</span>
-                    ${[1,2,3,4,5].map(n=>`<button class='btn btn-sm ${n<=Math.round(s.rating)?'btn-warning':'btn-outline-secondary'} me-1' onclick='rateService(${JSON.stringify(s.id)}, ${n})'>${n}</button>`).join('')}
-                </div>`;
-                return `<div class="service-card">
-                    <div>
-                        <div class="service-title">${s.name} ${stars}</div>
-                        <div class="service-meta">${s.categoryName||''}</div>
-                        ${addr}
-                        ${rate}
+<!-- Cards Section -->
+<div class="cards-section reveal section-stagger">
+    <div class="container-fluid px-0">
+        <div class="section-title">
+            <h2>Quick Actions</h2>
+            <p>Access all features at a glance</p>
+        </div>
+        
+        <div class="action-cards-grid">
+            <a href="/Home/News" class="action-card news-card stagger-item">
+                <i class="fas fa-newspaper"></i>
+                <div class="card-content">
+                    <div class="fw-bold">Top News</div>
+                    <small>Stay updated with your city</small>
+                </div>
+            </a>
+            
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <a href="/Services/Browse" class="action-card stagger-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <div class="card-content">
+                        <div class="fw-bold">@Localizer["CTA.BookService.Title"]</div>
+                        <small>@Localizer["CTA.BookService.Desc"]</small>
                     </div>
-                    <a class="btn btn-sm btn-outline-success" target="_blank" href="${mapHref}"><i class="fas fa-map-marker-alt"></i> Map</a>
-                </div>`;
-            }).join('');
-        }catch{
-            alert('Failed to load results');
-        }
-    }
-    async function rateService(id, rating){
-        try{
-            const res = await fetch(`/api/local/services/${id}/rating`, {
-                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({rating})
-            });
-            if(res.ok){
-                runHeroSearch();
-            }else if(res.status === 401){
-                alert('Please login to rate');
-            }else{
-                alert('Failed to submit rating');
+                </a>
+                <a href="/Home/Items?role=Vendor" class="action-card stagger-item">
+                    <i class="fas fa-store"></i>
+                    <div class="card-content">
+                        <div class="fw-bold">@Localizer["CTA.VendorItems.Title"]</div>
+                        <small>@Localizer["CTA.VendorItems.Desc"]</small>
+                    </div>
+                </a>
             }
-        }catch{
-            alert('Failed to submit rating');
-        }
-    }
-    function quickSearch(name){
-        const input = document.getElementById('searchInput');
-        input.value = name;
-        runHeroSearch();
-    }
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('searchBtn').addEventListener('click', (e)=>{ e.preventDefault(); runHeroSearch(); });
-        document.getElementById('searchInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); runHeroSearch(); }});
-    });
-</script>
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="action-card stagger-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <div class="card-content">
+                        <div class="fw-bold">@Localizer["CTA.BookService.Title"]</div>
+                        <small>@Localizer["CTA.BookService.Desc"]</small>
+                    </div>
+                </a>
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Home/Items?role=Vendor" class="action-card stagger-item">
+                    <i class="fas fa-store"></i>
+                    <div class="card-content">
+                        <div class="fw-bold">@Localizer["CTA.VendorItems.Title"]</div>
+                        <small>@Localizer["CTA.VendorItems.Desc"]</small>
+                    </div>
+                </a>
+            }
+            
+            <a href="#" class="action-card stagger-item" onclick="alert('@Localizer["Msg.NoResults"]');return false;">
+                <i class="fas fa-sync-alt"></i>
+                <div class="card-content">
+                    <div class="fw-bold">@Localizer["CTA.DailyEssentials.Title"]</div>
+                    <small>@Localizer["CTA.DailyEssentials.Desc"]</small>
+                </div>
+            </a>
+            
+            <a href="/Home/ExploreServices" class="action-card explore-card stagger-item">
+                <i class="fas fa-compass"></i>
+                <div class="card-content">
+                    <div class="fw-bold">Explore More Services</div>
+                    <small>Discover all available services</small>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Advertisement Section -->
+<div class="ad-section">
+    <div class="container-fluid">
+        <div class="ad-container">
+            @await Component.InvokeAsync("HeroAdvertisement")
+        </div>
+    </div>
+</div>
 
 <!-- Features Section -->
 <div class="features-section reveal section-stagger">
     <div class="container-fluid">
+        <div class="section-title">
+            <h2>Why Choose Us</h2>
+            <p>Experience the best service platform</p>
+        </div>
+        
         <div class="row">
             <div class="col-md-4 stagger-item">
                 <div class="feature-card card-hover">
@@ -1268,7 +1299,6 @@
             }
             else
             {
-                <!-- Unauthenticated: gate complaint link to login -->
                 <a href="/Account/Register" class="cta-btn">
                     <i class="fas fa-user-plus"></i>
                     Sign Up Now
@@ -1286,30 +1316,548 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate stats on scroll
-        const observerOptions = {
-            threshold: 0.5,
-            rootMargin: '0px 0px -100px 0px'
-        };
+<script type="module">
+    // ============================================
+    // Three.js 3D Model Initialization Function
+    // ============================================
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+    import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
+    function initHero3DScene() {
+        var canvas = document.getElementById('hero-canvas');
+        var container = document.getElementById('hero-canvas-container');
         
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
+        if (!canvas || !container) {
+            console.warn('Hero canvas elements not found');
+            return;
+        }
+
+        // Scene setup - transparent background for light theme
+        var scene = new THREE.Scene();
+        scene.background = null; // Transparent background
+
+        // Camera setup - closer position for better view
+        var camera = new THREE.PerspectiveCamera(
+            45,
+            container.clientWidth / container.clientHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(0, 2.5, 4.5);
+        camera.lookAt(0, 0, 0);
+
+        // Renderer setup
+        var renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            antialias: true,
+            alpha: true
+        });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.5;
+        renderer.setClearColor(0x000000, 0); // Transparent clear color
+
+        // Enhanced Lighting for better color reproduction
+        var ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+        scene.add(ambientLight);
+
+        var directionalLight1 = new THREE.DirectionalLight(0xffffff, 2.0);
+        directionalLight1.position.set(10, 20, 10);
+        directionalLight1.castShadow = true;
+        scene.add(directionalLight1);
+
+        var directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.0);
+        directionalLight2.position.set(-10, 10, -10);
+        scene.add(directionalLight2);
+
+        var directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight3.position.set(0, -10, 10);
+        scene.add(directionalLight3);
+
+        // Hemisphere light for natural lighting
+        var hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
+        hemiLight.position.set(0, 20, 0);
+        scene.add(hemiLight);
+
+        // Model variable
+        var model = null;
+        
+        // ============================================
+        // 3D Rotating Text Ring (Background Layer)
+        // ============================================
+        var textRing = new THREE.Group();
+        textRing.position.z = -15; // Push text ring far behind the model
+        textRing.position.y = -4; // Move text ring much lower to avoid blocking view
+        scene.add(textRing);
+        
+        // 3D Text configuration
+        var textWords = [
+            'SERVICES',
+            'MARKETPLACE', 
+            'NEWS',
+            'DAILY ESSENTIALS',
+            'NEARBY STORES',
+            'HOMES',
+            'COMMUNITY',
+            'RENTALS',
+            'BOOKINGS',
+            'CONNECT'
+        ];
+        
+        // Light green and grey color scheme to match the model
+        var textColors = [
+            0x10B981, // Emerald green
+            0x34D399, // Light emerald
+            0x6EE7B7, // Pale green
+            0xA7F3D0, // Very light green
+            0x9CA3AF, // Grey
+            0x10B981, // Emerald green
+            0x34D399, // Light emerald
+            0x6EE7B7, // Pale green
+            0xA7F3D0, // Very light green
+            0x9CA3AF  // Grey
+        ];
+        
+        // Load font and create 3D texts - Using modern Optimer Bold font
+        var fontLoader = new FontLoader();
+        fontLoader.load(
+            'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/fonts/optimer_bold.typeface.json',
+            function(font) {
+                var radius = 18; // Large radius for background circle
+                var textCount = textWords.length;
+                var angleStep = (Math.PI * 2) / textCount;
+                
+                textWords.forEach(function(word, index) {
+                    // Create text geometry - larger size for better visibility
+                    var textGeometry = new TextGeometry(word, {
+                        font: font,
+                        size: 1.8,
+                        height: 0.25, // Depth of the text (3D extrusion)
+                        curveSegments: 16,
+                        bevelEnabled: true,
+                        bevelThickness: 0.05,
+                        bevelSize: 0.03,
+                        bevelOffset: 0,
+                        bevelSegments: 8
+                    });
+                    
+                    // Center the text geometry
+                    textGeometry.computeBoundingBox();
+                    var centerOffset = -0.5 * (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
+                    
+                    // Create subtle material with soft glow - light green/grey theme
+                    var textMaterial = new THREE.MeshStandardMaterial({
+                        color: textColors[index % textColors.length],
+                        metalness: 0.1,
+                        roughness: 0.6,
+                        emissive: textColors[index % textColors.length],
+                        emissiveIntensity: 0.35,
+                        transparent: true,
+                        opacity: 0.90
+                    });
+                    
+                    var textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                    
+                    // Position text in a large circle in the background
+                    // Offset angle to spread SERVICES and CONNECT apart (they are index 0 and 9)
+                    var angleOffset = 0.15; // Add small offset to spread words more evenly
+                    var angle = index * angleStep + angleOffset;
+                    // Keep all texts in lower positions (-4 to 0 range instead of -3 to 3)
+                    var yOffset = (index % 3 - 2) * 2; // Vary height: -4, -2, 0
+                    
+                    // Create a pivot group for each text
+                    var textPivot = new THREE.Group();
+                    
+                    // Position text at radius distance
+                    textMesh.position.set(centerOffset, 0, 0);
+                    
+                    // Create inner group to hold text and rotate it to face outward (readable from center)
+                    var textHolder = new THREE.Group();
+                    textHolder.add(textMesh);
+                    textHolder.position.set(radius, yOffset, 0);
+                    textHolder.rotation.y = -Math.PI / 2; // Face outward so text is readable from center
+                    
+                    textPivot.add(textHolder);
+                    textPivot.rotation.y = angle; // Spread around the circle
+                    
+                    textRing.add(textPivot);
+                });
+                
+                console.log('3D text ring created with', textCount, 'words');
+            },
+            function(xhr) {
+                console.log('Font loading: ' + (xhr.loaded / xhr.total * 100).toFixed(0) + '%');
+            },
+            function(error) {
+                console.error('Error loading font:', error);
+                // Create fallback sprite-based text
+                createFallbackTextRing();
+            }
+        );
+        
+        // Fallback text using sprites if font fails to load
+        function createFallbackTextRing() {
+            var radius = 18;
+            var textCount = textWords.length;
+            var angleStep = (Math.PI * 2) / textCount;
+            
+            textWords.forEach(function(word, index) {
+                var canvas = document.createElement('canvas');
+                var context = canvas.getContext('2d');
+                canvas.width = 512;
+                canvas.height = 128;
+                
+                // Create gradient background
+                context.fillStyle = 'transparent';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw text with modern styling
+                context.font = 'bold 48px Arial, sans-serif';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                
+                // Add glow effect - light green/grey
+                context.shadowColor = '#' + textColors[index % textColors.length].toString(16).padStart(6, '0');
+                context.shadowBlur = 20;
+                context.fillStyle = '#' + textColors[index % textColors.length].toString(16).padStart(6, '0');
+                context.fillText(word, canvas.width / 2, canvas.height / 2);
+                
+                var texture = new THREE.CanvasTexture(canvas);
+                var spriteMaterial = new THREE.SpriteMaterial({ 
+                    map: texture,
+                    transparent: true,
+                    opacity: 0.90
+                });
+                var sprite = new THREE.Sprite(spriteMaterial);
+                sprite.scale.set(6, 1.5, 1);
+                
+                var angle = index * angleStep;
+                var yOffset = (index % 3 - 1) * 3;
+                
+                var spritePivot = new THREE.Group();
+                sprite.position.set(radius, yOffset, 0);
+                spritePivot.add(sprite);
+                spritePivot.rotation.y = angle;
+                
+                textRing.add(spritePivot);
+            });
+        }
+
+        // Load the GLB model
+        console.log('Starting to load 3D model...');
+        
+        var loader = new GLTFLoader();
+        loader.load(
+            '/city_pack_5.glb',
+            function(gltf) {
+                console.log('GLTF loaded successfully:', gltf);
+                model = gltf.scene;
+                
+                // Center the model
+                var box = new THREE.Box3().setFromObject(model);
+                var center = box.getCenter(new THREE.Vector3());
+                var size = box.getSize(new THREE.Vector3());
+                
+                console.log('Model size:', size);
+                console.log('Model center:', center);
+                
+                // Move model to center
+                model.position.sub(center);
+                
+                // Scale model larger for closer view
+                var maxDim = Math.max(size.x, size.y, size.z);
+                var scale = 18 / maxDim;
+                model.scale.setScalar(scale);
+                
+                // Position model slightly lower
+                model.position.x = 0;
+                model.position.y = -1.5;
+                
+                scene.add(model);
+                console.log('3D model added to scene with original colors');
+            },
+            function(xhr) {
+                if (xhr.total > 0) {
+                    var percent = (xhr.loaded / xhr.total * 100).toFixed(0);
+                    console.log('Loading 3D model: ' + percent + '%');
+                } else {
+                    console.log('Loading 3D model: ' + xhr.loaded + ' bytes');
+                }
+            },
+            function(error) {
+                console.error('Error loading 3D model:', error);
+                // Create fallback geometric shape
+                createFallbackGeometry(scene);
+            }
+        );
+
+        // Fallback geometry if model fails to load
+        function createFallbackGeometry(targetScene) {
+            console.log('Creating fallback geometry...');
+            var group = new THREE.Group();
+            
+            // Create several geometric shapes as fallback with colors
+            var material1 = new THREE.MeshStandardMaterial({ color: 0x10B981, metalness: 0.3, roughness: 0.4 });
+            var material2 = new THREE.MeshStandardMaterial({ color: 0x3B82F6, metalness: 0.3, roughness: 0.4 });
+            var material3 = new THREE.MeshStandardMaterial({ color: 0x8B5CF6, metalness: 0.3, roughness: 0.4 });
+            var material4 = new THREE.MeshStandardMaterial({ color: 0xF59E0B, metalness: 0.3, roughness: 0.4 });
+            
+            // Building-like shapes
+            var building1 = new THREE.Mesh(new THREE.BoxGeometry(1.5, 3, 1.5), material1);
+            building1.position.set(-3, 0, 0);
+            group.add(building1);
+            
+            var building2 = new THREE.Mesh(new THREE.BoxGeometry(1, 4, 1), material2);
+            building2.position.set(-1, 0.5, 1);
+            group.add(building2);
+            
+            var building3 = new THREE.Mesh(new THREE.BoxGeometry(2, 2.5, 2), material3);
+            building3.position.set(1.5, -0.25, 0);
+            group.add(building3);
+            
+            var building4 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 3.5, 1.2), material4);
+            building4.position.set(3.5, 0.25, -0.5);
+            group.add(building4);
+            
+            // Ground plane
+            var groundMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.1, roughness: 0.8 });
+            var ground = new THREE.Mesh(new THREE.BoxGeometry(12, 0.2, 6), groundMat);
+            ground.position.set(0, -1.6, 0);
+            group.add(ground);
+            
+            model = group;
+            targetScene.add(group);
+        }
+
+        // ============================================
+        // Mouse/Touch Drag Controls
+        // ============================================
+        var isDragging = false;
+        var previousMousePosition = { x: 0, y: 0 };
+        var autoRotate = true;
+        var dragRotationSpeed = 0.008;
+        var autoRotationResumeDelay = 2000; // Resume auto-rotation after 2 seconds of no interaction
+        var lastInteractionTime = 0;
+
+        // Mouse down - start dragging
+        container.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            autoRotate = false;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+            container.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        // Mouse move - rotate model while dragging
+        window.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            var deltaX = e.clientX - previousMousePosition.x;
+            
+            if (model) {
+                model.rotation.y += deltaX * dragRotationSpeed;
+            }
+            if (textRing) {
+                textRing.rotation.y += deltaX * dragRotationSpeed;
+            }
+            
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+            lastInteractionTime = Date.now();
+        });
+
+        // Mouse up - stop dragging
+        window.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                container.style.cursor = 'grab';
+                lastInteractionTime = Date.now();
+            }
+        });
+
+        // Touch support for mobile
+        container.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                autoRotate = false;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        container.addEventListener('touchmove', function(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+            e.preventDefault();
+            
+            var deltaX = e.touches[0].clientX - previousMousePosition.x;
+            
+            if (model) {
+                model.rotation.y += deltaX * dragRotationSpeed;
+            }
+            if (textRing) {
+                textRing.rotation.y += deltaX * dragRotationSpeed;
+            }
+            
+            previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            lastInteractionTime = Date.now();
+        }, { passive: false });
+
+        container.addEventListener('touchend', function() {
+            isDragging = false;
+            lastInteractionTime = Date.now();
+        });
+
+        // Set initial cursor style
+        container.style.cursor = 'grab';
+
+        // Animation loop with continuous horizontal rotation
+        var rotationSpeed = 0.003;
+        var textRotationSpeed = 0.003; // Same speed as model for synchronized rotation
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Resume auto-rotation after delay
+            if (!autoRotate && !isDragging && Date.now() - lastInteractionTime > autoRotationResumeDelay) {
+                autoRotate = true;
+            }
+            
+            // Rotate model horizontally (around Y axis) when auto-rotate is enabled
+            if (autoRotate) {
+                if (model) {
+                    model.rotation.y += rotationSpeed;
+                }
+                
+                // Rotate text ring in sync with the model
+                if (textRing) {
+                    textRing.rotation.y += textRotationSpeed;
+                }
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+
+        // Handle window resize
+        function onWindowResize() {
+            var width = container.clientWidth;
+            var height = container.clientHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        
+        window.addEventListener('resize', onWindowResize);
+    }
+
+    // ============================================
+    // Hero Search Functionality
+    // ============================================
+    function runHeroSearch() {
+        var loc = document.getElementById('searchLocation').value;
+        var q = (document.getElementById('searchInput').value || '').trim();
+        var url = new URL(location.origin + '/api/local/services');
+        if (q) url.searchParams.set('q', q);
+        url.searchParams.set('locationName', loc);
+        
+        fetch(url)
+            .then(function(res) { return res.json(); })
+            .then(function(list) {
+                var containerId = 'heroResults';
+                var container = document.getElementById(containerId);
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = containerId;
+                    container.className = 'hero-results';
+                    document.querySelector('.search-container').appendChild(container);
+                }
+                if (!Array.isArray(list) || list.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-secondary);" class="mt-3">No results found.</div>';
+                    return;
+                }
+                list.sort(function(a, b) { return (b.rating || 0) - (a.rating || 0); });
+                container.innerHTML = list.map(function(s) {
+                    var stars = (s.rating || 0) > 0 ? '<span class="badge bg-warning text-dark ms-2"><i class="fas fa-star"></i> ' + Number(s.rating).toFixed(1) + (s.ratingCount ? ' (' + s.ratingCount + ')' : '') + '</span>' : '';
+                    var addr = s.address ? '<div class="service-meta">' + s.address + '</div>' : '';
+                    var mapHref = s.mapUrl ? s.mapUrl : '/local/services/' + s.id + '/map';
+                    var rate = '<div class="mt-2"><span class="me-2">Rate:</span>' + 
+                        [1, 2, 3, 4, 5].map(function(n) {
+                            return '<button class="btn btn-sm ' + (n <= Math.round(s.rating) ? 'btn-warning' : 'btn-outline-secondary') + ' me-1" onclick="rateService(\'' + s.id + '\', ' + n + ')">' + n + '</button>';
+                        }).join('') + '</div>';
+                    return '<div class="service-card"><div><div class="service-title">' + s.name + ' ' + stars + '</div><div class="service-meta">' + (s.categoryName || '') + '</div>' + addr + rate + '</div><a class="btn btn-sm btn-outline-success" target="_blank" href="' + mapHref + '"><i class="fas fa-map-marker-alt"></i> Map</a></div>';
+                }).join('');
+            })
+            .catch(function() {
+                alert('Failed to load results');
+            });
+    }
+
+    // Make functions available globally
+    window.runHeroSearch = runHeroSearch;
+
+    window.rateService = function(id, rating) {
+        fetch('/api/local/services/' + id + '/rating', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rating: rating })
+        })
+        .then(function(res) {
+            if (res.ok) {
+                runHeroSearch();
+            } else if (res.status === 401) {
+                alert('Please login to rate');
+            } else {
+                alert('Failed to submit rating');
+            }
+        })
+        .catch(function() {
+            alert('Failed to submit rating');
+        });
+    };
+
+    // ============================================
+    // Scroll Reveal & Stats Animation
+    // ============================================
+    function initScrollAnimations() {
+        var observerOptions = {
+            threshold: 0.15
+        };
+
+        var revealObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
                 if (entry.isIntersecting) {
-                    const statNumbers = entry.target.querySelectorAll('.stat-number');
-                    statNumbers.forEach(stat => {
-                        const text = stat.textContent;
-                        const hasPlus = text.includes('+');
-                        const isDecimal = text.includes('.');
-                        
+                    entry.target.classList.add('revealed');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        var revealSections = document.querySelectorAll('.reveal');
+        revealSections.forEach(function(sec) {
+            revealObserver.observe(sec);
+        });
+
+        // Stats counter animation
+        var statsObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var statNumbers = entry.target.querySelectorAll('.stat-number');
+                    statNumbers.forEach(function(stat) {
+                        var text = stat.textContent;
+                        var hasPlus = text.includes('+');
+                        var isDecimal = text.includes('.');
+
                         if (isDecimal) {
-                            // Handle decimal numbers like 4.8
-                            const finalNumber = parseFloat(text);
-                            let currentNumber = 0;
-                            const increment = finalNumber / 30;
-                            
-                            const timer = setInterval(() => {
+                            var finalNumber = parseFloat(text);
+                            var currentNumber = 0;
+                            var increment = finalNumber / 30;
+
+                            var timer = setInterval(function() {
                                 currentNumber += increment;
                                 if (currentNumber >= finalNumber) {
                                     stat.textContent = finalNumber.toFixed(1);
@@ -1319,61 +1867,60 @@
                                 }
                             }, 50);
                         } else {
-                            // Handle regular numbers
-                            const finalNumber = parseInt(text.replace(/[^0-9]/g, ''));
-                            let currentNumber = 0;
-                            const increment = finalNumber / 50;
-                            
-                            const timer = setInterval(() => {
-                                currentNumber += increment;
-                                if (currentNumber >= finalNumber) {
-                                    stat.textContent = finalNumber.toLocaleString() + (hasPlus ? '+' : '');
-                                    clearInterval(timer);
+                            var finalNum = parseInt(text.replace(/[^0-9]/g, ''));
+                            var currentNum = 0;
+                            var inc = finalNum / 50;
+
+                            var countTimer = setInterval(function() {
+                                currentNum += inc;
+                                if (currentNum >= finalNum) {
+                                    stat.textContent = finalNum.toLocaleString() + (hasPlus ? '+' : '');
+                                    clearInterval(countTimer);
                                 } else {
-                                    stat.textContent = Math.floor(currentNumber).toLocaleString() + (hasPlus ? '+' : '');
+                                    stat.textContent = Math.floor(currentNum).toLocaleString() + (hasPlus ? '+' : '');
                                 }
                             }, 30);
                         }
                     });
-                    observer.unobserve(entry.target);
+                    statsObserver.unobserve(entry.target);
                 }
             });
-        }, observerOptions);
+        }, { threshold: 0.5, rootMargin: '0px 0px -100px 0px' });
+
+        var statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            statsObserver.observe(statsSection);
+        }
+    }
+
+    // ============================================
+    // Initialize Everything on DOM Ready
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize 3D scene
+        initHero3DScene();
         
-        const revealSections = document.querySelectorAll('.reveal');
-        revealSections.forEach(sec => {
-            const obs = new IntersectionObserver((entries) => {
-                entries.forEach(e => {
-                    if (e.isIntersecting) {
-                        e.target.classList.add('revealed');
-                        obs.unobserve(e.target);
-                    }
-                });
-            }, {threshold: 0.15});
-            obs.observe(sec);
-        });
+        // Initialize scroll animations
+        initScrollAnimations();
         
-        // Search functionality - route to Browse like the reference, but require login if unauthenticated
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
+        // Search event listeners
+        var searchBtn = document.getElementById('searchBtn');
+        var searchInput = document.getElementById('searchInput');
         
-        searchBtn.addEventListener('click', function() {
-            const query = searchInput.value.trim();
-            if (!query) return;
-            sessionStorage.setItem('browse_q', query);
-            const isAuthed = document.body.getAttribute('data-authed') === 'true';
-            if (isAuthed) {
-                window.location.href = '/Services/Browse';
-            } else {
-                // redirect to login, then back to browse
-                window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent('/Services/Browse');
-            }
-        });
+        if (searchBtn) {
+            searchBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                runHeroSearch();
+            });
+        }
         
-        searchInput?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchBtn.click();
-            }
-        });
+        if (searchInput) {
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    runHeroSearch();
+                }
+            });
+        }
     });
 </script>

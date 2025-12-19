@@ -17,8 +17,6 @@ build_property.SupportLocalizedComponentNames =
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
 build_property.MSBuildProjectDirectory = C:\Darklord\MCA_2024\S3\ServConnect\backend
 build_property._RazorSourceGeneratorDebug = 
-build_property.EffectiveAnalysisLevelStyle = 8.0
-build_property.EnableCodeStyleSeverity = 
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxDaGFuZ2VQYXNzd29yZC5jc2h0bWw=
