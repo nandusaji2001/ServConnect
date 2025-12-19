@@ -3,9 +3,29 @@
 }
 
 <style>
+    /* CSS Variables matching user dashboard */
+    :root {
+        --primary: #10B981;
+        --primary-dark: #059669;
+        --primary-light: #34D399;
+        --accent: #3B82F6;
+        --bg-light: #ffffff;
+        --bg-section: #f8fafc;
+        --bg-card: #ffffff;
+        --bg-card-hover: #f9fafb;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.15);
+        --shadow-glow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
     /* Base styles */
     body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
         min-height: 100vh;
     }
 
@@ -18,24 +38,23 @@
     /* Hero header with animation */
     .explore-header {
         text-align: center;
-        margin-bottom: 60px;
+        margin-bottom: 40px;
         animation: fadeInDown 0.8s ease-out;
     }
 
     .explore-header h1 {
-        font-size: 3.5rem;
+        font-size: 3rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%);
+        background: var(--gradient-primary);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         margin-bottom: 16px;
-        text-shadow: 0 4px 30px rgba(16, 185, 129, 0.2);
     }
 
     .explore-header p {
-        font-size: 1.25rem;
-        color: #6b7280;
+        font-size: 1.15rem;
+        color: var(--text-secondary);
         max-width: 600px;
         margin: 0 auto;
         line-height: 1.8;
@@ -44,7 +63,7 @@
     /* Animated search bar */
     .explore-search {
         max-width: 700px;
-        margin: 0 auto 50px;
+        margin: 0 auto 40px;
         animation: fadeInUp 0.8s ease-out 0.2s both;
     }
 
@@ -52,32 +71,40 @@
         position: relative;
         display: flex;
         gap: 12px;
-        background: white;
-        padding: 10px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        padding: 8px;
         border-radius: 60px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(16, 185, 129, 0.1);
         transition: all 0.3s ease;
     }
 
     .search-wrapper:focus-within {
-        box-shadow: 0 25px 80px rgba(16, 185, 129, 0.15);
+        box-shadow: var(--shadow-glow);
+        border-color: rgba(16, 185, 129, 0.3);
         transform: translateY(-2px);
     }
 
     .search-wrapper input {
         flex: 1;
         border: none;
-        padding: 18px 28px;
-        font-size: 1.1rem;
+        padding: 16px 24px;
+        font-size: 1rem;
         border-radius: 50px;
         background: transparent;
         outline: none;
+        color: var(--text-primary);
+    }
+
+    .search-wrapper input::placeholder {
+        color: #9ca3af;
     }
 
     .search-wrapper button {
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        background: var(--gradient-primary);
         border: none;
-        padding: 18px 36px;
+        padding: 16px 32px;
         border-radius: 50px;
         color: white;
         font-weight: 600;
@@ -86,66 +113,138 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .search-wrapper button:hover {
         transform: scale(1.05);
-        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        box-shadow: var(--shadow-glow);
     }
 
-    /* Category filter pills */
-    .category-filters {
+    /* Local Directory Section */
+    .local-directory-section {
+        margin-bottom: 40px;
+        animation: fadeInUp 0.8s ease-out 0.3s both;
+    }
+
+    .local-directory-card {
         display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 28px 36px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        text-decoration: none;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .local-directory-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #3B82F6 0%, #60A5FA 100%);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .local-directory-card:hover::before {
+        transform: scaleY(1);
+    }
+
+    .local-directory-card:hover {
+        transform: translateY(-6px);
+        background: var(--bg-card-hover);
+        border-color: var(--accent);
+        box-shadow: 0 20px 50px rgba(59, 130, 246, 0.15);
+    }
+
+    .local-directory-card .directory-icon {
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
         justify-content: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 50px;
-        animation: fadeInUp 0.8s ease-out 0.4s both;
-    }
-
-    .filter-pill {
-        padding: 12px 24px;
-        border-radius: 50px;
-        border: 2px solid #e5e7eb;
-        background: white;
-        color: #4b5563;
-        font-weight: 500;
-        font-size: 0.95rem;
-        cursor: pointer;
+        font-size: 1.75rem;
+        color: var(--accent);
         transition: all 0.3s ease;
+        flex-shrink: 0;
     }
 
-    .filter-pill:hover, .filter-pill.active {
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        border-color: transparent;
+    .local-directory-card:hover .directory-icon {
+        transform: scale(1.1) rotate(5deg);
+        background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
         color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.35);
+    }
+
+    .directory-content {
+        flex: 1;
+    }
+
+    .directory-content h3 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .directory-content p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .directory-arrow {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: var(--accent);
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .local-directory-card:hover .directory-arrow {
+        background: var(--accent);
+        color: white;
+        transform: translateX(5px);
     }
 
     /* Services grid */
     .services-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 30px;
-        animation: fadeInUp 0.8s ease-out 0.6s both;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+        animation: fadeInUp 0.8s ease-out 0.5s both;
     }
 
-    /* Modern service card */
+    /* Modern service card with dashboard styling */
     .service-card {
-        background: white;
-        border-radius: 24px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--shadow-sm);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         cursor: pointer;
         position: relative;
-    }
-
-    .service-card:hover {
-        transform: translateY(-12px) scale(1.02);
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
     }
 
     .service-card::before {
@@ -153,20 +252,27 @@
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #10B981, #3B82F6, #EC4899, #F59E0B);
-        opacity: 0;
-        transition: opacity 0.3s ease;
+        width: 4px;
+        height: 100%;
+        background: var(--gradient-primary);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
     }
 
     .service-card:hover::before {
-        opacity: 1;
+        transform: scaleY(1);
+    }
+
+    .service-card:hover {
+        transform: translateY(-8px);
+        background: var(--bg-card-hover);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
     }
 
     .card-image {
-        height: 200px;
-        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        height: 160px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -182,22 +288,22 @@
     }
 
     .service-card:hover .card-image img {
-        transform: scale(1.1);
+        transform: scale(1.08);
     }
 
     .card-image .icon-placeholder {
-        font-size: 4rem;
-        color: #10B981;
-        opacity: 0.3;
+        font-size: 3rem;
+        color: var(--primary);
+        opacity: 0.4;
     }
 
     .card-badge {
         position: absolute;
-        top: 16px;
-        right: 16px;
-        background: rgba(16, 185, 129, 0.9);
+        top: 12px;
+        right: 12px;
+        background: var(--gradient-primary);
         color: white;
-        padding: 6px 14px;
+        padding: 5px 12px;
         border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 600;
@@ -205,125 +311,116 @@
     }
 
     .card-content {
-        padding: 28px;
+        padding: 24px;
     }
 
     .card-category {
-        color: #10B981;
-        font-size: 0.85rem;
+        color: var(--primary);
+        font-size: 0.8rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
         margin-bottom: 8px;
     }
 
     .card-title {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 12px;
+        color: var(--text-primary);
+        margin-bottom: 10px;
         line-height: 1.3;
     }
 
     .card-description {
-        color: #6b7280;
-        font-size: 0.95rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
         line-height: 1.6;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .card-meta {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-top: 20px;
-        border-top: 1px solid #f3f4f6;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
     }
 
     .card-rating {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
     }
 
     .card-rating i {
         color: #F59E0B;
+        font-size: 0.9rem;
     }
 
     .card-rating span {
         font-weight: 600;
-        color: #374151;
+        color: var(--text-primary);
+        font-size: 0.9rem;
     }
 
     .card-price {
         background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-        padding: 8px 16px;
+        padding: 6px 14px;
         border-radius: 20px;
         font-weight: 700;
-        color: #059669;
+        color: var(--primary-dark);
+        font-size: 0.85rem;
     }
 
     .card-btn {
         width: 100%;
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        background: var(--gradient-primary);
         border: none;
-        padding: 16px;
-        border-radius: 14px;
+        padding: 14px;
+        border-radius: 12px;
         color: white;
         font-weight: 600;
-        font-size: 1rem;
+        font-size: 0.95rem;
         cursor: pointer;
-        margin-top: 20px;
+        margin-top: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
-        transition: all 0.3s ease;
+        gap: 8px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .card-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
-    }
-
-    /* Loading animation */
-    .loading-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 300px;
-    }
-
-    .loading-spinner {
-        width: 60px;
-        height: 60px;
-        border: 4px solid #e5e7eb;
-        border-top-color: #10B981;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+        box-shadow: var(--shadow-glow);
     }
 
     /* Empty state */
     .empty-state {
         text-align: center;
-        padding: 80px 20px;
+        padding: 60px 20px;
         animation: fadeIn 0.6s ease;
+        grid-column: 1 / -1;
     }
 
     .empty-state i {
-        font-size: 5rem;
+        font-size: 4rem;
         color: #d1d5db;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
     }
 
     .empty-state h3 {
-        font-size: 1.5rem;
-        color: #4b5563;
-        margin-bottom: 12px;
+        font-size: 1.3rem;
+        color: var(--text-primary);
+        margin-bottom: 10px;
     }
 
     .empty-state p {
-        color: #9ca3af;
+        color: var(--text-secondary);
         max-width: 400px;
         margin: 0 auto;
     }
@@ -334,37 +431,42 @@
         align-items: center;
         gap: 8px;
         padding: 12px 24px;
-        background: white;
-        color: #374151;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        color: var(--text-primary);
         border-radius: 50px;
         text-decoration: none;
         font-weight: 500;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
         transition: all 0.3s ease;
         margin-bottom: 30px;
     }
 
     .back-btn:hover {
         transform: translateX(-5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-        color: #10B981;
+        box-shadow: var(--shadow-md);
+        color: var(--primary);
+        border-color: var(--primary);
+        text-decoration: none;
     }
 
     /* Featured Module - House Rentals */
     .featured-module {
-        margin-bottom: 50px;
-        animation: fadeInUp 0.8s ease-out 0.3s both;
+        margin-bottom: 40px;
+        animation: fadeInUp 0.8s ease-out 0.4s both;
     }
 
     .module-card {
         display: flex;
         align-items: center;
-        gap: 28px;
-        padding: 32px 40px;
-        background: white;
-        border-radius: 24px;
+        gap: 24px;
+        padding: 28px 36px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
         text-decoration: none;
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-sm);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         position: relative;
         overflow: hidden;
@@ -375,39 +477,43 @@
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(139, 92, 246, 0.05) 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .module-card:hover {
-        transform: translateY(-8px) scale(1.01);
-        box-shadow: 0 30px 70px rgba(99, 102, 241, 0.2);
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #10B981 0%, #059669 100%);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
     }
 
     .module-card:hover::before {
-        opacity: 1;
+        transform: scaleY(1);
+    }
+
+    .module-card:hover {
+        transform: translateY(-6px);
+        background: var(--bg-card-hover);
+        border-color: var(--primary);
+        box-shadow: 0 20px 50px rgba(16, 185, 129, 0.15);
     }
 
     .rental-card .module-icon {
-        width: 90px;
-        height: 90px;
-        background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
-        border-radius: 22px;
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
-        color: white;
-        box-shadow: 0 15px 40px rgba(99, 102, 241, 0.35);
+        font-size: 1.75rem;
+        color: var(--primary);
         transition: all 0.3s ease;
         flex-shrink: 0;
     }
 
     .module-card:hover .module-icon {
         transform: scale(1.1) rotate(-5deg);
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.35);
     }
 
     .module-content {
@@ -415,10 +521,10 @@
     }
 
     .module-content h3 {
-        font-size: 1.75rem;
-        font-weight: 800;
-        color: #1f2937;
-        margin-bottom: 8px;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 6px;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -426,9 +532,9 @@
 
     .module-content h3::after {
         content: 'New';
-        font-size: 0.7rem;
-        padding: 4px 10px;
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        font-size: 0.65rem;
+        padding: 3px 8px;
+        background: var(--gradient-primary);
         color: white;
         border-radius: 50px;
         text-transform: uppercase;
@@ -436,47 +542,47 @@
     }
 
     .module-content p {
-        color: #6b7280;
-        font-size: 1.1rem;
-        margin-bottom: 16px;
-        line-height: 1.6;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 12px;
+        line-height: 1.5;
     }
 
     .module-features {
         display: flex;
-        gap: 20px;
+        gap: 16px;
         flex-wrap: wrap;
     }
 
     .module-features span {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 0.9rem;
-        color: #6366F1;
+        gap: 5px;
+        font-size: 0.85rem;
+        color: var(--primary);
         font-weight: 500;
     }
 
     .module-features span i {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
     }
 
     .module-arrow {
-        width: 56px;
-        height: 56px;
-        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.25rem;
-        color: #6366F1;
+        font-size: 1rem;
+        color: var(--primary);
         transition: all 0.3s ease;
         flex-shrink: 0;
     }
 
     .module-card:hover .module-arrow {
-        background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
         color: white;
         transform: translateX(5px);
     }
@@ -561,21 +667,21 @@
     /* Responsive design */
     @@media (max-width: 768px) {
         .explore-header h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
         }
 
         .explore-header p {
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .search-wrapper {
             flex-direction: column;
-            border-radius: 24px;
-            padding: 16px;
+            border-radius: 20px;
+            padding: 12px;
         }
 
         .search-wrapper input {
-            padding: 16px 20px;
+            padding: 14px 18px;
         }
 
         .search-wrapper button {
@@ -585,16 +691,17 @@
 
         .services-grid {
             grid-template-columns: 1fr;
-            gap: 20px;
+            gap: 16px;
         }
 
-        .category-filters {
-            gap: 8px;
+        .local-directory-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 24px 20px;
         }
 
-        .filter-pill {
-            padding: 10px 18px;
-            font-size: 0.85rem;
+        .directory-arrow {
+            display: none;
         }
     }
 
@@ -604,11 +711,11 @@
         }
 
         .explore-header h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
         }
 
         .card-content {
-            padding: 20px;
+            padding: 18px;
         }
     }
 </style>
@@ -623,14 +730,38 @@
         <p>Discover amazing services from trusted providers in your area. Find exactly what you need!</p>
     </div>
 
-    <div class="explore-search">
-        <div class="search-wrapper">
-            <input type="text" id="searchInput" placeholder="Search for services..." />
-            <button id="searchBtn">
-                <i class="fas fa-search"></i>
-                Search
-            </button>
-        </div>
+    <!-- Local Directory Section -->
+    <div class="local-directory-section">
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <a href="/LocalDirectory/Discover" class="local-directory-card">
+                <div class="directory-icon">
+                    <i class="fas fa-search-location"></i>
+                </div>
+                <div class="directory-content">
+                    <h3>Search Local Services</h3>
+                    <p>Find local businesses and services near you - restaurants, shops, doctors, and more</p>
+                </div>
+                <div class="directory-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        }
+        else
+        {
+            <a href="/Account/Login?returnUrl=/LocalDirectory/Discover" class="local-directory-card">
+                <div class="directory-icon">
+                    <i class="fas fa-search-location"></i>
+                </div>
+                <div class="directory-content">
+                    <h3>Search Local Services</h3>
+                    <p>Find local businesses and services near you - restaurants, shops, doctors, and more</p>
+                </div>
+                <div class="directory-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        }
     </div>
 
     <!-- Featured Module - House Rentals -->
@@ -654,25 +785,11 @@
         </a>
     </div>
 
-    <div class="category-filters">
-        <button class="filter-pill active" data-category="all">All Services</button>
-        <button class="filter-pill" data-category="home">Home Services</button>
-        <button class="filter-pill" data-category="tech">Tech & IT</button>
-        <button class="filter-pill" data-category="beauty">Beauty & Wellness</button>
-        <button class="filter-pill" data-category="business">Business</button>
-        <button class="filter-pill" data-category="health">Health & Care</button>
-    </div>
-
-    <div id="servicesContainer" class="services-grid">
-        <div class="loading-container">
-            <div class="loading-spinner"></div>
-        </div>
-    </div>
+    <div id="servicesContainer" class="services-grid"></div>
 </div>
 
 <script>
     let allServices = [];
-    let currentCategory = 'all';
 
     // Category icon mapping
     const categoryIcons = {
@@ -731,13 +848,7 @@
             renderServices(allServices);
         } catch (error) {
             console.error('Error loading services:', error);
-            container.innerHTML = `
-                <div class="empty-state" style="grid-column: 1 / -1;">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <h3>Oops! Something went wrong</h3>
-                    <p>We couldn't load the services. Please try again later.</p>
-                </div>
-            `;
+            // Don't show error message since featured modules are already displayed
         }
     }
 
@@ -747,10 +858,10 @@
         
         if (!services || services.length === 0) {
             container.innerHTML = `
-                <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-state">
                     <i class="fas fa-search"></i>
                     <h3>No services found</h3>
-                    <p>Try adjusting your search or filter criteria.</p>
+                    <p>Try adjusting your search criteria.</p>
                 </div>
             `;
             return;
@@ -769,7 +880,7 @@
                 : 'Get Quote';
 
             return `
-                <div class="service-card" style="animation-delay: ${index * 0.1}s" onclick="bookService('${service.name}')">
+                <div class="service-card" style="animation-delay: ${index * 0.05}s" onclick="bookService('${service.name}')">
                     <div class="card-image">
                         ${imageHtml}
                         <span class="card-badge">${categoryLabel}</span>
@@ -795,55 +906,6 @@
         }).join('');
     }
 
-    // Filter services by category
-    function filterByCategory(category) {
-        currentCategory = category;
-        
-        // Update active pill
-        document.querySelectorAll('.filter-pill').forEach(pill => {
-            pill.classList.toggle('active', pill.dataset.category === category);
-        });
-
-        // Filter services
-        let filtered = allServices;
-        if (category !== 'all') {
-            filtered = allServices.filter(service => service.category === category);
-        }
-
-        // Apply search filter if exists
-        const searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
-        if (searchQuery) {
-            filtered = filtered.filter(service => 
-                service.name.toLowerCase().includes(searchQuery) ||
-                service.description.toLowerCase().includes(searchQuery)
-            );
-        }
-
-        renderServices(filtered);
-    }
-
-    // Search services
-    function searchServices() {
-        const query = document.getElementById('searchInput').value.trim().toLowerCase();
-        
-        let filtered = allServices;
-        
-        // Apply category filter
-        if (currentCategory !== 'all') {
-            filtered = filtered.filter(service => service.category === currentCategory);
-        }
-        
-        // Apply search filter
-        if (query) {
-            filtered = filtered.filter(service => 
-                service.name.toLowerCase().includes(query) ||
-                service.description.toLowerCase().includes(query)
-            );
-        }
-
-        renderServices(filtered);
-    }
-
     // Book service - redirect to browse with service name
     function bookService(serviceName) {
         @if (User.Identity?.IsAuthenticated ?? false)
@@ -863,20 +925,5 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         loadServices();
-
-        // Search button click
-        document.getElementById('searchBtn').addEventListener('click', searchServices);
-
-        // Search on Enter
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchServices();
-        });
-
-        // Filter pills click
-        document.querySelectorAll('.filter-pill').forEach(pill => {
-            pill.addEventListener('click', () => {
-                filterByCategory(pill.dataset.category);
-            });
-        });
     });
 </script>
