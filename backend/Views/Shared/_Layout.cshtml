@@ -165,6 +165,15 @@
                             
                             @if (User?.Identity?.IsAuthenticated == true)
                             {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/community" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; color: white !important; font-weight: 600; padding: 6px 14px;">
+                                        <i class="fas fa-users me-1"></i> Community
+                                    </a>
+                                </li>
+                            }
+                            
+                            @if (User?.Identity?.IsAuthenticated == true)
+                            {
                                 var currentUser = await UserManager.GetUserAsync(User);
                                 if (currentUser?.IsGuardian == true)
                                 {

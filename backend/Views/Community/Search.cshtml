@@ -1,0 +1,546 @@
+@{
+    ViewData["Title"] = "Discover";
+    Layout = null;
+    var query = ViewBag.Query as string;
+    var profile = ViewBag.Profile as ServConnect.Models.Community.CommunityProfile;
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="@(profile?.Theme ?? "light")">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover - Community</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/community-translations.js"></script>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/community" class="logo">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/community" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Feed</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="/community/search" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        <span>Discover</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/messages" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Messages</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/notifications" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/profile" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/Home/Dashboard" class="nav-link" style="color: #10B981;">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Return to Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content search-page">
+        <!-- Mobile Header -->
+        <header class="mobile-header">
+            <button class="menu-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Discover</h1>
+        </header>
+
+        <!-- Search Box -->
+        <div class="search-header">
+            <form class="search-form" onsubmit="handleSearch(event)">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search users, posts, or #hashtags..." 
+                           value="@(query ?? "")" autofocus>
+                    <button type="button" class="clear-btn" onclick="clearSearch()" id="clearBtn" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+
+        <!-- Search Tabs -->
+        <div class="search-tabs" id="searchTabs" style="display: @(string.IsNullOrEmpty(query) ? "none" : "flex");">
+            <button class="tab-btn active" data-tab="posts" onclick="switchSearchTab('posts')">
+                <i class="fas fa-newspaper"></i>
+                <span>Posts</span>
+                <span class="count" id="postsCount"></span>
+            </button>
+            <button class="tab-btn" data-tab="users" onclick="switchSearchTab('users')">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+                <span class="count" id="usersCount"></span>
+            </button>
+            <button class="tab-btn" data-tab="hashtags" onclick="switchSearchTab('hashtags')">
+                <i class="fas fa-hashtag"></i>
+                <span>Hashtags</span>
+                <span class="count" id="hashtagsCount"></span>
+            </button>
+        </div>
+
+        <!-- Search Results -->
+        <div class="search-results-container">
+            <!-- Posts Results -->
+            <div class="search-results active" id="posts-results">
+                <div id="postsResultsList" class="posts-grid"></div>
+                <div id="emptyPostsResults" class="empty-results" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <p>No posts found</p>
+                </div>
+            </div>
+
+            <!-- Users Results -->
+            <div class="search-results" id="users-results">
+                <div id="usersResultsList" class="users-grid"></div>
+                <div id="emptyUsersResults" class="empty-results" style="display: none;">
+                    <i class="fas fa-users"></i>
+                    <p>No users found</p>
+                </div>
+            </div>
+
+            <!-- Hashtags Results -->
+            <div class="search-results" id="hashtags-results">
+                <div id="hashtagsResultsList" class="hashtags-grid"></div>
+                <div id="emptyHashtagsResults" class="empty-results" style="display: none;">
+                    <i class="fas fa-hashtag"></i>
+                    <p>No hashtags found</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Discovery Section (shown when no search) -->
+        <div class="discovery-section" id="discoverySection" style="display: @(string.IsNullOrEmpty(query) ? "block" : "none");">
+            <!-- Suggested Users -->
+            <section class="discovery-card">
+                <h2 class="section-title">
+                    <i class="fas fa-user-plus"></i>
+                    Suggested for you
+                </h2>
+                <div id="suggestedUsers" class="suggested-grid">
+                    <div class="loading-spinner-sm">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trending Hashtags -->
+            <section class="discovery-card">
+                <h2 class="section-title">
+                    <i class="fas fa-fire"></i>
+                    Trending Hashtags
+                </h2>
+                <div class="trending-hashtags" id="trendingHashtags">
+                    <a href="/community/search?q=%23technology" class="hashtag-card">
+                        <span class="hashtag">#technology</span>
+                        <span class="posts-count">1.2K posts</span>
+                    </a>
+                    <a href="/community/search?q=%23community" class="hashtag-card">
+                        <span class="hashtag">#community</span>
+                        <span class="posts-count">856 posts</span>
+                    </a>
+                    <a href="/community/search?q=%23lifestyle" class="hashtag-card">
+                        <span class="hashtag">#lifestyle</span>
+                        <span class="posts-count">742 posts</span>
+                    </a>
+                    <a href="/community/search?q=%23photography" class="hashtag-card">
+                        <span class="hashtag">#photography</span>
+                        <span class="posts-count">654 posts</span>
+                    </a>
+                    <a href="/community/search?q=%23fitness" class="hashtag-card">
+                        <span class="hashtag">#fitness</span>
+                        <span class="posts-count">521 posts</span>
+                    </a>
+                    <a href="/community/search?q=%23travel" class="hashtag-card">
+                        <span class="hashtag">#travel</span>
+                        <span class="posts-count">489 posts</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Recent Searches -->
+            <section class="discovery-card" id="recentSearchesSection" style="display: none;">
+                <h2 class="section-title">
+                    <i class="fas fa-history"></i>
+                    Recent Searches
+                    <button class="btn btn-text btn-sm" onclick="clearRecentSearches()">Clear all</button>
+                </h2>
+                <div class="recent-searches" id="recentSearches"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <a href="/community" class="mobile-nav-item">
+            <i class="fas fa-home"></i>
+            <span>Feed</span>
+        </a>
+        <a href="/community/search" class="mobile-nav-item active">
+            <i class="fas fa-search"></i>
+            <span>Discover</span>
+        </a>
+        <a href="/community" class="mobile-nav-item create-btn">
+            <i class="fas fa-plus"></i>
+        </a>
+        <a href="/community/notifications" class="mobile-nav-item">
+            <i class="fas fa-bell"></i>
+            <span>Alerts</span>
+        </a>
+        <a href="/community/profile" class="mobile-nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        let currentSearchTab = 'posts';
+        let searchDebounce;
+        const initialQuery = '@(query?.Replace("'", "\\'") ?? "")';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSuggestedUsers();
+            loadRecentSearches();
+            
+            if (initialQuery) {
+                performSearch(initialQuery);
+            }
+            
+            setupSearchInput();
+        });
+
+        function setupSearchInput() {
+            const input = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearBtn');
+            
+            input.addEventListener('input', (e) => {
+                clearBtn.style.display = e.target.value ? 'block' : 'none';
+                
+                // Auto-search with debounce
+                clearTimeout(searchDebounce);
+                if (e.target.value.length >= 2) {
+                    searchDebounce = setTimeout(() => {
+                        performSearch(e.target.value);
+                    }, 500);
+                }
+            });
+        }
+
+        function handleSearch(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchInput').value.trim();
+            
+            if (query) {
+                performSearch(query);
+                saveRecentSearch(query);
+                
+                // Update URL
+                const url = new URL(window.location);
+                url.searchParams.set('q', query);
+                window.history.pushState({}, '', url);
+            }
+        }
+
+        async function performSearch(query) {
+            document.getElementById('searchTabs').style.display = 'flex';
+            document.getElementById('discoverySection').style.display = 'none';
+            
+            // Show loading state
+            document.getElementById('postsResultsList').innerHTML = '<div class="loading-spinner-sm"><i class="fas fa-spinner fa-spin"></i></div>';
+            document.getElementById('usersResultsList').innerHTML = '<div class="loading-spinner-sm"><i class="fas fa-spinner fa-spin"></i></div>';
+            
+            // Search in parallel
+            await Promise.all([
+                searchPosts(query),
+                searchUsers(query)
+            ]);
+        }
+
+        async function searchPosts(query) {
+            try {
+                const response = await fetch(`/api/community/search/posts?q=${encodeURIComponent(query)}`);
+                const posts = await response.json();
+                
+                document.getElementById('postsCount').textContent = posts.length;
+                
+                if (posts.length === 0) {
+                    document.getElementById('postsResultsList').innerHTML = '';
+                    document.getElementById('emptyPostsResults').style.display = 'flex';
+                    return;
+                }
+                
+                document.getElementById('emptyPostsResults').style.display = 'none';
+                document.getElementById('postsResultsList').innerHTML = posts.map(post => `
+                    <div class="search-post-card" onclick="window.location.href='/community#post-${post.id}'">
+                        ${post.media && post.media.length > 0 ? `
+                            <div class="post-thumbnail">
+                                <img src="${post.media[0].url}" alt="Post">
+                            </div>
+                        ` : ''}
+                        <div class="post-info">
+                            <div class="post-author">
+                                <img src="${post.authorProfileImage || '/images/default-avatar.png'}" alt="${post.authorName}" class="avatar-sm">
+                                <span>${escapeHtml(post.authorName)}</span>
+                            </div>
+                            <p class="post-caption">${escapeHtml(post.caption?.substring(0, 100) || '')}${post.caption?.length > 100 ? '...' : ''}</p>
+                            <div class="post-stats">
+                                <span><i class="fas fa-heart"></i> ${post.likesCount || 0}</span>
+                                <span><i class="fas fa-comment"></i> ${post.commentsCount || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Extract and count hashtags
+                const hashtagCounts = {};
+                posts.forEach(post => {
+                    (post.hashtags || []).forEach(tag => {
+                        hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
+                    });
+                });
+                
+                const sortedHashtags = Object.entries(hashtagCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+                
+                document.getElementById('hashtagsCount').textContent = sortedHashtags.length;
+                
+                if (sortedHashtags.length > 0) {
+                    document.getElementById('hashtagsResultsList').innerHTML = sortedHashtags.map(([tag, count]) => `
+                        <a href="/community/search?q=%23${tag}" class="hashtag-result-card">
+                            <div class="hashtag-icon">
+                                <i class="fas fa-hashtag"></i>
+                            </div>
+                            <div class="hashtag-info">
+                                <span class="hashtag-name">#${tag}</span>
+                                <span class="hashtag-count">${count} ${count === 1 ? 'post' : 'posts'}</span>
+                            </div>
+                        </a>
+                    `).join('');
+                    document.getElementById('emptyHashtagsResults').style.display = 'none';
+                } else {
+                    document.getElementById('hashtagsResultsList').innerHTML = '';
+                    document.getElementById('emptyHashtagsResults').style.display = 'flex';
+                }
+                
+            } catch (error) {
+                console.error('Error searching posts:', error);
+                document.getElementById('postsResultsList').innerHTML = '<p class="error-message">Failed to search posts</p>';
+            }
+        }
+
+        async function searchUsers(query) {
+            try {
+                const response = await fetch(`/api/community/search/users?q=${encodeURIComponent(query)}`);
+                const users = await response.json();
+                
+                document.getElementById('usersCount').textContent = users.length;
+                
+                if (users.length === 0) {
+                    document.getElementById('usersResultsList').innerHTML = '';
+                    document.getElementById('emptyUsersResults').style.display = 'flex';
+                    return;
+                }
+                
+                document.getElementById('emptyUsersResults').style.display = 'none';
+                document.getElementById('usersResultsList').innerHTML = users.map(user => `
+                    <a href="/community/profile/${user.userId}" class="user-result-card">
+                        <img src="${user.profileImage || '/images/default-avatar.png'}" alt="${user.fullName}" class="avatar-lg">
+                        <div class="user-info">
+                            <span class="user-name">${escapeHtml(user.fullName)}</span>
+                            <span class="user-handle">@@${user.userName || 'user'}</span>
+                            ${user.bio ? `<p class="user-bio">${escapeHtml(user.bio.substring(0, 80))}${user.bio.length > 80 ? '...' : ''}</p>` : ''}
+                        </div>
+                        <button class="btn btn-sm btn-outline follow-btn" onclick="event.preventDefault(); event.stopPropagation(); followUser('${user.userId}', this)">
+                            Follow
+                        </button>
+                    </a>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error searching users:', error);
+                document.getElementById('usersResultsList').innerHTML = '<p class="error-message">Failed to search users</p>';
+            }
+        }
+
+        function switchSearchTab(tab) {
+            currentSearchTab = tab;
+            
+            document.querySelectorAll('.search-tabs .tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            
+            document.querySelectorAll('.search-results').forEach(results => {
+                results.classList.toggle('active', results.id === `${tab}-results`);
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearBtn').style.display = 'none';
+            document.getElementById('searchTabs').style.display = 'none';
+            document.getElementById('discoverySection').style.display = 'block';
+            
+            // Clear URL
+            const url = new URL(window.location);
+            url.searchParams.delete('q');
+            window.history.pushState({}, '', url);
+        }
+
+        // Suggested Users
+        async function loadSuggestedUsers() {
+            try {
+                const response = await fetch('/api/community/suggested-users?limit=8');
+                const users = await response.json();
+                
+                const container = document.getElementById('suggestedUsers');
+                
+                if (users.length === 0) {
+                    container.innerHTML = '<p class="empty-message">No suggestions available</p>';
+                    return;
+                }
+                
+                container.innerHTML = users.map(user => `
+                    <a href="/community/profile/${user.userId}" class="suggested-user-card">
+                        <img src="${user.profileImage || '/images/default-avatar.png'}" alt="${user.fullName}" class="avatar-lg">
+                        <span class="user-name">${escapeHtml(user.fullName)}</span>
+                        <span class="user-handle">@@${user.userName || 'user'}</span>
+                        <button class="btn btn-sm btn-primary follow-btn" onclick="event.preventDefault(); event.stopPropagation(); followUser('${user.userId}', this)">
+                            Follow
+                        </button>
+                    </a>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading suggested users:', error);
+            }
+        }
+
+        async function followUser(userId, btn) {
+            try {
+                const response = await fetch(`/api/community/users/${userId}/follow`, { method: 'POST' });
+                
+                if (response.ok) {
+                    btn.textContent = 'Following';
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-outline');
+                    btn.disabled = true;
+                    showToast('Following!', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to follow user', 'error');
+            }
+        }
+
+        // Recent Searches
+        function loadRecentSearches() {
+            const searches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+            
+            if (searches.length === 0) return;
+            
+            document.getElementById('recentSearchesSection').style.display = 'block';
+            document.getElementById('recentSearches').innerHTML = searches.map(search => `
+                <button class="recent-search-item" onclick="performSearchFromRecent('${escapeHtml(search)}')">
+                    <i class="fas fa-history"></i>
+                    <span>${escapeHtml(search)}</span>
+                    <button class="remove-btn" onclick="event.stopPropagation(); removeRecentSearch('${escapeHtml(search)}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </button>
+            `).join('');
+        }
+
+        function saveRecentSearch(query) {
+            let searches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+            searches = searches.filter(s => s !== query);
+            searches.unshift(query);
+            searches = searches.slice(0, 10);
+            localStorage.setItem('recentSearches', JSON.stringify(searches));
+        }
+
+        function performSearchFromRecent(query) {
+            document.getElementById('searchInput').value = query;
+            performSearch(query);
+        }
+
+        function removeRecentSearch(query) {
+            let searches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+            searches = searches.filter(s => s !== query);
+            localStorage.setItem('recentSearches', JSON.stringify(searches));
+            loadRecentSearches();
+        }
+
+        function clearRecentSearches() {
+            localStorage.removeItem('recentSearches');
+            document.getElementById('recentSearchesSection').style.display = 'none';
+        }
+
+        // Utility functions
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,833 @@
+@{
+    ViewData["Title"] = "Profile";
+    Layout = null;
+    var currentUser = ViewBag.CurrentUser as ServConnect.Models.Users;
+    var targetUser = ViewBag.TargetUser as ServConnect.Models.Users;
+    var profile = ViewBag.Profile as ServConnect.Models.Community.CommunityProfile;
+    var isOwnProfile = ViewBag.IsOwnProfile ?? false;
+    var isFollowing = ViewBag.IsFollowing ?? false;
+    var isBlocked = ViewBag.IsBlocked ?? false;
+    var postsCount = ViewBag.PostsCount ?? 0;
+    var followersCount = ViewBag.FollowersCount ?? 0;
+    var followingCount = ViewBag.FollowingCount ?? 0;
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="@(profile?.Theme ?? "light")">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@(targetUser?.FullName ?? "Profile") - Community</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/community-translations.js"></script>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/community" class="logo">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/community" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Feed</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/search" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        <span>Discover</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/messages" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Messages</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/notifications" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="/community/profile" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/Home/Dashboard" class="nav-link" style="color: #10B981;">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Return to Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="sidebar-footer">
+            <a href="/community/profile" class="user-profile-mini">
+                <img src="@(currentUser?.ProfileImageUrl ?? "/images/default-avatar.png")" alt="Profile" class="avatar-sm">
+                <div class="user-info">
+                    <span class="user-name">@(currentUser?.FullName ?? currentUser?.UserName)</span>
+                    <span class="user-handle">@@@(profile?.Username ?? currentUser?.UserName)</span>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content profile-page">
+        <!-- Mobile Header -->
+        <header class="mobile-header">
+            <button class="menu-btn" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1>@(targetUser?.FullName ?? "Profile")</h1>
+            <button class="icon-btn" onclick="toggleProfileMenu()">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+        </header>
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-cover" style="background-image: url('@(profile?.CoverImageUrl ?? "/images/default-cover.jpg")');">
+                @if ((bool)isOwnProfile)
+                {
+                    <button class="cover-edit-btn" onclick="editCoverImage()">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                }
+            </div>
+            
+            <div class="profile-info-container">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar">
+                        <img src="@(targetUser?.ProfileImageUrl ?? "/images/default-avatar.png")" alt="@targetUser?.FullName">
+                        @if ((bool)isOwnProfile)
+                        {
+                            <button class="avatar-edit-btn" onclick="editProfileImage()">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        }
+                    </div>
+                    
+                    <div class="profile-actions">
+                        @if ((bool)isOwnProfile)
+                        {
+                            <a href="/community/settings" class="btn btn-outline">
+                                <i class="fas fa-edit"></i>
+                                <span>Edit Profile</span>
+                            </a>
+                        }
+                        else
+                        {
+                            if (!(bool)isBlocked)
+                            {
+                                <button class="btn @(isFollowing ? "btn-outline" : "btn-primary")" id="followBtn" onclick="toggleFollow()">
+                                    <span>@(isFollowing ? "Following" : "Follow")</span>
+                                </button>
+                                <a href="/community/messages/@targetUser?.Id" class="btn btn-outline">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            }
+                            <button class="btn btn-outline icon-only" onclick="toggleProfileMenu()">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+                
+                <div class="profile-details">
+                    <h1 class="profile-name">@targetUser?.FullName</h1>
+                    <p class="profile-handle">@@@(profile?.Username ?? targetUser?.UserName)</p>
+                    
+                    @if (!string.IsNullOrEmpty(profile?.Bio))
+                    {
+                        <p class="profile-bio">@profile.Bio</p>
+                    }
+                    
+                    <div class="profile-meta">
+                        @if (!string.IsNullOrEmpty(profile?.Location))
+                        {
+                            <span class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                @profile.Location
+                            </span>
+                        }
+                        @if (!string.IsNullOrEmpty(profile?.Website))
+                        {
+                            <a href="@profile.Website" target="_blank" class="meta-item link">
+                                <i class="fas fa-link"></i>
+                                @(new Uri(profile.Website).Host)
+                            </a>
+                        }
+                        <span class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            Joined @(targetUser?.CreatedOn.ToString("MMMM yyyy") ?? "")
+                        </span>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <button class="stat-item" onclick="showFollowers()">
+                            <span class="stat-value" id="followersCount">@followersCount</span>
+                            <span class="stat-label">Followers</span>
+                        </button>
+                        <button class="stat-item" onclick="showFollowing()">
+                            <span class="stat-value" id="followingCount">@followingCount</span>
+                            <span class="stat-label">Following</span>
+                        </button>
+                        <div class="stat-item">
+                            <span class="stat-value">@postsCount</span>
+                            <span class="stat-label">Posts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Menu (for other users) -->
+        <div class="profile-menu-dropdown" id="profileMenu">
+            @if (!(bool)isOwnProfile)
+            {
+                if ((bool)isBlocked)
+                {
+                    <button onclick="unblockUser()">
+                        <i class="fas fa-ban"></i>
+                        <span>Unblock @targetUser?.FullName</span>
+                    </button>
+                }
+                else
+                {
+                    <button onclick="blockUser()">
+                        <i class="fas fa-ban"></i>
+                        <span>Block @targetUser?.FullName</span>
+                    </button>
+                }
+                <button onclick="reportUser()">
+                    <i class="fas fa-flag"></i>
+                    <span>Report @targetUser?.FullName</span>
+                </button>
+                <button onclick="copyProfileLink()">
+                    <i class="fas fa-link"></i>
+                    <span>Copy Profile Link</span>
+                </button>
+            }
+        </div>
+
+        <!-- Profile Tabs -->
+        <div class="profile-tabs">
+            <button class="tab-btn active" data-tab="posts" onclick="switchTab('posts')">
+                <i class="fas fa-th"></i>
+                <span>Posts</span>
+            </button>
+            <button class="tab-btn" data-tab="media" onclick="switchTab('media')">
+                <i class="fas fa-image"></i>
+                <span>Media</span>
+            </button>
+            <button class="tab-btn" data-tab="likes" onclick="switchTab('likes')">
+                <i class="fas fa-heart"></i>
+                <span>Likes</span>
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="profile-content">
+            <!-- Posts Tab -->
+            <div class="tab-content active" id="posts-tab">
+                <div id="userPosts" class="posts-grid">
+                    <div class="loading-spinner" id="postsLoading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading posts...</span>
+                    </div>
+                </div>
+                <div id="emptyPosts" class="empty-state" style="display: none;">
+                    <i class="fas fa-camera"></i>
+                    <h3>No posts yet</h3>
+                    @if ((bool)isOwnProfile)
+                    {
+                        <p>Share your first post with the community!</p>
+                        <a href="/community" class="btn btn-primary">Create Post</a>
+                    }
+                    else
+                    {
+                        <p>@targetUser?.FullName hasn't posted anything yet.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Media Tab -->
+            <div class="tab-content" id="media-tab">
+                <div id="userMedia" class="media-grid"></div>
+                <div id="emptyMedia" class="empty-state" style="display: none;">
+                    <i class="fas fa-image"></i>
+                    <h3>No media yet</h3>
+                </div>
+            </div>
+
+            <!-- Likes Tab -->
+            <div class="tab-content" id="likes-tab">
+                <div id="userLikes" class="posts-grid"></div>
+                <div id="emptyLikes" class="empty-state" style="display: none;">
+                    <i class="fas fa-heart"></i>
+                    <h3>No liked posts</h3>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Followers Modal -->
+    <div class="modal" id="followersModal">
+        <div class="modal-overlay" onclick="closeFollowersModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Followers</h2>
+                <button class="modal-close" onclick="closeFollowersModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="followersList" class="users-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Following Modal -->
+    <div class="modal" id="followingModal">
+        <div class="modal-overlay" onclick="closeFollowingModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Following</h2>
+                <button class="modal-close" onclick="closeFollowingModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="followingList" class="users-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal" id="reportModal">
+        <div class="modal-overlay" onclick="closeReportModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Report User</h2>
+                <button class="modal-close" onclick="closeReportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="reportForm" onsubmit="submitReport(event)">
+                <div class="modal-body">
+                    <p class="report-instruction">Why are you reporting this user?</p>
+                    <div class="report-options">
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="0" required>
+                            <span>Spam</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="1">
+                            <span>Harassment or bullying</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="2">
+                            <span>Hate speech</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="6">
+                            <span>Scam or fraud</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="7">
+                            <span>Other</span>
+                        </label>
+                    </div>
+                    <textarea name="additionalDetails" class="report-details" placeholder="Additional details (optional)" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeReportModal()">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Post Detail Modal -->
+    <div class="modal" id="postDetailModal">
+        <div class="modal-overlay" onclick="closePostDetailModal()"></div>
+        <div class="modal-content modal-xl">
+            <button class="modal-close" onclick="closePostDetailModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="postDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="coverImageInput" accept="image/*" style="display: none;" onchange="uploadCoverImage(event)">
+    <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="uploadProfileImage(event)">
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <a href="/community" class="mobile-nav-item">
+            <i class="fas fa-home"></i>
+            <span>Feed</span>
+        </a>
+        <a href="/community/search" class="mobile-nav-item">
+            <i class="fas fa-search"></i>
+            <span>Discover</span>
+        </a>
+        <a href="/community" class="mobile-nav-item create-btn">
+            <i class="fas fa-plus"></i>
+        </a>
+        <a href="/community/notifications" class="mobile-nav-item">
+            <i class="fas fa-bell"></i>
+            <span>Alerts</span>
+        </a>
+        <a href="/community/profile" class="mobile-nav-item active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        const currentUserId = '@currentUser?.Id';
+        const targetUserId = '@targetUser?.Id';
+        const isOwnProfile = @((bool)isOwnProfile ? "true" : "false");
+        let isFollowing = @((bool)isFollowing ? "true" : "false");
+        let currentTab = 'posts';
+        let postsLoaded = false;
+        let mediaLoaded = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserPosts();
+        });
+
+        // Tab switching
+        let likesLoaded = false;
+        
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === `${tab}-tab`);
+            });
+            
+            if (tab === 'posts' && !postsLoaded) {
+                loadUserPosts();
+            } else if (tab === 'media' && !mediaLoaded) {
+                loadUserMedia();
+            } else if (tab === 'likes' && !likesLoaded) {
+                loadUserLikedPosts();
+            }
+        }
+
+        // Load user's liked posts
+        async function loadUserLikedPosts() {
+            try {
+                const response = await fetch(`/api/community/users/${targetUserId}/liked`);
+                const posts = await response.json();
+                
+                if (posts.length === 0) {
+                    document.getElementById('emptyLikes').style.display = 'flex';
+                    return;
+                }
+                
+                const container = document.getElementById('userLikes');
+                container.innerHTML = posts.map(post => renderPostCard(post)).join('');
+                likesLoaded = true;
+            } catch (error) {
+                console.error('Error loading liked posts:', error);
+                showToast('Failed to load liked posts', 'error');
+            }
+        }
+
+        // Load user posts
+        async function loadUserPosts() {
+            try {
+                const response = await fetch(`/api/community/users/${targetUserId}/posts`);
+                const posts = await response.json();
+                
+                document.getElementById('postsLoading').style.display = 'none';
+                
+                if (posts.length === 0) {
+                    document.getElementById('emptyPosts').style.display = 'flex';
+                    return;
+                }
+                
+                const container = document.getElementById('userPosts');
+                container.innerHTML = posts.map(post => renderPostCard(post)).join('');
+                postsLoaded = true;
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                showToast('Failed to load posts', 'error');
+            }
+        }
+
+        function renderPostCard(post) {
+            const hasMedia = post.media && post.media.length > 0;
+            const thumbnail = hasMedia ? post.media[0].url : null;
+            
+            return `
+                <div class="post-grid-item" onclick="openPostDetail('${post.id}')">
+                    ${thumbnail ? `
+                        <img src="${thumbnail}" alt="Post">
+                        ${post.media.length > 1 ? '<span class="multi-indicator"><i class="fas fa-clone"></i></span>' : ''}
+                        ${post.media[0].type === 1 ? '<span class="video-indicator"><i class="fas fa-play"></i></span>' : ''}
+                    ` : `
+                        <div class="text-post-preview">
+                            <p>${escapeHtml(post.caption?.substring(0, 100) || '')}</p>
+                        </div>
+                    `}
+                    <div class="post-overlay">
+                        <span><i class="fas fa-heart"></i> ${post.likesCount || 0}</span>
+                        <span><i class="fas fa-comment"></i> ${post.commentsCount || 0}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load user media
+        async function loadUserMedia() {
+            try {
+                const response = await fetch(`/api/community/users/${targetUserId}/posts`);
+                const posts = await response.json();
+                
+                const mediaPosts = posts.filter(p => p.media && p.media.length > 0);
+                
+                if (mediaPosts.length === 0) {
+                    document.getElementById('emptyMedia').style.display = 'flex';
+                    return;
+                }
+                
+                const container = document.getElementById('userMedia');
+                container.innerHTML = mediaPosts.flatMap(post => 
+                    post.media.map(media => `
+                        <div class="media-grid-item" onclick="openMediaViewer('${media.url}')">
+                            ${media.type === 0 ? 
+                                `<img src="${media.url}" alt="Media">` :
+                                `<video src="${media.url}"></video><span class="video-indicator"><i class="fas fa-play"></i></span>`
+                            }
+                        </div>
+                    `)
+                ).join('');
+                
+                mediaLoaded = true;
+            } catch (error) {
+                console.error('Error loading media:', error);
+            }
+        }
+
+        // Follow/Unfollow
+        async function toggleFollow() {
+            const btn = document.getElementById('followBtn');
+            
+            try {
+                if (isFollowing) {
+                    await fetch(`/api/community/users/${targetUserId}/follow`, { method: 'DELETE' });
+                    isFollowing = false;
+                    btn.className = 'btn btn-primary';
+                    btn.querySelector('span').textContent = 'Follow';
+                    updateFollowersCount(-1);
+                    showToast('Unfollowed', 'success');
+                } else {
+                    await fetch(`/api/community/users/${targetUserId}/follow`, { method: 'POST' });
+                    isFollowing = true;
+                    btn.className = 'btn btn-outline';
+                    btn.querySelector('span').textContent = 'Following';
+                    updateFollowersCount(1);
+                    showToast('Following!', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to update follow status', 'error');
+            }
+        }
+
+        function updateFollowersCount(delta) {
+            const countEl = document.getElementById('followersCount');
+            countEl.textContent = parseInt(countEl.textContent) + delta;
+        }
+
+        // Followers/Following modals
+        async function showFollowers() {
+            document.getElementById('followersModal').classList.add('show');
+            const list = document.getElementById('followersList');
+            list.innerHTML = '<div class="loading-spinner-sm"><i class="fas fa-spinner fa-spin"></i></div>';
+            
+            try {
+                const response = await fetch(`/api/community/users/${targetUserId}/followers`);
+                const followers = await response.json();
+                
+                if (followers.length === 0) {
+                    list.innerHTML = '<p class="empty-message">No followers yet</p>';
+                    return;
+                }
+                
+                list.innerHTML = followers.map(f => renderUserItem(f.followerId, f.followerName, f.followerProfileImage)).join('');
+            } catch (error) {
+                list.innerHTML = '<p class="error-message">Failed to load followers</p>';
+            }
+        }
+
+        async function showFollowing() {
+            document.getElementById('followingModal').classList.add('show');
+            const list = document.getElementById('followingList');
+            list.innerHTML = '<div class="loading-spinner-sm"><i class="fas fa-spinner fa-spin"></i></div>';
+            
+            try {
+                const response = await fetch(`/api/community/users/${targetUserId}/following`);
+                const following = await response.json();
+                
+                if (following.length === 0) {
+                    list.innerHTML = '<p class="empty-message">Not following anyone yet</p>';
+                    return;
+                }
+                
+                list.innerHTML = following.map(f => renderUserItem(f.followingId, f.followingName, f.followingProfileImage)).join('');
+            } catch (error) {
+                list.innerHTML = '<p class="error-message">Failed to load following</p>';
+            }
+        }
+
+        function renderUserItem(userId, name, profileImage) {
+            return `
+                <a href="/community/profile/${userId}" class="user-item">
+                    <img src="${profileImage || '/images/default-avatar.png'}" alt="${name}" class="avatar-md">
+                    <span class="user-name">${escapeHtml(name)}</span>
+                </a>
+            `;
+        }
+
+        function closeFollowersModal() {
+            document.getElementById('followersModal').classList.remove('show');
+        }
+
+        function closeFollowingModal() {
+            document.getElementById('followingModal').classList.remove('show');
+        }
+
+        // Block/Unblock
+        async function blockUser() {
+            if (!confirm(`Are you sure you want to block this user? They won't be able to see your posts or message you.`)) return;
+            
+            try {
+                await fetch(`/api/community/users/${targetUserId}/block`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                showToast('User blocked', 'success');
+                location.reload();
+            } catch (error) {
+                showToast('Failed to block user', 'error');
+            }
+            
+            toggleProfileMenu();
+        }
+
+        async function unblockUser() {
+            try {
+                await fetch(`/api/community/users/${targetUserId}/block`, { method: 'DELETE' });
+                showToast('User unblocked', 'success');
+                location.reload();
+            } catch (error) {
+                showToast('Failed to unblock user', 'error');
+            }
+            
+            toggleProfileMenu();
+        }
+
+        // Report
+        function reportUser() {
+            document.getElementById('reportModal').classList.add('show');
+            toggleProfileMenu();
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.remove('show');
+        }
+
+        async function submitReport(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/api/community/report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        targetType: 2, // User
+                        targetUserId: targetUserId,
+                        reason: parseInt(formData.get('reason')),
+                        additionalDetails: formData.get('additionalDetails')
+                    })
+                });
+                
+                if (response.ok) {
+                    closeReportModal();
+                    showToast('Report submitted. Thank you for helping keep our community safe.', 'success');
+                    form.reset();
+                }
+            } catch (error) {
+                showToast('Failed to submit report', 'error');
+            }
+        }
+
+        // Profile editing (for own profile)
+        function editCoverImage() {
+            document.getElementById('coverImageInput').click();
+        }
+
+        function editProfileImage() {
+            document.getElementById('profileImageInput').click();
+        }
+
+        async function uploadCoverImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/api/community/profile/cover', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.querySelector('.profile-cover').style.backgroundImage = `url('${data.coverImageUrl}')`;
+                    showToast('Cover image updated!', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to update cover image', 'error');
+            }
+        }
+
+        async function uploadProfileImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // This would typically go through the main profile update endpoint
+            showToast('Profile image upload - use Settings page', 'info');
+        }
+
+        // Profile menu
+        function toggleProfileMenu() {
+            document.getElementById('profileMenu').classList.toggle('show');
+        }
+
+        function copyProfileLink() {
+            const url = `${window.location.origin}/community/profile/${targetUserId}`;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('Profile link copied!', 'success');
+            });
+            toggleProfileMenu();
+        }
+
+        // Post detail
+        async function openPostDetail(postId) {
+            document.getElementById('postDetailModal').classList.add('show');
+            const content = document.getElementById('postDetailContent');
+            content.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
+            
+            try {
+                const response = await fetch(`/api/community/posts/${postId}`);
+                const post = await response.json();
+                
+                content.innerHTML = `
+                    <div class="post-detail">
+                        <div class="post-media-section">
+                            ${post.media && post.media.length > 0 ? `
+                                <div class="media-viewer">
+                                    ${post.media[0].type === 0 ? 
+                                        `<img src="${post.media[0].url}" alt="Post media">` :
+                                        `<video src="${post.media[0].url}" controls autoplay></video>`
+                                    }
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="post-info-section">
+                            <div class="post-header">
+                                <a href="/community/profile/${post.authorId}" class="post-author">
+                                    <img src="${post.authorProfileImage || '/images/default-avatar.png'}" class="avatar-md">
+                                    <span>${escapeHtml(post.authorName)}</span>
+                                </a>
+                            </div>
+                            <div class="post-content">${escapeHtml(post.caption || '')}</div>
+                            <div class="post-stats">
+                                <span>${post.likesCount} likes</span>
+                                <span>${post.commentsCount} comments</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                content.innerHTML = '<p class="error-message">Failed to load post</p>';
+            }
+        }
+
+        function closePostDetailModal() {
+            document.getElementById('postDetailModal').classList.remove('show');
+        }
+
+        function openMediaViewer(url) {
+            window.open(url, '_blank');
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Close menus on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.profile-menu-dropdown') && !e.target.closest('[onclick*="toggleProfileMenu"]')) {
+                document.getElementById('profileMenu').classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,365 @@
+@{
+    ViewData["Title"] = "Notifications";
+    Layout = null;
+    var user = ViewBag.CurrentUser as ServConnect.Models.Users;
+    var notifications = ViewBag.Notifications as List<ServConnect.Models.Community.CommunityNotification>;
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Community</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/community-translations.js"></script>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/community" class="logo">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/community" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Feed</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/search" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        <span>Discover</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/messages" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Messages</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="/community/notifications" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/profile" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="sidebar-footer">
+            <a href="/community/profile" class="user-profile-mini">
+                <img src="@(user?.ProfileImageUrl ?? "/images/default-avatar.png")" alt="Profile" class="avatar-sm">
+                <div class="user-info">
+                    <span class="user-name">@(user?.FullName ?? user?.UserName)</span>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content notifications-page">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1>Notifications</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-outline btn-sm" onclick="markAllAsRead()" id="markAllBtn">
+                    <i class="fas fa-check-double"></i>
+                    <span>Mark all as read</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Notification Filters -->
+        <div class="notification-filters">
+            <button class="filter-btn active" data-filter="all" onclick="filterNotifications('all')">All</button>
+            <button class="filter-btn" data-filter="likes" onclick="filterNotifications('likes')">Likes</button>
+            <button class="filter-btn" data-filter="comments" onclick="filterNotifications('comments')">Comments</button>
+            <button class="filter-btn" data-filter="follows" onclick="filterNotifications('follows')">Follows</button>
+            <button class="filter-btn" data-filter="messages" onclick="filterNotifications('messages')">Messages</button>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="notifications-container">
+            @if (notifications != null && notifications.Any())
+            {
+                var grouped = notifications.GroupBy(n => {
+                    var diff = DateTime.UtcNow - n.CreatedAt;
+                    if (diff.TotalHours < 24) return "Today";
+                    if (diff.TotalDays < 7) return "This Week";
+                    if (diff.TotalDays < 30) return "This Month";
+                    return "Earlier";
+                });
+                
+                foreach (var group in grouped)
+                {
+                    <div class="notification-group">
+                        <h3 class="group-title">@group.Key</h3>
+                        @foreach (var notification in group)
+                        {
+                            var notifClass = GetNotificationClass(notification.Type);
+                            var icon = GetNotificationIcon(notification.Type);
+                            var link = GetNotificationLink(notification);
+                            
+                            <a href="@link" class="notification-item @(notification.IsRead ? "" : "unread")" 
+                               data-id="@notification.Id" data-type="@notifClass"
+                               onclick="markAsRead('@notification.Id')">
+                                <div class="notification-avatar">
+                                    <img src="@(notification.ActorProfileImage ?? "/images/default-avatar.png")" alt="@notification.ActorName" class="avatar-notification">
+                                    <span class="notification-icon @notifClass">
+                                        <i class="fas @icon"></i>
+                                    </span>
+                                </div>
+                                <div class="notification-content">
+                                    <p class="notification-text">
+                                        <span class="notification-actor">@notification.ActorName</span>
+                                        @GetNotificationVerb(notification.Type)
+                                    </p>
+                                    <span class="notification-time">@FormatTimeAgo(notification.CreatedAt)</span>
+                                </div>
+                                @if (!notification.IsRead)
+                                {
+                                    <span class="unread-dot"></span>
+                                }
+                            </a>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-notifications">
+                    <i class="fas fa-bell-slash"></i>
+                    <h3>No notifications yet</h3>
+                    <p>When someone interacts with your posts, you'll see it here</p>
+                </div>
+            }
+        </div>
+
+        <!-- Load More -->
+        <div id="loadMoreContainer" class="load-more-container" style="display: none;">
+            <button class="btn btn-outline" onclick="loadMoreNotifications()">Load More</button>
+        </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <a href="/community" class="mobile-nav-item">
+            <i class="fas fa-home"></i>
+            <span>Feed</span>
+        </a>
+        <a href="/community/search" class="mobile-nav-item">
+            <i class="fas fa-search"></i>
+            <span>Discover</span>
+        </a>
+        <a href="/community" class="mobile-nav-item create-btn">
+            <i class="fas fa-plus"></i>
+        </a>
+        <a href="/community/notifications" class="mobile-nav-item active">
+            <i class="fas fa-bell"></i>
+            <span>Alerts</span>
+        </a>
+        <a href="/community/profile" class="mobile-nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        let currentFilter = 'all';
+
+        // Filter notifications
+        function filterNotifications(filter) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            
+            const items = document.querySelectorAll('.notification-item');
+            items.forEach(item => {
+                const type = item.dataset.type;
+                let show = filter === 'all';
+                
+                if (filter === 'likes' && (type === 'like' || type === 'comment-like')) show = true;
+                if (filter === 'comments' && (type === 'comment' || type === 'reply')) show = true;
+                if (filter === 'follows' && type === 'follow') show = true;
+                if (filter === 'messages' && type === 'message') show = true;
+                
+                item.style.display = show ? 'flex' : 'none';
+            });
+            
+            // Show/hide group titles based on visible items
+            document.querySelectorAll('.notification-group').forEach(group => {
+                const visibleItems = group.querySelectorAll('.notification-item[style="display: flex;"], .notification-item:not([style])');
+                const hasVisibleItems = Array.from(group.querySelectorAll('.notification-item')).some(item => item.style.display !== 'none');
+                group.style.display = hasVisibleItems ? 'block' : 'none';
+            });
+        }
+
+        // Mark single notification as read
+        async function markAsRead(notificationId) {
+            try {
+                await fetch(`/api/community/notifications/${notificationId}/read`, { method: 'POST' });
+                
+                const item = document.querySelector(`[data-id="${notificationId}"]`);
+                if (item) {
+                    item.classList.remove('unread');
+                    const dot = item.querySelector('.unread-dot');
+                    if (dot) dot.remove();
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        // Mark all as read
+        async function markAllAsRead() {
+            try {
+                await fetch('/api/community/notifications/read-all', { method: 'POST' });
+                
+                document.querySelectorAll('.notification-item.unread').forEach(item => {
+                    item.classList.remove('unread');
+                    const dot = item.querySelector('.unread-dot');
+                    if (dot) dot.remove();
+                });
+                
+                showToast('All notifications marked as read', 'success');
+            } catch (error) {
+                showToast('Failed to mark notifications as read', 'error');
+            }
+        }
+
+        // Load more notifications
+        let notificationPage = 1;
+        async function loadMoreNotifications() {
+            notificationPage++;
+            try {
+                const response = await fetch(`/api/community/notifications?skip=${notificationPage * 50}&limit=50`);
+                const newNotifications = await response.json();
+                
+                if (newNotifications.length === 0) {
+                    document.getElementById('loadMoreContainer').style.display = 'none';
+                    return;
+                }
+                
+                // Append new notifications
+                // Implementation would require client-side rendering
+            } catch (error) {
+                showToast('Failed to load more notifications', 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+
+@functions {
+    string GetNotificationClass(ServConnect.Models.Community.CommunityNotificationType type)
+    {
+        return type switch
+        {
+            ServConnect.Models.Community.CommunityNotificationType.PostLike => "like",
+            ServConnect.Models.Community.CommunityNotificationType.CommentLike => "comment-like",
+            ServConnect.Models.Community.CommunityNotificationType.PostComment => "comment",
+            ServConnect.Models.Community.CommunityNotificationType.CommentReply => "reply",
+            ServConnect.Models.Community.CommunityNotificationType.NewFollower => "follow",
+            ServConnect.Models.Community.CommunityNotificationType.NewMessage => "message",
+            ServConnect.Models.Community.CommunityNotificationType.Mention => "mention",
+            ServConnect.Models.Community.CommunityNotificationType.PostShared => "share",
+            _ => "default"
+        };
+    }
+
+    string GetNotificationIcon(ServConnect.Models.Community.CommunityNotificationType type)
+    {
+        return type switch
+        {
+            ServConnect.Models.Community.CommunityNotificationType.PostLike => "fa-heart",
+            ServConnect.Models.Community.CommunityNotificationType.CommentLike => "fa-heart",
+            ServConnect.Models.Community.CommunityNotificationType.PostComment => "fa-comment",
+            ServConnect.Models.Community.CommunityNotificationType.CommentReply => "fa-reply",
+            ServConnect.Models.Community.CommunityNotificationType.NewFollower => "fa-user-plus",
+            ServConnect.Models.Community.CommunityNotificationType.NewMessage => "fa-envelope",
+            ServConnect.Models.Community.CommunityNotificationType.Mention => "fa-at",
+            ServConnect.Models.Community.CommunityNotificationType.PostShared => "fa-share",
+            _ => "fa-bell"
+        };
+    }
+
+    string GetNotificationVerb(ServConnect.Models.Community.CommunityNotificationType type)
+    {
+        return type switch
+        {
+            ServConnect.Models.Community.CommunityNotificationType.PostLike => "liked your post",
+            ServConnect.Models.Community.CommunityNotificationType.CommentLike => "liked your comment",
+            ServConnect.Models.Community.CommunityNotificationType.PostComment => "commented on your post",
+            ServConnect.Models.Community.CommunityNotificationType.CommentReply => "replied to your comment",
+            ServConnect.Models.Community.CommunityNotificationType.NewFollower => "started following you",
+            ServConnect.Models.Community.CommunityNotificationType.NewMessage => "sent you a message",
+            ServConnect.Models.Community.CommunityNotificationType.Mention => "mentioned you",
+            ServConnect.Models.Community.CommunityNotificationType.PostShared => "shared your post",
+            _ => "interacted with you"
+        };
+    }
+
+    string GetNotificationLink(ServConnect.Models.Community.CommunityNotification n)
+    {
+        if (n.Type == ServConnect.Models.Community.CommunityNotificationType.NewFollower)
+            return $"/community/profile/{n.ActorId}";
+        if (n.Type == ServConnect.Models.Community.CommunityNotificationType.NewMessage)
+            return $"/community/messages/{n.ActorId}";
+        if (!string.IsNullOrEmpty(n.RelatedPostId))
+            return $"/community#post-{n.RelatedPostId}";
+        return "/community";
+    }
+
+    string FormatTimeAgo(DateTime date)
+    {
+        var span = DateTime.UtcNow - date;
+        if (span.TotalMinutes < 1) return "Just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
+        return date.ToString("MMM d");
+    }
+}

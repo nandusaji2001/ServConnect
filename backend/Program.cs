@@ -158,6 +158,8 @@ builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 // Email service
 builder.Services.AddScoped<IEmailService, EmailService>();
+// Community module service
+builder.Services.AddScoped<ICommunityService, CommunityService>();
 // Revenue service for analytics and ML predictions
 builder.Services.AddScoped<IRevenueService, RevenueService>();
 // Rental property service for house rentals module

@@ -1,0 +1,599 @@
+@{
+    ViewData["Title"] = "Settings";
+    Layout = null;
+    var user = ViewBag.CurrentUser as ServConnect.Models.Users;
+    var profile = ViewBag.Profile as ServConnect.Models.Community.CommunityProfile;
+    var blockedUsers = ViewBag.BlockedUsers as List<ServConnect.Models.Community.UserBlock>;
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="@(profile?.Theme ?? "light")">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Community</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/community-translations.js"></script>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/community" class="logo">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/community" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Feed</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/search" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        <span>Discover</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/messages" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Messages</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/notifications" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/profile" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="/community/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/Home/Dashboard" class="nav-link" style="color: #10B981;">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Return to Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content settings-page">
+        <!-- Header -->
+        <header class="page-header">
+            <button class="back-btn" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1>Settings</h1>
+        </header>
+
+        <!-- Settings Navigation -->
+        <div class="settings-container">
+            <nav class="settings-nav">
+                <button class="settings-nav-item active" data-section="profile" onclick="showSection('profile')">
+                    <i class="fas fa-user"></i>
+                    <span>Edit Profile</span>
+                </button>
+                <button class="settings-nav-item" data-section="privacy" onclick="showSection('privacy')">
+                    <i class="fas fa-lock"></i>
+                    <span>Privacy</span>
+                </button>
+                <button class="settings-nav-item" data-section="notifications" onclick="showSection('notifications')">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </button>
+                <button class="settings-nav-item" data-section="blocked" onclick="showSection('blocked')">
+                    <i class="fas fa-ban"></i>
+                    <span>Blocked Users</span>
+                </button>
+                <button class="settings-nav-item" data-section="appearance" onclick="showSection('appearance')">
+                    <i class="fas fa-palette"></i>
+                    <span>Appearance</span>
+                </button>
+                <button class="settings-nav-item" data-section="account" onclick="showSection('account')">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Account</span>
+                </button>
+            </nav>
+
+            <!-- Settings Content -->
+            <div class="settings-content">
+                <!-- Edit Profile Section -->
+                <section class="settings-section active" id="profile-section">
+                    <h2 class="section-title">Edit Profile</h2>
+                    <form id="profileForm" onsubmit="saveProfile(event)">
+                        <div class="profile-image-edit">
+                            <img src="@(user?.ProfileImageUrl ?? "/images/default-avatar.png")" alt="Profile" id="profilePreview" class="avatar-xl">
+                            <div class="profile-image-actions">
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('profileImageInput').click()">
+                                    <i class="fas fa-camera"></i>
+                                    Change Photo
+                                </button>
+                                <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="previewProfileImage(event)">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <div class="input-with-prefix">
+                                <span class="prefix">@@</span>
+                                <input type="text" id="username" name="username" value="@(profile?.Username ?? user?.UserName)" 
+                                       placeholder="username" pattern="[a-zA-Z0-9_]+" maxlength="30">
+                            </div>
+                            <span class="form-hint">Only letters, numbers, and underscores. Max 30 characters.</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bio">Bio</label>
+                            <textarea id="bio" name="bio" placeholder="Tell us about yourself..." 
+                                      rows="3" maxlength="150">@profile?.Bio</textarea>
+                            <span class="form-hint"><span id="bioCount">@((profile?.Bio?.Length ?? 0))</span>/150</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="website">Website</label>
+                            <input type="url" id="website" name="website" value="@profile?.Website" 
+                                   placeholder="https://yourwebsite.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="location">Location</label>
+                            <input type="text" id="location" name="location" value="@profile?.Location" 
+                                   placeholder="City, Country" maxlength="100">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Privacy Section -->
+                <section class="settings-section" id="privacy-section">
+                    <h2 class="section-title">Privacy Settings</h2>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Private Account</h3>
+                            <p>Only approved followers can see your posts</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="isPrivate" @(profile?.IsPrivate == true ? "checked" : "") onchange="updatePrivacySetting('isPrivate', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Allow Messages</h3>
+                            <p>Allow anyone to send you direct messages</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="allowMessages" @(profile?.AllowMessages != false ? "checked" : "") onchange="updatePrivacySetting('allowMessages', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Show Activity Status</h3>
+                            <p>Let others see when you were last active</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="showActivity" @(profile?.ShowActivity != false ? "checked" : "") onchange="updatePrivacySetting('showActivity', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Notifications Section -->
+                <section class="settings-section" id="notifications-section">
+                    <h2 class="section-title">Notification Preferences</h2>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Push Notifications</h3>
+                            <p>Receive push notifications for activity</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="pushNotifications" checked onchange="updateNotificationSetting('push', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Like Notifications</h3>
+                            <p>When someone likes your post or comment</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="likeNotifications" checked onchange="updateNotificationSetting('likes', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Comment Notifications</h3>
+                            <p>When someone comments on your post</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="commentNotifications" checked onchange="updateNotificationSetting('comments', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Follow Notifications</h3>
+                            <p>When someone follows you</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="followNotifications" checked onchange="updateNotificationSetting('follows', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Message Notifications</h3>
+                            <p>When you receive a new message</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="messageNotifications" checked onchange="updateNotificationSetting('messages', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Blocked Users Section -->
+                <section class="settings-section" id="blocked-section">
+                    <h2 class="section-title">Blocked Users</h2>
+                    <p class="section-description">Users you've blocked can't see your posts, message you, or find your profile.</p>
+                    
+                    <div class="blocked-users-list" id="blockedUsersList">
+                        @if (blockedUsers != null && blockedUsers.Any())
+                        {
+                            foreach (var block in blockedUsers)
+                            {
+                                <div class="blocked-user-item" id="blocked-@block.BlockedUserId">
+                                    <div class="user-info">
+                                        <div class="avatar-placeholder">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <span class="user-name">@block.BlockedUserName</span>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" onclick="unblockUser('@block.BlockedUserId', '@block.BlockedUserName')">
+                                        Unblock
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-blocked">
+                                <i class="fas fa-user-check"></i>
+                                <p>You haven't blocked anyone</p>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <!-- Appearance Section -->
+                <section class="settings-section" id="appearance-section">
+                    <h2 class="section-title">Appearance</h2>
+                    
+                    <div class="theme-selector">
+                        <h3>Theme</h3>
+                        <div class="theme-options">
+                            <label class="theme-option @(profile?.Theme != "dark" ? "active" : "")">
+                                <input type="radio" name="theme" value="light" @(profile?.Theme != "dark" ? "checked" : "") onchange="setTheme('light')">
+                                <div class="theme-preview light">
+                                    <i class="fas fa-sun"></i>
+                                </div>
+                                <span>Light</span>
+                            </label>
+                            <label class="theme-option @(profile?.Theme == "dark" ? "active" : "")">
+                                <input type="radio" name="theme" value="dark" @(profile?.Theme == "dark" ? "checked" : "") onchange="setTheme('dark')">
+                                <div class="theme-preview dark">
+                                    <i class="fas fa-moon"></i>
+                                </div>
+                                <span>Dark</span>
+                            </label>
+                            <label class="theme-option">
+                                <input type="radio" name="theme" value="system" onchange="setTheme('system')">
+                                <div class="theme-preview system">
+                                    <i class="fas fa-desktop"></i>
+                                </div>
+                                <span>System</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="language">Language</label>
+                        <select id="language" name="language" onchange="setLanguage(this.value)">
+                            @{
+                                var lang = profile?.PreferredLanguage ?? "en";
+                            }
+                            @if (lang == "en")
+                            {
+                                <option value="en" selected>English</option>
+                                <option value="ml">മലയാളം (Malayalam)</option>
+                            }
+                            else
+                            {
+                                <option value="en">English</option>
+                                <option value="ml" selected>മലയാളം (Malayalam)</option>
+                            }
+                        </select>
+                        <span class="form-hint">When Malayalam is selected, UI text will be translated (user messages remain unchanged)</span>
+                    </div>
+                </section>
+
+                <!-- Account Section -->
+                <section class="settings-section" id="account-section">
+                    <h2 class="section-title">Account Settings</h2>
+                    
+                    <div class="account-info">
+                        <div class="info-item">
+                            <label>Email</label>
+                            <span>@user?.Email</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Member Since</label>
+                            <span>@(user?.CreatedOn.ToString("MMMM d, yyyy") ?? "Unknown")</span>
+                        </div>
+                    </div>
+                    
+                    <div class="danger-zone">
+                        <h3>Danger Zone</h3>
+                        <p>These actions are irreversible. Please proceed with caution.</p>
+                        
+                        <button class="btn btn-outline btn-danger" onclick="deactivateAccount()">
+                            <i class="fas fa-user-slash"></i>
+                            Deactivate Account
+                        </button>
+                        
+                        <button class="btn btn-danger" onclick="deleteAccount()">
+                            <i class="fas fa-trash"></i>
+                            Delete Account
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <a href="/community" class="mobile-nav-item">
+            <i class="fas fa-home"></i>
+            <span>Feed</span>
+        </a>
+        <a href="/community/search" class="mobile-nav-item">
+            <i class="fas fa-search"></i>
+            <span>Discover</span>
+        </a>
+        <a href="/community" class="mobile-nav-item create-btn">
+            <i class="fas fa-plus"></i>
+        </a>
+        <a href="/community/notifications" class="mobile-nav-item">
+            <i class="fas fa-bell"></i>
+            <span>Alerts</span>
+        </a>
+        <a href="/community/profile" class="mobile-nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        // Show settings section
+        function showSection(section) {
+            document.querySelectorAll('.settings-nav-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.section === section);
+            });
+            
+            document.querySelectorAll('.settings-section').forEach(sec => {
+                sec.classList.toggle('active', sec.id === `${section}-section`);
+            });
+        }
+
+        // Bio character counter
+        document.getElementById('bio').addEventListener('input', (e) => {
+            document.getElementById('bioCount').textContent = e.target.value.length;
+        });
+
+        // Preview profile image
+        function previewProfileImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('profilePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Save profile
+        async function saveProfile(e) {
+            e.preventDefault();
+            const form = e.target;
+            
+            const data = {
+                username: form.username.value,
+                bio: form.bio.value,
+                website: form.website.value,
+                location: form.location.value,
+                isPrivate: document.getElementById('isPrivate').checked,
+                allowMessages: document.getElementById('allowMessages').checked,
+                showActivity: document.getElementById('showActivity').checked,
+                preferredLanguage: document.getElementById('language').value,
+                theme: document.querySelector('input[name="theme"]:checked')?.value || 'light'
+            };
+            
+            try {
+                const response = await fetch('/api/community/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    showToast('Profile updated successfully!', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to update profile', 'error');
+            }
+        }
+
+        // Update privacy setting
+        async function updatePrivacySetting(setting, value) {
+            const data = {
+                username: document.getElementById('username').value,
+                bio: document.getElementById('bio').value,
+                website: document.getElementById('website').value,
+                location: document.getElementById('location').value,
+                isPrivate: document.getElementById('isPrivate').checked,
+                allowMessages: document.getElementById('allowMessages').checked,
+                showActivity: document.getElementById('showActivity').checked,
+                preferredLanguage: document.getElementById('language').value,
+                theme: document.querySelector('input[name="theme"]:checked')?.value || 'light'
+            };
+            
+            try {
+                await fetch('/api/community/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                showToast('Setting updated', 'success');
+            } catch (error) {
+                showToast('Failed to update setting', 'error');
+            }
+        }
+
+        // Update notification setting
+        function updateNotificationSetting(type, value) {
+            // Store in localStorage for now
+            const settings = JSON.parse(localStorage.getItem('notificationSettings') || '{}');
+            settings[type] = value;
+            localStorage.setItem('notificationSettings', JSON.stringify(settings));
+            showToast('Notification preference updated', 'success');
+        }
+
+        // Theme
+        function setTheme(theme) {
+            if (theme === 'system') {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.toggle('active', opt.querySelector('input').value === theme);
+            });
+            
+            // Save theme
+            updatePrivacySetting('theme', theme);
+        }
+
+        // Language
+        function setLanguage(lang) {
+            // Save language preference
+            updatePrivacySetting('preferredLanguage', lang);
+            
+            // Store in localStorage for immediate use
+            localStorage.setItem('preferredLanguage', lang);
+            
+            // Apply translations using the shared translation system
+            if (lang === 'en') {
+                location.reload();
+            } else {
+                applyTranslations(lang);
+                showToast('ഭാഷ മലയാളത്തിലേക്ക് മാറ്റി', 'success');
+            }
+        }
+
+        // Unblock user
+        async function unblockUser(userId, userName) {
+            if (!confirm(`Unblock ${userName}?`)) return;
+            
+            try {
+                await fetch(`/api/community/users/${userId}/block`, { method: 'DELETE' });
+                document.getElementById(`blocked-${userId}`).remove();
+                showToast(`${userName} has been unblocked`, 'success');
+                
+                // Check if list is empty
+                const list = document.getElementById('blockedUsersList');
+                if (list.querySelectorAll('.blocked-user-item').length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-blocked">
+                            <i class="fas fa-user-check"></i>
+                            <p>You haven't blocked anyone</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                showToast('Failed to unblock user', 'error');
+            }
+        }
+
+        // Account actions
+        function deactivateAccount() {
+            if (!confirm('Are you sure you want to deactivate your account? You can reactivate it later by logging in again.')) return;
+            
+            showToast('Account deactivation is not implemented yet', 'info');
+        }
+
+        function deleteAccount() {
+            if (!confirm('Are you sure you want to permanently delete your account? This action cannot be undone and all your data will be lost.')) return;
+            if (!confirm('This is your final warning. Delete your account?')) return;
+            
+            showToast('Account deletion is not implemented yet', 'info');
+        }
+
+        // Toast
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

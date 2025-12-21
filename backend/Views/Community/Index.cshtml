@@ -1,0 +1,1445 @@
+@{
+    ViewData["Title"] = "Community";
+    Layout = null;
+    var user = ViewBag.CurrentUser as ServConnect.Models.Users;
+    var profile = ViewBag.Profile as ServConnect.Models.Community.CommunityProfile;
+    var unreadMessages = ViewBag.UnreadMessages ?? 0;
+    var unreadNotifications = ViewBag.UnreadNotifications ?? 0;
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="@(profile?.Theme ?? "light")">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ServConnect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/community-translations.js"></script>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/community" class="logo">
+                <i class="fas fa-users"></i>
+                <span>ServConnect Community</span>
+            </a>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="nav-menu">
+                <li class="nav-item active">
+                    <a href="/community" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Feed</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/search" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        <span>Discover</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/messages" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Messages</span>
+                        @if ((int)unreadMessages > 0)
+                        {
+                            <span class="badge" id="messagesBadge">@unreadMessages</span>
+                        }
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/notifications" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                        @if ((int)unreadNotifications > 0)
+                        {
+                            <span class="badge" id="notificationsBadge">@unreadNotifications</span>
+                        }
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/profile" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/Home/Dashboard" class="nav-link" style="color: #10B981;">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Return to Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <button class="btn btn-primary btn-create-post" onclick="openCreatePostModal()">
+                <i class="fas fa-plus"></i>
+                <span>Create Post</span>
+            </button>
+        </div>
+        
+        <div class="sidebar-footer">
+            <a href="/community/profile" class="user-profile-mini">
+                <img src="@(user?.ProfileImageUrl ?? "/images/default-avatar.png")" alt="Profile" class="avatar-sm">
+                <div class="user-info">
+                    <span class="user-name">@(user?.FullName ?? user?.UserName)</span>
+                    <span class="user-handle">@@@(profile?.Username ?? user?.UserName)</span>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Mobile Header -->
+        <header class="mobile-header">
+            <button class="menu-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Feed</h1>
+            <a href="/community/messages" class="icon-btn">
+                <i class="fas fa-envelope"></i>
+                @if ((int)unreadMessages > 0)
+                {
+                    <span class="badge-dot"></span>
+                }
+            </a>
+        </header>
+
+        <!-- Feed Container -->
+        <div class="feed-container">
+            <!-- Create Post Card (Desktop) -->
+            <div class="create-post-card">
+                <div class="create-post-input" onclick="openCreatePostModal()">
+                    <img src="@(user?.ProfileImageUrl ?? "/images/default-avatar.png")" alt="Your profile" class="avatar-md">
+                    <span class="create-post-placeholder">What's on your mind?</span>
+                </div>
+                <div class="create-post-actions">
+                    <button class="action-btn" onclick="openCreatePostModal('image')">
+                        <i class="fas fa-image"></i>
+                        <span>Photo</span>
+                    </button>
+                    <button class="action-btn" onclick="openCreatePostModal('video')">
+                        <i class="fas fa-video"></i>
+                        <span>Video</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Posts Feed -->
+            <div id="postsFeed" class="posts-feed">
+                <div class="loading-spinner" id="feedLoading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading posts...</span>
+                </div>
+            </div>
+
+            <!-- Load More -->
+            <div id="loadMoreContainer" class="load-more-container" style="display: none;">
+                <button class="btn btn-outline" onclick="loadMorePosts()">Load More</button>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyFeed" class="empty-state" style="display: none;">
+                <i class="fas fa-newspaper"></i>
+                <h3>Your feed is empty</h3>
+                <p>Follow some users or create your first post to get started!</p>
+                <button class="btn btn-primary" onclick="openCreatePostModal()">Create Post</button>
+            </div>
+        </div>
+
+        <!-- Right Sidebar (Desktop) -->
+        <aside class="right-sidebar">
+            <!-- Suggested Users -->
+            <div class="sidebar-card">
+                <h3 class="sidebar-card-title">Suggested for you</h3>
+                <div id="suggestedUsers" class="suggested-users-list">
+                    <div class="loading-spinner-sm">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trending Hashtags -->
+            <div class="sidebar-card">
+                <h3 class="sidebar-card-title">Trending</h3>
+                <div id="trendingHashtags" class="trending-list">
+                    <a href="/community/search?q=%23technology" class="trending-item">
+                        <span class="hashtag">#technology</span>
+                        <span class="count">1.2K posts</span>
+                    </a>
+                    <a href="/community/search?q=%23community" class="trending-item">
+                        <span class="hashtag">#community</span>
+                        <span class="count">856 posts</span>
+                    </a>
+                    <a href="/community/search?q=%23lifestyle" class="trending-item">
+                        <span class="hashtag">#lifestyle</span>
+                        <span class="count">742 posts</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer Links -->
+            <div class="sidebar-footer-links">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/help">Help</a>
+                <span>&copy; 2024 ServConnect</span>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Create Post Modal -->
+    <div class="modal" id="createPostModal">
+        <div class="modal-overlay" onclick="closeCreatePostModal()"></div>
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Create Post</h2>
+                <button class="modal-close" onclick="closeCreatePostModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="createPostForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="post-author-info">
+                        <img src="@(user?.ProfileImageUrl ?? "/images/default-avatar.png")" alt="Profile" class="avatar-md">
+                        <div>
+                            <span class="author-name">@(user?.FullName ?? user?.UserName)</span>
+                            <select name="visibility" class="visibility-select">
+                                <option value="0">🌍 Public</option>
+                                <option value="1">👥 Followers only</option>
+                                <option value="2">🔒 Private</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <textarea name="caption" id="postCaption" class="post-textarea" 
+                              placeholder="What's on your mind?" rows="4" maxlength="2000"></textarea>
+                    
+                    <div class="hashtag-input-container">
+                        <input type="text" id="hashtagInput" class="hashtag-input" 
+                               placeholder="Add hashtags (e.g., technology, community)">
+                        <div id="hashtagsList" class="hashtags-list"></div>
+                        <input type="hidden" name="hashtags" id="hashtagsHidden">
+                    </div>
+                    
+                    <div id="mediaPreview" class="media-preview"></div>
+                    
+                    <div class="media-upload-area" id="mediaUploadArea">
+                        <input type="file" id="mediaInput" name="media" multiple 
+                               accept="image/*,video/*" style="display: none;">
+                        <div class="upload-placeholder" onclick="document.getElementById('mediaInput').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Add photos or videos</span>
+                            <small>Drag and drop or click to upload</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="post-actions-left">
+                        <button type="button" class="icon-btn" onclick="document.getElementById('mediaInput').click()" title="Add media">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <button type="button" class="icon-btn" onclick="addEmoji()" title="Add emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submitPostBtn">
+                        <span>Post</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Post Detail Modal -->
+    <div class="modal" id="postDetailModal">
+        <div class="modal-overlay" onclick="closePostDetailModal()"></div>
+        <div class="modal-content modal-xl">
+            <button class="modal-close" onclick="closePostDetailModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="postDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal" id="reportModal">
+        <div class="modal-overlay" onclick="closeReportModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Report Content</h2>
+                <button class="modal-close" onclick="closeReportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="reportForm">
+                <div class="modal-body">
+                    <input type="hidden" id="reportTargetType" name="targetType">
+                    <input type="hidden" id="reportTargetPostId" name="targetPostId">
+                    <input type="hidden" id="reportTargetCommentId" name="targetCommentId">
+                    <input type="hidden" id="reportTargetUserId" name="targetUserId">
+                    
+                    <p class="report-instruction">Why are you reporting this?</p>
+                    
+                    <div class="report-options">
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="0" required>
+                            <span>Spam</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="1">
+                            <span>Harassment or bullying</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="2">
+                            <span>Hate speech</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="3">
+                            <span>Violence or threats</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="4">
+                            <span>Nudity or sexual content</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="5">
+                            <span>False information</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="6">
+                            <span>Scam or fraud</span>
+                        </label>
+                        <label class="report-option">
+                            <input type="radio" name="reason" value="7">
+                            <span>Other</span>
+                        </label>
+                    </div>
+                    
+                    <textarea name="additionalDetails" class="report-details" 
+                              placeholder="Additional details (optional)" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeReportModal()">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Post Modal -->
+    <div class="modal" id="editPostModal">
+        <div class="modal-overlay" onclick="closeEditPostModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Post</h2>
+                <button class="modal-close" onclick="closeEditPostModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editPostForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editPostId" name="postId">
+                    <textarea name="caption" id="editPostCaption" class="post-textarea" 
+                              placeholder="What's on your mind?" rows="4" maxlength="2000"></textarea>
+                    
+                    <div class="hashtag-input-container">
+                        <input type="text" id="editHashtagInput" class="hashtag-input" 
+                               placeholder="Add hashtags">
+                        <div id="editHashtagsList" class="hashtags-list"></div>
+                        <input type="hidden" name="hashtags" id="editHashtagsHidden">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeEditPostModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Likes Modal -->
+    <div class="modal" id="likesModal">
+        <div class="modal-overlay" onclick="closeLikesModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reactions</h2>
+                <button class="modal-close" onclick="closeLikesModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="likesList" class="users-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <a href="/community" class="mobile-nav-item active">
+            <i class="fas fa-home"></i>
+            <span>Feed</span>
+        </a>
+        <a href="/community/search" class="mobile-nav-item">
+            <i class="fas fa-search"></i>
+            <span>Discover</span>
+        </a>
+        <button class="mobile-nav-item create-btn" onclick="openCreatePostModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+        <a href="/community/notifications" class="mobile-nav-item">
+            <i class="fas fa-bell"></i>
+            <span>Alerts</span>
+            @if ((int)unreadNotifications > 0)
+            {
+                <span class="badge-dot"></span>
+            }
+        </a>
+        <a href="/community/profile" class="mobile-nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        // Current user data
+        const currentUser = {
+            id: '@user?.Id',
+            fullName: '@(user?.FullName?.Replace("'", "\\'"))',
+            userName: '@user?.UserName',
+            profileImage: '@(user?.ProfileImageUrl ?? "/images/default-avatar.png")'
+        };
+
+        // Pagination
+        let currentPage = 0;
+        const pageSize = 20;
+        let isLoading = false;
+        let hasMore = true;
+
+        // Hashtags for create post
+        let hashtags = [];
+        let editHashtags = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFeed();
+            loadSuggestedUsers();
+            setupEventListeners();
+            setupMediaUpload();
+            setupInfiniteScroll();
+        });
+
+        function setupEventListeners() {
+            // Create post form
+            document.getElementById('createPostForm').addEventListener('submit', handleCreatePost);
+            
+            // Edit post form
+            document.getElementById('editPostForm').addEventListener('submit', handleEditPost);
+            
+            // Report form
+            document.getElementById('reportForm').addEventListener('submit', handleReport);
+            
+            // Hashtag input
+            document.getElementById('hashtagInput').addEventListener('keydown', handleHashtagInput);
+            document.getElementById('editHashtagInput').addEventListener('keydown', handleEditHashtagInput);
+        }
+
+        function setupMediaUpload() {
+            const mediaInput = document.getElementById('mediaInput');
+            const uploadArea = document.getElementById('mediaUploadArea');
+            
+            mediaInput.addEventListener('change', handleMediaSelect);
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                mediaInput.files = e.dataTransfer.files;
+                handleMediaSelect({ target: mediaInput });
+            });
+        }
+
+        function handleMediaSelect(e) {
+            const files = e.target.files;
+            const preview = document.getElementById('mediaPreview');
+            preview.innerHTML = '';
+            
+            if (files.length > 0) {
+                document.getElementById('mediaUploadArea').style.display = 'none';
+            }
+            
+            Array.from(files).slice(0, 10).forEach((file, index) => {
+                const reader = new FileReader();
+                const mediaItem = document.createElement('div');
+                mediaItem.className = 'media-preview-item';
+                
+                reader.onload = (e) => {
+                    if (file.type.startsWith('image/')) {
+                        mediaItem.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview">
+                            <button type="button" class="remove-media" onclick="removeMedia(${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                    } else if (file.type.startsWith('video/')) {
+                        mediaItem.innerHTML = `
+                            <video src="${e.target.result}" controls></video>
+                            <button type="button" class="remove-media" onclick="removeMedia(${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+                preview.appendChild(mediaItem);
+            });
+        }
+
+        function removeMedia(index) {
+            const input = document.getElementById('mediaInput');
+            const dt = new DataTransfer();
+            
+            Array.from(input.files).forEach((file, i) => {
+                if (i !== index) dt.items.add(file);
+            });
+            
+            input.files = dt.files;
+            handleMediaSelect({ target: input });
+            
+            if (input.files.length === 0) {
+                document.getElementById('mediaUploadArea').style.display = 'block';
+            }
+        }
+
+        function handleHashtagInput(e) {
+            if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+                e.preventDefault();
+                const value = e.target.value.trim().replace(/^#/, '').toLowerCase();
+                if (value && !hashtags.includes(value) && hashtags.length < 10) {
+                    hashtags.push(value);
+                    updateHashtagsDisplay();
+                }
+                e.target.value = '';
+            }
+        }
+
+        function handleEditHashtagInput(e) {
+            if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+                e.preventDefault();
+                const value = e.target.value.trim().replace(/^#/, '').toLowerCase();
+                if (value && !editHashtags.includes(value) && editHashtags.length < 10) {
+                    editHashtags.push(value);
+                    updateEditHashtagsDisplay();
+                }
+                e.target.value = '';
+            }
+        }
+
+        function updateHashtagsDisplay() {
+            const container = document.getElementById('hashtagsList');
+            container.innerHTML = hashtags.map((tag, i) => `
+                <span class="hashtag-tag">
+                    #${tag}
+                    <button type="button" onclick="removeHashtag(${i})"><i class="fas fa-times"></i></button>
+                </span>
+            `).join('');
+            document.getElementById('hashtagsHidden').value = JSON.stringify(hashtags);
+        }
+
+        function updateEditHashtagsDisplay() {
+            const container = document.getElementById('editHashtagsList');
+            container.innerHTML = editHashtags.map((tag, i) => `
+                <span class="hashtag-tag">
+                    #${tag}
+                    <button type="button" onclick="removeEditHashtag(${i})"><i class="fas fa-times"></i></button>
+                </span>
+            `).join('');
+            document.getElementById('editHashtagsHidden').value = JSON.stringify(editHashtags);
+        }
+
+        function removeHashtag(index) {
+            hashtags.splice(index, 1);
+            updateHashtagsDisplay();
+        }
+
+        function removeEditHashtag(index) {
+            editHashtags.splice(index, 1);
+            updateEditHashtagsDisplay();
+        }
+
+        // Load Feed
+        async function loadFeed() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            try {
+                const response = await fetch(`/api/community/feed?skip=${currentPage * pageSize}&limit=${pageSize}`);
+                const posts = await response.json();
+                
+                document.getElementById('feedLoading').style.display = 'none';
+                
+                if (posts.length === 0 && currentPage === 0) {
+                    document.getElementById('emptyFeed').style.display = 'flex';
+                    return;
+                }
+                
+                hasMore = posts.length === pageSize;
+                
+                posts.forEach(post => {
+                    appendPost(post);
+                });
+                
+                if (hasMore) {
+                    document.getElementById('loadMoreContainer').style.display = 'flex';
+                } else {
+                    document.getElementById('loadMoreContainer').style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error loading feed:', error);
+                showToast('Failed to load feed', 'error');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        function loadMorePosts() {
+            currentPage++;
+            loadFeed();
+        }
+
+        function setupInfiniteScroll() {
+            window.addEventListener('scroll', () => {
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1000) {
+                    if (hasMore && !isLoading) {
+                        loadMorePosts();
+                    }
+                }
+            });
+        }
+
+        function appendPost(post) {
+            const feed = document.getElementById('postsFeed');
+            const postEl = document.createElement('article');
+            postEl.className = 'post-card';
+            postEl.id = `post-${post.id}`;
+            
+            const isOwn = post.authorId === currentUser.id;
+            const timeAgo = formatTimeAgo(post.createdAt);
+            
+            postEl.innerHTML = `
+                <div class="post-header">
+                    <a href="/community/profile/${post.authorId}" class="post-author">
+                        <img src="${post.authorProfileImage || '/images/default-avatar.png'}" alt="${post.authorName}" class="avatar-md">
+                        <div class="author-info">
+                            <span class="author-name">${escapeHtml(post.authorName)}</span>
+                            <span class="post-meta">@@${post.authorUsername || 'user'} · ${timeAgo}</span>
+                        </div>
+                    </a>
+                    <div class="post-actions-menu">
+                        <button class="icon-btn" onclick="togglePostMenu('${post.id}')">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="dropdown-menu" id="postMenu-${post.id}">
+                            ${isOwn ? `
+                                <button onclick="editPost('${post.id}', '${escapeHtml(post.caption).replace(/'/g, "\\'")}', ${JSON.stringify(post.hashtags || []).replace(/"/g, '&quot;')})">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button onclick="deletePost('${post.id}')" class="danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            ` : `
+                                <button onclick="reportContent('Post', '${post.id}', null, null)">
+                                    <i class="fas fa-flag"></i> Report
+                                </button>
+                            `}
+                            <button onclick="copyPostLink('${post.id}')">
+                                <i class="fas fa-link"></i> Copy Link
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                ${post.caption ? `<div class="post-content">${formatPostContent(post.caption)}</div>` : ''}
+                
+                ${post.hashtags && post.hashtags.length > 0 ? `
+                    <div class="post-hashtags">
+                        ${post.hashtags.map(tag => `<a href="/community/search?q=%23${tag}" class="hashtag">#${tag}</a>`).join(' ')}
+                    </div>
+                ` : ''}
+                
+                ${post.media && post.media.length > 0 ? renderMedia(post.media) : ''}
+                
+                <div class="post-stats">
+                    <button class="stat-btn" onclick="showLikes('${post.id}')">
+                        <span id="likesCount-${post.id}">${post.likesCount || 0}</span> likes
+                    </button>
+                    <button class="stat-btn" onclick="toggleComments('${post.id}')">
+                        <span id="commentsCount-${post.id}">${post.commentsCount || 0}</span> comments
+                    </button>
+                </div>
+                
+                <div class="post-actions">
+                    <button class="action-btn ${post.hasLiked ? 'active' : ''}" onclick="toggleLike('${post.id}')" id="likeBtn-${post.id}">
+                        <i class="${post.hasLiked ? 'fas' : 'far'} fa-heart"></i>
+                        <span>Like</span>
+                    </button>
+                    <button class="action-btn" onclick="toggleComments('${post.id}')">
+                        <i class="far fa-comment"></i>
+                        <span>Comment</span>
+                    </button>
+                    <button class="action-btn" onclick="sharePost('${post.id}')">
+                        <i class="far fa-share-square"></i>
+                        <span>Share</span>
+                    </button>
+                </div>
+                
+                <div class="comments-section" id="comments-${post.id}" style="display: none;">
+                    <div class="comments-list" id="commentsList-${post.id}"></div>
+                    <form class="comment-form" onsubmit="submitComment(event, '${post.id}')">
+                        <img src="${currentUser.profileImage}" alt="Your profile" class="avatar-sm">
+                        <input type="text" placeholder="Write a comment..." class="comment-input" required>
+                        <button type="submit" class="btn btn-sm btn-primary">Post</button>
+                    </form>
+                </div>
+            `;
+            
+            feed.appendChild(postEl);
+        }
+
+        function renderMedia(media) {
+            if (media.length === 1) {
+                const item = media[0];
+                if (item.type === 0) { // Image
+                    return `<div class="post-media single"><img src="${item.url}" alt="Post image" onclick="openMediaViewer('${item.url}')"></div>`;
+                } else { // Video
+                    return `<div class="post-media single"><video src="${item.url}" controls></video></div>`;
+                }
+            }
+            
+            const gridClass = media.length === 2 ? 'grid-2' : media.length === 3 ? 'grid-3' : 'grid-4';
+            return `
+                <div class="post-media ${gridClass}">
+                    ${media.slice(0, 4).map((item, i) => {
+                        if (item.type === 0) {
+                            return `<div class="media-item${i === 3 && media.length > 4 ? ' more' : ''}" onclick="openMediaViewer('${item.url}')">
+                                <img src="${item.url}" alt="Post image">
+                                ${i === 3 && media.length > 4 ? `<span class="more-count">+${media.length - 4}</span>` : ''}
+                            </div>`;
+                        } else {
+                            return `<div class="media-item"><video src="${item.url}" controls></video></div>`;
+                        }
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function formatPostContent(content) {
+            // Escape HTML and convert URLs to links
+            let formatted = escapeHtml(content);
+            
+            // Convert URLs to clickable links
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            formatted = formatted.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+            
+            // Convert mentions to links
+            const mentionRegex = /@@(\w+)/g;
+            formatted = formatted.replace(mentionRegex, '<a href="/community/search?q=$1" class="mention">@@$1</a>');
+            
+            return formatted;
+        }
+
+        // Like functionality
+        async function toggleLike(postId) {
+            const btn = document.getElementById(`likeBtn-${postId}`);
+            const countEl = document.getElementById(`likesCount-${postId}`);
+            const isLiked = btn.classList.contains('active');
+            
+            try {
+                if (isLiked) {
+                    await fetch(`/api/community/posts/${postId}/like`, { method: 'DELETE' });
+                    btn.classList.remove('active');
+                    btn.querySelector('i').className = 'far fa-heart';
+                    countEl.textContent = parseInt(countEl.textContent) - 1;
+                } else {
+                    await fetch(`/api/community/posts/${postId}/like`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reactionType: 0 })
+                    });
+                    btn.classList.add('active');
+                    btn.querySelector('i').className = 'fas fa-heart';
+                    countEl.textContent = parseInt(countEl.textContent) + 1;
+                }
+            } catch (error) {
+                showToast('Failed to update like', 'error');
+            }
+        }
+
+        // Comments functionality
+        async function toggleComments(postId) {
+            const section = document.getElementById(`comments-${postId}`);
+            const isVisible = section.style.display !== 'none';
+            
+            if (isVisible) {
+                section.style.display = 'none';
+            } else {
+                section.style.display = 'block';
+                await loadComments(postId);
+            }
+        }
+
+        async function loadComments(postId) {
+            const list = document.getElementById(`commentsList-${postId}`);
+            list.innerHTML = '<div class="loading-spinner-sm"><i class="fas fa-spinner fa-spin"></i></div>';
+            
+            try {
+                const response = await fetch(`/api/community/posts/${postId}/comments`);
+                const comments = await response.json();
+                
+                if (comments.length === 0) {
+                    list.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+                    return;
+                }
+                
+                list.innerHTML = comments.map(comment => renderComment(comment, postId)).join('');
+            } catch (error) {
+                list.innerHTML = '<p class="error-message">Failed to load comments</p>';
+            }
+        }
+
+        function renderComment(comment, postId) {
+            const isOwn = comment.authorId === currentUser.id;
+            const timeAgo = formatTimeAgo(comment.createdAt);
+            
+            return `
+                <div class="comment" id="comment-${comment.id}">
+                    <a href="/community/profile/${comment.authorId}">
+                        <img src="${comment.authorProfileImage || '/images/default-avatar.png'}" alt="${comment.authorName}" class="avatar-sm">
+                    </a>
+                    <div class="comment-body">
+                        <div class="comment-header">
+                            <a href="/community/profile/${comment.authorId}" class="comment-author">${escapeHtml(comment.authorName)}</a>
+                            <span class="comment-time">${timeAgo}</span>
+                        </div>
+                        <p class="comment-text" id="commentText-${comment.id}">${escapeHtml(comment.content)}</p>
+                        <div class="comment-actions">
+                            <button onclick="toggleCommentLike('${comment.id}')" class="${comment.hasLiked ? 'active' : ''}" id="commentLikeBtn-${comment.id}">
+                                <i class="${comment.hasLiked ? 'fas' : 'far'} fa-heart"></i>
+                                <span id="commentLikesCount-${comment.id}">${comment.likesCount || 0}</span>
+                            </button>
+                            <button onclick="replyToComment('${postId}', '${comment.id}', '${escapeHtml(comment.authorName)}')">Reply</button>
+                            ${isOwn ? `
+                                <button onclick="editComment('${comment.id}')">Edit</button>
+                                <button onclick="deleteComment('${comment.id}', '${postId}')" class="danger">Delete</button>
+                            ` : `
+                                <button onclick="reportContent('Comment', '${postId}', '${comment.id}', null)">Report</button>
+                            `}
+                        </div>
+                        ${comment.repliesCount > 0 ? `
+                            <button class="view-replies-btn" onclick="loadReplies('${comment.id}', '${postId}')">
+                                View ${comment.repliesCount} ${comment.repliesCount === 1 ? 'reply' : 'replies'}
+                            </button>
+                        ` : ''}
+                        <div class="replies-container" id="replies-${comment.id}"></div>
+                        <div class="reply-form-container" id="replyForm-${comment.id}" style="display: none;">
+                            <form onsubmit="submitReply(event, '${postId}', '${comment.id}')">
+                                <input type="text" placeholder="Write a reply..." class="comment-input" required>
+                                <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                                <button type="button" class="btn btn-sm" onclick="cancelReply('${comment.id}')">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function submitComment(e, postId) {
+            e.preventDefault();
+            const input = e.target.querySelector('input');
+            const content = input.value.trim();
+            if (!content) return;
+            
+            try {
+                const response = await fetch(`/api/community/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+                
+                if (response.ok) {
+                    input.value = '';
+                    await loadComments(postId);
+                    
+                    const countEl = document.getElementById(`commentsCount-${postId}`);
+                    countEl.textContent = parseInt(countEl.textContent) + 1;
+                    
+                    showToast('Comment posted!', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to post comment', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to post comment', 'error');
+            }
+        }
+
+        async function toggleCommentLike(commentId) {
+            const btn = document.getElementById(`commentLikeBtn-${commentId}`);
+            const countEl = document.getElementById(`commentLikesCount-${commentId}`);
+            const isLiked = btn.classList.contains('active');
+            
+            try {
+                if (isLiked) {
+                    await fetch(`/api/community/comments/${commentId}/like`, { method: 'DELETE' });
+                    btn.classList.remove('active');
+                    btn.querySelector('i').className = 'far fa-heart';
+                    countEl.textContent = parseInt(countEl.textContent) - 1;
+                } else {
+                    await fetch(`/api/community/comments/${commentId}/like`, { method: 'POST' });
+                    btn.classList.add('active');
+                    btn.querySelector('i').className = 'fas fa-heart';
+                    countEl.textContent = parseInt(countEl.textContent) + 1;
+                }
+            } catch (error) {
+                showToast('Failed to update like', 'error');
+            }
+        }
+
+        function replyToComment(postId, commentId, authorName) {
+            // Hide other reply forms
+            document.querySelectorAll('.reply-form-container').forEach(el => el.style.display = 'none');
+            
+            const form = document.getElementById(`replyForm-${commentId}`);
+            form.style.display = 'block';
+            const input = form.querySelector('input');
+            input.placeholder = `Reply to ${authorName}...`;
+            input.focus();
+        }
+
+        function cancelReply(commentId) {
+            document.getElementById(`replyForm-${commentId}`).style.display = 'none';
+        }
+
+        async function submitReply(e, postId, parentCommentId) {
+            e.preventDefault();
+            const input = e.target.querySelector('input');
+            const content = input.value.trim();
+            if (!content) return;
+            
+            try {
+                const response = await fetch(`/api/community/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, parentCommentId })
+                });
+                
+                if (response.ok) {
+                    input.value = '';
+                    document.getElementById(`replyForm-${parentCommentId}`).style.display = 'none';
+                    await loadReplies(parentCommentId, postId);
+                    showToast('Reply posted!', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to post reply', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to post reply', 'error');
+            }
+        }
+
+        async function loadReplies(commentId, postId) {
+            const container = document.getElementById(`replies-${commentId}`);
+            container.innerHTML = '<div class="loading-spinner-sm"><i class="fas fa-spinner fa-spin"></i></div>';
+            
+            try {
+                const response = await fetch(`/api/community/comments/${commentId}/replies`);
+                const replies = await response.json();
+                
+                container.innerHTML = replies.map(reply => `
+                    <div class="reply" id="comment-${reply.id}">
+                        <a href="/community/profile/${reply.authorId}">
+                            <img src="${reply.authorProfileImage || '/images/default-avatar.png'}" alt="${reply.authorName}" class="avatar-xs">
+                        </a>
+                        <div class="reply-body">
+                            <div class="reply-header">
+                                <a href="/community/profile/${reply.authorId}" class="reply-author">${escapeHtml(reply.authorName)}</a>
+                                <span class="reply-time">${formatTimeAgo(reply.createdAt)}</span>
+                            </div>
+                            <p class="reply-text">${escapeHtml(reply.content)}</p>
+                            <div class="reply-actions">
+                                <button onclick="toggleCommentLike('${reply.id}')" class="${reply.hasLiked ? 'active' : ''}" id="commentLikeBtn-${reply.id}">
+                                    <i class="${reply.hasLiked ? 'fas' : 'far'} fa-heart"></i>
+                                    <span id="commentLikesCount-${reply.id}">${reply.likesCount || 0}</span>
+                                </button>
+                                ${reply.authorId === currentUser.id ? `
+                                    <button onclick="deleteComment('${reply.id}', '${postId}')" class="danger">Delete</button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p class="error-message">Failed to load replies</p>';
+            }
+        }
+
+        async function editComment(commentId) {
+            const textEl = document.getElementById(`commentText-${commentId}`);
+            const currentText = textEl.textContent;
+            
+            const newText = prompt('Edit your comment:', currentText);
+            if (newText === null || newText.trim() === currentText) return;
+            
+            try {
+                const response = await fetch(`/api/community/comments/${commentId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: newText.trim() })
+                });
+                
+                if (response.ok) {
+                    textEl.textContent = newText.trim();
+                    showToast('Comment updated!', 'success');
+                } else {
+                    showToast('Failed to update comment', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to update comment', 'error');
+            }
+        }
+
+        async function deleteComment(commentId, postId) {
+            if (!confirm('Are you sure you want to delete this comment?')) return;
+            
+            try {
+                const response = await fetch(`/api/community/comments/${commentId}`, { method: 'DELETE' });
+                
+                if (response.ok) {
+                    document.getElementById(`comment-${commentId}`).remove();
+                    
+                    const countEl = document.getElementById(`commentsCount-${postId}`);
+                    countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
+                    
+                    showToast('Comment deleted!', 'success');
+                } else {
+                    showToast('Failed to delete comment', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete comment', 'error');
+            }
+        }
+
+        // Create Post
+        async function handleCreatePost(e) {
+            e.preventDefault();
+            const form = e.target;
+            const submitBtn = document.getElementById('submitPostBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                const formData = new FormData(form);
+                formData.set('hashtags', JSON.stringify(hashtags));
+                
+                const response = await fetch('/api/community/posts', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const post = await response.json();
+                    closeCreatePostModal();
+                    
+                    // Prepend new post to feed
+                    const feed = document.getElementById('postsFeed');
+                    const emptyState = document.getElementById('emptyFeed');
+                    emptyState.style.display = 'none';
+                    
+                    const tempDiv = document.createElement('div');
+                    appendPost({ ...post, hasLiked: false });
+                    
+                    showToast('Post created!', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to create post', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to create post', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Post</span>';
+            }
+        }
+
+        // Edit Post
+        function editPost(postId, caption, hashtags) {
+            document.getElementById('editPostId').value = postId;
+            document.getElementById('editPostCaption').value = caption;
+            editHashtags = hashtags || [];
+            updateEditHashtagsDisplay();
+            document.getElementById('editPostModal').classList.add('show');
+            closePostMenu(postId);
+        }
+
+        async function handleEditPost(e) {
+            e.preventDefault();
+            const postId = document.getElementById('editPostId').value;
+            const caption = document.getElementById('editPostCaption').value;
+            
+            try {
+                const response = await fetch(`/api/community/posts/${postId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ caption, hashtags: editHashtags })
+                });
+                
+                if (response.ok) {
+                    closeEditPostModal();
+                    
+                    // Update post in DOM
+                    const postEl = document.getElementById(`post-${postId}`);
+                    const contentEl = postEl.querySelector('.post-content');
+                    if (contentEl) {
+                        contentEl.innerHTML = formatPostContent(caption);
+                    }
+                    
+                    showToast('Post updated!', 'success');
+                } else {
+                    showToast('Failed to update post', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to update post', 'error');
+            }
+        }
+
+        // Delete Post
+        async function deletePost(postId) {
+            if (!confirm('Are you sure you want to delete this post?')) return;
+            
+            try {
+                const response = await fetch(`/api/community/posts/${postId}`, { method: 'DELETE' });
+                
+                if (response.ok) {
+                    document.getElementById(`post-${postId}`).remove();
+                    showToast('Post deleted!', 'success');
+                } else {
+                    showToast('Failed to delete post', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete post', 'error');
+            }
+            
+            closePostMenu(postId);
+        }
+
+        // Report
+        function reportContent(targetType, postId, commentId, userId) {
+            document.getElementById('reportTargetType').value = targetType === 'Post' ? 0 : targetType === 'Comment' ? 1 : 2;
+            document.getElementById('reportTargetPostId').value = postId || '';
+            document.getElementById('reportTargetCommentId').value = commentId || '';
+            document.getElementById('reportTargetUserId').value = userId || '';
+            document.getElementById('reportModal').classList.add('show');
+            
+            if (postId) closePostMenu(postId);
+        }
+
+        async function handleReport(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/api/community/report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        targetType: parseInt(formData.get('targetType')),
+                        targetPostId: formData.get('targetPostId') || null,
+                        targetCommentId: formData.get('targetCommentId') || null,
+                        targetUserId: formData.get('targetUserId') || null,
+                        reason: parseInt(formData.get('reason')),
+                        additionalDetails: formData.get('additionalDetails')
+                    })
+                });
+                
+                if (response.ok) {
+                    closeReportModal();
+                    showToast('Report submitted. Thank you for helping keep our community safe.', 'success');
+                    form.reset();
+                } else {
+                    showToast('Failed to submit report', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to submit report', 'error');
+            }
+        }
+
+        // Likes Modal
+        async function showLikes(postId) {
+            document.getElementById('likesModal').classList.add('show');
+            const list = document.getElementById('likesList');
+            list.innerHTML = '<div class="loading-spinner-sm"><i class="fas fa-spinner fa-spin"></i></div>';
+            
+            try {
+                const response = await fetch(`/api/community/posts/${postId}/likes`);
+                const likes = await response.json();
+                
+                if (likes.length === 0) {
+                    list.innerHTML = '<p class="no-likes">No likes yet</p>';
+                    return;
+                }
+                
+                list.innerHTML = likes.map(like => `
+                    <a href="/community/profile/${like.userId}" class="user-item">
+                        <img src="${like.userProfileImage || '/images/default-avatar.png'}" alt="${like.userName}" class="avatar-md">
+                        <span class="user-name">${escapeHtml(like.userName)}</span>
+                        <span class="reaction-icon">${getReactionIcon(like.reactionType)}</span>
+                    </a>
+                `).join('');
+            } catch (error) {
+                list.innerHTML = '<p class="error-message">Failed to load likes</p>';
+            }
+        }
+
+        function getReactionIcon(type) {
+            const icons = ['❤️', '😍', '🎉', '🙏', '💡'];
+            return icons[type] || '❤️';
+        }
+
+        // Suggested Users
+        async function loadSuggestedUsers() {
+            try {
+                const response = await fetch('/api/community/suggested-users?limit=5');
+                const users = await response.json();
+                
+                const container = document.getElementById('suggestedUsers');
+                
+                if (users.length === 0) {
+                    container.innerHTML = '<p class="no-suggestions">No suggestions available</p>';
+                    return;
+                }
+                
+                container.innerHTML = users.map(user => `
+                    <div class="suggested-user">
+                        <a href="/community/profile/${user.userId}" class="user-info">
+                            <img src="${user.profileImage || '/images/default-avatar.png'}" alt="${user.fullName}" class="avatar-md">
+                            <div>
+                                <span class="user-name">${escapeHtml(user.fullName)}</span>
+                                <span class="user-handle">@@${user.userName || 'user'}</span>
+                            </div>
+                        </a>
+                        <button class="btn btn-sm btn-outline follow-btn" onclick="followUser('${user.userId}', this)">
+                            Follow
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading suggested users:', error);
+            }
+        }
+
+        async function followUser(userId, btn) {
+            try {
+                const response = await fetch(`/api/community/users/${userId}/follow`, { method: 'POST' });
+                
+                if (response.ok) {
+                    btn.textContent = 'Following';
+                    btn.classList.remove('btn-outline');
+                    btn.classList.add('btn-primary');
+                    btn.onclick = () => unfollowUser(userId, btn);
+                    showToast('Following user!', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to follow user', 'error');
+            }
+        }
+
+        async function unfollowUser(userId, btn) {
+            try {
+                const response = await fetch(`/api/community/users/${userId}/follow`, { method: 'DELETE' });
+                
+                if (response.ok) {
+                    btn.textContent = 'Follow';
+                    btn.classList.add('btn-outline');
+                    btn.classList.remove('btn-primary');
+                    btn.onclick = () => followUser(userId, btn);
+                    showToast('Unfollowed user', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to unfollow user', 'error');
+            }
+        }
+
+        // Modal functions
+        function openCreatePostModal(type) {
+            hashtags = [];
+            updateHashtagsDisplay();
+            document.getElementById('createPostForm').reset();
+            document.getElementById('mediaPreview').innerHTML = '';
+            document.getElementById('mediaUploadArea').style.display = 'block';
+            document.getElementById('createPostModal').classList.add('show');
+            document.getElementById('postCaption').focus();
+            
+            if (type === 'image' || type === 'video') {
+                document.getElementById('mediaInput').click();
+            }
+        }
+
+        function closeCreatePostModal() {
+            document.getElementById('createPostModal').classList.remove('show');
+        }
+
+        function closeEditPostModal() {
+            document.getElementById('editPostModal').classList.remove('show');
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.remove('show');
+        }
+
+        function closeLikesModal() {
+            document.getElementById('likesModal').classList.remove('show');
+        }
+
+        function closePostDetailModal() {
+            document.getElementById('postDetailModal').classList.remove('show');
+        }
+
+        // Post menu
+        function togglePostMenu(postId) {
+            const menu = document.getElementById(`postMenu-${postId}`);
+            const isOpen = menu.classList.contains('show');
+            
+            // Close all other menus
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            
+            if (!isOpen) {
+                menu.classList.add('show');
+            }
+        }
+
+        function closePostMenu(postId) {
+            document.getElementById(`postMenu-${postId}`).classList.remove('show');
+        }
+
+        // Close menus when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.post-actions-menu')) {
+                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            }
+        });
+
+        // Share
+        async function sharePost(postId) {
+            const url = `${window.location.origin}/community/posts/${postId}`;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Check out this post',
+                        url: url
+                    });
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        copyToClipboard(url);
+                    }
+                }
+            } else {
+                copyToClipboard(url);
+            }
+        }
+
+        function copyPostLink(postId) {
+            const url = `${window.location.origin}/community/posts/${postId}`;
+            copyToClipboard(url);
+            closePostMenu(postId);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Link copied to clipboard!', 'success');
+            });
+        }
+
+        // Sidebar toggle
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+            if (seconds < 604800) return `${Math.floor(seconds / 86400)}d`;
+            
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function openMediaViewer(url) {
+            window.open(url, '_blank');
+        }
+
+        function addEmoji() {
+            // Simple emoji picker - could be enhanced with a proper library
+            const emojis = ['😀', '😍', '🎉', '👍', '❤️', '🔥', '💯', '✨'];
+            const caption = document.getElementById('postCaption');
+            caption.value += emojis[Math.floor(Math.random() * emojis.length)];
+            caption.focus();
+        }
+    </script>
+</body>
+</html>
