@@ -1,0 +1,315 @@
+@{
+    ViewData["Title"] = "Messages";
+    Layout = null;
+    var user = ViewBag.CurrentUser as ServConnect.Models.Users;
+    var profile = ViewBag.Profile as ServConnect.Models.Community.CommunityProfile;
+    var conversations = ViewBag.Conversations as List<ServConnect.Models.Community.Conversation>;
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="@(profile?.Theme ?? "light")">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - Community</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/community-translations.js"></script>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/community" class="logo">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/community" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Feed</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/search" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        <span>Discover</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="/community/messages" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Messages</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/notifications" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/profile" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/community/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/Home/Dashboard" class="nav-link" style="color: #10B981;">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Return to Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="sidebar-footer">
+            <a href="/community/profile" class="user-profile-mini">
+                <img src="@(user?.ProfileImageUrl ?? "/images/default-avatar.png")" alt="Profile" class="avatar-sm">
+                <div class="user-info">
+                    <span class="user-name">@(user?.FullName ?? user?.UserName)</span>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content messages-page">
+        <!-- Messages Container -->
+        <div class="messages-container">
+            <!-- Conversations List -->
+            <div class="conversations-panel" id="conversationsPanel">
+                <div class="panel-header">
+                    <h2>Messages</h2>
+                    <button class="icon-btn" onclick="openNewMessageModal()">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+                
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="conversationSearch" placeholder="Search messages..." oninput="filterConversations(this.value)">
+                </div>
+                
+                <div class="conversations-list" id="conversationsList">
+                    @if (conversations != null && conversations.Any())
+                    {
+                        foreach (var conv in conversations)
+                        {
+                            var isUser1 = conv.User1Id == user?.Id;
+                            var otherUserId = isUser1 ? conv.User2Id : conv.User1Id;
+                            var otherUserName = isUser1 ? conv.User2Name : conv.User1Name;
+                            var otherUserImage = isUser1 ? conv.User2ProfileImage : conv.User1ProfileImage;
+                            var unreadCount = isUser1 ? conv.UnreadCountUser1 : conv.UnreadCountUser2;
+                            var isMuted = isUser1 ? conv.MutedByUser1 : conv.MutedByUser2;
+                            
+                            <a href="/community/messages/@otherUserId" class="conversation-item @(unreadCount > 0 ? "unread" : "")" 
+                               data-user-id="@otherUserId" data-user-name="@otherUserName">
+                                <div class="conversation-avatar">
+                                    <img src="@(otherUserImage ?? "/images/default-avatar.png")" alt="@otherUserName">
+                                    @if (unreadCount > 0)
+                                    {
+                                        <span class="unread-badge">@(unreadCount > 99 ? "99+" : unreadCount.ToString())</span>
+                                    }
+                                </div>
+                                <div class="conversation-info">
+                                    <div class="conversation-header">
+                                        <span class="conversation-name">@otherUserName</span>
+                                        <span class="conversation-time">@FormatTimeAgo(conv.LastMessageAt)</span>
+                                    </div>
+                                    <div class="conversation-preview">
+                                        @if (isMuted)
+                                        {
+                                            <i class="fas fa-bell-slash muted-icon"></i>
+                                        }
+                                        @if (conv.LastMessageType == ServConnect.Models.Community.MessageType.Voice)
+                                        {
+                                            <span>🎤 Voice message</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@(conv.LastMessageContent?.Length > 40 ? conv.LastMessageContent.Substring(0, 40) + "..." : conv.LastMessageContent)</span>
+                                        }
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-conversations">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No messages yet</h3>
+                            <p>Start a conversation with someone!</p>
+                            <button class="btn btn-primary" onclick="openNewMessageModal()">New Message</button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Chat Panel (Desktop placeholder) -->
+            <div class="chat-panel" id="chatPanel">
+                <div class="chat-empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>Select a conversation</h3>
+                    <p>Choose a conversation from the list or start a new one</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- New Message Modal -->
+    <div class="modal" id="newMessageModal">
+        <div class="modal-overlay" onclick="closeNewMessageModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>New Message</h2>
+                <button class="modal-close" onclick="closeNewMessageModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="userSearchInput" placeholder="Search for users..." oninput="searchUsers(this.value)">
+                </div>
+                <div id="userSearchResults" class="user-search-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <a href="/community" class="mobile-nav-item">
+            <i class="fas fa-home"></i>
+            <span>Feed</span>
+        </a>
+        <a href="/community/search" class="mobile-nav-item">
+            <i class="fas fa-search"></i>
+            <span>Discover</span>
+        </a>
+        <a href="/community" class="mobile-nav-item create-btn">
+            <i class="fas fa-plus"></i>
+        </a>
+        <a href="/community/notifications" class="mobile-nav-item">
+            <i class="fas fa-bell"></i>
+            <span>Alerts</span>
+        </a>
+        <a href="/community/profile" class="mobile-nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        const currentUserId = '@user?.Id';
+        let searchTimeout;
+
+        // Filter conversations
+        function filterConversations(query) {
+            const items = document.querySelectorAll('.conversation-item');
+            const normalizedQuery = query.toLowerCase();
+            
+            items.forEach(item => {
+                const name = item.dataset.userName.toLowerCase();
+                item.style.display = name.includes(normalizedQuery) ? 'flex' : 'none';
+            });
+        }
+
+        // New message modal
+        function openNewMessageModal() {
+            document.getElementById('newMessageModal').classList.add('show');
+            document.getElementById('userSearchInput').focus();
+        }
+
+        function closeNewMessageModal() {
+            document.getElementById('newMessageModal').classList.remove('show');
+            document.getElementById('userSearchInput').value = '';
+            document.getElementById('userSearchResults').innerHTML = '';
+        }
+
+        // Search users
+        function searchUsers(query) {
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                document.getElementById('userSearchResults').innerHTML = '';
+                return;
+            }
+            
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/community/search/users?q=${encodeURIComponent(query)}&limit=10`);
+                    const users = await response.json();
+                    
+                    const container = document.getElementById('userSearchResults');
+                    
+                    if (users.length === 0) {
+                        container.innerHTML = '<p class="no-results">No users found</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = users.map(user => `
+                        <a href="/community/messages/${user.userId}" class="user-search-item">
+                            <img src="${user.profileImage || '/images/default-avatar.png'}" alt="${user.fullName}" class="avatar-md">
+                            <div class="user-info">
+                                <span class="user-name">${escapeHtml(user.fullName)}</span>
+                                <span class="user-handle">@@${user.userName || 'user'}</span>
+                            </div>
+                        </a>
+                    `).join('');
+                } catch (error) {
+                    console.error('Error searching users:', error);
+                }
+            }, 300);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+
+@functions {
+    string FormatTimeAgo(DateTime date)
+    {
+        var span = DateTime.UtcNow - date;
+        if (span.TotalMinutes < 1) return "Just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d";
+        return date.ToString("MMM d");
+    }
+}
