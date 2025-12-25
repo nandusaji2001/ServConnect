@@ -1300,9 +1300,13 @@
                     <i class="fas fa-user"></i>
                     My Account
                 </a>
-                <a href="/Complaints/Create?role=User" class="cta-btn">
+                <a href="/Complaints/Create" class="cta-btn">
                     <i class="fas fa-flag"></i>
                     Raise Complaint
+                </a>
+                <a href="/Complaints/MyComplaints" class="cta-btn">
+                    <i class="fas fa-clipboard-list"></i>
+                    My Complaints
                 </a>
             }
             else
@@ -1315,7 +1319,7 @@
                     <i class="fas fa-sign-in-alt"></i>
                     Login
                 </a>
-                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Complaints/Create?role=User" class="cta-btn">
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Complaints/Create" class="cta-btn">
                     <i class="fas fa-flag"></i>
                     Raise Complaint
                 </a>

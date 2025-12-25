@@ -11,67 +11,155 @@ namespace ServConnect.Controllers
     public class ComplaintsController : Controller
     {
         private readonly IComplaintService _complaintService;
+        private readonly IBookingService _bookingService;
+        private readonly IOrderService _orderService;
         private readonly UserManager<Users> _userManager;
         private readonly IWebHostEnvironment _env;
 
-        public ComplaintsController(IComplaintService complaintService, UserManager<Users> userManager, IWebHostEnvironment env)
+        public ComplaintsController(
+            IComplaintService complaintService,
+            IBookingService bookingService,
+            IOrderService orderService,
+            UserManager<Users> userManager,
+            IWebHostEnvironment env)
         {
             _complaintService = complaintService;
+            _bookingService = bookingService;
+            _orderService = orderService;
             _userManager = userManager;
             _env = env;
         }
 
-        // Shared complaint form for all roles
+        // User complaint form
         [HttpGet]
-        public async Task<IActionResult> Create(string? role = null, Guid? providerId = null, string? providerName = null)
+        public async Task<IActionResult> Create()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
-            var roles = await _userManager.GetRolesAsync(user);
-            var effectiveRole = role ?? roles.FirstOrDefault() ?? RoleTypes.User;
 
-            var vm = new ComplaintCreateViewModel
+            var roles = await _userManager.GetRolesAsync(user);
+            var effectiveRole = roles.FirstOrDefault() ?? RoleTypes.User;
+
+            // Get completed bookings for this user
+            var bookings = await _bookingService.GetForUserAsync(user.Id);
+            var completedBookings = bookings
+                .Where(b => b.IsCompleted || b.ServiceStatus == ServiceStatus.Completed)
+                .OrderByDescending(b => b.CompletedAtUtc ?? b.ServiceCompletedAt)
+                .Take(20)
+                .Select(b => new UserBookingOption
+                {
+                    BookingId = b.Id ?? "",
+                    ServiceName = b.ServiceName,
+                    ProviderName = b.ProviderName,
+                    ProviderId = b.ProviderId,
+                    CompletedAt = b.CompletedAtUtc ?? b.ServiceCompletedAt ?? DateTime.UtcNow
+                })
+                .ToList();
+
+            // Get delivered orders for this user
+            var orders = await _orderService.GetOrdersForUserAsync(user.Id);
+            var deliveredOrders = orders
+                .Where(o => o.Status == OrderStatus.Delivered)
+                .OrderByDescending(o => o.UpdatedAtUtc)
+                .Take(20)
+                .Select(o => new UserOrderOption
+                {
+                    OrderId = o.Id ?? "",
+                    ItemName = o.ItemTitle,
+                    VendorId = o.VendorId,
+                    VendorName = "", // Will be populated via API if needed
+                    DeliveredAt = o.UpdatedAtUtc
+                })
+                .ToList();
+
+            var vm = new ComplaintFormDataViewModel
             {
-                Name = user.FullName ?? string.Empty,
-                Email = user.Email ?? string.Empty,
-                ComplainantId = user.Id,
-                Role = effectiveRole,
-                ServiceProviderId = providerId,
-                ServiceProviderName = providerName
+                Form = new ComplaintCreateViewModel
+                {
+                    Name = user.FullName ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    ComplainantId = user.Id,
+                    Role = effectiveRole,
+                    IsElderly = user.IsElder
+                },
+                CompletedBookings = completedBookings,
+                DeliveredOrders = deliveredOrders
             };
+
             return View("~/Views/Complaints/Create.cshtml", vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ComplaintCreateViewModel vm)
+        public async Task<IActionResult> Create([Bind(Prefix = "Form")] ComplaintCreateViewModel vm)
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Set the complainant info from the current user (in case form was tampered)
+            vm.ComplainantId = user.Id;
+            vm.Name = user.FullName ?? string.Empty;
+            vm.Email = user.Email ?? string.Empty;
+            vm.IsElderly = user.IsElder;
+
             if (!ModelState.IsValid)
             {
-                return View("~/Views/Complaints/Create.cshtml", vm);
+                var bookings = await _bookingService.GetForUserAsync(user.Id);
+                var orders = await _orderService.GetOrdersForUserAsync(user.Id);
+                var roles = await _userManager.GetRolesAsync(user);
+                vm.Role = roles.FirstOrDefault() ?? RoleTypes.User;
+                
+                var formData = new ComplaintFormDataViewModel
+                {
+                    Form = vm,
+                    CompletedBookings = bookings
+                        .Where(b => b.IsCompleted || b.ServiceStatus == ServiceStatus.Completed)
+                        .Select(b => new UserBookingOption
+                        {
+                            BookingId = b.Id ?? "",
+                            ServiceName = b.ServiceName,
+                            ProviderName = b.ProviderName,
+                            ProviderId = b.ProviderId,
+                            CompletedAt = b.CompletedAtUtc ?? b.ServiceCompletedAt ?? DateTime.UtcNow
+                        }).ToList(),
+                    DeliveredOrders = orders
+                        .Where(o => o.Status == OrderStatus.Delivered)
+                        .Select(o => new UserOrderOption
+                        {
+                            OrderId = o.Id ?? "",
+                            ItemName = o.ItemTitle,
+                            VendorId = o.VendorId,
+                            DeliveredAt = o.UpdatedAtUtc
+                        }).ToList()
+                };
+                return View("~/Views/Complaints/Create.cshtml", formData);
             }
 
-            // Build model
             var complaint = new Complaint
             {
-                ComplainantId = vm.ComplainantId,
-                ComplainantName = vm.Name,
-                ComplainantEmail = vm.Email,
+                ComplainantId = user.Id,
+                ComplainantName = user.FullName ?? vm.Name,
+                ComplainantEmail = user.Email ?? vm.Email,
                 ComplainantPhone = vm.Phone,
                 ComplainantRole = vm.Role,
+                IsElderly = user.IsElder,
+                Category = vm.Category,
+                SubCategory = vm.SubCategory ?? string.Empty,
                 ServiceProviderId = vm.ServiceProviderId,
                 ServiceProviderName = vm.ServiceProviderName,
-                ServiceType = vm.ServiceType,
-                Category = vm.Category,
-                OtherCategoryText = vm.OtherCategoryText,
-                Description = vm.Description,
+                VendorId = vm.VendorId,
+                VendorName = vm.VendorName,
+                BookingId = vm.BookingId,
+                BookingServiceName = vm.BookingServiceName,
+                OrderId = vm.OrderId,
+                OrderItemName = vm.OrderItemName,
+                Description = vm.Description
             };
 
-            // Save first to get Id for evidence path
             await _complaintService.CreateAsync(complaint);
 
-            // Handle evidence upload (store under wwwroot/uploads/complaints/{id}/)
-            if (vm.EvidenceFiles?.Any() == true)
+            // Handle evidence upload
+            if (vm.EvidenceFiles?.Count > 0)
             {
                 var baseFolder = Path.Combine(_env.WebRootPath, "uploads", "complaints", complaint.Id);
                 if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
@@ -90,14 +178,82 @@ namespace ServConnect.Controllers
                 }
             }
 
-            TempData["ComplaintMessage"] = "Your complaint has been submitted successfully.";
-            return RedirectToAction(nameof(ThankYou));
+            TempData["ComplaintMessage"] = "Your complaint has been submitted successfully. You can track its status from your dashboard.";
+            return RedirectToAction(nameof(MyComplaints));
         }
 
+        // User's complaint list with status tracking
         [HttpGet]
-        public IActionResult ThankYou()
+        public async Task<IActionResult> MyComplaints()
         {
-            return View("~/Views/Complaints/ThankYou.cshtml");
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var complaints = await _complaintService.GetByComplainantAsync(user.Id);
+            return View("~/Views/Complaints/MyComplaints.cshtml", complaints);
+        }
+
+        // User view complaint details
+        [HttpGet]
+        public async Task<IActionResult> Details(string id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var complaint = await _complaintService.GetByIdAsync(id);
+            if (complaint == null) return NotFound();
+
+            // Only allow viewing own complaints (unless admin)
+            var roles = await _userManager.GetRolesAsync(user);
+            if (complaint.ComplainantId != user.Id && !roles.Contains(RoleTypes.Admin))
+            {
+                return Forbid();
+            }
+
+            return View("~/Views/Complaints/Details.cshtml", complaint);
+        }
+
+        // API to get booking details for complaint form
+        [HttpGet]
+        [Route("api/complaints/booking/{bookingId}")]
+        public async Task<IActionResult> GetBookingDetails(string bookingId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var booking = await _bookingService.GetByIdAsync(bookingId);
+            if (booking == null || booking.UserId != user.Id)
+                return NotFound();
+
+            return Json(new
+            {
+                bookingId = booking.Id,
+                serviceName = booking.ServiceName,
+                providerName = booking.ProviderName,
+                providerId = booking.ProviderId,
+                completedAt = booking.CompletedAtUtc ?? booking.ServiceCompletedAt
+            });
+        }
+
+        // API to get order details for complaint form
+        [HttpGet]
+        [Route("api/complaints/order/{orderId}")]
+        public async Task<IActionResult> GetOrderDetails(string orderId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var order = await _orderService.GetByIdAsync(orderId);
+            if (order == null || order.UserId != user.Id)
+                return NotFound();
+
+            return Json(new
+            {
+                orderId = order.Id,
+                itemName = order.ItemTitle,
+                vendorId = order.VendorId,
+                deliveredAt = order.UpdatedAtUtc
+            });
         }
     }
 }

@@ -64,13 +64,13 @@ namespace ServConnect.Controllers
             ViewBag.Vendors = vendors.Count;
             ViewBag.RegularUsers = regularUsers.Count;
 
-            // New complaints count for quick stat
+            // Pending complaints count for quick stat
             try
             {
-                var allComplaints = await _complaintService.GetAllAsync(status: ServConnect.Models.ComplaintStatus.New);
-                ViewBag.NewComplaints = allComplaints.Count;
+                ViewBag.NewComplaints = await _complaintService.GetPendingCountAsync();
+                ViewBag.PriorityComplaints = await _complaintService.GetPriorityCountAsync();
             }
-            catch { ViewBag.NewComplaints = 0; }
+            catch { ViewBag.NewComplaints = 0; ViewBag.PriorityComplaints = 0; }
 
             // Pending user verification count for notification
             try
@@ -141,10 +141,35 @@ namespace ServConnect.Controllers
 
         // Full complaints/messages page for admin
         [HttpGet]
-        public async Task<IActionResult> Complaints(string? status, string? role, string? category)
+        public async Task<IActionResult> Complaints(string? status, string? category, string? priority, bool? priorityOnly)
         {
-            var list = await _complaintService.GetAllAsync(status, role, category);
+            var list = await _complaintService.GetAllAsync(status, category, priority, priorityOnly);
+            ViewBag.PendingCount = await _complaintService.GetPendingCountAsync();
+            ViewBag.PriorityCount = await _complaintService.GetPriorityCountAsync();
+            
+            // Get admin users for assignment dropdown
+            var adminUsers = await _userManager.GetUsersInRoleAsync(RoleTypes.Admin);
+            ViewBag.AdminUsers = adminUsers.ToList();
+            
             return View(list);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ComplaintDetails(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return RedirectToAction(nameof(Complaints));
+            
+            var complaint = await _complaintService.GetByIdAsync(id);
+            if (complaint == null) return NotFound();
+            
+            var adminUsers = await _userManager.GetUsersInRoleAsync(RoleTypes.Admin);
+            var vm = new ServConnect.ViewModels.ComplaintDetailViewModel
+            {
+                Complaint = complaint,
+                AdminUsers = adminUsers.ToList()
+            };
+            
+            return View(vm);
         }
 
         [HttpPost]
@@ -155,8 +180,140 @@ namespace ServConnect.Controllers
             {
                 return RedirectToAction(nameof(Complaints));
             }
-            await _complaintService.UpdateStatusAsync(id, status, adminNote);
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            var changedBy = currentUser?.FullName ?? "Admin";
+            
+            await _complaintService.UpdateStatusAsync(id, status, adminNote, changedBy);
+            TempData["ComplaintMessage"] = "Complaint status updated successfully.";
             return RedirectToAction(nameof(Complaints));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResolveComplaint(string id, string resolution)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(resolution))
+            {
+                TempData["ComplaintError"] = "Resolution is required.";
+                return RedirectToAction(nameof(ComplaintDetails), new { id });
+            }
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            await _complaintService.ResolveAsync(id, resolution, currentUser?.FullName);
+            TempData["ComplaintMessage"] = "Complaint resolved successfully.";
+            return RedirectToAction(nameof(Complaints));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectComplaint(string id, string rejectionReason)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(rejectionReason))
+            {
+                TempData["ComplaintError"] = "Rejection reason is required.";
+                return RedirectToAction(nameof(ComplaintDetails), new { id });
+            }
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            await _complaintService.RejectAsync(id, rejectionReason, currentUser?.FullName);
+            TempData["ComplaintMessage"] = "Complaint rejected.";
+            return RedirectToAction(nameof(Complaints));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignComplaint(string id, string assignedTo)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(assignedTo))
+            {
+                return RedirectToAction(nameof(Complaints));
+            }
+            
+            var assignee = await _userManager.FindByIdAsync(assignedTo);
+            if (assignee == null) return RedirectToAction(nameof(Complaints));
+            
+            await _complaintService.AssignAsync(id, assignedTo, assignee.FullName ?? "Admin");
+            TempData["ComplaintMessage"] = $"Complaint assigned to {assignee.FullName}.";
+            return RedirectToAction(nameof(Complaints));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EscalateComplaint(string id, string priority, string? note)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(priority))
+            {
+                return RedirectToAction(nameof(Complaints));
+            }
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            await _complaintService.EscalateAsync(id, priority, note, currentUser?.FullName);
+            TempData["ComplaintMessage"] = $"Complaint escalated to {priority} priority.";
+            return RedirectToAction(nameof(Complaints));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuspendComplaintTarget(string id, string reason)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["ComplaintError"] = "Suspension reason is required.";
+                return RedirectToAction(nameof(ComplaintDetails), new { id });
+            }
+            
+            var complaint = await _complaintService.GetByIdAsync(id);
+            if (complaint == null) return NotFound();
+            
+            // Suspend the service provider or vendor
+            Guid? targetId = complaint.ServiceProviderId ?? complaint.VendorId;
+            if (targetId.HasValue)
+            {
+                var targetUser = await _userManager.FindByIdAsync(targetId.Value.ToString());
+                if (targetUser != null)
+                {
+                    if (!await _userManager.GetLockoutEnabledAsync(targetUser))
+                    {
+                        await _userManager.SetLockoutEnabledAsync(targetUser, true);
+                    }
+                    await _userManager.SetLockoutEndDateAsync(targetUser, DateTimeOffset.MaxValue);
+                }
+            }
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            await _complaintService.SuspendTargetAsync(id, reason, currentUser?.FullName);
+            TempData["ComplaintMessage"] = "Target suspended successfully.";
+            return RedirectToAction(nameof(ComplaintDetails), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnsuspendComplaintTarget(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return RedirectToAction(nameof(Complaints));
+            }
+            
+            var complaint = await _complaintService.GetByIdAsync(id);
+            if (complaint == null) return NotFound();
+            
+            // Unsuspend the service provider or vendor
+            Guid? targetId = complaint.ServiceProviderId ?? complaint.VendorId;
+            if (targetId.HasValue)
+            {
+                var targetUser = await _userManager.FindByIdAsync(targetId.Value.ToString());
+                if (targetUser != null)
+                {
+                    await _userManager.SetLockoutEndDateAsync(targetUser, null);
+                }
+            }
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            await _complaintService.UnsuspendTargetAsync(id, currentUser?.FullName);
+            TempData["ComplaintMessage"] = "Suspension lifted successfully.";
+            return RedirectToAction(nameof(ComplaintDetails), new { id });
         }
 
         public async Task<IActionResult> Users()

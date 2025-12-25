@@ -1,0 +1,535 @@
+@model List<ServConnect.Models.Complaint>
+@{
+    ViewData["Title"] = "My Complaints";
+}
+
+<style>
+    .complaints-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .page-header h1 {
+        color: #065f46;
+        font-size: 1.8rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .page-header h1 i {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .btn-new-complaint {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-new-complaint:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+        color: white;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #10b981;
+        color: #065f46;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+    }
+    
+    .complaints-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .complaint-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .complaint-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .complaint-id {
+        font-size: 0.85rem;
+        color: #6b7280;
+        font-family: monospace;
+    }
+    
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-inprogress {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .status-resolved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .complaint-category {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    
+    .category-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    
+    .category-service-provider .category-icon {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+    
+    .category-vendor .category-icon {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .category-technical .category-icon {
+        background: #e0e7ff;
+        color: #4f46e5;
+    }
+    
+    .category-safety .category-icon {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .category-name {
+        font-weight: 600;
+        color: #111827;
+    }
+    
+    .category-sub {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+    
+    .complaint-target {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+    }
+    
+    .complaint-target strong {
+        color: #374151;
+    }
+    
+    .complaint-description {
+        color: #4b5563;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 15px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .complaint-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 15px;
+        border-top: 1px solid #e5e7eb;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .complaint-date {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+    
+    .btn-view-details {
+        background: #f3f4f6;
+        color: #374151;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .btn-view-details:hover {
+        background: #10b981;
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #d1d5db;
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+        color: #374151;
+        margin-bottom: 10px;
+    }
+    
+    .empty-state p {
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
+    
+    /* Status Timeline */
+    .status-timeline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+    }
+    
+    .timeline-step {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+    
+    .timeline-step.active {
+        color: #10b981;
+    }
+    
+    .timeline-step.rejected {
+        color: #dc2626;
+    }
+    
+    .timeline-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #d1d5db;
+    }
+    
+    .timeline-step.active .timeline-dot {
+        background: #10b981;
+    }
+    
+    .timeline-step.rejected .timeline-dot {
+        background: #dc2626;
+    }
+    
+    .timeline-line {
+        width: 30px;
+        height: 2px;
+        background: #e5e7eb;
+    }
+    
+    .timeline-step.active + .timeline-line {
+        background: #10b981;
+    }
+    
+    .priority-badge {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+    
+    .priority-badge.high {
+        background: #fef3c7;
+        color: #92400e;
+    }
+</style>
+
+<div class="complaints-container">
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-clipboard-list"></i>
+            My Complaints
+        </h1>
+        <a asp-action="Create" class="btn-new-complaint">
+            <i class="fas fa-plus"></i>
+            Raise New Complaint
+        </a>
+    </div>
+
+    @if (TempData["ComplaintMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>@TempData["ComplaintMessage"]
+        </div>
+    }
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No Complaints Yet</h3>
+            <p>You haven't raised any complaints. If you have an issue, we're here to help!</p>
+            <a asp-action="Create" class="btn-new-complaint">
+                <i class="fas fa-plus"></i>
+                Raise a Complaint
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="complaints-list">
+            @foreach (var complaint in Model)
+            {
+                var categoryClass = complaint.Category switch
+                {
+                    "ServiceProviderIssue" => "category-service-provider",
+                    "VendorIssue" => "category-vendor",
+                    "TechnicalIssue" => "category-technical",
+                    "SafetyEmergency" => "category-safety",
+                    _ => ""
+                };
+                
+                var categoryIcon = complaint.Category switch
+                {
+                    "ServiceProviderIssue" => "fa-user-tie",
+                    "VendorIssue" => "fa-store",
+                    "TechnicalIssue" => "fa-cog",
+                    "SafetyEmergency" => "fa-shield-alt",
+                    _ => "fa-exclamation-circle"
+                };
+                
+                var categoryName = complaint.Category switch
+                {
+                    "ServiceProviderIssue" => "Service Provider Issue",
+                    "VendorIssue" => "Vendor Issue",
+                    "TechnicalIssue" => "Technical Issue",
+                    "SafetyEmergency" => "Safety / Emergency",
+                    _ => complaint.Category
+                };
+                
+                var statusClass = complaint.Status switch
+                {
+                    "Pending" => "status-pending",
+                    "InProgress" => "status-inprogress",
+                    "Resolved" => "status-resolved",
+                    "Rejected" => "status-rejected",
+                    _ => ""
+                };
+                
+                var statusIcon = complaint.Status switch
+                {
+                    "Pending" => "fa-clock",
+                    "InProgress" => "fa-sync-alt",
+                    "Resolved" => "fa-check-circle",
+                    "Rejected" => "fa-times-circle",
+                    _ => "fa-question-circle"
+                };
+                
+                var statusText = complaint.Status switch
+                {
+                    "Pending" => "⏳ Pending",
+                    "InProgress" => "🔄 In Progress",
+                    "Resolved" => "✅ Resolved",
+                    "Rejected" => "❌ Rejected",
+                    _ => complaint.Status
+                };
+                
+                <div class="complaint-card">
+                    <div class="card-header">
+                        <span class="complaint-id">#@complaint.Id[^6..]</span>
+                        <div>
+                            <span class="status-badge @statusClass">
+                                @statusText
+                            </span>
+                            @if (complaint.Priority == "High")
+                            {
+                                <span class="priority-badge high">High Priority</span>
+                            }
+                            else if (complaint.Priority == "Critical")
+                            {
+                                <span class="priority-badge">Critical</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="complaint-category @categoryClass">
+                            <div class="category-icon">
+                                <i class="fas @categoryIcon"></i>
+                            </div>
+                            <div>
+                                <div class="category-name">@categoryName</div>
+                                @if (!string.IsNullOrEmpty(complaint.SubCategory))
+                                {
+                                    <div class="category-sub">@complaint.SubCategory</div>
+                                }
+                            </div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(complaint.ServiceProviderName) || !string.IsNullOrEmpty(complaint.VendorName))
+                        {
+                            <div class="complaint-target">
+                                @if (!string.IsNullOrEmpty(complaint.ServiceProviderName))
+                                {
+                                    <span><strong>Service Provider:</strong> @complaint.ServiceProviderName</span>
+                                    @if (!string.IsNullOrEmpty(complaint.BookingServiceName))
+                                    {
+                                        <span class="ms-2">• @complaint.BookingServiceName</span>
+                                    }
+                                }
+                                @if (!string.IsNullOrEmpty(complaint.VendorName))
+                                {
+                                    <span><strong>Vendor:</strong> @complaint.VendorName</span>
+                                    @if (!string.IsNullOrEmpty(complaint.OrderItemName))
+                                    {
+                                        <span class="ms-2">• @complaint.OrderItemName</span>
+                                    }
+                                }
+                            </div>
+                        }
+                        
+                        <div class="complaint-description">@complaint.Description</div>
+                        
+                        @if (complaint.Status == "Rejected" && !string.IsNullOrEmpty(complaint.RejectionReason))
+                        {
+                            <div class="alert alert-danger py-2 px-3 mb-3" style="font-size: 0.9rem;">
+                                <strong>Reason:</strong> @complaint.RejectionReason
+                            </div>
+                        }
+                        
+                        @if (complaint.Status == "Resolved" && !string.IsNullOrEmpty(complaint.Resolution))
+                        {
+                            <div class="alert alert-success py-2 px-3 mb-3" style="font-size: 0.9rem;">
+                                <strong>Resolution:</strong> @complaint.Resolution
+                            </div>
+                        }
+                        
+                        <!-- Status Timeline -->
+                        <div class="status-timeline">
+                            <div class="timeline-step active">
+                                <span class="timeline-dot"></span>
+                                <span>Submitted</span>
+                            </div>
+                            <div class="timeline-line" style="@(complaint.Status != "Pending" ? "background: #10b981;" : "")"></div>
+                            @if (complaint.Status == "Rejected")
+                            {
+                                <div class="timeline-step rejected">
+                                    <span class="timeline-dot"></span>
+                                    <span>Rejected</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="timeline-step @(complaint.Status == "InProgress" || complaint.Status == "Resolved" ? "active" : "")">
+                                    <span class="timeline-dot"></span>
+                                    <span>In Progress</span>
+                                </div>
+                                <div class="timeline-line" style="@(complaint.Status == "Resolved" ? "background: #10b981;" : "")"></div>
+                                <div class="timeline-step @(complaint.Status == "Resolved" ? "active" : "")">
+                                    <span class="timeline-dot"></span>
+                                    <span>Resolved</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="complaint-meta">
+                            <span class="complaint-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                @complaint.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")
+                            </span>
+                            <a asp-action="Details" asp-route-id="@complaint.Id" class="btn-view-details">
+                                View Details
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

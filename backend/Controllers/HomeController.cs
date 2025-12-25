@@ -121,6 +121,21 @@ namespace ServConnect.Controllers
             return View();
         }
 
+        // Product details page
+        [AllowAnonymous]
+        public IActionResult ProductDetails(string id)
+        {
+            ViewBag.ProductId = id;
+            return View();
+        }
+
+        // Shopping cart page
+        [AllowAnonymous]
+        public IActionResult Cart()
+        {
+            return View();
+        }
+
         // User: My Orders dashboard
         [Authorize]
         public IActionResult MyOrders()
