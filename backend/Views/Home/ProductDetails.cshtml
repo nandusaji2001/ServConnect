@@ -1,0 +1,1329 @@
+@{
+    ViewData["Title"] = "Product Details - ServConnect";
+    var productId = ViewBag.ProductId as string;
+}
+
+<style>
+    :root {
+        --shop-primary: #10B981;
+        --shop-primary-dark: #059669;
+        --shop-primary-light: #34D399;
+        --shop-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --shop-gradient-light: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    }
+
+    body {
+        background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+    }
+
+    .product-details-container {
+        width: 100%;
+        padding: 30px 40px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: white;
+        color: #374151;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+
+    .back-btn:hover {
+        transform: translateX(-5px);
+        color: var(--shop-primary);
+        text-decoration: none;
+    }
+
+    .loading-container {
+        text-align: center;
+        padding: 100px 20px;
+    }
+
+    .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #e5e7eb;
+        border-top-color: var(--shop-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<style>
+    /* Product Gallery */
+    .gallery-section {
+        margin-bottom: 32px;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    .gallery-main {
+        position: relative;
+        height: 450px;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+        margin-bottom: 16px;
+        background: white;
+    }
+
+    .gallery-main img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.5s ease;
+        padding: 20px;
+    }
+
+    .gallery-main:hover img {
+        transform: scale(1.02);
+    }
+
+    .no-image {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--shop-gradient-light);
+    }
+
+    .no-image i {
+        font-size: 5rem;
+        color: var(--shop-primary);
+        opacity: 0.4;
+        margin-bottom: 16px;
+    }
+
+    .no-image p {
+        color: var(--shop-primary);
+        font-size: 1.1rem;
+    }
+
+    /* Product Content Layout */
+    .product-content {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 32px;
+        animation: fadeInUp 0.6s ease 0.2s both;
+    }
+
+    .product-main {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+    }
+</style>
+
+<style>
+    /* Product Header */
+    .product-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .product-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #1f2937;
+        margin-bottom: 12px;
+        line-height: 1.3;
+    }
+
+    .product-badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .badge {
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge.vendor {
+        background: var(--shop-gradient);
+        color: white;
+    }
+
+    .badge.provider {
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+        color: white;
+    }
+
+    .badge.category {
+        background: var(--shop-gradient-light);
+        color: var(--shop-primary-dark);
+    }
+
+    .badge.in-stock {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #059669;
+    }
+
+    .badge.out-of-stock {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+    }
+
+    .product-sku {
+        font-family: monospace;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        background: #f1f5f9;
+        padding: 6px 12px;
+        border-radius: 8px;
+    }
+
+    /* Product Stats */
+    .product-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        padding-top: 24px;
+        border-top: 2px solid #f1f5f9;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        background: var(--shop-gradient-light);
+    }
+
+    .stat-item i {
+        font-size: 1.5rem;
+        color: var(--shop-primary);
+        margin-bottom: 10px;
+    }
+
+    .stat-item .value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .stat-item .label {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+<style>
+    /* Description & Variants */
+    .card-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        color: var(--shop-primary);
+    }
+
+    .description-text {
+        color: #64748b;
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+
+    .variants-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .variant-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .variant-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .variant-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .variant-option {
+        padding: 8px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        background: white;
+    }
+
+    .variant-option:hover {
+        border-color: var(--shop-primary);
+        color: var(--shop-primary);
+    }
+
+    .variant-option.selected {
+        background: var(--shop-gradient);
+        color: white;
+        border-color: transparent;
+    }
+
+    /* Sidebar - Pricing Card */
+    .product-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .pricing-card {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+        position: sticky;
+        top: 20px;
+    }
+
+    .price-main {
+        text-align: center;
+        padding-bottom: 24px;
+        border-bottom: 2px solid #f1f5f9;
+        margin-bottom: 24px;
+    }
+
+    .price-amount {
+        font-size: 2.8rem;
+        font-weight: 800;
+        background: var(--shop-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .price-unit {
+        color: #64748b;
+        font-size: 1rem;
+        margin-top: 4px;
+    }
+</style>
+
+<style>
+    /* Quantity Selector */
+    .quantity-section {
+        margin-bottom: 20px;
+    }
+
+    .quantity-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .qty-btn {
+        width: 44px;
+        height: 44px;
+        border: 2px solid #e5e7eb;
+        background: white;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .qty-btn:hover:not(:disabled) {
+        border-color: var(--shop-primary);
+        color: var(--shop-primary);
+    }
+
+    .qty-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .qty-input {
+        width: 80px;
+        height: 44px;
+        text-align: center;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .qty-input:focus {
+        border-color: var(--shop-primary);
+        outline: none;
+    }
+
+    .stock-info {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 8px;
+    }
+
+    .stock-info.low {
+        color: #d97706;
+    }
+
+    .stock-info.out {
+        color: #dc2626;
+    }
+
+    /* Action Buttons */
+    .action-btn {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .btn-buy-now {
+        background: var(--shop-gradient);
+        color: white;
+    }
+
+    .btn-buy-now:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-add-cart {
+        background: white;
+        color: var(--shop-primary);
+        border: 2px solid var(--shop-primary);
+    }
+
+    .btn-add-cart:hover:not(:disabled) {
+        background: var(--shop-gradient-light);
+    }
+
+    .action-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+</style>
+
+<style>
+    /* Delivery Info */
+    .delivery-info {
+        padding-top: 20px;
+        border-top: 2px solid #f1f5f9;
+    }
+
+    .delivery-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px dashed #e5e7eb;
+    }
+
+    .delivery-item:last-child {
+        border-bottom: none;
+    }
+
+    .delivery-item i {
+        color: var(--shop-primary);
+        font-size: 1.1rem;
+        width: 24px;
+    }
+
+    .delivery-item span {
+        color: #374151;
+        font-size: 0.9rem;
+    }
+
+    /* Animations */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .product-content {
+            grid-template-columns: 1fr;
+        }
+
+        .pricing-card {
+            position: static;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .gallery-main {
+            height: 300px;
+        }
+
+        .product-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .product-title {
+            font-size: 1.4rem;
+        }
+
+        .price-amount {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="product-details-container">
+    <a href="/Home/Items" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Products
+    </a>
+
+    <div class="loading-container" id="loadingContainer">
+        <div class="loading-spinner"></div>
+        <p>Loading product details...</p>
+    </div>
+
+    <div id="productDetails" style="display: none;">
+        <!-- Gallery -->
+        <div class="gallery-section">
+            <div class="gallery-main" id="galleryMain">
+                <img id="mainImage" src="" alt="Product Image" />
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="product-content">
+            <!-- Left Column -->
+            <div class="product-main">
+                <!-- Header Card -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <div>
+                            <h1 class="product-title" id="productTitle"></h1>
+                            <div class="product-badges" id="productBadges"></div>
+                        </div>
+                        <span class="product-sku" id="productSku"></span>
+                    </div>
+                    <div class="product-stats" id="productStats"></div>
+                </div>
+
+                <!-- Description -->
+                <div class="product-card" id="descriptionCard">
+                    <h3 class="card-title"><i class="fas fa-align-left"></i> Description</h3>
+                    <p class="description-text" id="productDescription"></p>
+                </div>
+
+                <!-- Variants -->
+                <div class="product-card" id="variantsCard" style="display: none;">
+                    <h3 class="card-title"><i class="fas fa-tags"></i> Available Options</h3>
+                    <div class="variants-grid" id="variantsList"></div>
+                </div>
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="product-sidebar">
+                <div class="pricing-card">
+                    <div class="price-main">
+                        <div class="price-amount" id="priceAmount">₹0</div>
+                        <div class="price-unit" id="priceUnit"></div>
+                    </div>
+
+                    <!-- Quantity Selector -->
+                    <div class="quantity-section">
+                        <label class="quantity-label">Quantity</label>
+                        <div class="quantity-selector">
+                            <button class="qty-btn" id="qtyMinus" onclick="changeQuantity(-1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" class="qty-input" id="qtyInput" value="1" min="1" onchange="validateQuantity()" />
+                            <button class="qty-btn" id="qtyPlus" onclick="changeQuantity(1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div class="stock-info" id="stockInfo"></div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <button class="action-btn btn-buy-now" id="buyNowBtn" onclick="buyNow()">
+                        <i class="fas fa-bolt"></i> Buy Now
+                    </button>
+                    <button class="action-btn btn-add-cart" id="addCartBtn" onclick="addToCart()">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+
+                    <!-- Delivery Info -->
+                    <div class="delivery-info">
+                        <div class="delivery-item">
+                            <i class="fas fa-truck"></i>
+                            <span>Free delivery on orders above ₹499</span>
+                        </div>
+                        <div class="delivery-item">
+                            <i class="fas fa-undo"></i>
+                            <span>7 days easy return policy</span>
+                        </div>
+                        <div class="delivery-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>100% secure payment</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header" style="background: var(--shop-gradient); color: white; border: none;">
+                <h5 class="modal-title"><i class="fas fa-shopping-bag"></i> Complete Your Order</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <!-- Order Summary -->
+                <div id="orderSummary" class="mb-4 p-3 rounded" style="background: #f8fafc;"></div>
+
+                <!-- Variants Selection in Modal -->
+                <div id="modalVariantsSection" class="mb-4" style="display: none;">
+                    <label class="form-label fw-bold">Select Options</label>
+                    <div id="modalVariantsContainer" class="row"></div>
+                </div>
+
+                <!-- Address Selection -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <label class="form-label fw-bold mb-0">Delivery Address</label>
+                        <button type="button" class="btn btn-sm btn-outline-success" id="addNewAddressBtn">
+                            <i class="fas fa-plus"></i> Add New
+                        </button>
+                    </div>
+                    <div id="savedAddresses" class="mb-3">
+                        <div class="text-muted">Loading addresses...</div>
+                    </div>
+
+                    <!-- New Address Form -->
+                    <div id="newAddressForm" style="display: none;">
+                        <div class="card border-0" style="background: #f8fafc; border-radius: 12px;">
+                            <div class="card-body">
+                                <h6 class="mb-3"><i class="fas fa-map-marker-alt text-success"></i> New Address</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <input type="text" class="form-control" id="newFullName" placeholder="Full Name *" required />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <input type="tel" class="form-control" id="newPhoneNumber" placeholder="Phone Number *" required />
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" id="newAddressLine1" placeholder="Address Line 1 *" required />
+                                </div>
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" id="newAddressLine2" placeholder="Address Line 2 (Optional)" />
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <input type="text" class="form-control" id="newCity" placeholder="City *" required />
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input type="text" class="form-control" id="newState" placeholder="State *" required />
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input type="text" class="form-control" id="newPostalCode" placeholder="Postal Code *" required />
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" id="newLandmark" placeholder="Landmark (Optional)" />
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-success" id="saveNewAddressBtn">
+                                        <i class="fas fa-save"></i> Save Address
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="cancelNewAddressBtn">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="orderError" class="alert alert-danger" style="display: none;"></div>
+            </div>
+            <div class="modal-footer" style="border-top: 2px solid #f1f5f9;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="submitOrderBtn" type="button" class="btn btn-success" style="background: var(--shop-gradient); border: none;">
+                    <i class="fas fa-check"></i> Place Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let product = null;
+    let quantity = 1;
+    let selectedVariants = {};
+    let selectedAddressId = null;
+    let userAddresses = [];
+    const productId = '@productId';
+
+    // Load product details
+    async function loadProduct() {
+        try {
+            const response = await fetch(`/api/items/${productId}`, { credentials: 'same-origin' });
+            if (!response.ok) throw new Error('Product not found');
+            
+            product = await response.json();
+            renderProduct();
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loadingContainer').innerHTML = `
+                <div style="text-align: center; padding: 60px;">
+                    <i class="fas fa-exclamation-circle" style="font-size: 4rem; color: #dc2626; margin-bottom: 20px;"></i>
+                    <h3>Product Not Found</h3>
+                    <p>The product you're looking for doesn't exist or has been removed.</p>
+                    <a href="/Home/Items" class="btn btn-success mt-3">Browse Products</a>
+                </div>
+            `;
+        }
+    }
+
+    // Render product details
+    function renderProduct() {
+        document.getElementById('loadingContainer').style.display = 'none';
+        document.getElementById('productDetails').style.display = 'block';
+
+        // Image
+        const gallery = document.getElementById('galleryMain');
+        if (product.imageUrl) {
+            document.getElementById('mainImage').src = product.imageUrl;
+            document.getElementById('mainImage').alt = product.title || 'Product';
+        } else {
+            gallery.innerHTML = `
+                <div class="no-image">
+                    <i class="fas fa-box-open"></i>
+                    <p>No image available</p>
+                </div>
+            `;
+        }
+
+        // Title and badges
+        document.getElementById('productTitle').textContent = product.title || 'Untitled Product';
+        
+        const isVendor = String(product.ownerRole).toLowerCase() === 'vendor';
+        const stock = Number.isFinite(product.stock) ? product.stock : 0;
+        
+        document.getElementById('productBadges').innerHTML = `
+            <span class="badge ${isVendor ? 'vendor' : 'provider'}">${isVendor ? 'Vendor' : 'Service Provider'}</span>
+            ${product.category ? `<span class="badge category">${product.category}</span>` : ''}
+            <span class="badge ${stock > 0 ? 'in-stock' : 'out-of-stock'}">
+                ${stock > 0 ? 'In Stock' : 'Out of Stock'}
+            </span>
+        `;
+
+        // SKU
+        if (product.sku) {
+            document.getElementById('productSku').textContent = `SKU: ${product.sku}`;
+            document.getElementById('productSku').style.display = 'inline';
+        } else {
+            document.getElementById('productSku').style.display = 'none';
+        }
+
+        // Stats
+        document.getElementById('productStats').innerHTML = `
+            <div class="stat-item">
+                <i class="fas fa-boxes"></i>
+                <div class="value">${stock}</div>
+                <div class="label">In Stock</div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-tag"></i>
+                <div class="value">${product.category || 'General'}</div>
+                <div class="label">Category</div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-calendar"></i>
+                <div class="value">${new Date(product.createdAt).toLocaleDateString()}</div>
+                <div class="label">Listed On</div>
+            </div>
+        `;
+
+        // Description
+        if (product.description) {
+            document.getElementById('productDescription').textContent = product.description;
+        } else {
+            document.getElementById('descriptionCard').style.display = 'none';
+        }
+
+        // Variants
+        if (product.variants && product.variants.length > 0) {
+            document.getElementById('variantsCard').style.display = 'block';
+            renderVariants();
+        }
+
+        // Pricing
+        const price = (product.price ?? 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+        document.getElementById('priceAmount').textContent = price;
+        document.getElementById('priceUnit').textContent = product.unit ? `per ${product.unit}` : '';
+
+        // Stock info
+        updateStockInfo();
+
+        // Disable buttons if out of stock
+        if (stock <= 0) {
+            document.getElementById('buyNowBtn').disabled = true;
+            document.getElementById('addCartBtn').disabled = true;
+            document.getElementById('qtyMinus').disabled = true;
+            document.getElementById('qtyPlus').disabled = true;
+            document.getElementById('qtyInput').disabled = true;
+        }
+    }
+</script>
+
+<script>
+    // Render variants
+    function renderVariants() {
+        const container = document.getElementById('variantsList');
+        container.innerHTML = product.variants.map(variant => `
+            <div class="variant-group">
+                <div class="variant-label">${variant.variantName}</div>
+                <div class="variant-options">
+                    ${variant.variantValues.map((value, idx) => `
+                        <div class="variant-option ${idx === 0 ? 'selected' : ''}" 
+                             data-variant="${variant.variantName}" 
+                             data-value="${value}"
+                             onclick="selectVariant('${variant.variantName}', '${value}', this)">
+                            ${value}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        // Initialize selected variants
+        product.variants.forEach(variant => {
+            if (variant.variantValues && variant.variantValues.length > 0) {
+                selectedVariants[variant.variantName] = variant.variantValues[0];
+            }
+        });
+    }
+
+    // Select variant
+    function selectVariant(variantName, value, element) {
+        selectedVariants[variantName] = value;
+        
+        // Update UI
+        const parent = element.closest('.variant-group');
+        parent.querySelectorAll('.variant-option').forEach(opt => opt.classList.remove('selected'));
+        element.classList.add('selected');
+    }
+
+    // Update stock info
+    function updateStockInfo() {
+        const stock = Number.isFinite(product.stock) ? product.stock : 0;
+        const stockInfo = document.getElementById('stockInfo');
+        
+        if (stock <= 0) {
+            stockInfo.className = 'stock-info out';
+            stockInfo.innerHTML = '<i class="fas fa-times-circle"></i> Out of Stock';
+        } else if (stock <= 5) {
+            stockInfo.className = 'stock-info low';
+            stockInfo.innerHTML = `<i class="fas fa-exclamation-circle"></i> Only ${stock} left - Order soon!`;
+        } else {
+            stockInfo.className = 'stock-info';
+            stockInfo.innerHTML = `<i class="fas fa-check-circle"></i> ${stock} items available`;
+        }
+    }
+
+    // Change quantity
+    function changeQuantity(delta) {
+        const input = document.getElementById('qtyInput');
+        const newQty = Math.max(1, Math.min(product.stock || 1, quantity + delta));
+        quantity = newQty;
+        input.value = newQty;
+        updateQuantityButtons();
+    }
+
+    // Validate quantity input
+    function validateQuantity() {
+        const input = document.getElementById('qtyInput');
+        let val = parseInt(input.value) || 1;
+        val = Math.max(1, Math.min(product.stock || 1, val));
+        quantity = val;
+        input.value = val;
+        updateQuantityButtons();
+    }
+
+    // Update quantity button states
+    function updateQuantityButtons() {
+        const stock = product.stock || 0;
+        document.getElementById('qtyMinus').disabled = quantity <= 1;
+        document.getElementById('qtyPlus').disabled = quantity >= stock;
+    }
+</script>
+
+<script>
+    // Add to cart
+    function addToCart() {
+        if (!product || product.stock <= 0) {
+            showToast('This product is out of stock', 'error');
+            return;
+        }
+
+        let cart = JSON.parse(localStorage.getItem('shopCart') || '[]');
+        const cartItem = {
+            itemId: product.id,
+            quantity: quantity,
+            selectedVariants: { ...selectedVariants }
+        };
+
+        const existingIndex = cart.findIndex(c => 
+            c.itemId === product.id && 
+            JSON.stringify(c.selectedVariants) === JSON.stringify(selectedVariants)
+        );
+
+        if (existingIndex >= 0) {
+            const newQty = cart[existingIndex].quantity + quantity;
+            if (newQty <= product.stock) {
+                cart[existingIndex].quantity = newQty;
+                showToast('Cart updated!', 'success');
+            } else {
+                showToast('Maximum available quantity reached', 'warning');
+                return;
+            }
+        } else {
+            cart.push(cartItem);
+            showToast('Added to cart!', 'success');
+        }
+
+        localStorage.setItem('shopCart', JSON.stringify(cart));
+    }
+
+    // Buy now - open order modal
+    function buyNow() {
+        if (!product || product.stock <= 0) {
+            showToast('This product is out of stock', 'error');
+            return;
+        }
+
+        // Calculate prices with delivery charge
+        const subtotal = (product.price ?? 0) * quantity;
+        const deliveryCharge = subtotal < 500 ? 49 : 0;
+        const grandTotal = subtotal + deliveryCharge;
+        
+        const priceFormatted = (product.price ?? 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+        const subtotalFormatted = subtotal.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+        const deliveryFormatted = deliveryCharge.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+        const grandTotalFormatted = grandTotal.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+        
+        document.getElementById('orderSummary').innerHTML = `
+            <div class="d-flex gap-3 align-items-start mb-3">
+                ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.title}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">` : ''}
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${product.title}</h6>
+                    <p class="text-muted mb-1 small">${product.description || ''}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>${priceFormatted} × ${quantity}</span>
+                        <strong>${subtotalFormatted}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="border-top pt-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Subtotal</span>
+                    <span>${subtotalFormatted}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Delivery Charge</span>
+                    <span class="${deliveryCharge === 0 ? 'text-success' : ''}">${deliveryCharge === 0 ? 'FREE' : deliveryFormatted}</span>
+                </div>
+                ${deliveryCharge > 0 ? `<p class="text-muted small mb-2"><i class="fas fa-info-circle"></i> Add ₹${(500 - subtotal).toFixed(0)} more for free delivery</p>` : ''}
+                <div class="d-flex justify-content-between fw-bold border-top pt-2">
+                    <span>Total</span>
+                    <span class="text-success fs-5">${grandTotalFormatted}</span>
+                </div>
+            </div>
+        `;
+
+        // Populate variants in modal if any
+        if (product.variants && product.variants.length > 0) {
+            document.getElementById('modalVariantsSection').style.display = 'block';
+            document.getElementById('modalVariantsContainer').innerHTML = product.variants.map(variant => `
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">${variant.variantName}</label>
+                    <select class="form-control modal-variant-select" data-variant="${variant.variantName}">
+                        ${variant.variantValues.map(value => `
+                            <option value="${value}" ${selectedVariants[variant.variantName] === value ? 'selected' : ''}>${value}</option>
+                        `).join('')}
+                    </select>
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('modalVariantsSection').style.display = 'none';
+        }
+
+        // Reset form
+        document.getElementById('newAddressForm').style.display = 'none';
+        document.getElementById('orderError').style.display = 'none';
+
+        // Load addresses and show modal
+        loadAddresses();
+        const modal = new bootstrap.Modal(document.getElementById('orderModal'));
+        modal.show();
+    }
+</script>
+
+<script>
+    // Load user addresses
+    async function loadAddresses() {
+        try {
+            const res = await fetch('/api/address', { credentials: 'same-origin' });
+            if (res.ok) {
+                userAddresses = await res.json();
+                renderAddresses();
+            } else {
+                document.getElementById('savedAddresses').innerHTML = '<div class="text-muted">Please log in to view saved addresses.</div>';
+            }
+        } catch {
+            document.getElementById('savedAddresses').innerHTML = '<div class="text-danger">Failed to load addresses.</div>';
+        }
+    }
+
+    // Render addresses
+    function renderAddresses() {
+        const container = document.getElementById('savedAddresses');
+        if (!userAddresses || userAddresses.length === 0) {
+            container.innerHTML = '<div class="text-muted">No saved addresses. Add a new address below.</div>';
+            selectedAddressId = null;
+            return;
+        }
+
+        const defaultAddr = userAddresses.find(a => a.isDefault);
+        if (!selectedAddressId || !userAddresses.find(a => a.id === selectedAddressId)) {
+            selectedAddressId = defaultAddr ? defaultAddr.id : userAddresses[0].id;
+        }
+
+        container.innerHTML = `<div class="row g-2">${userAddresses.map(addr => `
+            <div class="col-12">
+                <div class="card address-card ${addr.id === selectedAddressId ? 'border-success bg-light' : ''}" 
+                     data-id="${addr.id}" 
+                     style="cursor: pointer; border-radius: 12px; transition: all 0.3s ease;"
+                     onclick="selectAddress('${addr.id}')">
+                    <div class="card-body py-2 px-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>${addr.fullName}</strong>
+                                ${addr.isDefault ? '<span class="badge bg-success ms-2">Default</span>' : ''}
+                                <p class="mb-0 small text-muted">${addr.phoneNumber}</p>
+                                <p class="mb-0 small">${addr.formattedAddress || `${addr.addressLine1}, ${addr.city}, ${addr.state} - ${addr.postalCode}`}</p>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="selectedAddress" 
+                                       value="${addr.id}" ${addr.id === selectedAddressId ? 'checked' : ''} 
+                                       style="transform: scale(1.2);">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('')}</div>`;
+    }
+
+    // Select address
+    function selectAddress(addressId) {
+        selectedAddressId = addressId;
+        renderAddresses();
+    }
+
+    // Save new address
+    async function saveNewAddress() {
+        const fullName = document.getElementById('newFullName').value.trim();
+        const phoneNumber = document.getElementById('newPhoneNumber').value.trim();
+        const addressLine1 = document.getElementById('newAddressLine1').value.trim();
+        const addressLine2 = document.getElementById('newAddressLine2').value.trim();
+        const city = document.getElementById('newCity').value.trim();
+        const state = document.getElementById('newState').value.trim();
+        const postalCode = document.getElementById('newPostalCode').value.trim();
+        const landmark = document.getElementById('newLandmark').value.trim();
+
+        if (!fullName || !phoneNumber || !addressLine1 || !city || !state || !postalCode) {
+            showToast('Please fill all required fields', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/address', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    label: `${city}, ${state}`,
+                    fullName, phoneNumber, addressLine1, addressLine2,
+                    city, state, postalCode, landmark, isDefault: false
+                })
+            });
+
+            if (!res.ok) throw new Error('Failed to save address');
+
+            document.getElementById('newAddressForm').style.display = 'none';
+            document.querySelectorAll('#newAddressForm input').forEach(input => input.value = '');
+            await loadAddresses();
+            showToast('Address saved!', 'success');
+        } catch (err) {
+            showToast('Error saving address: ' + err.message, 'error');
+        }
+    }
+</script>
+
+<script>
+    // Submit order
+    async function submitOrder() {
+        // Collect selected variants from modal
+        const modalVariants = {};
+        document.querySelectorAll('.modal-variant-select').forEach(select => {
+            modalVariants[select.getAttribute('data-variant')] = select.value;
+        });
+
+        if (!selectedAddressId) {
+            document.getElementById('orderError').textContent = 'Please select a delivery address';
+            document.getElementById('orderError').style.display = 'block';
+            return;
+        }
+
+        const addr = userAddresses.find(a => a.id === selectedAddressId);
+        if (!addr) {
+            document.getElementById('orderError').textContent = 'Invalid address selected';
+            document.getElementById('orderError').style.display = 'block';
+            return;
+        }
+
+        try {
+            // Load Razorpay if not loaded
+            await ensureRazorpay();
+
+            const orderRequest = {
+                itemId: product.id,
+                quantity: quantity,
+                selectedVariants: Object.keys(modalVariants).length > 0 ? modalVariants : selectedVariants,
+                userAddressId: selectedAddressId,
+                fullName: addr.fullName || '',
+                phoneNumber: addr.phoneNumber || '',
+                addressLine1: addr.addressLine1 || '',
+                addressLine2: addr.addressLine2 || '',
+                city: addr.city || '',
+                state: addr.state || '',
+                postalCode: addr.postalCode || '',
+                country: addr.country || 'India',
+                landmark: addr.landmark || '',
+                saveForFuture: false,
+                addressLabel: addr.label || 'Delivery Address'
+            };
+
+            const res = await fetch('/api/orders/with-address', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(orderRequest)
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(errorText || 'Failed to create order');
+            }
+
+            const order = await res.json();
+            
+            // Open Razorpay
+            const options = {
+                key: order.key,
+                amount: order.amount,
+                currency: order.currency || 'INR',
+                name: 'ServConnect',
+                order_id: order.razorpayOrderId,
+                handler: async (response) => {
+                    const verifyRes = await fetch('/api/orders/verify-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({
+                            orderId: order.orderId,
+                            razorpayOrderId: order.razorpayOrderId,
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpaySignature: response.razorpay_signature
+                        })
+                    });
+
+                    if (verifyRes.ok) {
+                        bootstrap.Modal.getInstance(document.getElementById('orderModal'))?.hide();
+                        showToast('Order placed successfully!', 'success');
+                        setTimeout(() => window.location.href = '/Home/MyOrders', 2000);
+                    } else {
+                        showToast('Payment verification failed', 'error');
+                    }
+                }
+            };
+
+            new window.Razorpay(options).open();
+        } catch (err) {
+            document.getElementById('orderError').textContent = err.message || 'An error occurred';
+            document.getElementById('orderError').style.display = 'block';
+        }
+    }
+
+    // Ensure Razorpay is loaded
+    function ensureRazorpay() {
+        return new Promise((resolve, reject) => {
+            if (window.Razorpay) return resolve();
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load Razorpay'));
+            document.head.appendChild(script);
+        });
+    }
+</script>
+
+<script>
+    // Toast notification
+    function showToast(message, type = 'info') {
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) existingToast.remove();
+
+        const colors = {
+            success: '#10B981',
+            error: '#EF4444',
+            warning: '#F59E0B',
+            info: '#3B82F6'
+        };
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-times-circle',
+            warning: 'fa-exclamation-circle',
+            info: 'fa-info-circle'
+        };
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.innerHTML = `<i class="fas ${icons[type]}"></i> ${message}`;
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: ${colors[type]};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        `;
+
+        document.body.appendChild(toast);
+
+        if (!document.getElementById('toast-styles')) {
+            const style = document.createElement('style');
+            style.id = 'toast-styles';
+            style.textContent = `
+                @@keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @@keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Event listeners
+    document.getElementById('addNewAddressBtn').addEventListener('click', () => {
+        const form = document.getElementById('newAddressForm');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.getElementById('cancelNewAddressBtn').addEventListener('click', () => {
+        document.getElementById('newAddressForm').style.display = 'none';
+        document.querySelectorAll('#newAddressForm input').forEach(input => input.value = '');
+    });
+
+    document.getElementById('saveNewAddressBtn').addEventListener('click', saveNewAddress);
+    document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadProduct);
+</script>

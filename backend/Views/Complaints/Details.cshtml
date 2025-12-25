@@ -1,0 +1,516 @@
+@model ServConnect.Models.Complaint
+@{
+    ViewData["Title"] = "Complaint Details";
+    
+    var categoryName = Model.Category switch
+    {
+        "ServiceProviderIssue" => "Service Provider Issue",
+        "VendorIssue" => "Vendor Issue",
+        "TechnicalIssue" => "Technical Issue",
+        "SafetyEmergency" => "Safety / Emergency",
+        _ => Model.Category
+    };
+    
+    var statusText = Model.Status switch
+    {
+        "Pending" => "⏳ Pending",
+        "InProgress" => "🔄 In Progress",
+        "Resolved" => "✅ Resolved",
+        "Rejected" => "❌ Rejected",
+        _ => Model.Status
+    };
+}
+
+<style>
+    .details-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #6b7280;
+        text-decoration: none;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+        transition: color 0.2s ease;
+    }
+    
+    .back-link:hover {
+        color: #10b981;
+    }
+    
+    .details-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+    
+    .details-header {
+        background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+        color: white;
+        padding: 25px 30px;
+    }
+    
+    .details-header h1 {
+        font-size: 1.5rem;
+        margin: 0 0 10px 0;
+    }
+    
+    .complaint-id-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-family: monospace;
+    }
+    
+    .status-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 30px;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .current-status {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .status-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+    
+    .status-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .status-pending { color: #92400e; }
+    .status-inprogress { color: #1e40af; }
+    .status-resolved { color: #065f46; }
+    .status-rejected { color: #991b1b; }
+    
+    .priority-indicator {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .priority-normal {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+    
+    .priority-high {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .priority-critical {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .details-body {
+        padding: 30px;
+    }
+    
+    .info-section {
+        margin-bottom: 30px;
+    }
+    
+    .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #065f46;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-title i {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    @@media (max-width: 600px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .info-item {
+        background: #f9fafb;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .info-item label {
+        display: block;
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-item span {
+        font-size: 1rem;
+        color: #111827;
+        font-weight: 500;
+    }
+    
+    .description-box {
+        background: #f9fafb;
+        padding: 20px;
+        border-radius: 12px;
+        line-height: 1.7;
+        color: #374151;
+    }
+    
+    .evidence-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .evidence-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f3f4f6;
+        padding: 10px 16px;
+        border-radius: 8px;
+        color: #374151;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    
+    .evidence-item:hover {
+        background: #10b981;
+        color: white;
+    }
+    
+    .resolution-box {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #10b981;
+        border-radius: 12px;
+        padding: 20px;
+    }
+    
+    .rejection-box {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border: 1px solid #f87171;
+        border-radius: 12px;
+        padding: 20px;
+    }
+    
+    .timeline-section {
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e5e7eb;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 20px;
+    }
+    
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .timeline-dot {
+        position: absolute;
+        left: -26px;
+        top: 4px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #10b981;
+        border: 3px solid #d1fae5;
+    }
+    
+    .timeline-content {
+        background: #f9fafb;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .timeline-status {
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 5px;
+    }
+    
+    .timeline-note {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-bottom: 5px;
+    }
+    
+    .timeline-meta {
+        font-size: 0.8rem;
+        color: #9ca3af;
+    }
+    
+    .btn-back {
+        background: #f3f4f6;
+        color: #374151;
+        padding: 12px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-back:hover {
+        background: #e5e7eb;
+        color: #111827;
+    }
+</style>
+
+<div class="details-container">
+    <a asp-action="MyComplaints" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to My Complaints
+    </a>
+    
+    <div class="details-card">
+        <div class="details-header">
+            <h1>@categoryName</h1>
+            <span class="complaint-id-badge">Complaint #@Model.Id[^6..]</span>
+        </div>
+        
+        <div class="status-section">
+            <div class="current-status">
+                <span class="status-label">Current Status:</span>
+                <span class="status-value status-@Model.Status.ToLower()">@statusText</span>
+            </div>
+            <div class="priority-indicator priority-@Model.Priority.ToLower()">
+                @Model.Priority Priority
+            </div>
+        </div>
+        
+        <div class="details-body">
+            <!-- Category & Sub-category -->
+            <div class="info-section">
+                <div class="section-title">
+                    <i class="fas fa-folder"></i>
+                    Category Information
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Category</label>
+                        <span>@categoryName</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.SubCategory))
+                    {
+                        <div class="info-item">
+                            <label>Issue Type</label>
+                            <span>@Model.SubCategory</span>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <!-- Target Information -->
+            @if (!string.IsNullOrEmpty(Model.ServiceProviderName) || !string.IsNullOrEmpty(Model.VendorName))
+            {
+                <div class="info-section">
+                    <div class="section-title">
+                        <i class="fas fa-user"></i>
+                        @(Model.Category == "ServiceProviderIssue" ? "Service Provider Details" : "Vendor Details")
+                    </div>
+                    <div class="info-grid">
+                        @if (!string.IsNullOrEmpty(Model.ServiceProviderName))
+                        {
+                            <div class="info-item">
+                                <label>Service Provider</label>
+                                <span>@Model.ServiceProviderName</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.BookingServiceName))
+                            {
+                                <div class="info-item">
+                                    <label>Service</label>
+                                    <span>@Model.BookingServiceName</span>
+                                </div>
+                            }
+                        }
+                        @if (!string.IsNullOrEmpty(Model.VendorName))
+                        {
+                            <div class="info-item">
+                                <label>Vendor</label>
+                                <span>@Model.VendorName</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.OrderItemName))
+                            {
+                                <div class="info-item">
+                                    <label>Product</label>
+                                    <span>@Model.OrderItemName</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+            
+            <!-- Description -->
+            <div class="info-section">
+                <div class="section-title">
+                    <i class="fas fa-align-left"></i>
+                    Description
+                </div>
+                <div class="description-box">
+                    @Model.Description
+                </div>
+            </div>
+            
+            <!-- Evidence -->
+            @if (Model.EvidenceFiles?.Count > 0)
+            {
+                <div class="info-section">
+                    <div class="section-title">
+                        <i class="fas fa-paperclip"></i>
+                        Evidence Files
+                    </div>
+                    <div class="evidence-grid">
+                        @foreach (var file in Model.EvidenceFiles)
+                        {
+                            <a href="@file" target="_blank" class="evidence-item">
+                                <i class="fas fa-file"></i>
+                                @System.IO.Path.GetFileName(file)
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+            
+            <!-- Resolution/Rejection -->
+            @if (Model.Status == "Resolved" && !string.IsNullOrEmpty(Model.Resolution))
+            {
+                <div class="info-section">
+                    <div class="section-title">
+                        <i class="fas fa-check-circle"></i>
+                        Resolution
+                    </div>
+                    <div class="resolution-box">
+                        <p class="mb-2"><strong>Resolved on:</strong> @Model.ResolvedAt?.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</p>
+                        <p class="mb-0">@Model.Resolution</p>
+                    </div>
+                </div>
+            }
+            
+            @if (Model.Status == "Rejected" && !string.IsNullOrEmpty(Model.RejectionReason))
+            {
+                <div class="info-section">
+                    <div class="section-title">
+                        <i class="fas fa-times-circle"></i>
+                        Rejection Reason
+                    </div>
+                    <div class="rejection-box">
+                        @Model.RejectionReason
+                    </div>
+                </div>
+            }
+            
+            <!-- Status History Timeline -->
+            @if (Model.StatusHistory?.Count > 0)
+            {
+                <div class="timeline-section">
+                    <div class="section-title">
+                        <i class="fas fa-history"></i>
+                        Status History
+                    </div>
+                    <div class="timeline">
+                        @foreach (var history in Model.StatusHistory.OrderByDescending(h => h.ChangedAt))
+                        {
+                            <div class="timeline-item">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-status">@history.Status</div>
+                                    @if (!string.IsNullOrEmpty(history.Note))
+                                    {
+                                        <div class="timeline-note">@history.Note</div>
+                                    }
+                                    <div class="timeline-meta">
+                                        @history.ChangedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")
+                                        @if (!string.IsNullOrEmpty(history.ChangedBy))
+                                        {
+                                            <span>• by @history.ChangedBy</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            
+            <!-- Submission Info -->
+            <div class="info-section mt-4 pt-4" style="border-top: 1px solid #e5e7eb;">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Submitted On</label>
+                        <span>@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Last Updated</label>
+                        <span>@Model.UpdatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a asp-action="MyComplaints" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to My Complaints
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
