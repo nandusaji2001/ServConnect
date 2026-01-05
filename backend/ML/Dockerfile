@@ -18,8 +18,8 @@ COPY content_moderation_api.py .
 EXPOSE 5050
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5050/health')" || exit 1
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+#     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5050/health')" || exit 1
 
 # Run the API
 CMD ["python", "content_moderation_api.py"]
