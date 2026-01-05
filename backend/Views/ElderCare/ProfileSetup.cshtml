@@ -306,9 +306,12 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>@(isMalayalam ? "പ്രായം" : "Age") <span class="required">*</span></label>
-                    <input type="number" asp-for="Age" class="form-control" min="50" max="120" placeholder="@(isMalayalam ? "പ്രായം നൽകുക" : "Enter age")" />
-                    <span asp-validation-for="Age" class="invalid-feedback"></span>
+                    <label>@(isMalayalam ? "ജനന തീയതി" : "Date of Birth") <span class="required">*</span></label>
+                    <input type="date" asp-for="DateOfBirth" class="form-control" id="dobInput" max="@DateTime.Today.AddYears(-50).ToString("yyyy-MM-dd")" min="@DateTime.Today.AddYears(-120).ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="DateOfBirth" class="invalid-feedback"></span>
+                    <small class="text-muted" id="ageDisplay" style="display: none; margin-top: 5px;">
+                        @(isMalayalam ? "പ്രായം:" : "Age:") <span id="calculatedAge">0</span> @(isMalayalam ? "വയസ്സ്" : "years")
+                    </small>
                 </div>
                 <div class="form-group">
                     <label>@(isMalayalam ? "ലിംഗം" : "Gender") <span class="required">*</span></label>
@@ -394,6 +397,37 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         let guardianConfirmed = false;
+
+        // Calculate age from date of birth
+        function calculateAge(dob) {
+            const today = new Date();
+            const birthDate = new Date(dob);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // Update age display when DOB changes
+        document.getElementById('dobInput').addEventListener('change', function() {
+            const dob = this.value;
+            if (dob) {
+                const age = calculateAge(dob);
+                document.getElementById('calculatedAge').textContent = age;
+                document.getElementById('ageDisplay').style.display = 'block';
+                
+                // Validate age is between 50 and 120
+                if (age < 50 || age > 120) {
+                    this.setCustomValidity('@(isMalayalam ? "പ്രായം 50 നും 120 നും ഇടയിൽ ആയിരിക്കണം" : "Age must be between 50 and 120 years")');
+                } else {
+                    this.setCustomValidity('');
+                }
+            } else {
+                document.getElementById('ageDisplay').style.display = 'none';
+            }
+        });
 
         function lookupGuardian() {
             const phone = document.getElementById('emergencyPhone').value.trim();

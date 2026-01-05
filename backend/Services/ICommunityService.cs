@@ -77,6 +77,12 @@ namespace ServConnect.Services
         Task<bool> CheckContentForBannedKeywordsAsync(string content);
         Task<List<string>> GetMatchedBannedKeywordsAsync(string content);
 
+        // ML-based Content Moderation
+        Task<(bool IsHarmful, double Confidence)> CheckContentWithMLAsync(string content);
+        Task<bool> RemoveHarmfulPostAsync(string postId, string reason);
+        Task<bool> RemoveHarmfulCommentAsync(string commentId, string reason);
+        Task SendHarmfulContentNotificationAsync(Guid userId, string contentType, string reason);
+
         // Rate Limiting
         Task<bool> CanUserPostAsync(Guid userId);
         Task<bool> CanUserCommentAsync(Guid userId);

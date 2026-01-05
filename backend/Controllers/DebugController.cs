@@ -3,6 +3,7 @@ using MongoDB.Driver;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
 using MongoDB.Bson; // for BsonDocument
+using ServConnect.Services;
 
 namespace ServConnect.Controllers
 {
@@ -11,9 +12,33 @@ namespace ServConnect.Controllers
     public class DebugController : ControllerBase
     {
         private readonly IConfiguration _config;
-        public DebugController(IConfiguration config)
+        private readonly IContentModerationService _contentModeration;
+        
+        public DebugController(IConfiguration config, IContentModerationService contentModeration)
         {
             _config = config;
+            _contentModeration = contentModeration;
+        }
+
+        [HttpGet("/debug/content-moderation/test")]
+        public async Task<IActionResult> TestContentModeration([FromQuery] string text = "I will kill you")
+        {
+            try
+            {
+                var result = await _contentModeration.AnalyzeContentAsync(text);
+                return Ok(new
+                {
+                    text = text,
+                    isHarmful = result.IsHarmful,
+                    confidence = result.Confidence,
+                    threshold = result.Threshold,
+                    serviceAvailable = _contentModeration.IsServiceAvailable
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, stack = ex.StackTrace });
+            }
         }
 
         private static string MaskMongoConnectionString(string conn)

@@ -179,7 +179,7 @@ namespace ServConnect.Controllers
                 UserId = currentUser.Id.ToString(),
                 FullName = currentUser.FullName,
                 Address = currentUser.Address ?? string.Empty,
-                Age = model.Age,
+                DateOfBirth = model.DateOfBirth,
                 Gender = model.Gender,
                 BloodGroup = model.BloodGroup,
                 MedicalConditions = model.MedicalConditions,
@@ -708,20 +708,7 @@ namespace ServConnect.Controllers
             var database = client.GetDatabase(config["MongoDB:DatabaseName"] ?? "ServConnectDb");
             var messageCollection = database.GetCollection<GuardianMessage>("GuardianMessages");
 
-            // Get messages where elder is receiver
-            var messages = await messageCollection.Find(
-                Builders<GuardianMessage>.Filter.Eq("ReceiverId", currentUser.Id.ToString())
-            ).SortByDescending(m => m.SentAt).Limit(50).ToListAsync();
-
-            // Mark messages as read
-            var unreadFilter = Builders<GuardianMessage>.Filter.And(
-                Builders<GuardianMessage>.Filter.Eq("ReceiverId", currentUser.Id.ToString()),
-                Builders<GuardianMessage>.Filter.Eq("IsRead", false)
-            );
-            var updateRead = Builders<GuardianMessage>.Update.Set("IsRead", true);
-            await messageCollection.UpdateManyAsync(unreadFilter, updateRead);
-
-            // Get guardian info
+            // Get elder info first to get guardian ID
             var elderFilter = Builders<ElderCareInfo>.Filter.Eq("UserId", currentUser.Id.ToString());
             var elderInfo = await _elderCareInfoCollection.Find(elderFilter).FirstOrDefaultAsync();
 
@@ -731,9 +718,34 @@ namespace ServConnect.Controllers
                 guardian = await _userManager.FindByIdAsync(elderInfo.GuardianUserId);
             }
 
-            ViewBag.Messages = messages;
+            // Get messages where elder is sender OR receiver (conversation with guardian)
+            var messages = await messageCollection.Find(
+                Builders<GuardianMessage>.Filter.Or(
+                    // Messages sent by elder to guardian
+                    Builders<GuardianMessage>.Filter.And(
+                        Builders<GuardianMessage>.Filter.Eq("SenderId", currentUser.Id.ToString()),
+                        Builders<GuardianMessage>.Filter.Eq("ReceiverId", elderInfo?.GuardianUserId ?? "")
+                    ),
+                    // Messages sent by guardian to elder
+                    Builders<GuardianMessage>.Filter.And(
+                        Builders<GuardianMessage>.Filter.Eq("SenderId", elderInfo?.GuardianUserId ?? ""),
+                        Builders<GuardianMessage>.Filter.Eq("ReceiverId", currentUser.Id.ToString())
+                    )
+                )
+            ).SortByDescending(m => m.SentAt).Limit(50).ToListAsync();
+
+            // Mark messages as read (only messages where elder is receiver)
+            var unreadFilter = Builders<GuardianMessage>.Filter.And(
+                Builders<GuardianMessage>.Filter.Eq("ReceiverId", currentUser.Id.ToString()),
+                Builders<GuardianMessage>.Filter.Eq("IsRead", false)
+            );
+            var updateRead = Builders<GuardianMessage>.Update.Set("IsRead", true);
+            await messageCollection.UpdateManyAsync(unreadFilter, updateRead);
+
+            ViewBag.Messages = messages.OrderBy(m => m.SentAt).ToList();
             ViewBag.GuardianName = guardian?.FullName ?? "Guardian";
             ViewBag.GuardianId = elderInfo?.GuardianUserId;
+            ViewBag.CurrentUserId = currentUser.Id.ToString();
 
             return View();
         }
@@ -930,7 +942,7 @@ namespace ServConnect.Controllers
             var viewModel = new ElderProfileSetupViewModel
             {
                 FullName = currentUser.FullName,
-                Age = elderInfo.Age,
+                DateOfBirth = elderInfo.DateOfBirth,
                 Gender = elderInfo.Gender,
                 BloodGroup = elderInfo.BloodGroup ?? "",
                 MedicalConditions = elderInfo.MedicalConditions ?? "",
@@ -960,7 +972,7 @@ namespace ServConnect.Controllers
                 return RedirectToAction("ProfileSetup", "ElderCare");
             }
 
-            // Update allowed fields only
+            // Update allowed fields only (elders can only edit medical info)
             var update = Builders<ElderCareInfo>.Update
                 .Set("MedicalConditions", model.MedicalConditions ?? "")
                 .Set("Medications", model.Medications ?? "")
@@ -970,6 +982,21 @@ namespace ServConnect.Controllers
 
             TempData["Success"] = "Profile updated successfully!";
             return RedirectToAction("Dashboard", "ElderCare");
+        }
+
+        // =============================================
+        // Elder-Friendly News
+        // =============================================
+        [HttpGet]
+        public async Task<IActionResult> News()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !currentUser.IsElder)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
         }
     }
 

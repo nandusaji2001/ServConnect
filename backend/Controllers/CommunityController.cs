@@ -10,12 +10,18 @@ namespace ServConnect.Controllers
     public class CommunityController : Controller
     {
         private readonly ICommunityService _community;
+        private readonly IContentModerationService _contentModeration;
         private readonly UserManager<Users> _userManager;
         private readonly IWebHostEnvironment _env;
 
-        public CommunityController(ICommunityService community, UserManager<Users> userManager, IWebHostEnvironment env)
+        public CommunityController(
+            ICommunityService community, 
+            IContentModerationService contentModeration,
+            UserManager<Users> userManager, 
+            IWebHostEnvironment env)
         {
             _community = community;
+            _contentModeration = contentModeration;
             _userManager = userManager;
             _env = env;
         }
@@ -224,7 +230,7 @@ namespace ServConnect.Controllers
         public class CreatePostRequest
         {
             public string Caption { get; set; } = string.Empty;
-            public List<string> Hashtags { get; set; } = new();
+            public string Hashtags { get; set; } = "[]"; // Received as JSON string from frontend
             public PostVisibility Visibility { get; set; } = PostVisibility.Public;
         }
 
@@ -234,6 +240,29 @@ namespace ServConnect.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
+
+            // Parse hashtags from JSON string
+            var hashtags = new List<string>();
+            if (!string.IsNullOrEmpty(request.Hashtags) && request.Hashtags != "[]")
+            {
+                try
+                {
+                    var parsed = System.Text.Json.JsonSerializer.Deserialize<List<string>>(request.Hashtags);
+                    if (parsed != null)
+                    {
+                        hashtags = parsed.Where(h => !string.IsNullOrWhiteSpace(h)).ToList();
+                    }
+                }
+                catch
+                {
+                    // If parsing fails, treat as empty
+                }
+            }
+
+            // Debug logging
+            Console.WriteLine($"[CreatePost] Caption: '{request.Caption}'");
+            Console.WriteLine($"[CreatePost] Hashtags raw: '{request.Hashtags}'");
+            Console.WriteLine($"[CreatePost] Hashtags parsed count: {hashtags.Count}");
 
             // Rate limiting
             if (!await _community.CanUserPostAsync(user.Id))
@@ -247,6 +276,26 @@ namespace ServConnect.Controllers
                 return BadRequest(new { error = "Your post contains inappropriate content." });
             }
 
+            // ML-based harmful content detection
+            Console.WriteLine($"[CreatePost] Checking ML moderation for: '{request.Caption}'");
+            var mlResult = await _contentModeration.AnalyzeContentAsync(request.Caption);
+            Console.WriteLine($"[CreatePost] ML Result - IsHarmful: {mlResult.IsHarmful}, Confidence: {mlResult.Confidence}");
+            
+            if (mlResult.IsHarmful)
+            {
+                Console.WriteLine($"[CreatePost] BLOCKED - Harmful content detected!");
+                // Send notification to user about the violation
+                await _community.SendHarmfulContentNotificationAsync(
+                    user.Id, 
+                    "post", 
+                    $"Harmful content detected with {mlResult.Confidence:P0} confidence"
+                );
+                return BadRequest(new { 
+                    error = "Your post was flagged as potentially harmful and cannot be published.",
+                    confidence = mlResult.Confidence
+                });
+            }
+
             var post = new CommunityPost
             {
                 AuthorId = user.Id,
@@ -254,7 +303,7 @@ namespace ServConnect.Controllers
                 AuthorProfileImage = user.ProfileImageUrl,
                 AuthorUsername = user.UserName,
                 Caption = request.Caption,
-                Hashtags = request.Hashtags.Select(h => h.TrimStart('#').ToLower()).ToList(),
+                Hashtags = hashtags.Select(h => h.TrimStart('#').ToLower()).ToList(),
                 Visibility = request.Visibility
             };
 
@@ -279,7 +328,7 @@ namespace ServConnect.Controllers
 
         [HttpPut("/api/community/posts/{postId}")]
         [Authorize]
-        public async Task<IActionResult> UpdatePost(string postId, [FromBody] CreatePostRequest request)
+        public async Task<IActionResult> UpdatePost(string postId, [FromBody] UpdatePostRequest request)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
@@ -288,6 +337,12 @@ namespace ServConnect.Controllers
             if (!success) return NotFound();
 
             return Ok();
+        }
+
+        public class UpdatePostRequest
+        {
+            public string Caption { get; set; } = string.Empty;
+            public List<string> Hashtags { get; set; } = new();
         }
 
         [HttpDelete("/api/community/posts/{postId}")]
@@ -417,6 +472,9 @@ namespace ServConnect.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
+            // Debug logging
+            Console.WriteLine($"[CreateComment] Content: '{request.Content}'");
+
             // Rate limiting
             if (!await _community.CanUserCommentAsync(user.Id))
             {
@@ -427,6 +485,26 @@ namespace ServConnect.Controllers
             if (await _community.CheckContentForBannedKeywordsAsync(request.Content))
             {
                 return BadRequest(new { error = "Your comment contains inappropriate content." });
+            }
+
+            // ML-based harmful content detection
+            Console.WriteLine($"[CreateComment] Checking ML moderation for: '{request.Content}'");
+            var mlResult = await _contentModeration.AnalyzeContentAsync(request.Content);
+            Console.WriteLine($"[CreateComment] ML Result - IsHarmful: {mlResult.IsHarmful}, Confidence: {mlResult.Confidence}");
+            
+            if (mlResult.IsHarmful)
+            {
+                Console.WriteLine($"[CreateComment] BLOCKED - Harmful content detected!");
+                // Send notification to user about the violation
+                await _community.SendHarmfulContentNotificationAsync(
+                    user.Id, 
+                    "comment", 
+                    $"Harmful content detected with {mlResult.Confidence:P0} confidence"
+                );
+                return BadRequest(new { 
+                    error = "Your comment was flagged as potentially harmful and cannot be published.",
+                    confidence = mlResult.Confidence
+                });
             }
 
             var comment = new PostComment

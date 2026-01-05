@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ServConnect.Models
 {
     [CollectionName("ElderCareInfo")]
+    [BsonIgnoreExtraElements]
     public class ElderCareInfo
     {
         [BsonId]
@@ -21,9 +22,22 @@ namespace ServConnect.Models
         [Required]
         public string Address { get; set; } = string.Empty;
 
-        [Required]
-        [Range(50, 120)]
-        public int Age { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        public DateTime? DateOfBirth { get; set; }
+
+        // Age is now calculated from DateOfBirth
+        [BsonIgnore]
+        public int Age
+        {
+            get
+            {
+                if (DateOfBirth == null) return 0;
+                var today = DateTime.Today;
+                var age = today.Year - DateOfBirth.Value.Year;
+                if (DateOfBirth.Value.Date > today.AddYears(-age)) age--;
+                return age;
+            }
+        }
 
         [Required]
         public string Gender { get; set; } = string.Empty;

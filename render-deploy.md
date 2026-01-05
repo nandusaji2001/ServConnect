@@ -3,72 +3,79 @@
 ## Prerequisites
 1. **MongoDB Atlas**: Set up a MongoDB Atlas cluster (free tier available)
 2. **Render Account**: Create an account at [render.com](https://render.com)
-3. **Environment Variables**: Prepare your configuration values
+3. **Pre-trained ML Models**: Ensure `backend/ML/models/*.pkl` files are committed
+
+## Pre-Deployment: Train ML Model Locally
+
+Before deploying, ensure the ML models are trained and committed:
+
+```bash
+cd backend/ML
+pip install -r requirements.txt
+python train_model.py
+git add models/*.pkl
+git commit -m "Add pre-trained ML models"
+git push
+```
 
 ## Deployment Steps
 
-### 1. Prepare Your Repository
-Ensure your repository contains:
-- ✅ `Dockerfile` (created)
-- ✅ `.dockerignore` (created)
-- ✅ Your application code in `/backend` folder
+### 1. Deploy ML Content Moderation API (First)
 
-### 2. Environment Variables for Render
-Set these environment variables in your Render service:
+1. **Create New Web Service**:
+   - Go to Render Dashboard → "New +" → "Web Service"
+   - Connect your GitHub repository
+   
+2. **Configure Service**:
+   - **Name**: `servconnect-ml-api`
+   - **Root Directory**: `backend/ML`
+   - **Environment**: `Docker`
+   - **Region**: Choose closest to your users
+   - **Instance Type**: Free (or Starter for better performance)
 
-```bash
-# Required Environment Variables
-ASPNETCORE_ENVIRONMENT=Production
-ASPNETCORE_URLS=http://+:$PORT
+3. **No Environment Variables Needed** for ML API
 
-# MongoDB Configuration (replace with your MongoDB Atlas connection string)
-MongoDB__ConnectionString=mongodb+srv://username:password@cluster.mongodb.net/ServConnectDb?retryWrites=true&w=majority
-MongoDB__DatabaseName=ServConnectDb
+4. **Note the URL**: After deployment, note the URL (e.g., `https://servconnect-ml-api.onrender.com`)
 
-# Razorpay Configuration (if using payments)
-Razorpay__KeyId=your_razorpay_key_id
-Razorpay__KeySecret=your_razorpay_key_secret
+### 2. Deploy Main Application (Second)
 
-# Google Maps API (if using location services)
-GoogleMaps__ApiKey=your_google_maps_api_key
-
-# Firebase Configuration (if using push notifications)
-Firebase__ProjectId=your_firebase_project_id
-Firebase__PrivateKeyId=your_private_key_id
-Firebase__PrivateKey=your_private_key
-Firebase__ClientEmail=your_client_email
-Firebase__ClientId=your_client_id
-Firebase__AuthUri=https://accounts.google.com/o/oauth2/auth
-Firebase__TokenUri=https://oauth2.googleapis.com/token
-
-# Security (generate a strong random string)
-JWT__SecretKey=your_jwt_secret_key_here
-```
-
-### 3. Deploy on Render
-
-1. **Connect Repository**:
-   - Go to Render Dashboard
-   - Click "New +" → "Web Service"
+1. **Create New Web Service**:
+   - Go to Render Dashboard → "New +" → "Web Service"
    - Connect your GitHub repository
 
 2. **Configure Service**:
    - **Name**: `servconnect-app`
+   - **Root Directory**: Leave empty (uses root Dockerfile)
    - **Environment**: `Docker`
-   - **Region**: Choose closest to your users
-   - **Branch**: `main` (or your deployment branch)
-   - **Build Command**: Leave empty (Docker handles this)
-   - **Start Command**: Leave empty (Docker handles this)
+   - **Region**: Same as ML API
+   - **Instance Type**: Free or Starter
 
 3. **Set Environment Variables**:
-   - Add all the environment variables listed above
-   - Make sure to use your actual values
 
-4. **Advanced Settings**:
-   - **Auto-Deploy**: Enable for automatic deployments
-   - **Health Check Path**: `/` (or create a health endpoint)
+```bash
+# Required
+ASPNETCORE_ENVIRONMENT=Production
+ASPNETCORE_URLS=http://+:$PORT
 
-### 4. MongoDB Atlas Setup
+# MongoDB Atlas Connection
+MongoDB__ConnectionString=mongodb+srv://username:password@cluster.mongodb.net/ServConnectDb?retryWrites=true&w=majority
+MongoDB__DatabaseName=ServConnectDb
+
+# Content Moderation ML API (use your ML API URL from step 1)
+ContentModeration__ApiUrl=https://servconnect-ml-api.onrender.com
+ContentModeration__Threshold=0.7
+
+# Razorpay (if using payments)
+Razorpay__KeyId=your_razorpay_key_id
+Razorpay__KeySecret=your_razorpay_key_secret
+
+# Firebase (if using notifications)
+Firebase__ProjectId=your_firebase_project_id
+
+# Other services as needed...
+```
+
+### 3. MongoDB Atlas Setup
 
 1. **Create Cluster**:
    - Go to [MongoDB Atlas](https://cloud.mongodb.com)
@@ -78,64 +85,76 @@ JWT__SecretKey=your_jwt_secret_key_here
 2. **Configure Access**:
    - **Database Access**: Create a user with read/write permissions
    - **Network Access**: Add `0.0.0.0/0` (allow access from anywhere)
-   - **Connection String**: Copy the connection string and update the environment variable
+   - **Connection String**: Copy and use in environment variables
 
-### 5. Domain Configuration (Optional)
+## Local Development
 
-1. **Custom Domain**:
-   - In Render dashboard, go to your service
-   - Click "Settings" → "Custom Domains"
-   - Add your domain and configure DNS
+### Without Docker (Recommended for Development)
 
-## Local Development with Docker
+**Terminal 1 - ML API:**
+```bash
+cd backend/ML
+pip install -r requirements.txt
+python train_model.py  # Only needed once
+python content_moderation_api.py
+```
 
-To test locally before deploying:
+**Terminal 2 - .NET App:**
+```bash
+cd backend
+dotnet run
+```
+
+### With Docker
 
 ```bash
-# Build and run with Docker Compose
+# Start Docker Desktop first, then:
 docker-compose up --build
+```
 
-# Or build and run manually
-docker build -t servconnect .
-docker run -p 8080:8080 servconnect
+## Testing Content Moderation
+
+Test the ML API directly:
+```bash
+curl -X POST http://localhost:5050/predict \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I will kill you", "threshold": 0.7}'
+```
+
+Test via .NET debug endpoint:
+```
+GET https://localhost:PORT/debug/content-moderation/test?text=I%20will%20kill%20you
 ```
 
 ## Troubleshooting
 
-### Common Issues:
+### ML API Issues
+- Check Render logs for the ML service
+- Ensure the model files are being created during build
+- Verify the API is responding at `/health` endpoint
 
-1. **Build Failures**:
-   - Check Dockerfile syntax
-   - Ensure all dependencies are in UsersApp.csproj
-   - Verify .dockerignore is not excluding necessary files
+### Content Moderation Not Working
+- Verify `ContentModeration__ApiUrl` is set correctly
+- Check if ML API service is running
+- Test the debug endpoint to verify connectivity
 
-2. **Runtime Errors**:
-   - Check environment variables are set correctly
-   - Verify MongoDB connection string
-   - Check Render logs for detailed error messages
+### Free Tier Limitations
+- Render free tier services spin down after inactivity
+- First request after spin-down may take 30-60 seconds
+- Consider Starter tier for production use
 
-3. **Port Issues**:
-   - Render automatically sets the PORT environment variable
-   - Application listens on port 8080 internally
-   - Render handles external port mapping
+## Architecture
 
-### Viewing Logs:
-- Go to your Render service dashboard
-- Click "Logs" tab to view real-time application logs
-- Use logs to debug any deployment issues
+```
+┌─────────────────┐     ┌─────────────────┐
+│   .NET App      │────▶│   ML API        │
+│   (Port 8080)   │     │   (Port 5050)   │
+└────────┬────────┘     └─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  MongoDB Atlas  │
+└─────────────────┘
+```
 
-## Security Considerations
-
-1. **Environment Variables**: Never commit sensitive data to your repository
-2. **MongoDB**: Use MongoDB Atlas with proper authentication
-3. **HTTPS**: Render provides free SSL certificates
-4. **API Keys**: Store all API keys as environment variables
-
-## Performance Optimization
-
-1. **Docker Image**: Multi-stage build reduces image size
-2. **Static Files**: Consider using CDN for static assets
-3. **Database**: Use MongoDB Atlas for better performance and reliability
-4. **Caching**: Implement Redis caching if needed (can be added as another Render service)
-
-Your ServConnect application should now be successfully deployed on Render! 🚀
+Your ServConnect application with ML content moderation is now ready for deployment! 🚀

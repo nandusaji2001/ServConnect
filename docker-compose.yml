@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   servconnect-app:
     build:
@@ -10,18 +8,24 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      # MongoDB Configuration (update these with your MongoDB Atlas connection)
-      - MongoDB__ConnectionString=mongodb://localhost:27017
+      # MongoDB Configuration
+      - MongoDB__ConnectionString=mongodb://admin:password123@mongodb:27017
       - MongoDB__DatabaseName=ServConnectDb
-      # Add other environment variables as needed
-      # - Razorpay__KeyId=your_razorpay_key_id
-      # - Razorpay__KeySecret=your_razorpay_key_secret
-      # - GoogleMaps__ApiKey=your_google_maps_api_key
-    volumes:
-      - ./uploads:/app/wwwroot/uploads
-      - ./logs:/app/logs
+      # Content Moderation ML API
+      - ContentModeration__ApiUrl=http://ml-api:5050
+      - ContentModeration__Threshold=0.7
     depends_on:
       - mongodb
+      - ml-api
+    networks:
+      - servconnect-network
+
+  ml-api:
+    build:
+      context: ./backend/ML
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
     networks:
       - servconnect-network
 

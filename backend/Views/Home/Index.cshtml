@@ -1334,6 +1334,7 @@
     // ============================================
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
     import { FontLoader } from 'three/addons/loaders/FontLoader.js';
     import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
@@ -1364,25 +1365,38 @@
         var renderer = new THREE.WebGLRenderer({
             canvas: canvas,
             antialias: true,
-            alpha: true
+            alpha: true,
+            logarithmicDepthBuffer: true,  // Helps prevent z-fighting/depth glitches
+            precision: 'highp',  // High precision for better rendering quality
+            powerPreference: 'high-performance'  // Use dedicated GPU if available
         });
         renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // Use full device pixel ratio for sharper rendering (up to 3x for retina displays)
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.5;
+        renderer.toneMappingExposure = 1.2;  // Slightly reduced for better contrast
         renderer.setClearColor(0x000000, 0); // Transparent clear color
+        
+        // Enable shadow mapping for better depth perception
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         // Enhanced Lighting for better color reproduction
-        var ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+        var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
 
-        var directionalLight1 = new THREE.DirectionalLight(0xffffff, 2.0);
+        var directionalLight1 = new THREE.DirectionalLight(0xffffff, 2.5);
         directionalLight1.position.set(10, 20, 10);
         directionalLight1.castShadow = true;
+        directionalLight1.shadow.mapSize.width = 2048;
+        directionalLight1.shadow.mapSize.height = 2048;
+        directionalLight1.shadow.camera.near = 0.5;
+        directionalLight1.shadow.camera.far = 100;
+        directionalLight1.shadow.bias = -0.0001;
         scene.add(directionalLight1);
 
-        var directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.0);
+        var directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.2);
         directionalLight2.position.set(-10, 10, -10);
         scene.add(directionalLight2);
 
@@ -1391,12 +1405,16 @@
         scene.add(directionalLight3);
 
         // Hemisphere light for natural lighting
-        var hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
+        var hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
         hemiLight.position.set(0, 20, 0);
         scene.add(hemiLight);
 
         // Model variable
         var model = null;
+        
+        // Animation mixer for playing model animations
+        var mixer = null;
+        var clock = new THREE.Clock();
         
         // ============================================
         // 3D Rotating Text Ring (Background Layer)
@@ -1562,12 +1580,65 @@
         // Load the GLB model
         console.log('Starting to load 3D model...');
         
+        // Setup Draco loader for compressed models (Sketchfab often uses Draco compression)
+        var dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        
         var loader = new GLTFLoader();
+        loader.setDRACOLoader(dracoLoader);
+        
         loader.load(
             '/city_pack_5.glb',
             function(gltf) {
                 console.log('GLTF loaded successfully:', gltf);
                 model = gltf.scene;
+                
+                // Apply correct color space and quality settings to all textures
+                model.traverse(function(child) {
+                    if (child.isMesh) {
+                        // Enable shadow casting and receiving
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        
+                        if (child.material) {
+                            // Handle array of materials
+                            var materials = Array.isArray(child.material) ? child.material : [child.material];
+                            materials.forEach(function(mat) {
+                                // Improve texture quality with anisotropic filtering
+                                if (mat.map) {
+                                    mat.map.colorSpace = THREE.SRGBColorSpace;
+                                    mat.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                                    mat.map.minFilter = THREE.LinearMipmapLinearFilter;
+                                    mat.map.magFilter = THREE.LinearFilter;
+                                    mat.map.generateMipmaps = true;
+                                }
+                                if (mat.emissiveMap) {
+                                    mat.emissiveMap.colorSpace = THREE.SRGBColorSpace;
+                                    mat.emissiveMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                                }
+                                if (mat.aoMap) {
+                                    mat.aoMap.colorSpace = THREE.SRGBColorSpace;
+                                }
+                                if (mat.normalMap) {
+                                    mat.normalMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                                }
+                                if (mat.roughnessMap) {
+                                    mat.roughnessMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                                }
+                                if (mat.metalnessMap) {
+                                    mat.metalnessMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                                }
+                                // Ensure material updates
+                                mat.needsUpdate = true;
+                            });
+                        }
+                        
+                        // Improve geometry quality
+                        if (child.geometry) {
+                            child.geometry.computeVertexNormals();
+                        }
+                    }
+                });
                 
                 // Center the model
                 var box = new THREE.Box3().setFromObject(model);
@@ -1591,6 +1662,21 @@
                 
                 scene.add(model);
                 console.log('3D model added to scene with original colors');
+                
+                // Setup and play animations if available
+                if (gltf.animations && gltf.animations.length > 0) {
+                    console.log('Found ' + gltf.animations.length + ' animations in model');
+                    mixer = new THREE.AnimationMixer(model);
+                    
+                    // Play all animations
+                    gltf.animations.forEach(function(clip) {
+                        console.log('Playing animation:', clip.name);
+                        var action = mixer.clipAction(clip);
+                        action.play();
+                    });
+                } else {
+                    console.log('No animations found in model');
+                }
             },
             function(xhr) {
                 if (xhr.total > 0) {
@@ -1767,6 +1853,12 @@
             }
             
             animationFrameId = requestAnimationFrame(animate);
+            
+            // Update animation mixer for model animations
+            var delta = clock.getDelta();
+            if (mixer) {
+                mixer.update(delta);
+            }
             
             // Resume auto-rotation after delay
             if (!autoRotate && !isDragging && Date.now() - lastInteractionTime > autoRotationResumeDelay) {

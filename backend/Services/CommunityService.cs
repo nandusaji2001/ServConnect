@@ -1108,6 +1108,94 @@ namespace ServConnect.Services
 
         #endregion
 
+        #region ML-based Content Moderation
+
+        private IContentModerationService? _contentModerationService;
+
+        public void SetContentModerationService(IContentModerationService service)
+        {
+            _contentModerationService = service;
+        }
+
+        public async Task<(bool IsHarmful, double Confidence)> CheckContentWithMLAsync(string content)
+        {
+            if (_contentModerationService == null)
+            {
+                return (false, 0);
+            }
+
+            var result = await _contentModerationService.AnalyzeContentAsync(content);
+            return (result.IsHarmful, result.Confidence);
+        }
+
+        public async Task<bool> RemoveHarmfulPostAsync(string postId, string reason)
+        {
+            var post = await GetPostByIdAsync(postId);
+            if (post == null) return false;
+
+            var update = Builders<CommunityPost>.Update
+                .Set(p => p.IsDeleted, true)
+                .Set(p => p.IsFlagged, true)
+                .Set(p => p.FlagReason, $"ML Detection: {reason}");
+
+            var result = await _posts.UpdateOneAsync(p => p.Id == postId, update);
+
+            if (result.ModifiedCount > 0)
+            {
+                await UpdateProfileStatsAsync(post.AuthorId, postsIncrement: -1);
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> RemoveHarmfulCommentAsync(string commentId, string reason)
+        {
+            var comment = await _comments.Find(c => c.Id == commentId).FirstOrDefaultAsync();
+            if (comment == null) return false;
+
+            var update = Builders<PostComment>.Update
+                .Set(c => c.IsDeleted, true)
+                .Set(c => c.IsFlagged, true);
+
+            var result = await _comments.UpdateOneAsync(c => c.Id == commentId, update);
+
+            if (result.ModifiedCount > 0)
+            {
+                // Update post comment count
+                await _posts.UpdateOneAsync(
+                    p => p.Id == comment.PostId,
+                    Builders<CommunityPost>.Update.Inc(p => p.CommentsCount, -1)
+                );
+
+                // Update parent reply count if it's a reply
+                if (!string.IsNullOrEmpty(comment.ParentCommentId))
+                {
+                    await _comments.UpdateOneAsync(
+                        c => c.Id == comment.ParentCommentId,
+                        Builders<PostComment>.Update.Inc(c => c.RepliesCount, -1)
+                    );
+                }
+                return true;
+            }
+            return false;
+        }
+
+        public async Task SendHarmfulContentNotificationAsync(Guid userId, string contentType, string reason)
+        {
+            var notification = new CommunityNotification
+            {
+                UserId = userId,
+                Type = CommunityNotificationType.SystemAlert,
+                Message = $"Your {contentType} was removed because it violated our community guidelines. Reason: {reason}",
+                ActorName = "Community Safety",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await CreateNotificationAsync(notification);
+        }
+
+        #endregion
+
         #region Rate Limiting
 
         public async Task<bool> CanUserPostAsync(Guid userId)

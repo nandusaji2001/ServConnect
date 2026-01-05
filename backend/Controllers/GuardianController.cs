@@ -378,6 +378,88 @@ namespace ServConnect.Controllers
         }
 
         // =============================================
+        // EDIT ELDER PROFILE (Guardian can edit all details)
+        // =============================================
+        [HttpGet]
+        public async Task<IActionResult> EditElderProfile(string id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !currentUser.IsGuardian)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Verify this elder is assigned to this guardian
+            var elderFilter = Builders<ElderCareInfo>.Filter.And(
+                Builders<ElderCareInfo>.Filter.Eq("UserId", id),
+                Builders<ElderCareInfo>.Filter.Eq("GuardianUserId", currentUser.Id.ToString())
+            );
+            var elderInfo = await _elderCareInfoCollection.Find(elderFilter).FirstOrDefaultAsync();
+
+            if (elderInfo == null)
+            {
+                TempData["ErrorMessage"] = "You are not authorized to edit this elder's information.";
+                return RedirectToAction(nameof(MonitoringDashboard));
+            }
+
+            var viewModel = new GuardianEditElderViewModel
+            {
+                ElderId = id,
+                FullName = elderInfo.FullName,
+                DateOfBirth = elderInfo.DateOfBirth,
+                Gender = elderInfo.Gender,
+                BloodGroup = elderInfo.BloodGroup ?? "",
+                MedicalConditions = elderInfo.MedicalConditions ?? "",
+                Medications = elderInfo.Medications
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditElderProfile(GuardianEditElderViewModel model)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !currentUser.IsGuardian)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Verify this elder is assigned to this guardian
+            var elderFilter = Builders<ElderCareInfo>.Filter.And(
+                Builders<ElderCareInfo>.Filter.Eq("UserId", model.ElderId),
+                Builders<ElderCareInfo>.Filter.Eq("GuardianUserId", currentUser.Id.ToString())
+            );
+            var elderInfo = await _elderCareInfoCollection.Find(elderFilter).FirstOrDefaultAsync();
+
+            if (elderInfo == null)
+            {
+                TempData["ErrorMessage"] = "You are not authorized to edit this elder's information.";
+                return RedirectToAction(nameof(MonitoringDashboard));
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Guardian can update all fields including DOB
+            var update = Builders<ElderCareInfo>.Update
+                .Set("DateOfBirth", model.DateOfBirth)
+                .Set("Gender", model.Gender)
+                .Set("BloodGroup", model.BloodGroup ?? "")
+                .Set("MedicalConditions", model.MedicalConditions ?? "")
+                .Set("Medications", model.Medications ?? "")
+                .Set("UpdatedAt", DateTime.UtcNow);
+
+            await _elderCareInfoCollection.UpdateOneAsync(elderFilter, update);
+
+            TempData["SuccessMessage"] = "Elder profile updated successfully!";
+            return RedirectToAction("ElderMonitor", new { id = model.ElderId });
+        }
+
+        // =============================================
         // SEND MESSAGE TO ELDER
         // =============================================
         [HttpPost]
