@@ -1,0 +1,371 @@
+@model ServConnect.ViewModels.GuardianEditElderViewModel
+@{
+    ViewData["Title"] = "Edit Elder Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .edit-container {
+        width: 100%;
+        margin: 0;
+        padding: 20px 30px;
+    }
+    
+    .back-nav {
+        margin-bottom: 20px;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        font-size: 1rem;
+    }
+    
+    .back-link:hover {
+        color: #333;
+    }
+    
+    .edit-header {
+        background: linear-gradient(135deg, #22863a 0%, #28a745 100%);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(34, 134, 58, 0.3);
+    }
+    
+    .edit-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .edit-header p {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .edit-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 30px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-title i {
+        color: #22863a;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .form-group label .required {
+        color: #dc2626;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #22863a;
+        box-shadow: 0 0 0 4px rgba(34, 134, 58, 0.1);
+    }
+    
+    .form-control[readonly] {
+        background: #f8f9fa;
+        cursor: not-allowed;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    @@media (max-width: 600px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .age-display {
+        margin-top: 8px;
+        padding: 10px 15px;
+        background: #f0fdf4;
+        border-radius: 8px;
+        color: #166534;
+        font-weight: 600;
+        display: none;
+    }
+    
+    .age-display.show {
+        display: block;
+    }
+    
+    .btn-container {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    
+    .btn-save {
+        flex: 1;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #22863a 0%, #28a745 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(34, 134, 58, 0.4);
+    }
+    
+    .btn-cancel {
+        padding: 14px 24px;
+        background: #f0f0f0;
+        color: #333;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .btn-cancel:hover {
+        background: #e0e0e0;
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .validation-error {
+        color: #dc2626;
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
+    
+    .info-note {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 25px;
+        color: #0369a1;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .info-note i {
+        margin-top: 2px;
+    }
+</style>
+
+<div class="edit-container">
+    <div class="back-nav">
+        <a href="@Url.Action("ElderMonitor", "Guardian", new { id = Model.ElderId })" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            @(isMalayalam ? "മടങ്ങുക" : "Back to Elder Monitor")
+        </a>
+    </div>
+    
+    <div class="edit-header">
+        <h1><i class="fas fa-user-edit"></i> @(isMalayalam ? "Elder പ്രൊഫൈൽ എഡിറ്റ് ചെയ്യുക" : "Edit Elder Profile")</h1>
+        <p>@(isMalayalam ? "Elder-ന്റെ വിവരങ്ങൾ അപ്ഡേറ്റ് ചെയ്യുക" : "Update elder's profile information")</p>
+    </div>
+    
+    <div class="edit-card">
+        <div class="info-note">
+            <i class="fas fa-info-circle"></i>
+            <span>@(isMalayalam ? "Guardian എന്ന നിലയിൽ, നിങ്ങൾക്ക് Elder-ന്റെ എല്ലാ വിവരങ്ങളും എഡിറ്റ് ചെയ്യാൻ കഴിയും." : "As a guardian, you can edit all of the elder's profile information including date of birth.")</span>
+        </div>
+        
+        <form asp-action="EditElderProfile" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ElderId" />
+            
+            <!-- Personal Information -->
+            <div class="section-title">
+                <i class="fas fa-user"></i>
+                @(isMalayalam ? "വ്യക്തിഗത വിവരങ്ങൾ" : "Personal Information")
+            </div>
+            
+            <div class="form-group">
+                <label>@(isMalayalam ? "പൂർണ്ണ നാമം" : "Full Name")</label>
+                <input type="text" asp-for="FullName" class="form-control" readonly />
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>@(isMalayalam ? "ജനന തീയതി" : "Date of Birth") <span class="required">*</span></label>
+                    <input type="date" asp-for="DateOfBirth" class="form-control" id="dobInput" 
+                           max="@DateTime.Today.AddYears(-50).ToString("yyyy-MM-dd")" 
+                           min="@DateTime.Today.AddYears(-120).ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="DateOfBirth" class="validation-error"></span>
+                    <div class="age-display" id="ageDisplay">
+                        <i class="fas fa-birthday-cake"></i>
+                        @(isMalayalam ? "പ്രായം:" : "Age:") <span id="calculatedAge">0</span> @(isMalayalam ? "വയസ്സ്" : "years")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>@(isMalayalam ? "ലിംഗം" : "Gender") <span class="required">*</span></label>
+                    <select asp-for="Gender" class="form-control">
+                        <option value="">@(isMalayalam ? "തിരഞ്ഞെടുക്കുക" : "Select")</option>
+                        <option value="Male">@(isMalayalam ? "പുരുഷൻ" : "Male")</option>
+                        <option value="Female">@(isMalayalam ? "സ്ത്രീ" : "Female")</option>
+                        <option value="Other">@(isMalayalam ? "മറ്റുള്ളവ" : "Other")</option>
+                    </select>
+                    <span asp-validation-for="Gender" class="validation-error"></span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>@(isMalayalam ? "രക്തഗ്രൂപ്പ്" : "Blood Group")</label>
+                <select asp-for="BloodGroup" class="form-control">
+                    <option value="">@(isMalayalam ? "തിരഞ്ഞെടുക്കുക" : "Select")</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                </select>
+            </div>
+            
+            <!-- Medical Information -->
+            <div class="section-title" style="margin-top: 30px;">
+                <i class="fas fa-notes-medical"></i>
+                @(isMalayalam ? "മെഡിക്കൽ വിവരങ്ങൾ" : "Medical Information")
+            </div>
+            
+            <div class="form-group">
+                <label>@(isMalayalam ? "ആരോഗ്യ പ്രശ്നങ്ങൾ" : "Medical Conditions")</label>
+                <textarea asp-for="MedicalConditions" class="form-control" rows="3"
+                    placeholder="@(isMalayalam ? "ഉദാ: പ്രമേഹം, രക്താതിമർദ്ദം" : "e.g., Diabetes, Hypertension")"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>@(isMalayalam ? "നിലവിലെ മരുന്നുകൾ" : "Current Medications")</label>
+                <textarea asp-for="Medications" class="form-control" rows="3"
+                    placeholder="@(isMalayalam ? "ഉദാ: Metformin 500mg - ദിവസം 2 തവണ" : "e.g., Metformin 500mg - twice daily")"></textarea>
+            </div>
+            
+            <div class="btn-container">
+                <a href="@Url.Action("ElderMonitor", "Guardian", new { id = Model.ElderId })" class="btn-cancel">
+                    <i class="fas fa-times"></i>
+                    @(isMalayalam ? "റദ്ദാക്കുക" : "Cancel")
+                </a>
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-save"></i>
+                    @(isMalayalam ? "മാറ്റങ്ങൾ സേവ് ചെയ്യുക" : "Save Changes")
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Calculate age from date of birth
+        function calculateAge(dob) {
+            const today = new Date();
+            const birthDate = new Date(dob);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // Update age display when DOB changes
+        const dobInput = document.getElementById('dobInput');
+        const ageDisplay = document.getElementById('ageDisplay');
+        const calculatedAge = document.getElementById('calculatedAge');
+        
+        function updateAgeDisplay() {
+            const dob = dobInput.value;
+            if (dob) {
+                const age = calculateAge(dob);
+                calculatedAge.textContent = age;
+                ageDisplay.classList.add('show');
+                
+                // Validate age is between 50 and 120
+                if (age < 50 || age > 120) {
+                    dobInput.setCustomValidity('@(isMalayalam ? "പ്രായം 50 നും 120 നും ഇടയിൽ ആയിരിക്കണം" : "Age must be between 50 and 120 years")');
+                } else {
+                    dobInput.setCustomValidity('');
+                }
+            } else {
+                ageDisplay.classList.remove('show');
+            }
+        }
+        
+        dobInput.addEventListener('change', updateAgeDisplay);
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', updateAgeDisplay);
+    </script>
+}

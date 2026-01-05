@@ -428,6 +428,10 @@
             </div>
         </div>
         <div class="quick-actions">
+            <a href="@Url.Action("EditElderProfile", "Guardian", new { id = elderInfo?.UserId })" class="quick-btn" style="background: #3b82f6; color: white;">
+                <i class="fas fa-user-edit"></i>
+                @(isMalayalam ? "എഡിറ്റ് ചെയ്യുക" : "Edit Profile")
+            </a>
             <a href="tel:@elderUser?.PhoneNumber" class="quick-btn quick-btn-call">
                 <i class="fas fa-phone"></i>
                 @(isMalayalam ? "വിളിക്കുക" : "Call Elder")
@@ -446,18 +450,22 @@
                 <div class="panel-body">
                     <div class="medical-grid">
                         <div class="medical-item">
-                            <div class="label">@(isMalayalam ? "രക്ത ഗ്രൂപ്പ്" : "Blood Group")</div>
-                            <div class="value">@(elderInfo?.BloodGroup ?? "N/A")</div>
+                            <div class="label">@(isMalayalam ? "ജനന തീയതി" : "Date of Birth")</div>
+                            <div class="value">@(elderInfo?.DateOfBirth?.ToString("dd MMM yyyy") ?? "N/A")</div>
                         </div>
                         <div class="medical-item">
                             <div class="label">@(isMalayalam ? "പ്രായം" : "Age")</div>
                             <div class="value">@elderInfo?.Age @(isMalayalam ? "വയസ്സ്" : "years")</div>
                         </div>
                         <div class="medical-item">
+                            <div class="label">@(isMalayalam ? "രക്ത ഗ്രൂപ്പ്" : "Blood Group")</div>
+                            <div class="value">@(elderInfo?.BloodGroup ?? "N/A")</div>
+                        </div>
+                        <div class="medical-item">
                             <div class="label">@(isMalayalam ? "ലിംഗഭേദം" : "Gender")</div>
                             <div class="value">@(elderInfo?.Gender ?? "N/A")</div>
                         </div>
-                        <div class="medical-item">
+                        <div class="medical-item full-width">
                             <div class="label">@(isMalayalam ? "അടിയന്തര ഫോൺ" : "Emergency Phone")</div>
                             <div class="value">@(elderInfo?.EmergencyPhone ?? "N/A")</div>
                         </div>

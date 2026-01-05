@@ -1,0 +1,753 @@
+@{
+    ViewData["Title"] = "News";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var isMalayalam = System.Globalization.CultureInfo.CurrentUICulture.Name.Equals("ml-IN", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    :root {
+        --elder-font-size: 1.1rem;
+        --elder-title-size: 1.3rem;
+        --elder-heading-size: 1.8rem;
+        --green-primary: #22863a;
+        --green-secondary: #28a745;
+        --green-light: #f0fdf4;
+        --green-hover: #1e7e34;
+    }
+    
+    body.font-large {
+        --elder-font-size: 1.3rem;
+        --elder-title-size: 1.5rem;
+        --elder-heading-size: 2.1rem;
+    }
+    
+    body.font-xlarge {
+        --elder-font-size: 1.5rem;
+        --elder-title-size: 1.8rem;
+        --elder-heading-size: 2.4rem;
+    }
+    
+    .elder-news-container {
+        width: 100%;
+        margin: 0;
+        padding: 20px 30px;
+    }
+    
+    /* Header with controls */
+    .elder-news-header {
+        background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-secondary) 100%);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(34, 134, 58, 0.3);
+    }
+    
+    .elder-news-header h1 {
+        font-size: var(--elder-heading-size);
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .elder-news-header p {
+        font-size: var(--elder-font-size);
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    /* Accessibility Controls */
+    .accessibility-bar {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .font-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .font-controls label {
+        font-size: var(--elder-font-size);
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .font-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        border: 2px solid #e0e0e0;
+        background: white;
+        font-size: 1.3rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .font-btn:hover {
+        border-color: var(--green-primary);
+        background: var(--green-light);
+    }
+    
+    .font-btn.active {
+        background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-secondary) 100%);
+        color: white;
+        border-color: transparent;
+    }
+    
+    .search-controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .elder-input {
+        padding: 14px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: var(--elder-font-size);
+        min-width: 200px;
+        transition: all 0.3s ease;
+    }
+    
+    .elder-input:focus {
+        outline: none;
+        border-color: var(--green-primary);
+        box-shadow: 0 0 0 4px rgba(34, 134, 58, 0.2);
+    }
+    
+    .elder-select {
+        padding: 14px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: var(--elder-font-size);
+        background: white;
+        cursor: pointer;
+        min-width: 150px;
+    }
+    
+    .elder-select:focus {
+        outline: none;
+        border-color: var(--green-primary);
+    }
+    
+    .elder-btn {
+        padding: 14px 24px;
+        border: none;
+        border-radius: 12px;
+        font-size: var(--elder-font-size);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .elder-btn-primary {
+        background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-secondary) 100%);
+        color: white;
+    }
+    
+    .elder-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(34, 134, 58, 0.4);
+    }
+    
+    .elder-btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+    }
+    
+    .elder-btn-secondary:hover {
+        background: #e0e0e0;
+    }
+    
+    /* Live News Section */
+    .live-news-section {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .section-title {
+        font-size: var(--elder-heading-size);
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .section-title .live-dot {
+        color: #ef4444;
+        animation: pulse-live 1.5s infinite;
+    }
+    
+    @@keyframes pulse-live {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+    
+    .live-channels {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px;
+    }
+    
+    .live-channel {
+        background: #f8f9fa;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+    
+    .live-channel:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .live-channel iframe {
+        width: 100%;
+        height: 250px;
+        border: none;
+    }
+    
+    .channel-name {
+        padding: 18px;
+        text-align: center;
+        font-size: var(--elder-title-size);
+        font-weight: 600;
+        color: #333;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    /* News Grid */
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+    
+    .elder-news-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .elder-news-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+    }
+    
+    .news-image {
+        width: 100%;
+        height: 200px;
+        background: linear-gradient(135deg, var(--green-light) 0%, #dcfce7 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    
+    .news-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .news-image-placeholder {
+        font-size: 4rem;
+        color: #9ca3af;
+    }
+    
+    .news-content {
+        padding: 25px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .news-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .news-source {
+        background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-secondary) 100%);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: calc(var(--elder-font-size) - 0.1rem);
+        font-weight: 600;
+    }
+    
+    .news-date {
+        color: #9ca3af;
+        font-size: calc(var(--elder-font-size) - 0.1rem);
+    }
+    
+    .news-title {
+        font-size: var(--elder-title-size);
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 12px;
+        line-height: 1.4;
+    }
+    
+    .news-description {
+        font-size: var(--elder-font-size);
+        color: #6b7280;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        flex: 1;
+    }
+    
+    .news-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .read-more-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-secondary) 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-size: var(--elder-font-size);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .read-more-btn:hover {
+        color: white;
+        transform: translateX(5px);
+        text-decoration: none;
+    }
+    
+    .translate-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: var(--green-light);
+        color: var(--green-primary);
+        border: 2px solid var(--green-primary);
+        border-radius: 12px;
+        font-size: var(--elder-font-size);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .translate-btn:hover {
+        background: var(--green-primary);
+        color: white;
+    }
+    
+    .translate-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .news-title.translated,
+    .news-description.translated {
+        background: var(--green-light);
+        padding: 10px;
+        border-left: 4px solid var(--green-secondary);
+        border-radius: 0 8px 8px 0;
+    }
+    
+    /* Loading & Error States */
+    .news-placeholder {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 5px solid #f0f0f0;
+        border-top-color: var(--green-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+    
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .news-placeholder p {
+        font-size: var(--elder-font-size);
+        color: #6b7280;
+    }
+    
+    .news-error {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+        background: #fef2f2;
+        border: 2px solid #fca5a5;
+        border-radius: 16px;
+        color: #dc2626;
+        font-size: var(--elder-font-size);
+    }
+    
+    /* Back Button */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--green-primary);
+        text-decoration: none;
+        font-size: var(--elder-font-size);
+        font-weight: 600;
+        margin-top: 30px;
+        padding: 12px 20px;
+        background: var(--green-light);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .back-link:hover {
+        background: var(--green-primary);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .elder-news-container {
+            padding: 15px;
+        }
+        
+        .accessibility-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .search-controls {
+            flex-direction: column;
+        }
+        
+        .elder-input, .elder-select {
+            width: 100%;
+        }
+        
+        .live-channels {
+            grid-template-columns: 1fr;
+        }
+        
+        .news-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .elder-news-header h1 {
+            font-size: 1.6rem;
+        }
+    }
+</style>
+
+<div class="elder-news-container">
+    <!-- Header -->
+    <div class="elder-news-header">
+        <h1>📰 @(isMalayalam ? "വാർത്തകൾ" : "News")</h1>
+        <p>@(isMalayalam ? "ഏറ്റവും പുതിയ വാർത്തകൾ വായിക്കുക" : "Stay updated with the latest news")</p>
+    </div>
+    
+    <!-- Accessibility & Search Controls -->
+    <div class="accessibility-bar">
+        <div class="font-controls">
+            <label>@(isMalayalam ? "അക്ഷര വലുപ്പം:" : "Text Size:")</label>
+            <button class="font-btn active" data-size="normal" title="Normal">A</button>
+            <button class="font-btn" data-size="large" title="Large">A+</button>
+            <button class="font-btn" data-size="xlarge" title="Extra Large">A++</button>
+        </div>
+        
+        <div class="search-controls">
+            <input type="text" id="locationInput" class="elder-input" placeholder="@(isMalayalam ? "സ്ഥലം നൽകുക..." : "Enter location...")" value="Kerala" />
+            <select id="languageSelect" class="elder-select">
+                <option value="en">English</option>
+                @if (isMalayalam)
+                {
+                    <option value="ml" selected>മലയാളം</option>
+                }
+                else
+                {
+                    <option value="ml">മലയാളം</option>
+                }
+            </select>
+            <button id="searchBtn" class="elder-btn elder-btn-primary">
+                <i class="fas fa-search"></i>
+                @(isMalayalam ? "തിരയുക" : "Search")
+            </button>
+            <button id="refreshBtn" class="elder-btn elder-btn-secondary" title="@(isMalayalam ? "പുതുക്കുക" : "Refresh")">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Live News Section -->
+    <div class="live-news-section">
+        <h2 class="section-title">
+            <i class="fas fa-circle live-dot"></i>
+            @(isMalayalam ? "തത്സമയ വാർത്ത ചാനലുകൾ" : "Live News Channels")
+        </h2>
+        <div class="live-channels">
+            <div class="live-channel">
+                <iframe src="https://www.youtube.com/embed/live_stream?channel=UCf8w5m0YsRa8MHQ5bwSGmbw" allowfullscreen></iframe>
+                <div class="channel-name">Asianet News</div>
+            </div>
+            <div class="live-channel">
+                <iframe src="https://www.youtube.com/embed/live_stream?channel=UCP0uG-mcMImgKnJz-VjJZmQ" allowfullscreen></iframe>
+                <div class="channel-name">Manorama News</div>
+            </div>
+            <div class="live-channel">
+                <iframe src="https://www.youtube.com/embed/live_stream?channel=UCFx1nseXKTc1Culiu3neeSQ" allowfullscreen></iframe>
+                <div class="channel-name">Reporter News</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- News Headlines Section -->
+    <h2 class="section-title">
+        <i class="fas fa-newspaper"></i>
+        @(isMalayalam ? "പ്രധാന വാർത്തകൾ" : "Top Headlines")
+    </h2>
+    
+    <div id="newsGrid" class="news-grid">
+        <div class="news-placeholder">
+            <div class="loading-spinner"></div>
+            <p>@(isMalayalam ? "വാർത്തകൾ ലോഡ് ചെയ്യുന്നു..." : "Loading news...")</p>
+        </div>
+    </div>
+    
+    <!-- Back to Dashboard -->
+    <div class="text-center">
+        <a href="@Url.Action("Dashboard", "ElderCare")" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            @(isMalayalam ? "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക" : "Back to Dashboard")
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Font size controls
+        const fontBtns = document.querySelectorAll('.font-btn');
+        fontBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                fontBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.body.classList.remove('font-large', 'font-xlarge');
+                const size = this.dataset.size;
+                if (size === 'large') {
+                    document.body.classList.add('font-large');
+                } else if (size === 'xlarge') {
+                    document.body.classList.add('font-xlarge');
+                }
+                
+                // Save preference
+                localStorage.setItem('elderNewsFontSize', size);
+            });
+        });
+        
+        // Load saved font size preference
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedSize = localStorage.getItem('elderNewsFontSize');
+            if (savedSize) {
+                fontBtns.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.size === savedSize) {
+                        btn.classList.add('active');
+                        if (savedSize === 'large') {
+                            document.body.classList.add('font-large');
+                        } else if (savedSize === 'xlarge') {
+                            document.body.classList.add('font-xlarge');
+                        }
+                    }
+                });
+            }
+            
+            // Load news
+            loadNews();
+        });
+        
+        // Translation function
+        async function translateText(text, sourceLang = 'en', targetLang = 'ml') {
+            try {
+                const res = await fetch('/api/news/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        sourceLanguage: sourceLang,
+                        targetLanguage: targetLang
+                    })
+                });
+                
+                if (!res.ok) return text;
+                
+                const data = await res.json();
+                return data.translatedText || text;
+            } catch (error) {
+                console.error('Translation error:', error);
+                return text;
+            }
+        }
+        
+        // Handle translate button click
+        async function handleTranslate(index, btn) {
+            const titleEl = document.getElementById(`title-${index}`);
+            const descEl = document.getElementById(`desc-${index}`);
+            
+            if (btn.dataset.translated === 'true') {
+                // Restore original
+                titleEl.textContent = titleEl.dataset.original;
+                descEl.textContent = descEl.dataset.original;
+                titleEl.classList.remove('translated');
+                descEl.classList.remove('translated');
+                btn.innerHTML = '<i class="fas fa-language"></i> മലയാളം';
+                btn.dataset.translated = 'false';
+            } else {
+                // Translate
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> @(isMalayalam ? "വിവർത്തനം..." : "Translating...")';
+                
+                titleEl.dataset.original = titleEl.textContent;
+                descEl.dataset.original = descEl.textContent;
+                
+                const translatedTitle = await translateText(titleEl.textContent, 'en', 'ml');
+                const translatedDesc = await translateText(descEl.textContent, 'en', 'ml');
+                
+                titleEl.textContent = translatedTitle;
+                descEl.textContent = translatedDesc;
+                titleEl.classList.add('translated');
+                descEl.classList.add('translated');
+                
+                btn.innerHTML = '<i class="fas fa-language"></i> English';
+                btn.dataset.translated = 'true';
+                btn.disabled = false;
+            }
+        }
+        
+        // Load news function
+        async function loadNews() {
+            const container = document.getElementById('newsGrid');
+            const location = document.getElementById('locationInput').value.trim() || 'Kerala';
+            const language = document.getElementById('languageSelect').value;
+            
+            container.innerHTML = `
+                <div class="news-placeholder">
+                    <div class="loading-spinner"></div>
+                    <p>@(isMalayalam ? "വാർത്തകൾ ലോഡ് ചെയ്യുന്നു..." : "Loading news...")</p>
+                </div>
+            `;
+            
+            try {
+                const res = await fetch(`/api/news?location=${encodeURIComponent(location)}&language=${encodeURIComponent(language)}`);
+                const data = await res.json();
+                
+                if (!data.articles || data.articles.length === 0) {
+                    container.innerHTML = `
+                        <div class="news-placeholder">
+                            <i class="fas fa-newspaper" style="font-size: 4rem; color: #9ca3af; margin-bottom: 20px;"></i>
+                            <p>@(isMalayalam ? "ഈ സ്ഥലത്തിന് വാർത്തകൾ ലഭ്യമല്ല" : "No news available for this location")</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = data.articles.map((article, index) => {
+                    const pubDate = article.pubDate 
+                        ? new Date(article.pubDate).toLocaleDateString('@(isMalayalam ? "ml-IN" : "en-US")', { month: 'short', day: 'numeric', year: 'numeric' }) 
+                        : '';
+                    
+                    const imageHtml = article.imageUrl 
+                        ? `<img src="${article.imageUrl}" alt="${article.title}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-newspaper news-image-placeholder\\'></i>'" loading="lazy">`
+                        : '<i class="fas fa-newspaper news-image-placeholder"></i>';
+                    
+                    const showTranslateBtn = language === 'en';
+                    
+                    return `
+                        <div class="elder-news-card">
+                            <div class="news-image">${imageHtml}</div>
+                            <div class="news-content">
+                                <div class="news-meta">
+                                    <span class="news-source">${article.source || 'News'}</span>
+                                    <span class="news-date">${pubDate}</span>
+                                </div>
+                                <h3 class="news-title" id="title-${index}">${article.title}</h3>
+                                <p class="news-description" id="desc-${index}">${article.description || ''}</p>
+                                <div class="news-actions">
+                                    <a href="${article.link}" target="_blank" class="read-more-btn">
+                                        @(isMalayalam ? "പൂർണ്ണ ലേഖനം" : "Read Full Article")
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                    ${showTranslateBtn ? `
+                                        <button class="translate-btn" data-index="${index}" data-translated="false" onclick="handleTranslate(${index}, this)">
+                                            <i class="fas fa-language"></i> മലയാളം
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Failed to load news:', error);
+                container.innerHTML = `
+                    <div class="news-error">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <p>@(isMalayalam ? "വാർത്തകൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു. വീണ്ടും ശ്രമിക്കുക." : "Failed to load news. Please try again.")</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('searchBtn').addEventListener('click', loadNews);
+        document.getElementById('refreshBtn').addEventListener('click', loadNews);
+        document.getElementById('languageSelect').addEventListener('change', loadNews);
+        document.getElementById('locationInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') loadNews();
+        });
+    </script>
+}

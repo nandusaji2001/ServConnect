@@ -6,9 +6,22 @@ namespace ServConnect.ViewModels
     {
         public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Age is required")]
-        [Range(50, 120, ErrorMessage = "Age must be between 50 and 120")]
-        public int Age { get; set; }
+        [Required(ErrorMessage = "Date of Birth is required")]
+        [DataType(DataType.Date)]
+        public DateTime? DateOfBirth { get; set; }
+
+        // Calculated age (read-only)
+        public int Age
+        {
+            get
+            {
+                if (DateOfBirth == null) return 0;
+                var today = DateTime.Today;
+                var age = today.Year - DateOfBirth.Value.Year;
+                if (DateOfBirth.Value.Date > today.AddYears(-age)) age--;
+                return age;
+            }
+        }
 
         [Required(ErrorMessage = "Gender is required")]
         public string Gender { get; set; } = string.Empty;
@@ -28,5 +41,37 @@ namespace ServConnect.ViewModels
         public string? GuardianCandidateId { get; set; }
         public string? GuardianCandidateName { get; set; }
         public bool IsGuardianConfirmed { get; set; } = false;
+    }
+
+    // ViewModel for Guardian to edit Elder profile
+    public class GuardianEditElderViewModel
+    {
+        public string ElderId { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Date of Birth is required")]
+        [DataType(DataType.Date)]
+        public DateTime? DateOfBirth { get; set; }
+
+        public int Age
+        {
+            get
+            {
+                if (DateOfBirth == null) return 0;
+                var today = DateTime.Today;
+                var age = today.Year - DateOfBirth.Value.Year;
+                if (DateOfBirth.Value.Date > today.AddYears(-age)) age--;
+                return age;
+            }
+        }
+
+        [Required(ErrorMessage = "Gender is required")]
+        public string Gender { get; set; } = string.Empty;
+
+        public string? BloodGroup { get; set; }
+
+        public string? MedicalConditions { get; set; }
+
+        public string? Medications { get; set; }
     }
 }

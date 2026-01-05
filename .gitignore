@@ -2,3 +2,13 @@
 appsettings.json
 appsettings.Development.json
 firebase-service-account.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Keep ML models (don't ignore .pkl files)
+!backend/ML/models/*.pkl

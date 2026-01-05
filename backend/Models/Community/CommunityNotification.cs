@@ -53,6 +53,8 @@ namespace ServConnect.Models.Community
         NewFollower,
         NewMessage,
         Mention,
-        PostShared
+        PostShared,
+        SystemAlert,
+        ContentRemoved
     }
 }

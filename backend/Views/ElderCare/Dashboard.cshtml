@@ -177,6 +177,16 @@
     .btn-editprofile:hover {
         color: white;
     }
+
+    /* News Button - Blue */
+    .btn-news {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+    }
+    
+    .btn-news:hover {
+        color: white;
+    }
     
     /* Messages Button - Indigo */
     .btn-messages {
@@ -362,6 +372,13 @@
             <span class="sublabel">@(isMalayalam ? "ആരോഗ്യകരമായി ജീവിക്കുക" : "Stay healthy & active")</span>
         </a>
 
+        <!-- News -->
+        <a href="@Url.Action("News", "ElderCare")" class="elder-button btn-news">
+            <span class="icon">📰</span>
+            <span class="label">@(isMalayalam ? "വാർത്തകൾ" : "News")</span>
+            <span class="sublabel">@(isMalayalam ? "ഏറ്റവും പുതിയ വാർത്തകൾ" : "Latest headlines")</span>
+        </a>
+
         <!-- Guardian Info -->
         <a href="@Url.Action("GuardianInfo", "ElderCare")" class="elder-button btn-guardian">
             <span class="icon">👤</span>
@@ -386,6 +403,10 @@
 
 @section Scripts {
     <script>
+        // Malayalam text constants
+        const notCheckedInText = '@Html.Raw(isMalayalam ? "ഇന്ന് ചെക്ക്-ഇൻ ചെയ്തില്ല!" : "Not checked in today!")';
+        const defaultCheckinText = '@Html.Raw(isMalayalam ? "നിങ്ങളുടെ സുഖം അറിയിക്കുക" : "Let us know you\u0027re okay")';
+        
         // Load dashboard alerts
         document.addEventListener('DOMContentLoaded', function() {
             loadAlerts();
@@ -403,10 +424,11 @@
                     if (!data.checkedInToday) {
                         checkinBadge.classList.remove('hidden');
                         checkinSublabel.classList.add('alert-sublabel');
-                        checkinSublabel.textContent = '@(isMalayalam ? "ഇന്ന് ചെക്ക്-ഇൻ ചെയ്തില്ല!" : "Not checked in today!")';
+                        checkinSublabel.textContent = notCheckedInText;
                     } else {
                         checkinBadge.classList.add('hidden');
                         checkinSublabel.classList.remove('alert-sublabel');
+                        checkinSublabel.textContent = defaultCheckinText;
                     }
                     
                     // Messages badge
