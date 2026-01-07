@@ -16,24 +16,32 @@ namespace ServConnect.Controllers
         private readonly UserManager<Users> _userManager;
         private readonly IMongoCollection<ElderCareInfo> _elderCareInfoCollection;
         private readonly IMongoCollection<ElderRequest> _elderRequestsCollection;
+        private readonly IMongoCollection<ElderHealthDetails> _elderHealthDetailsCollection;
         private readonly INotificationService _notificationService;
         private readonly IEmailService _emailService;
+        private readonly ISmsService _smsService;
+        private readonly IWellnessPredictionService _wellnessPredictionService;
 
         public ElderCareController(
             UserManager<Users> userManager,
             IConfiguration configuration,
             INotificationService notificationService,
-            IEmailService emailService)
+            IEmailService emailService,
+            ISmsService smsService,
+            IWellnessPredictionService wellnessPredictionService)
         {
             _userManager = userManager;
             _notificationService = notificationService;
             _emailService = emailService;
+            _smsService = smsService;
+            _wellnessPredictionService = wellnessPredictionService;
             var connectionString = configuration["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017";
             var databaseName = configuration["MongoDB:DatabaseName"] ?? "ServConnectDb";
             var client = new MongoClient(connectionString);
             var database = client.GetDatabase(databaseName);
             _elderCareInfoCollection = database.GetCollection<ElderCareInfo>("ElderCareInfo");
             _elderRequestsCollection = database.GetCollection<ElderRequest>("ElderRequests");
+            _elderHealthDetailsCollection = database.GetCollection<ElderHealthDetails>("ElderHealthDetails");
         }
 
         [HttpGet]
@@ -365,7 +373,8 @@ namespace ServConnect.Controllers
 
             ViewBag.ElderInfo = elderInfo;
             ViewBag.GuardianName = guardian?.FullName ?? "Not Assigned";
-            ViewBag.GuardianPhone = elderInfo.EmergencyPhone;
+            // Use guardian's current phone number from their profile, fallback to stored EmergencyPhone
+            ViewBag.GuardianPhone = guardian?.PhoneNumber ?? elderInfo.EmergencyPhone;
             ViewBag.UserName = currentUser.FullName;
 
             return View();
@@ -387,15 +396,16 @@ namespace ServConnect.Controllers
             var filter = Builders<ElderCareInfo>.Filter.Eq("UserId", currentUser.Id.ToString());
             var elderInfo = await _elderCareInfoCollection.Find(filter).FirstOrDefaultAsync();
 
-            ViewBag.EmergencyPhone = elderInfo?.EmergencyPhone ?? "";
-            ViewBag.ElderInfo = elderInfo;
-
-            // Get guardian info
+            // Get guardian info and use their current phone number
+            Users? guardian = null;
             if (elderInfo != null && !string.IsNullOrEmpty(elderInfo.GuardianUserId))
             {
-                var guardian = await _userManager.FindByIdAsync(elderInfo.GuardianUserId);
-                ViewBag.GuardianName = guardian?.FullName ?? "Guardian";
+                guardian = await _userManager.FindByIdAsync(elderInfo.GuardianUserId);
             }
+
+            ViewBag.EmergencyPhone = guardian?.PhoneNumber ?? elderInfo?.EmergencyPhone ?? "";
+            ViewBag.ElderInfo = elderInfo;
+            ViewBag.GuardianName = guardian?.FullName ?? "Guardian";
 
             return View();
         }
@@ -433,7 +443,10 @@ namespace ServConnect.Controllers
             var sosCollection = database.GetCollection<SOSAlert>("SOSAlerts");
 
             var elderName = elderInfo.FullName ?? currentUser.FullName ?? "Elder";
-            var elderPhone = elderInfo.EmergencyPhone ?? currentUser.PhoneNumber ?? "";
+            var elderPhone = currentUser.PhoneNumber ?? "";
+            var elderAddress = elderInfo.Address ?? currentUser.Address ?? "Address not available";
+            var medicalConditions = elderInfo.MedicalConditions ?? "None specified";
+            var bloodGroup = elderInfo.BloodGroup ?? "Not specified";
 
             var sosAlert = new SOSAlert
             {
@@ -456,6 +469,43 @@ namespace ServConnect.Controllers
                 $"/Guardian/ElderMonitor?elderId={currentUser.Id}"
             );
 
+            // Send SMS to guardian via Fast2SMS
+            var guardianPhone = guardian.PhoneNumber ?? elderInfo.EmergencyPhone;
+            if (!string.IsNullOrEmpty(guardianPhone))
+            {
+                try
+                {
+                    // Keep message short for Fast2SMS free route (max ~160 chars)
+                    var smsMessage = $"SOS ALERT! {elderName} needs help. " +
+                                     $"Call: {elderPhone}. " +
+                                     $"Blood: {bloodGroup}. " +
+                                     $"Time: {DateTime.Now:dd-MMM hh:mm tt}. " +
+                                     $"Respond NOW! -ServConnect";
+
+                    Console.WriteLine($"[SOS SMS] Attempting to send SMS to guardian: {guardianPhone}");
+                    Console.WriteLine($"[SOS SMS] Message: {smsMessage}");
+                    
+                    var smsSent = await _smsService.SendSmsAsync(guardianPhone, smsMessage);
+                    
+                    if (smsSent)
+                    {
+                        Console.WriteLine($"[SOS SMS] SMS sent successfully to: {guardianPhone}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[SOS SMS] Failed to send SMS to guardian: {guardianPhone}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[SOS SMS] Exception while sending SMS: {ex.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[SOS SMS] Guardian phone number is empty, cannot send SMS");
+            }
+
             // Send email notification to guardian
             if (!string.IsNullOrEmpty(guardian.Email))
             {
@@ -475,6 +525,9 @@ namespace ServConnect.Controllers
         <div style='background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;'>
             <p style='margin: 0; color: #991b1b;'><strong>Time:</strong> {DateTime.Now:MMMM dd, yyyy hh:mm tt}</p>
             <p style='margin: 10px 0 0 0; color: #991b1b;'><strong>Contact Phone:</strong> {elderPhone}</p>
+            <p style='margin: 10px 0 0 0; color: #991b1b;'><strong>Address:</strong> {elderAddress}</p>
+            <p style='margin: 10px 0 0 0; color: #991b1b;'><strong>Blood Group:</strong> {bloodGroup}</p>
+            <p style='margin: 10px 0 0 0; color: #991b1b;'><strong>Medical Conditions:</strong> {medicalConditions}</p>
         </div>
         <div style='text-align: center; margin: 30px 0;'>
             <a href='tel:{elderPhone}' style='background: #dc2626; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: bold; display: inline-block;'>
@@ -871,7 +924,7 @@ namespace ServConnect.Controllers
         }
 
         // =============================================
-        // Wellness Tips
+        // Wellness Tips - AI-Powered Health Recommendations
         // =============================================
         [HttpGet]
         public async Task<IActionResult> WellnessTips()
@@ -880,6 +933,64 @@ namespace ServConnect.Controllers
             if (currentUser == null || !currentUser.IsElder)
             {
                 return RedirectToAction("Index", "Home");
+            }
+
+            // Get elder care info
+            var elderFilter = Builders<ElderCareInfo>.Filter.Eq("UserId", currentUser.Id.ToString());
+            var elderInfo = await _elderCareInfoCollection.Find(elderFilter).FirstOrDefaultAsync();
+
+            if (elderInfo == null)
+            {
+                return RedirectToAction("ProfileSetup", "ElderCare");
+            }
+
+            // Check if health details have been filled by guardian
+            var healthFilter = Builders<ElderHealthDetails>.Filter.Eq("ElderUserId", currentUser.Id.ToString());
+            var healthDetails = await _elderHealthDetailsCollection.Find(healthFilter).FirstOrDefaultAsync();
+
+            ViewBag.ElderInfo = elderInfo;
+            ViewBag.HealthDetailsFilled = healthDetails != null;
+            ViewBag.HealthDetails = healthDetails;
+
+            // If health details exist, get predictions
+            if (healthDetails != null)
+            {
+                var healthViewModel = new ElderHealthDetailsViewModel
+                {
+                    Height = healthDetails.Height,
+                    Weight = healthDetails.Weight,
+                    SystolicBP = healthDetails.SystolicBP,
+                    DiastolicBP = healthDetails.DiastolicBP,
+                    Cholesterol = healthDetails.Cholesterol,
+                    Triglycerides = healthDetails.Triglycerides,
+                    FamilyHistoryT2D = healthDetails.FamilyHistoryT2D,
+                    FamilyHistoryCVD = healthDetails.FamilyHistoryCVD,
+                    SleepHours = healthDetails.SleepHours,
+                    SleepQuality = healthDetails.SleepQuality,
+                    StressLevel = healthDetails.StressLevel,
+                    PhysicalActivityLevel = healthDetails.PhysicalActivityLevel,
+                    DietPreference = healthDetails.DietPreference,
+                    FoodAllergies = healthDetails.FoodAllergies
+                };
+
+                var prediction = await _wellnessPredictionService.GetPredictionAsync(
+                    healthViewModel, 
+                    elderInfo.Age, 
+                    elderInfo.Gender
+                );
+
+                ViewBag.Prediction = prediction;
+
+                // Update stored predictions if successful
+                if (prediction.Success)
+                {
+                    var update = Builders<ElderHealthDetails>.Update
+                        .Set("PredictedDietRecommendation", prediction.DietRecommendation)
+                        .Set("PredictedDietPlan", prediction.DietPlan)
+                        .Set("PredictedHeartRisk", prediction.HeartRisk)
+                        .Set("LastPredictionDate", DateTime.UtcNow);
+                    await _elderHealthDetailsCollection.UpdateOneAsync(healthFilter, update);
+                }
             }
 
             return View();
@@ -912,7 +1023,8 @@ namespace ServConnect.Controllers
             }
 
             ViewBag.GuardianName = guardian?.FullName ?? "Not Assigned";
-            ViewBag.GuardianPhone = elderInfo.EmergencyPhone;
+            // Use guardian's current phone number from their profile
+            ViewBag.GuardianPhone = guardian?.PhoneNumber ?? elderInfo.EmergencyPhone;
             ViewBag.GuardianEmail = guardian?.Email ?? "N/A";
             ViewBag.ElderInfo = elderInfo;
 

@@ -16,6 +16,7 @@ namespace ServConnect.Controllers
         private readonly UserManager<Users> _userManager;
         private readonly IMongoCollection<ElderRequest> _elderRequestsCollection;
         private readonly IMongoCollection<ElderCareInfo> _elderCareInfoCollection;
+        private readonly IMongoCollection<ElderHealthDetails> _elderHealthDetailsCollection;
         private readonly INotificationService _notificationService;
 
         public GuardianController(
@@ -31,6 +32,7 @@ namespace ServConnect.Controllers
             var database = client.GetDatabase(databaseName);
             _elderRequestsCollection = database.GetCollection<ElderRequest>("ElderRequests");
             _elderCareInfoCollection = database.GetCollection<ElderCareInfo>("ElderCareInfo");
+            _elderHealthDetailsCollection = database.GetCollection<ElderHealthDetails>("ElderHealthDetails");
         }
 
         [HttpGet]
@@ -202,6 +204,7 @@ namespace ServConnect.Controllers
             var client = new MongoClient(config["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017");
             var database = client.GetDatabase(config["MongoDB:DatabaseName"] ?? "ServConnectDb");
             var checkInCollection = database.GetCollection<ElderCheckIn>("ElderCheckIns");
+            var healthDetailsCollection = database.GetCollection<ElderHealthDetails>("ElderHealthDetails");
 
             var elderMonitoringData = new List<ElderMonitorViewModel>();
 
@@ -213,6 +216,11 @@ namespace ServConnect.Controllers
                 var lastCheckIn = await checkInCollection.Find(
                     Builders<ElderCheckIn>.Filter.Eq("UserId", elder.UserId)
                 ).SortByDescending(c => c.CheckInTime).FirstOrDefaultAsync();
+
+                // Check if health details are filled
+                var healthDetailsFilled = await healthDetailsCollection.Find(
+                    Builders<ElderHealthDetails>.Filter.Eq("ElderUserId", elder.UserId)
+                ).AnyAsync();
 
                 // Determine status
                 var status = "Unknown";
@@ -249,7 +257,8 @@ namespace ServConnect.Controllers
                     Status = status,
                     StatusClass = statusClass,
                     MedicalConditions = elder.MedicalConditions ?? "None listed",
-                    BloodGroup = elder.BloodGroup ?? "N/A"
+                    BloodGroup = elder.BloodGroup ?? "N/A",
+                    HealthDetailsFilled = healthDetailsFilled
                 });
             }
 
@@ -611,6 +620,203 @@ namespace ServConnect.Controllers
 
             return Json(new { success = true, message = "Reminder deleted!" });
         }
+
+        // =============================================
+        // ELDER HEALTH DETAILS FOR WELLNESS PREDICTIONS
+        // =============================================
+        [HttpGet]
+        public async Task<IActionResult> ElderHealthDetails(string id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !currentUser.IsGuardian)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Verify this elder is assigned to this guardian
+            var elderFilter = Builders<ElderCareInfo>.Filter.And(
+                Builders<ElderCareInfo>.Filter.Eq("UserId", id),
+                Builders<ElderCareInfo>.Filter.Eq("GuardianUserId", currentUser.Id.ToString())
+            );
+            var elderInfo = await _elderCareInfoCollection.Find(elderFilter).FirstOrDefaultAsync();
+
+            if (elderInfo == null)
+            {
+                TempData["ErrorMessage"] = "You are not authorized to manage this elder's health details.";
+                return RedirectToAction(nameof(MonitoringDashboard));
+            }
+
+            var elderUser = await _userManager.FindByIdAsync(id);
+
+            // Check if health details already exist
+            var config = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var client = new MongoClient(config["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017");
+            var database = client.GetDatabase(config["MongoDB:DatabaseName"] ?? "ServConnectDb");
+            var healthCollection = database.GetCollection<ElderHealthDetails>("ElderHealthDetails");
+
+            var existingDetails = await healthCollection.Find(
+                Builders<ElderHealthDetails>.Filter.Eq("ElderUserId", id)
+            ).FirstOrDefaultAsync();
+
+            var viewModel = new ElderHealthDetailsViewModel
+            {
+                ElderId = id,
+                ElderName = elderInfo.FullName,
+                ElderAge = elderInfo.Age,
+                ElderGender = elderInfo.Gender
+            };
+
+            if (existingDetails != null)
+            {
+                viewModel.Height = existingDetails.Height;
+                viewModel.Weight = existingDetails.Weight;
+                viewModel.SystolicBP = existingDetails.SystolicBP;
+                viewModel.DiastolicBP = existingDetails.DiastolicBP;
+                viewModel.Cholesterol = existingDetails.Cholesterol;
+                viewModel.Triglycerides = existingDetails.Triglycerides;
+                viewModel.FamilyHistoryT2D = existingDetails.FamilyHistoryT2D;
+                viewModel.FamilyHistoryCVD = existingDetails.FamilyHistoryCVD;
+                viewModel.SleepHours = existingDetails.SleepHours;
+                viewModel.SleepQuality = existingDetails.SleepQuality;
+                viewModel.StressLevel = existingDetails.StressLevel;
+                viewModel.PhysicalActivityLevel = existingDetails.PhysicalActivityLevel;
+                viewModel.DietPreference = existingDetails.DietPreference;
+                viewModel.FoodAllergies = existingDetails.FoodAllergies;
+            }
+
+            ViewBag.IsEdit = existingDetails != null;
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ElderHealthDetails(ElderHealthDetailsViewModel model)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !currentUser.IsGuardian)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Verify guardian relationship
+            var elderFilter = Builders<ElderCareInfo>.Filter.And(
+                Builders<ElderCareInfo>.Filter.Eq("UserId", model.ElderId),
+                Builders<ElderCareInfo>.Filter.Eq("GuardianUserId", currentUser.Id.ToString())
+            );
+            var elderInfo = await _elderCareInfoCollection.Find(elderFilter).FirstOrDefaultAsync();
+
+            if (elderInfo == null)
+            {
+                TempData["ErrorMessage"] = "You are not authorized to manage this elder's health details.";
+                return RedirectToAction(nameof(MonitoringDashboard));
+            }
+
+            // Populate elder info for view
+            model.ElderName = elderInfo.FullName;
+            model.ElderAge = elderInfo.Age;
+            model.ElderGender = elderInfo.Gender;
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = true;
+                return View(model);
+            }
+
+            var config = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var client = new MongoClient(config["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017");
+            var database = client.GetDatabase(config["MongoDB:DatabaseName"] ?? "ServConnectDb");
+            var healthCollection = database.GetCollection<ElderHealthDetails>("ElderHealthDetails");
+
+            var existingFilter = Builders<ElderHealthDetails>.Filter.Eq("ElderUserId", model.ElderId);
+            var existingDetails = await healthCollection.Find(existingFilter).FirstOrDefaultAsync();
+
+            if (existingDetails != null)
+            {
+                // Update existing
+                var update = Builders<ElderHealthDetails>.Update
+                    .Set("Height", model.Height)
+                    .Set("Weight", model.Weight)
+                    .Set("SystolicBP", model.SystolicBP)
+                    .Set("DiastolicBP", model.DiastolicBP)
+                    .Set("Cholesterol", model.Cholesterol)
+                    .Set("Triglycerides", model.Triglycerides)
+                    .Set("FamilyHistoryT2D", model.FamilyHistoryT2D)
+                    .Set("FamilyHistoryCVD", model.FamilyHistoryCVD)
+                    .Set("SleepHours", model.SleepHours)
+                    .Set("SleepQuality", model.SleepQuality)
+                    .Set("StressLevel", model.StressLevel)
+                    .Set("PhysicalActivityLevel", model.PhysicalActivityLevel)
+                    .Set("DietPreference", model.DietPreference)
+                    .Set("FoodAllergies", model.FoodAllergies)
+                    .Set("UpdatedAt", DateTime.UtcNow);
+
+                await healthCollection.UpdateOneAsync(existingFilter, update);
+                TempData["SuccessMessage"] = "Health details updated successfully! AI recommendations will be refreshed.";
+            }
+            else
+            {
+                // Create new
+                var healthDetails = new ElderHealthDetails
+                {
+                    ElderUserId = model.ElderId,
+                    GuardianUserId = currentUser.Id.ToString(),
+                    Height = model.Height,
+                    Weight = model.Weight,
+                    SystolicBP = model.SystolicBP,
+                    DiastolicBP = model.DiastolicBP,
+                    Cholesterol = model.Cholesterol,
+                    Triglycerides = model.Triglycerides,
+                    FamilyHistoryT2D = model.FamilyHistoryT2D,
+                    FamilyHistoryCVD = model.FamilyHistoryCVD,
+                    SleepHours = model.SleepHours,
+                    SleepQuality = model.SleepQuality,
+                    StressLevel = model.StressLevel,
+                    PhysicalActivityLevel = model.PhysicalActivityLevel,
+                    DietPreference = model.DietPreference,
+                    FoodAllergies = model.FoodAllergies,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await healthCollection.InsertOneAsync(healthDetails);
+
+                // Notify elder
+                await _notificationService.CreateNotificationAsync(
+                    model.ElderId,
+                    "🏥 Health Details Updated",
+                    $"Your guardian {currentUser.FullName} has filled your health details. AI-powered wellness recommendations are now available!",
+                    NotificationType.General,
+                    null,
+                    "/ElderCare/WellnessTips"
+                );
+
+                TempData["SuccessMessage"] = "Health details saved successfully! Elder can now view AI-powered wellness recommendations.";
+            }
+
+            return RedirectToAction("ElderMonitor", new { id = model.ElderId });
+        }
+
+        // Check if health details are filled for an elder
+        [HttpGet]
+        public async Task<IActionResult> CheckHealthDetailsFilled(string elderId)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !currentUser.IsGuardian)
+            {
+                return Json(new { filled = false });
+            }
+
+            var config = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var client = new MongoClient(config["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017");
+            var database = client.GetDatabase(config["MongoDB:DatabaseName"] ?? "ServConnectDb");
+            var healthCollection = database.GetCollection<ElderHealthDetails>("ElderHealthDetails");
+
+            var exists = await healthCollection.Find(
+                Builders<ElderHealthDetails>.Filter.Eq("ElderUserId", elderId)
+            ).AnyAsync();
+
+            return Json(new { filled = exists });
+        }
     }
 
     // =============================================
@@ -628,6 +834,7 @@ namespace ServConnect.Controllers
         public string StatusClass { get; set; } = string.Empty;
         public string MedicalConditions { get; set; } = string.Empty;
         public string BloodGroup { get; set; } = string.Empty;
+        public bool HealthDetailsFilled { get; set; }
     }
 
     public class GuardianMessage

@@ -1,0 +1,136 @@
+================================================================================
+                    SOS SMS ALERT SETUP GUIDE
+                    Using MSG91 Flow API (DLT Compliant)
+================================================================================
+
+This guide explains how to set up the SMS alert feature for the Elder Care SOS
+functionality using MSG91's Flow API, which is DLT-compliant for India.
+
+================================================================================
+STEP 1: MSG91 ACCOUNT SETUP
+================================================================================
+
+1. Go to https://msg91.com and create an account
+2. Verify your mobile number and email
+3. Complete KYC verification (required for transactional SMS)
+4. Navigate to your dashboard and copy your Auth Key
+
+================================================================================
+STEP 2: DLT REGISTRATION (REQUIRED FOR INDIA)
+================================================================================
+
+Before creating a Flow, you MUST register your template with DLT:
+
+1. Register on DLT portal (https://www.vilpower.in or your telecom's portal)
+2. Register your entity (business)
+3. Register your sender ID (6 characters, e.g., "SOSALR")
+4. Register this EXACT SMS template:
+
+   "SOS ALERT! {#var#} needs help. Call: {#var#}. Blood: {#var#}. Time: {#var#}. Respond NOW! -ServConnect"
+
+5. Wait for DLT approval (usually 24-48 hours)
+6. Note down your DLT Template ID
+
+================================================================================
+STEP 3: CREATE MSG91 FLOW (CRITICAL STEP)
+================================================================================
+
+1. Login to MSG91 Dashboard: https://control.msg91.com
+2. Go to: SMS → Flows → Create New Flow
+3. Configure the Flow:
+   
+   - Flow Name: "SOS Alert Flow"
+   - Sender ID: Your DLT-registered sender (e.g., "SOSALR")
+   - Template: Use your DLT-approved template with these variables:
+   
+     "SOS ALERT! ##name## needs help. Call: ##phone##. Blood: ##blood##. Time: ##time##. Respond NOW! -ServConnect"
+
+4. Map the variables:
+   - ##name## → Elder's name
+   - ##phone## → Elder's phone number
+   - ##blood## → Blood group
+   - ##time## → Alert timestamp
+
+5. Save and activate the Flow
+6. Copy the Flow ID (shown in the Flow list)
+
+================================================================================
+STEP 4: CONFIGURE APPSETTINGS.JSON
+================================================================================
+
+Open backend/appsettings.json and update:
+
+{
+  "Msg91": {
+    "AuthKey": "YOUR_MSG91_AUTH_KEY",
+    "SenderId": "SOSALR",
+    "FlowId": "YOUR_FLOW_ID_HERE",
+    "OtpTemplateId": "",
+    "SimulateInDevelopment": false
+  }
+}
+
+IMPORTANT: 
+- FlowId is REQUIRED for SMS to work
+- SenderId must match your DLT-registered sender ID
+- Without FlowId, the API will return "template id missing" error
+
+================================================================================
+STEP 5: TESTING
+================================================================================
+
+1. For Development Testing:
+   - Set "SimulateInDevelopment": true
+   - Check console logs for simulated SMS content
+
+2. For Production Testing:
+   - Set "SimulateInDevelopment": false
+   - Ensure FlowId is configured
+   - Test with a real phone number
+   - Check MSG91 dashboard for delivery reports
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Error: "template id missing"
+→ FlowId is empty or not configured in appsettings.json
+
+Error: "Invalid sender"
+→ SenderId doesn't match DLT-registered sender
+
+Error: "Template not approved"
+→ Your DLT template is pending approval or rejected
+
+SMS not delivered:
+→ Check MSG91 dashboard → Reports for delivery status
+→ Verify phone number format (10 digits without country code)
+→ Ensure DLT template variables match exactly
+
+================================================================================
+MSG91 FLOW API FORMAT
+================================================================================
+
+The service sends requests in this format:
+
+POST https://control.msg91.com/api/v5/flow/
+Headers: authkey: YOUR_AUTH_KEY
+Body: {
+  "flow_id": "YOUR_FLOW_ID",
+  "sender": "SOSALR",
+  "mobiles": "919876543210",
+  "name": "Elder Name",
+  "phone": "+919744892805",
+  "blood": "A+",
+  "time": "06-Jan 10:30 AM"
+}
+
+================================================================================
+SUPPORT
+================================================================================
+
+MSG91 Documentation: https://docs.msg91.com/
+MSG91 Support: support@msg91.com
+DLT Portal: https://www.vilpower.in
+
+================================================================================

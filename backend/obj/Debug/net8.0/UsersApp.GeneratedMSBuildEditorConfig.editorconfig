@@ -9,415 +9,459 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = UsersApp
 build_property.RootNamespace = UsersApp
-build_property.ProjectDir = c:\Darklord\MCA_2024\S3\ServConnect\backend\
+build_property.ProjectDir = C:\Darklord\MCA_2024\S3\ServConnect\backend\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = c:\Darklord\MCA_2024\S3\ServConnect\backend
+build_property.MSBuildProjectDirectory = C:\Darklord\MCA_2024\S3\ServConnect\backend
 build_property._RazorSourceGeneratorDebug = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ChangePassword.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxDaGFuZ2VQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ElderCareRegistration.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ElderCareRegistration.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxFbGRlckNhcmVSZWdpc3RyYXRpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/FirebaseTest.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/FirebaseTest.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxGaXJlYmFzZVRlc3QuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ForgotPassword.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ForgotPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxGb3Jnb3RQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/Login.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/PendingApproval.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/PendingApproval.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxQZW5kaW5nQXBwcm92YWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/Profile.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/Profile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxQcm9maWxlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ProfileUpdate.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ProfileUpdate.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxQcm9maWxlVXBkYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/Register.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/Register.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ResetPassword.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/ResetPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZXNldFBhc3N3b3JkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/VerifyEmail.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Account/VerifyEmail.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxWZXJpZnlFbWFpbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/AdvertisementRequests.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/AdvertisementRequests.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQWR2ZXJ0aXNlbWVudFJlcXVlc3RzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Advertisements.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Advertisements.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQWR2ZXJ0aXNlbWVudHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/ComplaintDetails.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/ComplaintDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQ29tcGxhaW50RGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Complaints.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Complaints.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQ29tcGxhaW50cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/CreateAd.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/CreateAd.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQ3JlYXRlQWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Dashboard.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Revenue.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Revenue.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUmV2ZW51ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Services.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Services.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cU2VydmljZXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/UserDetails.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/UserDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cVXNlckRldGFpbHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Users.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/Users.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cVXNlcnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/VerifyUsers.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Admin/VerifyUsers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cVmVyaWZ5VXNlcnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Advertisements/My.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Advertisements/My.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWR2ZXJ0aXNlbWVudHNcTXkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Advertisements/Pay.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Advertisements/Pay.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWR2ZXJ0aXNlbWVudHNcUGF5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Advertisements/Status.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Advertisements/Status.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWR2ZXJ0aXNlbWVudHNcU3RhdHVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Advertisements/Submit.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Advertisements/Submit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWR2ZXJ0aXNlbWVudHNcU3VibWl0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Analytics/Index.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Analytics/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQW5hbHl0aWNzXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/BookingPayment/Pay.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/BookingPayment/Pay.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQm9va2luZ1BheW1lbnRcUGF5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Bookings/ProviderBookings.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Bookings/ProviderBookings.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQm9va2luZ3NcUHJvdmlkZXJCb29raW5ncy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Bookings/UserBookings.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Bookings/UserBookings.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQm9va2luZ3NcVXNlckJvb2tpbmdzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Conversation.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Conversation.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbXVuaXR5XENvbnZlcnNhdGlvbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Index.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbXVuaXR5XEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Messages.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Messages.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbXVuaXR5XE1lc3NhZ2VzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Notifications.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Notifications.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbXVuaXR5XE5vdGlmaWNhdGlvbnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Profile.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Profile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbXVuaXR5XFByb2ZpbGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Search.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Search.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbXVuaXR5XFNlYXJjaC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Settings.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Community/Settings.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbXVuaXR5XFNldHRpbmdzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Complaints/Create.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Complaints/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tcGxhaW50c1xDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Complaints/Details.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Complaints/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tcGxhaW50c1xEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Complaints/MyComplaints.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Complaints/MyComplaints.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tcGxhaW50c1xNeUNvbXBsYWludHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Complaints/ThankYou.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Complaints/ThankYou.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tcGxhaW50c1xUaGFua1lvdS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Confirm.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Confirm.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXENvbmZpcm0uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/DailyCheckIn.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/DailyCheckIn.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXERhaWx5Q2hlY2tJbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Dashboard.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXERhc2hib2FyZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/EditProfile.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/EditProfile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXEVkaXRQcm9maWxlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/EmergencySOS.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/EmergencySOS.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXEVtZXJnZW5jeVNPUy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/GuardianInfo.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/GuardianInfo.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXEd1YXJkaWFuSW5mby5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/MedicineReminders.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/MedicineReminders.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXE1lZGljaW5lUmVtaW5kZXJzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Messages.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Messages.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXE1lc3NhZ2VzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/News.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/News.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXE5ld3MuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Notes.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/Notes.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXE5vdGVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/ProfileSetup.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/ProfileSetup.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXFByb2ZpbGVTZXR1cC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/RequestPending.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/RequestPending.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXFJlcXVlc3RQZW5kaW5nLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/WellnessTips.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ElderCare/WellnessTips.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxkZXJDYXJlXFdlbGxuZXNzVGlwcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/Dashboard.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/Calendar.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXENhbGVuZGFyLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXEVkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/InitiatePayment.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXEluaXRpYXRlUGF5bWVudC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/MyTickets.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXE15VGlja2V0cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/OrganizerDashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXE9yZ2FuaXplckRhc2hib2FyZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/VerifyTickets.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXFZlcmlmeVRpY2tldHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Events/_EventCard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXF9FdmVudENhcmQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3VhcmRpYW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/EditElderProfile.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/EditElderProfile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3VhcmRpYW5cRWRpdEVsZGVyUHJvZmlsZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/ElderMonitor.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/ElderHealthDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3VhcmRpYW5cRWxkZXJIZWFsdGhEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/ElderMonitor.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3VhcmRpYW5cRWxkZXJNb25pdG9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/MonitoringDashboard.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/MonitoringDashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3VhcmRpYW5cTW9uaXRvcmluZ0Rhc2hib2FyZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/About.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/About.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBYm91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Cart.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Cart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDYXJ0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Contact.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Contact.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb250YWN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Dashboard.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxEYXNoYm9hcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/ExploreServices.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/ExploreServices.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxFeHBsb3JlU2VydmljZXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Index.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Items.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Items.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJdGVtcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Items_Enhanced.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Items_Enhanced.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJdGVtc19FbmhhbmNlZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/MyOrders.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/MyOrders.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxNeU9yZGVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/MyOrders_Enhanced.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/MyOrders_Enhanced.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxNeU9yZGVyc19FbmhhbmNlZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/News.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/News.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxOZXdzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Privacy.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/ProductDetails.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/ProductDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcm9kdWN0RGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LocalDirectory/Browse.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LocalDirectory/Browse.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9jYWxEaXJlY3RvcnlcQnJvd3NlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LocalDirectory/Discover.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LocalDirectory/Discover.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9jYWxEaXJlY3RvcnlcRGlzY292ZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LocalDirectory/Manage.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LocalDirectory/Manage.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9jYWxEaXJlY3RvcnlcTWFuYWdlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Notifications/Index.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Notifications/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/AddProperty.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/AddProperty.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXEFkZFByb3BlcnR5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/Details.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXERldGFpbHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/EditProperty.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/EditProperty.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXEVkaXRQcm9wZXJ0eS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/HouseRentals.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/HouseRentals.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXEhvdXNlUmVudGFscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/ManageListings.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/ManageListings.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXE1hbmFnZUxpc3RpbmdzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/MyQueries.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/MyQueries.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXE15UXVlcmllcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/PropertyDetails.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Rental/PropertyDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsXFByb3BlcnR5RGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ServicePayment/Pay.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ServicePayment/Pay.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VydmljZVBheW1lbnRcUGF5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ServiceProvider/Dashboard.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ServiceProvider/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VydmljZVByb3ZpZGVyXERhc2hib2FyZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ServiceProvider/Services.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/ServiceProvider/Services.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VydmljZVByb3ZpZGVyXFNlcnZpY2VzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Services/Browse.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Services/Browse.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VydmljZXNcQnJvd3NlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Services/Manage.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Services/Manage.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VydmljZXNcTWFuYWdlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Services/Providers.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Services/Providers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VydmljZXNcUHJvdmlkZXJzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/Components/AdvertisementBanner/Default.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/Components/AdvertisementBanner/Default.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcQWR2ZXJ0aXNlbWVudEJhbm5lclxEZWZhdWx0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/Components/HeroAdvertisement/Default.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/Components/HeroAdvertisement/Default.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcSGVyb0FkdmVydGlzZW1lbnRcRGVmYXVsdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/Error.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/_AccountLayout.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/_AccountLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9BY2NvdW50TGF5b3V0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/_LoginPartial.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/_LoginPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Mb2dpblBhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/_ValidationScriptsPartial.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Dashboard.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmVuZG9yXERhc2hib2FyZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Orders.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Orders.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmVuZG9yXE9yZGVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Orders_Enhanced.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Orders_Enhanced.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmVuZG9yXE9yZGVyc19FbmhhbmNlZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Products.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Products.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmVuZG9yXFByb2R1Y3RzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/_ViewImports.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/_ViewStart.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/_Layout.cshtml]
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-u2gqdt77cr

@@ -480,6 +480,22 @@
                             <span class="status-badge @elder.StatusClass">@elder.Status</span>
                         </div>
                         <div class="elder-card-body">
+                            @if (!elder.HealthDetailsFilled)
+                            {
+                                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; border-radius: 0 8px 8px 0; margin-bottom: 15px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span style="font-size: 1.2rem;">⚠️</span>
+                                        <div>
+                                            <strong style="color: #856404;">@(isMalayalam ? "ആരോഗ്യ വിവരങ്ങൾ പൂരിപ്പിക്കുക" : "Health Details Required")</strong>
+                                            <div style="font-size: 0.85rem; color: #856404;">
+                                                <a href="@Url.Action("ElderHealthDetails", "Guardian", new { id = elder.UserId })" style="color: #856404; text-decoration: underline;">
+                                                    @(isMalayalam ? "AI ശുപാർശകൾക്കായി ഇവിടെ ക്ലിക്ക് ചെയ്യുക" : "Click here for AI recommendations")
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                             <div class="check-in-info">
                                 <span class="icon">🕐</span>
                                 <div class="details">
@@ -506,6 +522,12 @@
                             <a href="@Url.Action("ElderMonitor", "Guardian", new { id = elder.UserId })" class="action-btn action-btn-primary">
                                 <i class="fas fa-eye"></i> @(isMalayalam ? "വിശദമായി കാണുക" : "View Details")
                             </a>
+                            @if (!elder.HealthDetailsFilled)
+                            {
+                                <a href="@Url.Action("ElderHealthDetails", "Guardian", new { id = elder.UserId })" class="action-btn" style="background: #ffc107; color: #333;">
+                                    <i class="fas fa-heartbeat"></i> @(isMalayalam ? "ആരോഗ്യം" : "Health")
+                                </a>
+                            }
                             <a href="tel:@elder.Phone" class="action-btn action-btn-secondary">
                                 <i class="fas fa-phone"></i> @(isMalayalam ? "വിളിക്കുക" : "Call")
                             </a>

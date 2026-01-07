@@ -180,8 +180,28 @@
     
     /* Check-in History */
     .checkin-list {
-        max-height: 400px;
+        height: 300px;
+        max-height: 300px;
         overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+    
+    .checkin-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .checkin-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .checkin-list::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .checkin-list::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
     }
     
     .checkin-item {
@@ -217,8 +237,28 @@
     
     /* Medicine Reminders */
     .reminder-list {
-        max-height: 300px;
+        height: 250px;
+        max-height: 250px;
         overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+    
+    .reminder-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .reminder-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .reminder-list::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .reminder-list::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
     }
     
     .reminder-item {
@@ -298,12 +338,34 @@
     
     /* Messaging */
     .messages-container {
-        max-height: 350px;
+        height: 300px;
+        max-height: 300px;
         overflow-y: auto;
         padding: 15px;
         background: #f8f9fa;
         border-radius: 10px;
         margin-bottom: 15px;
+        scroll-behavior: smooth;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .messages-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .messages-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .messages-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .messages-container::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
     }
     
     .message-bubble {
@@ -428,6 +490,10 @@
             </div>
         </div>
         <div class="quick-actions">
+            <a href="@Url.Action("ElderHealthDetails", "Guardian", new { id = elderInfo?.UserId })" class="quick-btn" style="background: #8b5cf6; color: white;">
+                <i class="fas fa-heartbeat"></i>
+                @(isMalayalam ? "ആരോഗ്യ വിവരങ്ങൾ" : "Health Details")
+            </a>
             <a href="@Url.Action("EditElderProfile", "Guardian", new { id = elderInfo?.UserId })" class="quick-btn" style="background: #3b82f6; color: white;">
                 <i class="fas fa-user-edit"></i>
                 @(isMalayalam ? "എഡിറ്റ് ചെയ്യുക" : "Edit Profile")
@@ -489,7 +555,7 @@
                 <div class="panel-body">
                     @if (checkIns.Any())
                     {
-                        <div class="checkin-list">
+                        <div class="checkin-list" id="checkinList">
                             @foreach (var checkIn in checkIns)
                             {
                                 var moodEmoji = checkIn.Mood switch
@@ -535,7 +601,7 @@
                     </button>
                 </div>
                 <div class="panel-body">
-                    <div class="reminder-list">
+                    <div class="reminder-list" id="reminderList">
                         @if (reminders.Any())
                         {
                             @foreach (var reminder in reminders)
@@ -821,10 +887,25 @@
             if (e.key === 'Enter') sendMessage();
         });
         
-        // Scroll to bottom of messages
+        // Scroll containers to show latest content on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const container = document.getElementById('messagesContainer');
-            container.scrollTop = container.scrollHeight;
+            // Messages - scroll to bottom (latest messages at bottom)
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            // Check-ins - scroll to top (latest check-ins at top, already sorted descending)
+            const checkinList = document.getElementById('checkinList');
+            if (checkinList) {
+                checkinList.scrollTop = 0;
+            }
+            
+            // Reminders - scroll to top (show first reminders)
+            const reminderList = document.getElementById('reminderList');
+            if (reminderList) {
+                reminderList.scrollTop = 0;
+            }
         });
     </script>
     @Html.AntiForgeryToken()

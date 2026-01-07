@@ -553,3 +553,4 @@ C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\staticwebassets\msb
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.UsersApp.props
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.UsersApp.props
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\staticwebassets.pack.json
+C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\ML\venv\Lib\site-packages\scipy\stats\tests\data\studentized_range_mpmath_ref.json

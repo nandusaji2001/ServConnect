@@ -1,0 +1,243 @@
+@{
+    ViewData["Title"] = "Complete Payment";
+    var evt = ViewBag.Event as ServConnect.Models.Event;
+    var quantity = (int)ViewBag.Quantity;
+    var totalAmount = (decimal)ViewBag.TotalAmount;
+    var razorpayKeyId = ViewBag.RazorpayKeyId as string;
+    var userName = ViewBag.UserName as string;
+    var userEmail = ViewBag.UserEmail as string;
+    var userPhone = ViewBag.UserPhone as string;
+    var isAdditional = ViewBag.IsAdditional as bool? ?? false;
+    var ticketId = ViewBag.TicketId as string ?? "";
+    var existingQuantity = ViewBag.ExistingQuantity as int? ?? 0;
+}
+
+<style>
+    .payment-container { max-width: 600px; margin: 0 auto; padding: 24px 16px; }
+    
+    @@media (max-width: 768px) {
+        .payment-container { padding: 16px 12px; }
+    }
+    
+    .payment-card {
+        background: white; border-radius: 16px; padding: 32px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .payment-header { text-align: center; margin-bottom: 32px; }
+    
+    .payment-header h1 {
+        font-size: 1.8rem; font-weight: 700; color: #1f2937; margin-bottom: 8px;
+    }
+    
+    .payment-header p { color: #6b7280; }
+    
+    .event-summary {
+        background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px;
+    }
+    
+    .event-summary h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 12px; }
+    
+    .summary-row {
+        display: flex; justify-content: space-between; padding: 8px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .summary-row:last-child { border-bottom: none; }
+    
+    .summary-row .label { color: #6b7280; }
+    .summary-row .value { font-weight: 600; color: #1f2937; }
+    
+    .total-row {
+        display: flex; justify-content: space-between; padding: 16px 0;
+        margin-top: 12px; border-top: 2px solid #10B981;
+    }
+    
+    .total-row .label { font-size: 1.1rem; font-weight: 600; }
+    .total-row .value { font-size: 1.5rem; font-weight: 700; color: #10B981; }
+    
+    .btn-pay {
+        width: 100%; padding: 16px; border-radius: 12px;
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white; font-weight: 600; font-size: 1.1rem;
+        border: none; cursor: pointer; transition: all 0.3s;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    
+    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16,185,129,0.3); }
+    
+    .secure-badge {
+        display: flex; align-items: center; justify-content: center;
+        gap: 8px; margin-top: 16px; color: #6b7280; font-size: 0.9rem;
+    }
+    
+    .secure-badge i { color: #10B981; }
+</style>
+
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-header">
+            <h1><i class="fas fa-ticket-alt me-2" style="color:#10B981"></i>@(isAdditional ? "Add More Tickets" : "Complete Your Booking")</h1>
+            <p>Secure payment powered by Razorpay</p>
+        </div>
+
+        <div class="event-summary">
+            <h3>@evt?.Title</h3>
+            <div class="summary-row">
+                <span class="label">Date</span>
+                <span class="value">@evt?.StartDateTime.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</span>
+            </div>
+            <div class="summary-row">
+                <span class="label">Venue</span>
+                <span class="value">@evt?.Venue</span>
+            </div>
+            @if (isAdditional)
+            {
+                <div class="summary-row">
+                    <span class="label">Existing Tickets</span>
+                    <span class="value">@existingQuantity</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Additional Tickets</span>
+                    <span class="value">+@quantity × ₹@evt?.TicketPrice</span>
+                </div>
+            }
+            else
+            {
+                <div class="summary-row">
+                    <span class="label">Tickets</span>
+                    <span class="value">@quantity × ₹@evt?.TicketPrice</span>
+                </div>
+            }
+            <div class="total-row">
+                <span class="label">Total Amount</span>
+                <span class="value">₹@totalAmount</span>
+            </div>
+        </div>
+
+        <button id="payBtn" class="btn-pay" onclick="initiatePayment()">
+            <i class="fas fa-lock"></i> Pay ₹@totalAmount
+        </button>
+
+        <div class="secure-badge">
+            <i class="fas fa-shield-alt"></i>
+            <span>100% Secure Payment</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    const isAdditional = @(isAdditional ? "true" : "false");
+    const ticketId = '@ticketId';
+    const additionalQty = @quantity;
+    const eventId = '@evt?.Id';
+    
+    console.log('Payment page loaded. isAdditional:', isAdditional, 'ticketId:', ticketId, 'quantity:', additionalQty, 'eventId:', eventId);
+    
+    function initiatePayment() {
+        const options = {
+            key: '@razorpayKeyId',
+            amount: @((int)(totalAmount * 100)),
+            currency: 'INR',
+            name: 'ServConnect Events',
+            description: '@evt?.Title - @quantity Ticket(s)',
+            image: '/images/logo.png',
+            handler: async function(response) {
+                console.log('Razorpay response:', response);
+                
+                // Show processing message
+                document.getElementById('payBtn').disabled = true;
+                document.getElementById('payBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                // Send payment confirmation to server using form data
+                const formData = new FormData();
+                formData.append('eventId', eventId);
+                formData.append('razorpayPaymentId', response.razorpay_payment_id);
+                formData.append('razorpayOrderId', response.razorpay_order_id || '');
+                
+                let confirmUrl;
+                if (isAdditional) {
+                    formData.append('ticketId', ticketId);
+                    formData.append('additionalQuantity', String(additionalQty));
+                    confirmUrl = '@Url.Action("ConfirmPaymentAdditional", "Events")';
+                    console.log('Sending additional ticket payment. ticketId:', ticketId, 'qty:', additionalQty);
+                } else {
+                    formData.append('quantity', String(additionalQty));
+                    confirmUrl = '@Url.Action("ConfirmPayment", "Events")';
+                }
+                
+                console.log('Confirm URL:', confirmUrl);
+                console.log('Form data entries:');
+                for (let [key, value] of formData.entries()) {
+                    console.log('  ' + key + ':', value);
+                }
+                
+                try {
+                    const result = await fetch(confirmUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    console.log('Response status:', result.status);
+                    const responseText = await result.text();
+                    console.log('Raw response:', responseText);
+                    
+                    let data;
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (parseErr) {
+                        console.error('JSON parse error:', parseErr);
+                        alert('Server returned invalid response. Check console for details.');
+                        document.getElementById('payBtn').disabled = false;
+                        document.getElementById('payBtn').innerHTML = '<i class="fas fa-lock"></i> Pay ₹@totalAmount';
+                        return;
+                    }
+                    
+                    console.log('Parsed response data:', data);
+                    
+                    if (data.success) {
+                        if (isAdditional) {
+                            alert('Payment successful! Added ' + (data.additionalQuantity || additionalQty) + ' more ticket(s). Redirecting...');
+                            window.location.href = '/Events/Details/' + eventId;
+                        } else {
+                            alert('Payment successful! Your ticket code: ' + data.ticketCode + '. Redirecting...');
+                            window.location.href = '/Events/MyTickets';
+                        }
+                    } else {
+                        alert(data.message || 'Payment verification failed. Please contact support.');
+                        document.getElementById('payBtn').disabled = false;
+                        document.getElementById('payBtn').innerHTML = '<i class="fas fa-lock"></i> Pay ₹@totalAmount';
+                    }
+                } catch (err) {
+                    console.error('Fetch error:', err);
+                    alert('Error processing payment: ' + err.message);
+                    document.getElementById('payBtn').disabled = false;
+                    document.getElementById('payBtn').innerHTML = '<i class="fas fa-lock"></i> Pay ₹@totalAmount';
+                }
+            },
+            prefill: {
+                name: '@userName',
+                email: '@userEmail',
+                contact: '@userPhone'
+            },
+            theme: {
+                color: '#10B981'
+            },
+            modal: {
+                ondismiss: function() {
+                    console.log('Payment cancelled by user');
+                }
+            }
+        };
+        
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(response) {
+            console.error('Payment failed:', response.error);
+            alert('Payment failed: ' + response.error.description);
+        });
+        rzp.open();
+    }
+</script>
+}

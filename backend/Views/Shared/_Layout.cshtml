@@ -207,17 +207,168 @@
     <!-- OTP Notification System -->
     <script>
         let otpNotificationsVisible = false;
+        let eventNotificationsVisible = false;
         
-        // Check for active OTPs on page load (only for users)
+        // Check for notifications on page load (only for users)
         document.addEventListener('DOMContentLoaded', function() {
             const isAuthenticated = document.body.getAttribute('data-authed') === 'true';
             if (isAuthenticated) {
                 checkActiveOtps();
-                // Check every 30 seconds for new OTPs
+                checkEventNotifications();
+                // Check every 30 seconds for updates
                 setInterval(checkActiveOtps, 30000);
+                setInterval(checkEventNotifications, 30000);
             }
         });
         
+        // Event Notifications
+        async function checkEventNotifications() {
+            try {
+                const response = await fetch('/api/notifications');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateEventNotifications(data.notifications, data.unreadCount);
+                }
+            } catch (error) {
+                console.error('Failed to check notifications:', error);
+            }
+        }
+        
+        function updateEventNotifications(notifications, unreadCount) {
+            const badge = document.getElementById('eventNotificationBadge');
+            const list = document.getElementById('eventNotificationsList');
+            
+            if (!badge || !list) return;
+            
+            if (unreadCount > 0) {
+                badge.style.display = 'block';
+                badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+            } else {
+                badge.style.display = 'none';
+            }
+            
+            if (notifications.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-bell-slash mb-2" style="font-size: 2rem;"></i>
+                        <p class="mb-0">No notifications yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = notifications.map(n => {
+                const timeAgo = getTimeAgo(new Date(n.createdAt));
+                const isUnread = !n.isRead;
+                const bgClass = isUnread ? 'bg-light' : '';
+                
+                let icon = 'fa-info-circle text-info';
+                let borderColor = '#17a2b8';
+                if (n.type === 4 || n.type === 'EventCancelled') { // EventCancelled
+                    icon = 'fa-calendar-times text-danger';
+                    borderColor = '#dc3545';
+                } else if (n.type === 5 || n.type === 'RefundInitiated') {
+                    icon = 'fa-money-bill-wave text-warning';
+                    borderColor = '#ffc107';
+                } else if (n.type === 6 || n.type === 'RefundCompleted') {
+                    icon = 'fa-check-circle text-success';
+                    borderColor = '#28a745';
+                }
+                
+                let refundHtml = '';
+                if (n.refundAmount && n.refundAmount > 0) {
+                    refundHtml = `
+                        <div class="mt-2 p-2 rounded" style="background: #fff3cd;">
+                            <small class="text-dark">
+                                <i class="fas fa-rupee-sign me-1"></i>Refund: ₹${n.refundAmount}
+                                <span class="badge bg-warning text-dark ms-1">${n.refundStatus || 'Processing'}</span>
+                            </small>
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="notification-item p-3 border-bottom ${bgClass}" style="border-left: 3px solid ${borderColor}; cursor: pointer;" 
+                         onclick="handleNotificationClick('${n.id}', '${n.actionUrl || ''}')">
+                        <div class="d-flex align-items-start">
+                            <div class="me-3">
+                                <i class="fas ${icon}" style="font-size: 1.3rem;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <strong class="text-dark">${n.title}</strong>
+                                    ${isUnread ? '<span class="badge bg-primary" style="font-size: 0.6rem;">NEW</span>' : ''}
+                                </div>
+                                <p class="mb-1 small text-muted">${n.message}</p>
+                                ${refundHtml}
+                                <small class="text-muted"><i class="fas fa-clock me-1"></i>${timeAgo}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function toggleEventNotifications(event) {
+            if (event) event.stopPropagation();
+            const dropdown = document.getElementById('eventNotificationsDropdown');
+            if (!dropdown) return;
+            
+            eventNotificationsVisible = !eventNotificationsVisible;
+            dropdown.style.display = eventNotificationsVisible ? 'block' : 'none';
+            
+            if (eventNotificationsVisible) {
+                checkEventNotifications();
+                document.addEventListener('click', closeEventNotificationsOnOutsideClick);
+            } else {
+                document.removeEventListener('click', closeEventNotificationsOnOutsideClick);
+            }
+        }
+        
+        function closeEventNotificationsOnOutsideClick(event) {
+            const dropdown = document.getElementById('eventNotificationsDropdown');
+            const bell = document.getElementById('eventNotificationBell');
+            
+            if (dropdown && bell && !dropdown.contains(event.target) && !bell.contains(event.target)) {
+                dropdown.style.display = 'none';
+                eventNotificationsVisible = false;
+                document.removeEventListener('click', closeEventNotificationsOnOutsideClick);
+            }
+        }
+        
+        async function handleNotificationClick(notificationId, actionUrl) {
+            // Mark as read
+            try {
+                await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+                checkEventNotifications();
+            } catch (e) { console.error(e); }
+            
+            // Navigate if URL provided
+            if (actionUrl) {
+                window.location.href = actionUrl;
+            }
+        }
+        
+        async function markAllNotificationsRead() {
+            try {
+                await fetch('/api/notifications/read-all', { method: 'POST' });
+                checkEventNotifications();
+            } catch (e) { console.error(e); }
+        }
+        
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'Just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString();
+        }
+        
+        // OTP Notifications (existing)
         async function checkActiveOtps() {
             try {
                 const response = await fetch('/api/bookings/active-otps');
@@ -231,74 +382,16 @@
         }
         
         function updateOtpNotifications(otps) {
-            const badge = document.getElementById('otpNotificationBadge');
-            const count = document.getElementById('otpNotificationCount');
-            const list = document.getElementById('otpNotificationsList');
-            
-            if (!badge || !count || !list) return;
-            
-            if (otps.length > 0) {
-                badge.style.display = 'block';
-                badge.textContent = otps.length;
-                count.textContent = `${otps.length} active`;
-                
-                list.innerHTML = otps.map(otp => `
-                    <div class="dropdown-item border-bottom">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="fw-semibold text-primary">${otp.serviceName}</div>
-                                <div class="small text-muted">by ${otp.providerName}</div>
-                                <div class="mt-1">
-                                    <span class="badge bg-success fs-6">${otp.otpCode}</span>
-                                </div>
-                            </div>
-                            <div class="text-end">
-                                <small class="text-muted">
-                                    ${Math.max(0, Math.floor(otp.timeRemaining))} min left
-                                </small>
-                            </div>
-                        </div>
-                        <div class="small text-info mt-1">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Share this code with your service provider to start the service
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                badge.style.display = 'none';
-                count.textContent = '0 active';
-                list.innerHTML = `
-                    <div class="dropdown-item-text text-center text-muted py-3">
-                        <i class="fas fa-info-circle me-1"></i>No active service codes
-                    </div>
-                `;
-            }
+            // OTP notifications are now merged into the main notification bell
+            // This function is kept for backward compatibility
         }
         
         function toggleOtpNotifications() {
-            const dropdown = document.getElementById('otpNotificationsDropdown');
-            if (!dropdown) return;
-            
-            otpNotificationsVisible = !otpNotificationsVisible;
-            dropdown.style.display = otpNotificationsVisible ? 'block' : 'none';
-            
-            // Close when clicking outside
-            if (otpNotificationsVisible) {
-                document.addEventListener('click', closeOtpNotificationsOnOutsideClick);
-            } else {
-                document.removeEventListener('click', closeOtpNotificationsOnOutsideClick);
-            }
+            // Deprecated - now using unified notification system
         }
         
         function closeOtpNotificationsOnOutsideClick(event) {
-            const dropdown = document.getElementById('otpNotificationsDropdown');
-            const bell = document.getElementById('otpNotificationBell');
-            
-            if (dropdown && bell && !dropdown.contains(event.target) && !bell.contains(event.target)) {
-                dropdown.style.display = 'none';
-                otpNotificationsVisible = false;
-                document.removeEventListener('click', closeOtpNotificationsOnOutsideClick);
-            }
+            // Deprecated
         }
     </script>
     

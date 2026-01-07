@@ -107,7 +107,7 @@ builder.Services.AddScoped<DatabaseSeeder>();
 builder.Services.AddScoped<ServConnect.Filters.RequireApprovedUserFilter>();
 builder.Services.AddScoped<ServConnect.Filters.RequireApprovedUserApiFilter>();
 // Register custom services
-builder.Services.AddHttpClient<Fast2SmsOtpService>();
+builder.Services.AddHttpClient<Msg91SmsService>();
 builder.Services.AddHttpClient<NewsService>();
 builder.Services.AddHttpClient<TranslationService>()
     .ConfigureHttpClient(client => 
@@ -116,7 +116,7 @@ builder.Services.AddHttpClient<TranslationService>()
     });
 builder.Services.AddHttpClient<PexelsImageService>();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<ISmsService, Fast2SmsOtpService>();
+builder.Services.AddScoped<ISmsService, Msg91SmsService>();
 builder.Services.AddScoped<INewsService, NewsService>();
 builder.Services.AddScoped<ITranslationService, TranslationService>();
 builder.Services.AddScoped<IPexelsImageService, PexelsImageService>();
@@ -170,6 +170,8 @@ builder.Services.AddScoped<IRentalPropertyService, RentalPropertyService>();
 builder.Services.AddScoped<IRentalSubscriptionService, RentalSubscriptionService>();
 // Rental query service for user-owner messaging
 builder.Services.AddScoped<IRentalQueryService, RentalQueryService>();
+// Wellness prediction service for elder care AI recommendations
+builder.Services.AddScoped<IWellnessPredictionService, WellnessPredictionService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

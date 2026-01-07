@@ -1,0 +1,132 @@
+@model ServConnect.ViewModels.EventCalendarViewModel
+@{
+    ViewData["Title"] = "Event Calendar";
+    var monthNames = new[] { "", "January", "February", "March", "April", "May", "June", 
+                             "July", "August", "September", "October", "November", "December" };
+}
+
+<style>
+    .calendar-container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    
+    .calendar-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
+    }
+    
+    .calendar-header h1 {
+        font-size: 2rem; font-weight: 700; color: #1f2937;
+        display: flex; align-items: center; gap: 12px;
+    }
+    
+    .calendar-header h1 i { color: #10B981; }
+    
+    .month-nav {
+        display: flex; align-items: center; gap: 16px;
+    }
+    
+    .month-nav .btn { padding: 10px 16px; }
+    
+    .month-nav h2 { font-size: 1.4rem; font-weight: 600; min-width: 180px; text-align: center; }
+    
+    .calendar-card {
+        background: white; border-radius: 16px; padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    #calendar { min-height: 600px; }
+    
+    .legend {
+        display: flex; gap: 24px; margin-top: 20px; padding-top: 20px;
+        border-top: 1px solid #e5e7eb; flex-wrap: wrap;
+    }
+    
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+    
+    .legend-dot {
+        width: 12px; height: 12px; border-radius: 50%;
+    }
+    
+    .legend-dot.all { background: #10B981; }
+    .legend-dot.my { background: #3B82F6; }
+    
+    .fc-event { cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+    .fc-event-title { font-weight: 500; }
+</style>
+
+<div class="calendar-container">
+    <div class="calendar-header">
+        <h1><i class="fas fa-calendar-alt"></i> Event Calendar</h1>
+        <div>
+            <a href="@Url.Action("Index", "Events")" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-list me-2"></i>List View
+            </a>
+            <a href="@Url.Action("Create", "Events")" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Create Event
+            </a>
+        </div>
+    </div>
+
+    <div class="calendar-card">
+        <div class="month-nav">
+            @{
+                var prevMonth = Model.Month == 1 ? 12 : Model.Month - 1;
+                var prevYear = Model.Month == 1 ? Model.Year - 1 : Model.Year;
+                var nextMonth = Model.Month == 12 ? 1 : Model.Month + 1;
+                var nextYear = Model.Month == 12 ? Model.Year + 1 : Model.Year;
+            }
+            <a href="@Url.Action("Calendar", "Events", new { month = prevMonth, year = prevYear })" class="btn btn-outline-secondary">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <h2>@monthNames[Model.Month] @Model.Year</h2>
+            <a href="@Url.Action("Calendar", "Events", new { month = nextMonth, year = nextYear })" class="btn btn-outline-secondary">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+        <div id="calendar"></div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <span class="legend-dot all"></span>
+                <span>All Events</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot my"></span>
+                <span>My Tickets</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            initialDate: '@Model.Year-@Model.Month.ToString("D2")-01',
+            headerToolbar: false,
+            events: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Events.Select(e => new {
+                id = e.Id,
+                title = e.Title,
+                start = e.Start.ToString("yyyy-MM-ddTHH:mm:ss"),
+                end = e.End.ToString("yyyy-MM-ddTHH:mm:ss"),
+                color = e.Color,
+                url = e.Url
+            }))),
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                if (info.event.url) {
+                    window.location.href = info.event.url;
+                }
+            },
+            eventDidMount: function(info) {
+                info.el.title = info.event.title;
+            }
+        });
+        calendar.render();
+    });
+</script>
+}
