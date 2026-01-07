@@ -14,9 +14,12 @@ services:
       # Content Moderation ML API
       - ContentModeration__ApiUrl=http://ml-api:5050
       - ContentModeration__Threshold=0.7
+      # Wellness Prediction API
+      - WellnessApi__BaseUrl=http://wellness-api:5002
     depends_on:
       - mongodb
       - ml-api
+      - wellness-api
     networks:
       - servconnect-network
 
@@ -26,6 +29,20 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5050:5050"
+    networks:
+      - servconnect-network
+
+  wellness-api:
+    build:
+      context: ./backend/ML
+      dockerfile: Dockerfile.wellness
+    ports:
+      - "5002:5002"
+    environment:
+      - WELLNESS_API_PORT=5002
+    volumes:
+      - ./backend/ML/Data:/app/Data:ro
+      - wellness_models:/app/models
     networks:
       - servconnect-network
 
@@ -46,6 +63,7 @@ services:
 
 volumes:
   mongodb_data:
+  wellness_models:
 
 networks:
   servconnect-network:

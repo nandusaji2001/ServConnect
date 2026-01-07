@@ -1,0 +1,471 @@
+@model ServConnect.ViewModels.ElderHealthDetailsViewModel
+@{
+    ViewData["Title"] = "Elder Health Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+}
+
+<style>
+    .health-form-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .form-header h1 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+    
+    .form-header p {
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .elder-info-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .elder-avatar {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .elder-details h3 {
+        margin: 0 0 5px 0;
+        color: #333;
+    }
+    
+    .elder-details p {
+        margin: 0;
+        color: #666;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+    
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.2rem;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    
+    .section-title .icon {
+        font-size: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 10px;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .bmi-display {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 10px;
+    }
+    
+    .bmi-display .label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .bmi-display .value {
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+    
+    .bmi-display .category {
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
+    
+    .form-check {
+        padding: 12px 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .form-check-label {
+        margin-left: 8px;
+        cursor: pointer;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.1rem;
+        border-radius: 12px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-cancel {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 15px 40px;
+        font-size: 1.1rem;
+        border-radius: 12px;
+        color: #666;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-cancel:hover {
+        background: #e9ecef;
+        color: #333;
+    }
+    
+    .info-note {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        border-radius: 0 10px 10px 0;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+        color: #1565c0;
+    }
+    
+    .validation-error {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
+    
+    .range-hint {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 4px;
+    }
+</style>
+
+<div class="health-form-container">
+    <div class="form-header">
+        <h1>🏥 @(isEdit ? "Update" : "Fill") Elder Health Details</h1>
+        <p>This information will be used to generate AI-powered wellness recommendations</p>
+    </div>
+    
+    <div class="elder-info-card">
+        <div class="elder-avatar">👴</div>
+        <div class="elder-details">
+            <h3>@Model.ElderName</h3>
+            <p>Age: @Model.ElderAge years | Gender: @Model.ElderGender</p>
+        </div>
+    </div>
+    
+    <div class="info-note">
+        <strong>ℹ️ Important:</strong> Please fill in accurate health information. This data will be used by our AI system to provide personalized diet plans, exercise recommendations, and heart risk assessment for the elder.
+    </div>
+    
+    <form asp-action="ElderHealthDetails" method="post">
+        <input type="hidden" asp-for="ElderId" />
+        <input type="hidden" asp-for="ElderName" />
+        <input type="hidden" asp-for="ElderAge" />
+        <input type="hidden" asp-for="ElderGender" />
+        
+        <!-- Physical Measurements -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="icon">📏</span>
+                Physical Measurements
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="Height" class="form-label">Height (cm) *</label>
+                        <input asp-for="Height" class="form-control" type="number" step="0.1" min="100" max="250" placeholder="e.g., 165" />
+                        <span asp-validation-for="Height" class="validation-error"></span>
+                        <div class="range-hint">Range: 100-250 cm</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="Weight" class="form-label">Weight (kg) *</label>
+                        <input asp-for="Weight" class="form-control" type="number" step="0.1" min="30" max="200" placeholder="e.g., 70" />
+                        <span asp-validation-for="Weight" class="validation-error"></span>
+                        <div class="range-hint">Range: 30-200 kg</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label">BMI (Auto-calculated)</label>
+                        <div class="bmi-display" id="bmiDisplay">
+                            <div class="label">Body Mass Index</div>
+                            <div class="value" id="bmiValue">--</div>
+                            <div class="category" id="bmiCategory">Enter height & weight</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Blood Pressure & Blood Work -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="icon">🩸</span>
+                Blood Pressure & Blood Work
+            </div>
+            
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="SystolicBP" class="form-label">Systolic BP *</label>
+                        <input asp-for="SystolicBP" class="form-control" type="number" min="70" max="250" placeholder="e.g., 120" />
+                        <span asp-validation-for="SystolicBP" class="validation-error"></span>
+                        <div class="range-hint">Normal: 90-120 mmHg</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="DiastolicBP" class="form-label">Diastolic BP *</label>
+                        <input asp-for="DiastolicBP" class="form-control" type="number" min="40" max="150" placeholder="e.g., 80" />
+                        <span asp-validation-for="DiastolicBP" class="validation-error"></span>
+                        <div class="range-hint">Normal: 60-80 mmHg</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="Cholesterol" class="form-label">Total Cholesterol *</label>
+                        <input asp-for="Cholesterol" class="form-control" type="number" step="0.1" min="100" max="400" placeholder="e.g., 200" />
+                        <span asp-validation-for="Cholesterol" class="validation-error"></span>
+                        <div class="range-hint">Desirable: &lt;200 mg/dL</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="Triglycerides" class="form-label">Triglycerides *</label>
+                        <input asp-for="Triglycerides" class="form-control" type="number" step="0.1" min="50" max="500" placeholder="e.g., 150" />
+                        <span asp-validation-for="Triglycerides" class="validation-error"></span>
+                        <div class="range-hint">Normal: &lt;150 mg/dL</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Family History -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="icon">👨‍👩‍👧‍👦</span>
+                Family Medical History
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input asp-for="FamilyHistoryT2D" class="form-check-input" type="checkbox" />
+                        <label asp-for="FamilyHistoryT2D" class="form-check-label">
+                            Family history of Type 2 Diabetes
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input asp-for="FamilyHistoryCVD" class="form-check-input" type="checkbox" />
+                        <label asp-for="FamilyHistoryCVD" class="form-check-label">
+                            Family history of Heart Disease (CVD)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lifestyle -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="icon">🌙</span>
+                Sleep & Lifestyle
+            </div>
+            
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="SleepHours" class="form-label">Sleep Hours *</label>
+                        <input asp-for="SleepHours" class="form-control" type="number" step="0.5" min="3" max="12" placeholder="e.g., 7" />
+                        <span asp-validation-for="SleepHours" class="validation-error"></span>
+                        <div class="range-hint">Recommended: 7-8 hours</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="SleepQuality" class="form-label">Sleep Quality *</label>
+                        <select asp-for="SleepQuality" class="form-select">
+                            <option value="Poor">Poor</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Good">Good</option>
+                            <option value="Excellent">Excellent</option>
+                        </select>
+                        <span asp-validation-for="SleepQuality" class="validation-error"></span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="StressLevel" class="form-label">Stress Level (1-10) *</label>
+                        <input asp-for="StressLevel" class="form-control" type="number" step="0.5" min="1" max="10" placeholder="e.g., 5" />
+                        <span asp-validation-for="StressLevel" class="validation-error"></span>
+                        <div class="range-hint">1 = Low, 10 = Very High</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="PhysicalActivityLevel" class="form-label">Activity Level *</label>
+                        <select asp-for="PhysicalActivityLevel" class="form-select">
+                            <option value="Sedentary">Sedentary (Little/No exercise)</option>
+                            <option value="Lightly Active">Lightly Active (1-3 days/week)</option>
+                            <option value="Moderately Active">Moderately Active (3-5 days/week)</option>
+                            <option value="Very Active">Very Active (6-7 days/week)</option>
+                        </select>
+                        <span asp-validation-for="PhysicalActivityLevel" class="validation-error"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Diet Preferences -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="icon">🥗</span>
+                Diet Preferences
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="DietPreference" class="form-label">Diet Preference *</label>
+                        <select asp-for="DietPreference" class="form-select">
+                            <option value="vegetarian">Vegetarian</option>
+                            <option value="vegan">Vegan</option>
+                            <option value="keto">Keto / Low-Carb</option>
+                            <option value="high_protein">High Protein</option>
+                        </select>
+                        <span asp-validation-for="DietPreference" class="validation-error"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="FoodAllergies" class="form-label">Food Allergies (Optional)</label>
+                        <input asp-for="FoodAllergies" class="form-control" placeholder="e.g., nuts, dairy, gluten" />
+                        <div class="range-hint">Separate multiple allergies with commas</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center" style="margin-top: 30px;">
+            <a href="@Url.Action("ElderMonitor", "Guardian", new { id = Model.ElderId })" class="btn-cancel me-3">Cancel</a>
+            <button type="submit" class="btn-submit">
+                @(isEdit ? "Update" : "Save") Health Details
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // BMI Calculator
+        function calculateBMI() {
+            const height = parseFloat(document.getElementById('Height').value);
+            const weight = parseFloat(document.getElementById('Weight').value);
+            
+            if (height > 0 && weight > 0) {
+                const heightM = height / 100;
+                const bmi = weight / (heightM * heightM);
+                const bmiRounded = bmi.toFixed(1);
+                
+                document.getElementById('bmiValue').textContent = bmiRounded;
+                
+                let category = '';
+                let color = '';
+                
+                if (bmi < 18.5) {
+                    category = 'Underweight';
+                    color = '#ffc107';
+                } else if (bmi < 25) {
+                    category = 'Normal';
+                    color = '#28a745';
+                } else if (bmi < 30) {
+                    category = 'Overweight';
+                    color = '#fd7e14';
+                } else {
+                    category = 'Obese';
+                    color = '#dc3545';
+                }
+                
+                document.getElementById('bmiCategory').textContent = category;
+                document.getElementById('bmiDisplay').style.background = `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`;
+            } else {
+                document.getElementById('bmiValue').textContent = '--';
+                document.getElementById('bmiCategory').textContent = 'Enter height & weight';
+                document.getElementById('bmiDisplay').style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+            }
+        }
+        
+        document.getElementById('Height').addEventListener('input', calculateBMI);
+        document.getElementById('Weight').addEventListener('input', calculateBMI);
+        
+        // Calculate on page load if values exist
+        calculateBMI();
+    </script>
+}

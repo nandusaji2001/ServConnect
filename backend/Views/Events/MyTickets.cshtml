@@ -1,0 +1,278 @@
+@model List<ServConnect.Models.EventTicket>
+@{
+    ViewData["Title"] = "My Tickets";
+    var events = ViewBag.Events as Dictionary<string, ServConnect.Models.Event> ?? new();
+}
+
+<style>
+    .tickets-container { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+    
+    @@media (min-width: 1200px) {
+        .tickets-container { padding: 24px 32px; }
+    }
+    
+    .page-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem; font-weight: 700; color: #1f2937;
+        display: flex; align-items: center; gap: 12px;
+    }
+    
+    .page-header h1 i { color: #10B981; }
+    
+    .ticket-card {
+        background: white; border-radius: 16px; overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;
+        border: 1px solid #e5e7eb; display: flex;
+    }
+    
+    .ticket-left {
+        width: 200px; padding: 24px; background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; text-align: center;
+    }
+    
+    .ticket-date { font-size: 2.5rem; font-weight: 700; line-height: 1; }
+    .ticket-month { font-size: 1.1rem; text-transform: uppercase; margin-top: 4px; }
+    .ticket-time { font-size: 0.9rem; margin-top: 12px; opacity: 0.9; }
+    
+    .ticket-right { flex: 1; padding: 24px; display: flex; flex-direction: column; }
+    
+    .ticket-title { font-size: 1.3rem; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+    
+    .ticket-venue {
+        display: flex; align-items: center; gap: 8px;
+        color: #6b7280; font-size: 0.95rem; margin-bottom: 16px;
+    }
+    
+    .ticket-venue i { color: #10B981; }
+    
+    .ticket-info { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 16px; }
+    
+    .ticket-info-item { display: flex; flex-direction: column; }
+    .ticket-info-item label { font-size: 0.8rem; color: #9ca3af; text-transform: uppercase; }
+    .ticket-info-item span { font-weight: 600; color: #1f2937; }
+    
+    .ticket-code {
+        font-family: monospace; font-size: 1.2rem; font-weight: 700;
+        color: #10B981; background: #f0fdf4; padding: 8px 16px;
+        border-radius: 8px; display: inline-block;
+    }
+    
+    .ticket-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: auto; padding-top: 16px; border-top: 1px dashed #e5e7eb;
+    }
+    
+    .ticket-status {
+        padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+    }
+    
+    .status-confirmed { background: #d1fae5; color: #059669; }
+    .status-cancelled { background: #fee2e2; color: #dc2626; }
+    .status-used { background: #e0e7ff; color: #4f46e5; }
+    
+    .ticket-actions { display: flex; gap: 10px; }
+    
+    .empty-state {
+        text-align: center; padding: 60px 20px; color: #6b7280;
+    }
+    
+    .empty-state i { font-size: 4rem; opacity: 0.3; margin-bottom: 16px; }
+
+    @@media (max-width: 768px) {
+        .tickets-container { padding: 16px 12px; }
+        .ticket-card { flex-direction: column; }
+        .ticket-left { width: 100%; padding: 20px; flex-direction: row; gap: 16px; }
+    }
+</style>
+
+<div class="tickets-container">
+    <div class="page-header">
+        <h1><i class="fas fa-ticket-alt"></i> My Tickets</h1>
+        <a href="@Url.Action("Index", "Events")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Events
+        </a>
+    </div>
+
+    @if (Model.Any())
+    {
+        @foreach (var ticket in Model)
+        {
+            var evt = events.ContainsKey(ticket.EventId) ? events[ticket.EventId] : null;
+            var eventDate = ticket.EventDateTime.ToLocalTime();
+            var isPast = eventDate < DateTime.Now;
+            
+            <div class="ticket-card @(isPast ? "opacity-75" : "")">
+                <div class="ticket-left">
+                    <div class="ticket-date">@eventDate.Day</div>
+                    <div class="ticket-month">@eventDate.ToString("MMM yyyy")</div>
+                    <div class="ticket-time">@eventDate.ToString("hh:mm tt")</div>
+                </div>
+                <div class="ticket-right">
+                    <h3 class="ticket-title">@ticket.EventTitle</h3>
+                    @if (evt != null)
+                    {
+                        <div class="ticket-venue">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>@evt.Venue, @evt.Address</span>
+                        </div>
+                    }
+                    
+                    <div class="ticket-info">
+                        <div class="ticket-info-item">
+                            <label>Quantity</label>
+                            <span>@ticket.Quantity ticket(s)</span>
+                        </div>
+                        <div class="ticket-info-item">
+                            <label>Amount</label>
+                            <span>@(ticket.TotalAmount > 0 ? $"₹{ticket.TotalAmount}" : "Free")</span>
+                        </div>
+                        <div class="ticket-info-item">
+                            <label>Booked On</label>
+                            <span>@ticket.PurchasedAt.ToLocalTime().ToString("dd MMM yyyy")</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ticket-code" data-ticket-id="@ticket.Id">@ticket.TicketCode</div>
+                    
+                    @{
+                        var hasUnverifiedEntries = ticket.VerifiedCount < ticket.Quantity;
+                        var canShowQr = hasUnverifiedEntries && ticket.Status != ServConnect.Models.TicketStatus.Cancelled && !isPast;
+                    }
+                    
+                    @if (canShowQr)
+                    {
+                        <button class="btn btn-sm btn-outline-success mt-2" onclick="showQrCode('@ticket.Id')" data-event-title="@ticket.EventTitle">
+                            <i class="fas fa-qrcode me-1"></i>Show QR Code
+                        </button>
+                    }
+                    
+                    @if (ticket.VerifiedCount > 0)
+                    {
+                        <div class="mt-2">
+                            <span class="badge @(ticket.IsFullyUsed ? "bg-secondary" : "bg-info")">
+                                <i class="fas fa-check-circle me-1"></i>@ticket.VerifiedCount/@ticket.Quantity entries admitted
+                            </span>
+                            @if (hasUnverifiedEntries)
+                            {
+                                <span class="badge bg-warning text-dark ms-1">
+                                    @(ticket.Quantity - ticket.VerifiedCount) pending
+                                </span>
+                            }
+                        </div>
+                    }
+                    
+                    <div class="ticket-footer">
+                        <div>
+                            <span class="ticket-status @(ticket.Status == ServConnect.Models.TicketStatus.Confirmed ? "status-confirmed" : 
+                                                          ticket.Status == ServConnect.Models.TicketStatus.Cancelled ? "status-cancelled" : "status-used")">
+                                @ticket.Status
+                            </span>
+                            @if (ticket.Status == ServConnect.Models.TicketStatus.Cancelled && !string.IsNullOrEmpty(ticket.RefundStatus))
+                            {
+                                <span class="ms-2 badge @(ticket.RefundStatus == "Completed" ? "bg-success" : "bg-warning text-dark")">
+                                    <i class="fas fa-money-bill-wave me-1"></i>Refund: @ticket.RefundStatus
+                                </span>
+                            }
+                        </div>
+                        <div class="ticket-actions">
+                            <a href="@Url.Action("Details", "Events", new { id = ticket.EventId })" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> View Event
+                            </a>
+                            @if (ticket.Status == ServConnect.Models.TicketStatus.Confirmed && !isPast)
+                            {
+                                <form asp-action="CancelTicket" method="post" style="display:inline"
+                                      onsubmit="return confirm('Are you sure you want to cancel this ticket?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="ticketId" value="@ticket.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-ticket-alt"></i>
+            <h3>No tickets yet</h3>
+            <p>You haven't purchased any event tickets.</p>
+            <a href="@Url.Action("Index", "Events")" class="btn btn-primary mt-3">
+                <i class="fas fa-search me-2"></i>Browse Events
+            </a>
+        </div>
+    }
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="fas fa-qrcode text-success me-2"></i>Your Ticket QR Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <p class="text-muted mb-3" id="qrEventTitle"></p>
+                <div id="qrCodeContainer" style="display: inline-block; padding: 16px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                    <img id="qrCodeImage" src="" alt="QR Code" style="width: 250px; height: 250px;" />
+                </div>
+                <p class="mt-3 mb-0"><strong id="qrTicketCode"></strong></p>
+                <p class="text-muted small">Show this QR code at the event entrance</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function showQrCode(ticketId) {
+        // Get event title from button's data attribute to avoid JS string issues
+        const button = event.currentTarget;
+        const eventTitle = button.getAttribute('data-event-title') || 'Event';
+        
+        try {
+            console.log('Fetching QR data for ticket:', ticketId);
+            const response = await fetch('/Events/GetTicketQrData?ticketId=' + encodeURIComponent(ticketId));
+            const data = await response.json();
+            console.log('QR data response:', data);
+            
+            if (data.success) {
+                document.getElementById('qrEventTitle').textContent = eventTitle;
+                document.getElementById('qrTicketCode').textContent = data.ticketCode;
+                
+                // Use Google Charts API to generate QR code image
+                const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(data.qrData);
+                const qrImage = document.getElementById('qrCodeImage');
+                qrImage.src = qrUrl;
+                
+                // Wait for image to load before showing modal
+                qrImage.onload = function() {
+                    const modal = new bootstrap.Modal(document.getElementById('qrModal'));
+                    modal.show();
+                };
+                
+                qrImage.onerror = function() {
+                    alert('Could not generate QR code. Please try again.');
+                };
+            } else {
+                console.error('QR load failed:', data.error);
+                alert('Could not load QR code: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error loading QR code:', error);
+            alert('Could not load QR code. Please try again.');
+        }
+    }
+</script>

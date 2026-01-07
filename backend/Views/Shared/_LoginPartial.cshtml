@@ -41,22 +41,25 @@
             @* OTP Notification Bell for Users *@
             @if (User.IsInRole(RoleTypes.User))
             {
-                <li class="nav-item position-relative me-2 dropdown">
-                    <a class="nav-link" href="#" id="otpNotificationBell" onclick="toggleOtpNotifications()" style="position: relative;">
+                @* Event Notifications Bell *@
+                <li class="nav-item position-relative me-2">
+                    <a class="nav-link" href="#" id="eventNotificationBell" onclick="toggleEventNotifications(event)" style="position: relative;">
                         <i class="fas fa-bell" style="font-size: 1.2rem;"></i>
-                        <span id="otpNotificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.6rem;">
+                        <span id="eventNotificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.6rem;">
                             0
                         </span>
                     </a>
-                    <!-- OTP Notifications Dropdown -->
-                    <div id="otpNotificationsDropdown" class="dropdown-menu dropdown-menu-end p-0" style="display: none; min-width: 320px; max-height: 400px; overflow-y: auto; position: absolute; right: 0; left: auto;">
-                        <div class="dropdown-header d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-key me-1"></i>Service Start Codes</span>
-                            <small id="otpNotificationCount" class="text-muted">0 active</small>
+                    <!-- Event Notifications Dropdown -->
+                    <div id="eventNotificationsDropdown" class="dropdown-menu dropdown-menu-end p-0" style="display: none; min-width: 360px; max-height: 450px; overflow-y: auto; position: absolute; right: 0; left: auto;">
+                        <div class="dropdown-header d-flex justify-content-between align-items-center bg-light">
+                            <span><i class="fas fa-bell me-1"></i>Notifications</span>
+                            <button class="btn btn-sm btn-link text-muted p-0" onclick="markAllNotificationsRead()" title="Mark all as read">
+                                <i class="fas fa-check-double"></i>
+                            </button>
                         </div>
-                        <div id="otpNotificationsList">
-                            <div class="dropdown-item-text text-center text-muted py-3">
-                                <i class="fas fa-info-circle me-1"></i>No active service codes
+                        <div id="eventNotificationsList">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-spinner fa-spin"></i> Loading...
                             </div>
                         </div>
                     </div>

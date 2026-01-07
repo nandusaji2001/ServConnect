@@ -1,0 +1,271 @@
+@model ServConnect.ViewModels.EventDashboardViewModel
+@{
+    ViewData["Title"] = "Local Events";
+    var currentCategory = ViewBag.CurrentCategory as string;
+    var searchQuery = ViewBag.SearchQuery as string;
+}
+
+<style>
+    :root {
+        --primary: #10B981;
+        --primary-dark: #059669;
+        --accent: #3B82F6;
+        --bg-card: #ffffff;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+    }
+
+    .events-container { max-width: 1400px; margin: 0 auto; padding: 24px 16px; }
+    
+    @@media (min-width: 1200px) {
+        .events-container { padding: 24px 32px; }
+    }
+    
+    .events-header {
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 16px; margin-bottom: 32px;
+    }
+    
+    .events-header h1 {
+        font-size: 2rem; font-weight: 700; color: var(--text-primary);
+        display: flex; align-items: center; gap: 12px;
+    }
+    
+    .events-header h1 i { color: var(--primary); }
+    
+    .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    
+    .btn-create {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white; padding: 12px 24px; border-radius: 12px;
+        text-decoration: none; font-weight: 600; display: flex;
+        align-items: center; gap: 8px; transition: all 0.3s;
+    }
+    
+    .btn-create:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16,185,129,0.3); color: white; }
+    
+    .search-filters {
+        background: var(--bg-card); border-radius: 16px; padding: 20px;
+        margin-bottom: 32px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .search-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    
+    .search-input {
+        flex: 1; min-width: 250px; padding: 12px 16px; border: 1px solid var(--border-color);
+        border-radius: 10px; font-size: 1rem;
+    }
+    
+    .category-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    
+    .category-pill {
+        padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-color);
+        background: white; color: var(--text-secondary); text-decoration: none;
+        font-size: 0.9rem; transition: all 0.2s;
+    }
+    
+    .category-pill:hover, .category-pill.active {
+        background: var(--primary); color: white; border-color: var(--primary);
+    }
+    
+    .section-title {
+        font-size: 1.4rem; font-weight: 700; color: var(--text-primary);
+        margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+    }
+    
+    .section-title i { color: var(--primary); }
+    
+    .events-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px; margin-bottom: 40px;
+    }
+    
+    .event-card {
+        background: var(--bg-card); border-radius: 16px; overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s;
+        border: 1px solid var(--border-color);
+    }
+    
+    .event-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    
+    .event-image {
+        height: 180px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        display: flex; align-items: center; justify-content: center; position: relative;
+    }
+    
+    .event-image img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .event-image .placeholder { font-size: 3rem; color: var(--primary); opacity: 0.4; }
+    
+    .event-badge {
+        position: absolute; top: 12px; right: 12px; padding: 6px 12px;
+        border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+    }
+    
+    .badge-free { background: #10B981; color: white; }
+    .badge-paid { background: #3B82F6; color: white; }
+    .badge-featured { background: #F59E0B; color: white; }
+    
+    .event-content { padding: 20px; }
+    
+    .event-category {
+        color: var(--primary); font-size: 0.8rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+    }
+    
+    .event-title {
+        font-size: 1.2rem; font-weight: 700; color: var(--text-primary);
+        margin-bottom: 12px; line-height: 1.4;
+    }
+    
+    .event-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    
+    .event-meta-item {
+        display: flex; align-items: center; gap: 8px;
+        color: var(--text-secondary); font-size: 0.9rem;
+    }
+    
+    .event-meta-item i { color: var(--primary); width: 16px; }
+    
+    .event-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        padding-top: 16px; border-top: 1px solid var(--border-color);
+    }
+    
+    .event-price { font-weight: 700; color: var(--primary-dark); font-size: 1.1rem; }
+    
+    .event-seats { font-size: 0.85rem; color: var(--text-secondary); }
+    .event-seats.low { color: #EF4444; }
+    
+    .btn-view {
+        padding: 8px 16px; background: var(--primary); color: white;
+        border-radius: 8px; text-decoration: none; font-weight: 500;
+        font-size: 0.9rem; transition: all 0.2s;
+    }
+    
+    .btn-view:hover { background: var(--primary-dark); color: white; }
+    
+    .quick-links {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px; margin-bottom: 32px;
+    }
+    
+    .quick-link {
+        display: flex; align-items: center; gap: 12px; padding: 16px 20px;
+        background: var(--bg-card); border-radius: 12px; text-decoration: none;
+        border: 1px solid var(--border-color); transition: all 0.3s;
+    }
+    
+    .quick-link:hover { border-color: var(--primary); transform: translateY(-2px); }
+    
+    .quick-link i { font-size: 1.5rem; color: var(--primary); }
+    
+    .quick-link-text h4 { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin: 0; }
+    .quick-link-text p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
+    
+    .empty-state {
+        text-align: center; padding: 60px 20px; color: var(--text-secondary);
+    }
+    
+    .empty-state i { font-size: 4rem; opacity: 0.3; margin-bottom: 16px; }
+
+    @@media (max-width: 768px) {
+        .events-container { padding: 16px 12px; }
+        .events-header { flex-direction: column; align-items: flex-start; }
+        .events-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="events-container">
+    <div class="events-header">
+        <h1><i class="fas fa-calendar-alt"></i> Local Events</h1>
+        <div class="header-actions">
+            <a href="@Url.Action("Calendar", "Events")" class="btn btn-outline-primary">
+                <i class="fas fa-calendar me-2"></i>Calendar View
+            </a>
+            <a href="@Url.Action("MyTickets", "Events")" class="btn btn-outline-secondary">
+                <i class="fas fa-ticket-alt me-2"></i>My Tickets
+            </a>
+            <a href="@Url.Action("Create", "Events")" class="btn-create">
+                <i class="fas fa-plus"></i> Create Event
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links">
+        <a href="@Url.Action("OrganizerDashboard", "Events")" class="quick-link">
+            <i class="fas fa-chart-line"></i>
+            <div class="quick-link-text">
+                <h4>Organizer Dashboard</h4>
+                <p>Manage your events</p>
+            </div>
+        </a>
+        <a href="@Url.Action("MyTickets", "Events")" class="quick-link">
+            <i class="fas fa-ticket-alt"></i>
+            <div class="quick-link-text">
+                <h4>My Tickets</h4>
+                <p>@Model.MyTickets.Count tickets purchased</p>
+            </div>
+        </a>
+        <a href="@Url.Action("Calendar", "Events")" class="quick-link">
+            <i class="fas fa-calendar-check"></i>
+            <div class="quick-link-text">
+                <h4>Event Calendar</h4>
+                <p>View all events</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="search-filters">
+        <form method="get" class="search-row">
+            <input type="text" name="search" class="search-input" placeholder="Search events..." value="@searchQuery" />
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search me-2"></i>Search</button>
+            @if (!string.IsNullOrEmpty(searchQuery) || !string.IsNullOrEmpty(currentCategory))
+            {
+                <a href="@Url.Action("Index", "Events")" class="btn btn-outline-secondary">Clear</a>
+            }
+        </form>
+        <div class="category-pills">
+            <a href="@Url.Action("Index", "Events")" class="category-pill @(string.IsNullOrEmpty(currentCategory) ? "active" : "")">All</a>
+            @foreach (var cat in Model.Categories)
+            {
+                <a href="@Url.Action("Index", "Events", new { category = cat })" 
+                   class="category-pill @(currentCategory == cat ? "active" : "")">@cat</a>
+            }
+        </div>
+    </div>
+
+    @if (Model.FeaturedEvents.Any())
+    {
+        <h2 class="section-title"><i class="fas fa-star"></i> Featured Events</h2>
+        <div class="events-grid">
+            @foreach (var evt in Model.FeaturedEvents)
+            {
+                @await Html.PartialAsync("_EventCard", evt)
+            }
+        </div>
+    }
+
+    <h2 class="section-title"><i class="fas fa-fire"></i> Upcoming Events</h2>
+    @if (Model.UpcomingEvents.Any())
+    {
+        <div class="events-grid">
+            @foreach (var evt in Model.UpcomingEvents)
+            {
+                @await Html.PartialAsync("_EventCard", evt)
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No upcoming events</h3>
+            <p>Be the first to create an event!</p>
+            <a href="@Url.Action("Create", "Events")" class="btn btn-primary mt-3">Create Event</a>
+        </div>
+    }
+</div>

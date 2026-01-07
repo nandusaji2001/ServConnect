@@ -1,0 +1,280 @@
+@model ServConnect.ViewModels.CreateEventViewModel
+@{
+    ViewData["Title"] = "Edit Event";
+    var eventId = ViewBag.EventId as string;
+    var categories = new[] { "Music", "Sports", "Arts", "Food & Drink", "Community", "Education", "Business", "Health", "Technology", "Other" };
+}
+
+<style>
+    .edit-container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+    
+    @@media (min-width: 1200px) {
+        .edit-container { padding: 24px 32px; }
+    }
+    
+    @@media (max-width: 768px) {
+        .edit-container { padding: 16px 12px; }
+    }
+    
+    .page-header {
+        margin-bottom: 32px; display: flex; align-items: center;
+        justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem; font-weight: 700; color: #1f2937;
+        display: flex; align-items: center; gap: 12px;
+    }
+    
+    .page-header h1 i { color: #10B981; }
+    
+    .form-card {
+        background: white; border-radius: 16px; padding: 32px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .form-section {
+        margin-bottom: 32px; padding-bottom: 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .form-section:last-child { border-bottom: none; margin-bottom: 0; }
+    
+    .section-title {
+        font-size: 1.2rem; font-weight: 600; color: #1f2937;
+        margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+    }
+    
+    .section-title i { color: #10B981; }
+    
+    .form-label { font-weight: 500; color: #374151; margin-bottom: 6px; }
+    
+    .form-control, .form-select {
+        border-radius: 10px; border: 1px solid #d1d5db;
+        padding: 12px 16px; font-size: 1rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+    }
+    
+    .price-toggle { display: flex; gap: 16px; margin-bottom: 16px; }
+    
+    .price-option {
+        flex: 1; padding: 16px; border: 2px solid #e5e7eb;
+        border-radius: 12px; cursor: pointer; text-align: center; transition: all 0.2s;
+    }
+    
+    .price-option:hover { border-color: #10B981; }
+    .price-option.active { border-color: #10B981; background: #f0fdf4; }
+    
+    .price-option i { font-size: 1.5rem; margin-bottom: 8px; color: #10B981; }
+    .price-option h4 { font-size: 1rem; font-weight: 600; margin: 0; }
+    
+    #priceSection { display: none; }
+    #priceSection.show { display: block; }
+    
+    #map { height: 300px; border-radius: 12px; margin-top: 12px; }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white; padding: 14px 32px; border-radius: 12px;
+        font-weight: 600; font-size: 1rem; border: none; cursor: pointer; transition: all 0.3s;
+    }
+    
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16,185,129,0.3); }
+</style>
+
+<div class="edit-container">
+    <div class="page-header">
+        <h1><i class="fas fa-edit"></i> Edit Event</h1>
+        <a href="@Url.Action("Details", "Events", new { id = eventId })" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Event
+        </a>
+    </div>
+
+    <div class="form-card">
+        <form asp-action="Edit" asp-route-id="@eventId" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-section">
+                <h3 class="section-title"><i class="fas fa-info-circle"></i> Basic Information</h3>
+                
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label">Event Title *</label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Description *</label>
+                    <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Category" class="form-label">Category *</label>
+                        <select asp-for="Category" class="form-select">
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat" selected="@(Model.Category == cat)">@cat</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Capacity" class="form-label">Capacity * (Max: 1,000)</label>
+                        <input asp-for="Capacity" type="number" class="form-control" min="1" max="1000" id="capacityInput" />
+                        <span asp-validation-for="Capacity" class="text-danger"></span>
+                        <div class="validation-error" id="capacityError" style="color:#ef4444;font-size:0.85rem;display:none;">Capacity must be between 1 and 1,000</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title"><i class="fas fa-clock"></i> Date & Time</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="StartDateTime" class="form-label">Start Date & Time *</label>
+                        <input asp-for="StartDateTime" type="datetime-local" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="EndDateTime" class="form-label">End Date & Time *</label>
+                        <input asp-for="EndDateTime" type="datetime-local" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title"><i class="fas fa-map-marker-alt"></i> Location</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Venue" class="form-label">Venue Name *</label>
+                        <input asp-for="Venue" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Address" class="form-label">Full Address *</label>
+                        <input asp-for="Address" class="form-control" id="addressInput" />
+                    </div>
+                </div>
+                <input type="hidden" asp-for="Latitude" id="latitude" />
+                <input type="hidden" asp-for="Longitude" id="longitude" />
+                <div id="map"></div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title"><i class="fas fa-ticket-alt"></i> Ticketing</h3>
+                <div class="price-toggle">
+                    <div class="price-option @(Model.IsFreeEvent ? "active" : "")" id="freeOption" onclick="setFreeEvent(true)">
+                        <i class="fas fa-gift"></i>
+                        <h4>Free Event</h4>
+                    </div>
+                    <div class="price-option @(!Model.IsFreeEvent ? "active" : "")" id="paidOption" onclick="setFreeEvent(false)">
+                        <i class="fas fa-rupee-sign"></i>
+                        <h4>Paid Event</h4>
+                    </div>
+                </div>
+                <input type="hidden" asp-for="IsFreeEvent" id="isFreeEvent" />
+                
+                <div id="priceSection" class="@(!Model.IsFreeEvent ? "show" : "")">
+                    <label asp-for="TicketPrice" class="form-label">Ticket Price (₹) (Max: ₹10,000)</label>
+                    <input asp-for="TicketPrice" type="number" class="form-control" min="0" max="10000" id="priceInput" />
+                    <span asp-validation-for="TicketPrice" class="text-danger"></span>
+                    <div class="validation-error" id="priceError" style="color:#ef4444;font-size:0.85rem;display:none;">Price must be between ₹0 and ₹10,000</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title"><i class="fas fa-image"></i> Cover Image</h3>
+                <div class="mb-3">
+                    <label asp-for="CoverImageUrl" class="form-label">Cover Image URL</label>
+                    <input asp-for="CoverImageUrl" class="form-control" />
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title"><i class="fas fa-address-book"></i> Contact Information</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ContactName" class="form-label">Contact Name *</label>
+                        <input asp-for="ContactName" class="form-control" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ContactPhone" class="form-label">Contact Phone *</label>
+                        <input asp-for="ContactPhone" class="form-control" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ContactEmail" class="form-label">Contact Email</label>
+                        <input asp-for="ContactEmail" type="email" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    let map, marker;
+    const lat = @(Model.Latitude != 0 ? Model.Latitude : 10.8505);
+    const lng = @(Model.Longitude != 0 ? Model.Longitude : 76.2711);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        map = L.map('map').setView([lat, lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+        marker.on('dragend', function(e) {
+            const pos = marker.getLatLng();
+            document.getElementById('latitude').value = pos.lat;
+            document.getElementById('longitude').value = pos.lng;
+        });
+
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            document.getElementById('latitude').value = e.latlng.lat;
+            document.getElementById('longitude').value = e.latlng.lng;
+        });
+    });
+
+    function setFreeEvent(isFree) {
+        document.getElementById('isFreeEvent').value = isFree;
+        document.getElementById('freeOption').classList.toggle('active', isFree);
+        document.getElementById('paidOption').classList.toggle('active', !isFree);
+        document.getElementById('priceSection').classList.toggle('show', !isFree);
+    }
+
+    // Live validation for capacity and price
+    document.getElementById('capacityInput').addEventListener('input', function() {
+        const val = parseInt(this.value);
+        const error = document.getElementById('capacityError');
+        if (val > 1000 || val < 1) {
+            error.style.display = 'block';
+            this.style.borderColor = '#ef4444';
+        } else {
+            error.style.display = 'none';
+            this.style.borderColor = '#10B981';
+        }
+    });
+
+    document.getElementById('priceInput').addEventListener('input', function() {
+        const val = parseFloat(this.value);
+        const error = document.getElementById('priceError');
+        if (val > 10000) {
+            error.style.display = 'block';
+            this.style.borderColor = '#ef4444';
+        } else {
+            error.style.display = 'none';
+            this.style.borderColor = '#10B981';
+        }
+    });
+</script>
+}
