@@ -30,12 +30,12 @@
                         <input type="radio" name="adType" value="1" id="heroBanner" class="d-none">
                         <label for="heroBanner" class="ad-type-label">
                             <div class="ad-type-preview">
-                                <div class="ad-preview-box" style="width: 200px; height: 60px; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6c757d;">
-                                    600 x 180 px
+                                <div class="ad-preview-box" style="width: 200px; height: 21px; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6c757d;">
+                                    1920 x 200 px
                                 </div>
                             </div>
                             <h6 class="mt-2 mb-1">Hero Banner Advertisement</h6>
-                            <small class="text-muted">Displayed in the hero section</small>
+                            <small class="text-muted">Displayed in the hero section (Full width)</small>
                         </label>
                     </div>
                 </div>
@@ -518,11 +518,14 @@
         const sourceWidth = cropWidth * scaleX;
         const sourceHeight = cropHeight * scaleY;
         
-        // Set preview canvas size
+        // Set preview canvas size - use fixed width and calculate height based on aspect ratio
         const dimensions = getAdDimensions();
-        const previewScale = Math.min(200 / dimensions.width, 150 / dimensions.height);
-        previewCanvas.width = dimensions.width * previewScale;
-        previewCanvas.height = dimensions.height * previewScale;
+        const previewWidth = 280; // Fixed preview width
+        const aspectRatio = dimensions.width / dimensions.height;
+        const previewHeight = previewWidth / aspectRatio;
+        
+        previewCanvas.width = previewWidth;
+        previewCanvas.height = previewHeight;
         
         // Draw cropped area to preview
         previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
@@ -556,7 +559,7 @@
 
     function getAdDimensions() {
         if (currentAdType === 1) { // Hero Banner
-            return { width: 600, height: 180 };
+            return { width: 1920, height: 200 };
         } else { // Bottom Page
             return { width: 728, height: 90 };
         }

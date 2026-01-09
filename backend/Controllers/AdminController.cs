@@ -648,8 +648,8 @@ namespace ServConnect.Controllers
             int targetW, targetH;
             if (adType == AdvertisementType.HeroBanner)
             {
-                targetW = 600;
-                targetH = 180;
+                targetW = 1920;
+                targetH = 200;
             }
             else
             {

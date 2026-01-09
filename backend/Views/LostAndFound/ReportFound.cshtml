@@ -1,0 +1,132 @@
+@model ServConnect.ViewModels.ReportFoundItemViewModel
+@{
+    ViewData["Title"] = "Report Found Item";
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Lost & Found</a></li>
+            <li class="breadcrumb-item active">Report Found Item</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Report a Found Item</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Important:</strong> Only provide general public information about the item. 
+                        Do NOT include unique identifiers or secret details that only the owner would know.
+                    </div>
+
+                    <form asp-action="ReportFound" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Item Title <span class="text-danger">*</span></label>
+                            <input asp-for="Title" class="form-control" placeholder="e.g., Leather Wallet, Black iPhone" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Category" class="form-label">Category <span class="text-danger">*</span></label>
+                                <select asp-for="Category" class="form-select">
+                                    <option value="">Select Category</option>
+                                    @foreach (var cat in ServConnect.Models.LostFoundItemCategory.All)
+                                    {
+                                        <option value="@cat">@cat</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Category" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Condition" class="form-label">Condition <span class="text-danger">*</span></label>
+                                <select asp-for="Condition" class="form-select">
+                                    <option value="">Select Condition</option>
+                                    @foreach (var cond in ServConnect.Models.LostFoundItemCondition.All)
+                                    {
+                                        <option value="@cond">@cond</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Condition" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description <span class="text-danger">*</span></label>
+                            <textarea asp-for="Description" class="form-control" rows="4" 
+                                      placeholder="Describe the item's general appearance. Do NOT include serial numbers, unique marks, or secret details."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                            <small class="text-muted">General description only - no unique identifiers</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FoundDate" class="form-label">Found Date <span class="text-danger">*</span></label>
+                                <input asp-for="FoundDate" type="date" class="form-control" />
+                                <span asp-validation-for="FoundDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FoundLocation" class="form-label">Found Location <span class="text-danger">*</span></label>
+                                <input asp-for="FoundLocation" class="form-control" placeholder="e.g., Central Park, Main Street" />
+                                <span asp-validation-for="FoundLocation" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="FoundLocationDetails" class="form-label">Location Details (Optional)</label>
+                            <textarea asp-for="FoundLocationDetails" class="form-control" rows="2" 
+                                      placeholder="Additional details about where you found the item"></textarea>
+                            <span asp-validation-for="FoundLocationDetails" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Images" class="form-label">Item Images <span class="text-danger">*</span></label>
+                            <input asp-for="Images" type="file" class="form-control" multiple accept="image/*" />
+                            <span asp-validation-for="Images" class="text-danger"></span>
+                            <small class="text-muted">Upload clear photos of the item (required)</small>
+                            <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Submit Found Item
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('Images').addEventListener('change', function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'rounded';
+                    img.style.width = '100px';
+                    img.style.height = '75px';
+                    img.style.objectFit = 'cover';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+}

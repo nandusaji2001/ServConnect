@@ -1,0 +1,138 @@
+@model ServConnect.ViewModels.ClaimItemViewModel
+@{
+    ViewData["Title"] = "Claim Item";
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Lost & Found</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.ItemId">@Model.Item?.Title</a></li>
+            <li class="breadcrumb-item active">Claim</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Item Summary -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Item You're Claiming</h6>
+                </div>
+                @if (Model.Item?.Images.Count > 0)
+                {
+                    <img src="@Model.Item.Images[0]" class="card-img-top" alt="@Model.Item.Title" 
+                         style="height: 200px; object-fit: cover;">
+                }
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Item?.Title</h5>
+                    <p class="card-text text-muted small">@Model.Item?.Description</p>
+                    <div class="small">
+                        <span class="badge bg-secondary">@Model.Item?.Category</span>
+                        <span class="badge @(Model.Item?.Condition == "Good" ? "bg-success" : "bg-warning")">@Model.Item?.Condition</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claim Form -->
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-hand-index me-2"></i>Claim This Item</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h6><i class="bi bi-exclamation-triangle me-2"></i>Important Instructions</h6>
+                        <p class="mb-2">To verify your ownership, you must provide <strong>private details</strong> that:</p>
+                        <ul class="mb-0">
+                            <li>Only the real owner would know</li>
+                            <li>Are NOT mentioned in the public description</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-lightbulb me-2"></i>Examples of Private Details</h6>
+                        <ul class="mb-0 small">
+                            <li>Exact inside color or lining material</li>
+                            <li>Engraving text or personalization</li>
+                            <li>Hidden compartment details</li>
+                            <li>Lock screen image / wallpaper description</li>
+                            <li>Specific scratch or mark location</li>
+                            <li>Contents that were inside</li>
+                            <li>Purchase date or store</li>
+                        </ul>
+                    </div>
+
+                    <form asp-action="Claim" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="ItemId" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="PrivateOwnershipDetails" class="form-label">
+                                Private Ownership Details <span class="text-danger">*</span>
+                            </label>
+                            <textarea asp-for="PrivateOwnershipDetails" class="form-control" rows="6" 
+                                      placeholder="Describe something only the real owner would know. Do NOT repeat the public description."></textarea>
+                            <span asp-validation-for="PrivateOwnershipDetails" class="text-danger"></span>
+                            <small class="text-muted">Minimum 20 characters. Be specific and detailed.</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ProofImages" class="form-label">Proof Documents (Optional)</label>
+                            <input asp-for="ProofImages" type="file" class="form-control" multiple accept="image/*,.pdf" />
+                            <span asp-validation-for="ProofImages" class="text-danger"></span>
+                            <small class="text-muted">Upload purchase receipt, old photos, or any proof of ownership</small>
+                            <div id="proofPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                        </div>
+
+                        <div class="alert alert-secondary">
+                            <small>
+                                <i class="bi bi-shield-check me-1"></i>
+                                Your private details will only be shown to the person who found this item for verification purposes.
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send me-2"></i>Submit Claim
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.ItemId" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('ProofImages')?.addEventListener('change', function(e) {
+            const preview = document.getElementById('proofPreview');
+            preview.innerHTML = '';
+            
+            Array.from(e.target.files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'rounded';
+                        img.style.width = '100px';
+                        img.style.height = '75px';
+                        img.style.objectFit = 'cover';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    const div = document.createElement('div');
+                    div.className = 'bg-light rounded p-2 small';
+                    div.innerHTML = '<i class="bi bi-file-pdf me-1"></i>' + file.name;
+                    preview.appendChild(div);
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,162 @@
+@model ServConnect.ViewModels.VerifyClaimViewModel
+@{
+    ViewData["Title"] = "Verify Claim";
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Lost & Found</a></li>
+            <li class="breadcrumb-item"><a asp-action="MyFoundItems">My Found Items</a></li>
+            <li class="breadcrumb-item active">Verify Claim</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Item Info -->
+        <div class="col-lg-5 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="bi bi-box-seam me-2"></i>Item You Found</h6>
+                </div>
+                @if (Model.Claim?.Item?.Images.Count > 0)
+                {
+                    <div id="itemCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            @for (int i = 0; i < Model.Claim.Item.Images.Count; i++)
+                            {
+                                <div class="carousel-item @(i == 0 ? "active" : "")">
+                                    <img src="@Model.Claim.Item.Images[i]" class="d-block w-100" 
+                                         style="height: 250px; object-fit: cover;">
+                                </div>
+                            }
+                        </div>
+                        @if (Model.Claim.Item.Images.Count > 1)
+                        {
+                            <button class="carousel-control-prev" type="button" data-bs-target="#itemCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#itemCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon"></span>
+                            </button>
+                        }
+                    </div>
+                }
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Claim?.Item?.Title</h5>
+                    <p class="card-text">@Model.Claim?.Item?.Description</p>
+                    <div class="small text-muted">
+                        <div><i class="bi bi-geo-alt me-1"></i>@Model.Claim?.Item?.FoundLocation</div>
+                        <div><i class="bi bi-calendar me-1"></i>Found: @Model.Claim?.Item?.FoundDate.ToString("MMM dd, yyyy")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claim Verification -->
+        <div class="col-lg-7">
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Verify Ownership Claim</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        A user has claimed this item. Review their private ownership details below and verify if they match the actual item.
+                    </div>
+
+                    <!-- Claimant Info -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="text-muted mb-2">Claimant</h6>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 45px; height: 45px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <strong>@Model.Claim?.ClaimantName</strong>
+                                    <div class="small text-muted">
+                                        Attempt @Model.Claim?.AttemptCount / 2
+                                        @if (Model.Claim?.AttemptCount == 2)
+                                        {
+                                            <span class="badge bg-danger ms-1">Final Attempt</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Private Ownership Details -->
+                    <div class="card mb-3 border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0"><i class="bi bi-key me-2"></i>Private Ownership Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0" style="white-space: pre-wrap;">@Model.Claim?.PrivateOwnershipDetails</p>
+                        </div>
+                    </div>
+
+                    <!-- Proof Images -->
+                    @if (Model.Claim?.ProofImages.Count > 0)
+                    {
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-images me-2"></i>Proof Documents</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var img in Model.Claim.ProofImages)
+                                    {
+                                        <a href="@img" target="_blank">
+                                            <img src="@img" class="rounded" style="width: 120px; height: 90px; object-fit: cover;">
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Verification Form -->
+                    <form asp-action="VerifyClaim" method="post">
+                        <input type="hidden" asp-for="ClaimId" />
+
+                        <div class="mb-3">
+                            <label asp-for="Note" class="form-label">Verification Note (Optional)</label>
+                            <textarea asp-for="Note" class="form-control" rows="2" 
+                                      placeholder="Add any notes about your decision"></textarea>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>Decision Guide:</strong>
+                            <ul class="mb-0 small">
+                                <li><strong>Mark as Correct</strong> - The details match the actual item. Claimant will be verified as owner.</li>
+                                <li><strong>Mark as Incorrect</strong> - The details don't match. 
+                                    @if (Model.Claim?.AttemptCount == 1)
+                                    {
+                                        <span>Claimant gets one more attempt.</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">Claimant will be blocked (final attempt).</span>
+                                    }
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="IsCorrect" value="true" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Mark as Correct
+                            </button>
+                            <button type="submit" name="IsCorrect" value="false" class="btn btn-danger btn-lg">
+                                <i class="bi bi-x-circle me-2"></i>Mark as Incorrect
+                            </button>
+                            <a asp-action="PendingVerifications" class="btn btn-outline-secondary">Back to Pending Claims</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

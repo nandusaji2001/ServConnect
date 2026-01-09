@@ -1095,11 +1095,12 @@ namespace ServConnect.Controllers
                 return RedirectToAction("Details", new { id = eventId });
             }
 
-            // Get verification stats
+            // Get all tickets (Confirmed and Used, exclude Cancelled)
             var allTickets = await _ticketsCollection
-                .Find(t => t.EventId == eventId && t.Status == TicketStatus.Confirmed)
+                .Find(t => t.EventId == eventId && t.Status != TicketStatus.Cancelled)
                 .ToListAsync();
 
+            // Get recent verifications (tickets that have been verified)
             var recentVerifications = allTickets
                 .Where(t => t.VerifiedCount > 0)
                 .OrderByDescending(t => t.LastVerifiedAt)

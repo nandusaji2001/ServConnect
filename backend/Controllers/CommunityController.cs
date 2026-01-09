@@ -35,10 +35,17 @@ namespace ServConnect.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
 
+            // Run all DB queries in parallel instead of sequentially
+            var profileTask = _community.GetProfileAsync(user.Id);
+            var unreadMessagesTask = _community.GetUnreadMessagesCountAsync(user.Id);
+            var unreadNotificationsTask = _community.GetUnreadNotificationsCountAsync(user.Id);
+
+            await Task.WhenAll(profileTask, unreadMessagesTask, unreadNotificationsTask);
+
             ViewBag.CurrentUser = user;
-            ViewBag.Profile = await _community.GetProfileAsync(user.Id);
-            ViewBag.UnreadMessages = await _community.GetUnreadMessagesCountAsync(user.Id);
-            ViewBag.UnreadNotifications = await _community.GetUnreadNotificationsCountAsync(user.Id);
+            ViewBag.Profile = await profileTask;
+            ViewBag.UnreadMessages = await unreadMessagesTask;
+            ViewBag.UnreadNotifications = await unreadNotificationsTask;
 
             return View();
         }
@@ -61,16 +68,25 @@ namespace ServConnect.Controllers
                 if (targetUser == null) return NotFound();
             }
 
-            var profile = await _community.GetProfileAsync(targetUser.Id);
-            var isFollowing = currentUser.Id != targetUser.Id && await _community.IsFollowingAsync(currentUser.Id, targetUser.Id);
-            var isBlocked = currentUser.Id != targetUser.Id && await _community.IsBlockedAsync(currentUser.Id, targetUser.Id);
+            // Run queries in parallel
+            var profileTask = _community.GetProfileAsync(targetUser.Id);
+            var isFollowingTask = currentUser.Id != targetUser.Id 
+                ? _community.IsFollowingAsync(currentUser.Id, targetUser.Id) 
+                : Task.FromResult(false);
+            var isBlockedTask = currentUser.Id != targetUser.Id 
+                ? _community.IsBlockedAsync(currentUser.Id, targetUser.Id) 
+                : Task.FromResult(false);
+
+            await Task.WhenAll(profileTask, isFollowingTask, isBlockedTask);
+
+            var profile = await profileTask;
 
             ViewBag.CurrentUser = currentUser;
             ViewBag.TargetUser = targetUser;
             ViewBag.Profile = profile;
             ViewBag.IsOwnProfile = currentUser.Id == targetUser.Id;
-            ViewBag.IsFollowing = isFollowing;
-            ViewBag.IsBlocked = isBlocked;
+            ViewBag.IsFollowing = await isFollowingTask;
+            ViewBag.IsBlocked = await isBlockedTask;
             ViewBag.PostsCount = profile?.PostsCount ?? 0;
             ViewBag.FollowersCount = profile?.FollowersCount ?? 0;
             ViewBag.FollowingCount = profile?.FollowingCount ?? 0;

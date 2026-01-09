@@ -515,7 +515,7 @@
 
     /* Advertisement Container - Light Theme */
     .ad-section {
-        padding: 60px 0;
+        padding: 30px 50px;
         background: var(--bg-light);
     }
 
@@ -523,6 +523,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        width: 100%;
     }
 
     /* Features Section - Light Theme */
@@ -955,6 +956,12 @@
     <!-- 3D Canvas Container -->
     <div id="hero-canvas-container">
         <canvas id="hero-canvas"></canvas>
+        <!-- Loading spinner while 3D model loads -->
+        <div id="model-loader" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;text-align:center;">
+            <div style="width:40px;height:40px;border:3px solid rgba(16,185,129,0.2);border-top-color:#10B981;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div>
+            <p style="color:#10B981;margin-top:12px;font-size:0.85rem;font-weight:500;">Loading 3D scene...</p>
+        </div>
+        <style>@@keyframes spin{to{transform:rotate(360deg)}}</style>
     </div>
     
     <!-- Gradient overlay for text readability -->
@@ -1085,10 +1092,8 @@
 
 <!-- Advertisement Section -->
 <div class="ad-section">
-    <div class="container-fluid">
-        <div class="ad-container">
-            @await Component.InvokeAsync("HeroAdvertisement")
-        </div>
+    <div class="ad-container">
+        @await Component.InvokeAsync("HeroAdvertisement")
     </div>
 </div>
 
@@ -1588,7 +1593,7 @@
         loader.setDRACOLoader(dracoLoader);
         
         loader.load(
-            '/city_pack_5.glb',
+            '/city_pack_5_optimized.glb',
             function(gltf) {
                 console.log('GLTF loaded successfully:', gltf);
                 model = gltf.scene;
@@ -1662,6 +1667,10 @@
                 
                 scene.add(model);
                 console.log('3D model added to scene with original colors');
+                
+                // Hide loading spinner
+                var loader_el = document.getElementById('model-loader');
+                if (loader_el) loader_el.style.display = 'none';
                 
                 // Setup and play animations if available
                 if (gltf.animations && gltf.animations.length > 0) {

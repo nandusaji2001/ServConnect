@@ -55,10 +55,10 @@
 <style>
     .hero-advertisement-banner {
         width: 100%;
-        max-width: 500px;
+        max-width: none;
         height: auto;
-        aspect-ratio: 600/180;
-        margin: 0 auto;
+        aspect-ratio: 1920/200;
+        margin: 0;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -129,15 +129,13 @@
     /* Responsive design */
     @@media (max-width: 991px) {
         .hero-advertisement-banner {
-            max-width: 400px;
-            margin: 20px auto;
+            margin: 0;
         }
     }
 
     @@media (max-width: 768px) {
         .hero-advertisement-banner {
-            max-width: 100%;
-            margin: 15px auto;
+            margin: 0;
         }
         
         .hero-ad-indicators {
@@ -153,7 +151,7 @@
 
     @@media (max-width: 480px) {
         .hero-advertisement-banner {
-            margin: 10px auto;
+            margin: 0;
             border-radius: 8px;
         }
         

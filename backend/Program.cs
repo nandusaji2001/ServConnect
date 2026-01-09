@@ -172,6 +172,8 @@ builder.Services.AddScoped<IRentalSubscriptionService, RentalSubscriptionService
 builder.Services.AddScoped<IRentalQueryService, RentalQueryService>();
 // Wellness prediction service for elder care AI recommendations
 builder.Services.AddScoped<IWellnessPredictionService, WellnessPredictionService>();
+// Lost and Found service
+builder.Services.AddScoped<ILostAndFoundService, LostAndFoundService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();
