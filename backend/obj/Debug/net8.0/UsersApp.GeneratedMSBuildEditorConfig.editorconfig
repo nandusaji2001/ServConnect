@@ -358,6 +358,42 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9jYWxEaXJlY3RvcnlcTWFuYWdlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/Claim.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXENsYWltLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/MyClaims.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXE15Q2xhaW1zLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/MyFoundItems.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXE15Rm91bmRJdGVtcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/PendingVerifications.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXFBlbmRpbmdWZXJpZmljYXRpb25zLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/ReportFound.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXFJlcG9ydEZvdW5kLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/RetryClaim.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXFJldHJ5Q2xhaW0uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/VerifyClaim.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXFZlcmlmeUNsYWltLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Notifications/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

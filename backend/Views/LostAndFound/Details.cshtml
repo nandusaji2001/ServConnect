@@ -1,0 +1,607 @@
+@model ServConnect.ViewModels.LostFoundItemDetailsViewModel
+@{
+    ViewData["Title"] = Model.Item.Title + " - Lost & Found";
+}
+
+<style>
+    :root {
+        --primary: #10B981;
+        --primary-dark: #059669;
+        --primary-light: #34D399;
+        --bg-card: #ffffff;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.15);
+        --shadow-glow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    body {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        min-height: 100vh;
+    }
+
+    .page-container {
+        padding: 40px 15px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        color: var(--text-primary);
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+    }
+
+    .back-btn:hover {
+        transform: translateX(-5px);
+        box-shadow: var(--shadow-md);
+        color: var(--primary);
+        border-color: var(--primary);
+        text-decoration: none;
+    }
+
+    .alert {
+        border-radius: 16px;
+        border: none;
+        padding: 16px 24px;
+        margin-bottom: 24px;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: var(--primary-dark);
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        color: #991B1B;
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        color: #1E40AF;
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        color: #92400E;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .image-section {
+        background: var(--bg-card);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+
+    .main-image {
+        height: 400px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .main-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .main-image .placeholder-icon {
+        font-size: 6rem;
+        color: var(--primary);
+        opacity: 0.3;
+    }
+
+    .image-thumbnails {
+        display: flex;
+        gap: 10px;
+        padding: 16px;
+        overflow-x: auto;
+    }
+
+    .thumbnail {
+        width: 80px;
+        height: 60px;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        border: 2px solid transparent;
+    }
+
+    .thumbnail:hover, .thumbnail.active {
+        opacity: 1;
+        border-color: var(--primary);
+        transform: scale(1.05);
+    }
+
+    .thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .details-section {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .badges-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .badge-pill {
+        padding: 8px 18px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-category {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: var(--primary-dark);
+    }
+
+    .badge-condition {
+        color: white;
+    }
+
+    .badge-condition.good { background: var(--primary); }
+    .badge-condition.damaged { background: #EF4444; }
+    .badge-condition.used { background: #F59E0B; }
+
+    .badge-status {
+        color: white;
+    }
+
+    .badge-status.available { background: var(--primary); }
+    .badge-status.claimpending { background: #F59E0B; }
+    .badge-status.verified { background: #3B82F6; }
+    .badge-status.returned { background: #6B7280; }
+
+    .item-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .info-card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+
+    .info-card h6 {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+    }
+
+    .info-card p {
+        color: var(--text-primary);
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .meta-item {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        padding: 16px 20px;
+        border-radius: 16px;
+    }
+
+    .meta-item .label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+
+    .meta-item .value {
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .meta-item .value i {
+        color: var(--primary);
+    }
+
+    .action-card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 16px 24px;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: none;
+        cursor: pointer;
+    }
+
+    .action-btn.primary {
+        background: var(--gradient-primary);
+        color: white;
+    }
+
+    .action-btn.primary:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-glow);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn.warning {
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: white;
+    }
+
+    .action-btn.warning:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn.success {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+    }
+
+    .action-btn.success:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-glow);
+        color: white;
+    }
+
+    .action-btn.outline {
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+    }
+
+    .action-btn.outline:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-3px);
+        text-decoration: none;
+    }
+
+    .found-by-card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .found-by-avatar {
+        width: 56px;
+        height: 56px;
+        background: var(--gradient-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .found-by-info h6 {
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .found-by-info p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .claim-status-card {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #FCD34D;
+    }
+
+    .claim-status-card h6 {
+        color: #92400E;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .claim-status-card p {
+        color: #78350F;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .verified-card {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid var(--primary-light);
+    }
+
+    .verified-card h6 {
+        color: var(--primary-dark);
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .verified-card p {
+        color: var(--primary-dark);
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+    }
+
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@media (max-width: 992px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+        .main-image {
+            height: 300px;
+        }
+        .item-title {
+            font-size: 1.6rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .meta-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="page-container">
+    <a asp-action="Index" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Lost & Found
+    </a>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="content-grid">
+        <!-- Image Section -->
+        <div class="image-section">
+            <div class="main-image" id="mainImage">
+                @if (Model.Item.Images.Count > 0)
+                {
+                    <img src="@Model.Item.Images[0]" alt="@Model.Item.Title" id="mainImg">
+                }
+                else
+                {
+                    <i class="fas fa-image placeholder-icon"></i>
+                }
+            </div>
+            @if (Model.Item.Images.Count > 1)
+            {
+                <div class="image-thumbnails">
+                    @for (int i = 0; i < Model.Item.Images.Count; i++)
+                    {
+                        <div class="thumbnail @(i == 0 ? "active" : "")" onclick="changeImage('@Model.Item.Images[i]', this)">
+                            <img src="@Model.Item.Images[i]" alt="Thumbnail @(i+1)">
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Details Section -->
+        <div class="details-section">
+            <div class="badges-row">
+                <span class="badge-pill badge-category">@Model.Item.Category</span>
+                <span class="badge-pill badge-condition @Model.Item.Condition.ToLower()">@Model.Item.Condition</span>
+                <span class="badge-pill badge-status @Model.Item.Status.ToLower().Replace(" ", "")">@Model.Item.Status</span>
+            </div>
+
+            <h1 class="item-title">@Model.Item.Title</h1>
+
+            <div class="info-card">
+                <h6>Description</h6>
+                <p>@Model.Item.Description</p>
+            </div>
+
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <div class="label">Found Date</div>
+                    <div class="value">
+                        <i class="fas fa-calendar"></i>
+                        @Model.Item.FoundDate.ToString("MMMM dd, yyyy")
+                    </div>
+                </div>
+                <div class="meta-item">
+                    <div class="label">Location</div>
+                    <div class="value">
+                        <i class="fas fa-map-marker-alt"></i>
+                        @Model.Item.FoundLocation
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Item.FoundLocationDetails))
+            {
+                <div class="info-card">
+                    <h6>Location Details</h6>
+                    <p>@Model.Item.FoundLocationDetails</p>
+                </div>
+            }
+
+            <!-- Action Section -->
+            <div class="action-card">
+                @if (Model.Item.Status == ServConnect.Models.LostFoundItemStatus.Returned)
+                {
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Item Returned</strong> - This item has been returned to @Model.Item.VerifiedClaimantName
+                    </div>
+                }
+                else if (Model.BlockedMessage != null)
+                {
+                    <div class="alert alert-danger mb-0">
+                        <i class="fas fa-ban me-2"></i>@Model.BlockedMessage
+                    </div>
+                }
+                else if (Model.IsFoundUser)
+                {
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>You found this item
+                    </div>
+                    @if (Model.PendingClaims.Any(c => c.Status == ServConnect.Models.ClaimStatus.Pending))
+                    {
+                        <a asp-action="PendingVerifications" class="action-btn warning mb-3">
+                            <i class="fas fa-clipboard-check"></i>
+                            Review Pending Claims (@Model.PendingClaims.Count(c => c.Status == ServConnect.Models.ClaimStatus.Pending))
+                        </a>
+                    }
+                    @if (Model.PendingClaims.Any(c => c.Status == ServConnect.Models.ClaimStatus.Verified))
+                    {
+                        var verifiedClaim = Model.PendingClaims.First(c => c.Status == ServConnect.Models.ClaimStatus.Verified);
+                        <div class="verified-card">
+                            <h6><i class="fas fa-check-circle"></i> Verified Owner Found</h6>
+                            <p>@verifiedClaim.ClaimantName has been verified as the owner.</p>
+                            <form asp-action="MarkAsReturned" method="post">
+                                <input type="hidden" name="itemId" value="@Model.Item.Id" />
+                                <input type="hidden" name="claimId" value="@verifiedClaim.Id" />
+                                <button type="submit" class="action-btn success">
+                                    <i class="fas fa-box-open"></i> Mark as Returned
+                                </button>
+                            </form>
+                        </div>
+                    }
+                }
+                else if (Model.UserClaim != null)
+                {
+                    <div class="claim-status-card">
+                        <h6><i class="fas fa-hourglass-half"></i> Your Claim Status</h6>
+                        <p>Status: <strong>@Model.UserClaim.Status</strong> (Attempt @Model.UserClaim.AttemptCount / 2)</p>
+                    </div>
+                    @if (Model.UserClaim.Status == ServConnect.Models.ClaimStatus.RetryAllowed)
+                    {
+                        <a asp-action="RetryClaim" asp-route-id="@Model.UserClaim.Id" class="action-btn warning mt-3">
+                            <i class="fas fa-redo"></i> Submit Final Attempt
+                        </a>
+                    }
+                }
+                else if (Model.CanClaim && User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-action="Claim" asp-route-id="@Model.Item.Id" class="action-btn primary">
+                        <i class="fas fa-hand-paper"></i> Claim This Item
+                    </a>
+                    <p class="text-muted small mt-3 mb-0 text-center">
+                        You'll need to provide private ownership details that only the real owner would know.
+                    </p>
+                }
+                else if (User.Identity?.IsAuthenticated != true)
+                {
+                    <a href="/Account/Login?returnUrl=@Context.Request.Path" class="action-btn outline">
+                        <i class="fas fa-sign-in-alt"></i> Login to Claim
+                    </a>
+                }
+            </div>
+
+            <!-- Found By -->
+            <div class="found-by-card">
+                <div class="found-by-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="found-by-info">
+                    <h6>@Model.Item.FoundByUserName</h6>
+                    <p>Posted @Model.Item.CreatedAt.ToString("MMM dd, yyyy")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function changeImage(src, element) {
+        document.getElementById('mainImg').src = src;
+        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+        element.classList.add('active');
+    }
+</script>

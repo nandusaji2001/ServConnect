@@ -1,0 +1,602 @@
+@model ServConnect.ViewModels.MyClaimsViewModel
+@{
+    ViewData["Title"] = "My Claims";
+}
+
+<style>
+    :root {
+        --primary: #10B981;
+        --primary-dark: #059669;
+        --primary-light: #34D399;
+        --bg-card: #ffffff;
+        --bg-card-hover: #f9fafb;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.15);
+        --shadow-glow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    body {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        min-height: 100vh;
+    }
+
+    .page-container {
+        padding: 40px 15px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        color: var(--text-primary);
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+    }
+
+    .back-btn:hover {
+        transform: translateX(-5px);
+        box-shadow: var(--shadow-md);
+        color: var(--primary);
+        border-color: var(--primary);
+        text-decoration: none;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 30px;
+        animation: fadeInDown 0.6s ease-out;
+    }
+
+    .page-header-left h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+    }
+
+    .page-header-left p {
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .action-btn i {
+        font-size: 0.85rem;
+    }
+
+    .action-btn.outline {
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+    }
+
+    .action-btn.outline:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-3px);
+        text-decoration: none;
+    }
+
+    .action-btn.primary {
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+    }
+
+    .action-btn.primary:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-glow);
+        text-decoration: none;
+        color: white;
+    }
+
+    .action-btn.warning {
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: white;
+        border: none;
+    }
+
+    .action-btn.warning:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3);
+        text-decoration: none;
+        color: white;
+    }
+
+    .alert {
+        border-radius: 16px;
+        border: none;
+        padding: 16px 24px;
+        margin-bottom: 24px;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: var(--primary-dark);
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        color: #991B1B;
+    }
+
+    .claims-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        animation: fadeInUp 0.6s ease-out 0.2s both;
+    }
+
+    .claim-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+    }
+
+    .claim-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--gradient-primary);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .claim-card:hover::before {
+        transform: scaleY(1);
+    }
+
+    .claim-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .claim-card.verified {
+        border-color: var(--primary);
+    }
+
+    .claim-card.verified::before {
+        transform: scaleY(1);
+    }
+
+    .claim-card.blocked {
+        border-color: #EF4444;
+    }
+
+    .claim-card.blocked::before {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        transform: scaleY(1);
+    }
+
+    .claim-content {
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+    }
+
+    .claim-image {
+        width: 180px;
+        height: 140px;
+        border-radius: 16px;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .claim-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .claim-image .placeholder-icon {
+        font-size: 3rem;
+        color: var(--primary);
+        opacity: 0.3;
+    }
+
+    .claim-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .claim-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .claim-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .claim-category {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: var(--primary-dark);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .status-badge.pending {
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    }
+
+    .status-badge.verified {
+        background: var(--gradient-primary);
+    }
+
+    .status-badge.blocked {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+    }
+
+    .status-badge.retryallowed {
+        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    }
+
+    .claim-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .claim-meta i {
+        color: var(--primary);
+    }
+
+    .attempt-badge {
+        background: rgba(107, 114, 128, 0.1);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .status-message {
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .status-message i {
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .status-message.pending {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        color: #92400E;
+    }
+
+    .status-message.verified {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: var(--primary-dark);
+    }
+
+    .status-message.blocked {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        color: #991B1B;
+    }
+
+    .status-message.retryallowed {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        color: #1E40AF;
+    }
+
+    .claim-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: auto;
+        padding-top: 12px;
+    }
+
+    .claim-actions .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .claim-actions .btn-outline {
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+    }
+
+    .claim-actions .btn-outline:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .claim-actions .btn-warning {
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: white;
+        border: none;
+    }
+
+    .claim-actions .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+    }
+
+    .claim-date {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 8px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        animation: fadeIn 0.6s ease;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: var(--primary);
+        opacity: 0.3;
+        margin-bottom: 24px;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+
+    .empty-state p {
+        color: var(--text-secondary);
+        max-width: 400px;
+        margin: 0 auto 24px;
+    }
+
+    @@keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .page-header-left h1 { font-size: 1.8rem; }
+        .claim-content { flex-direction: column; }
+        .claim-image { width: 100%; height: 180px; }
+        .claim-header { flex-direction: column; }
+        .claim-actions { flex-direction: column; }
+        .claim-actions .btn { width: 100%; justify-content: center; }
+    }
+</style>
+
+<div class="page-container">
+    <a asp-action="Index" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Lost & Found
+    </a>
+
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1><i class="fas fa-hand-paper me-2"></i>My Claims</h1>
+            <p>Track your item claims and verification status</p>
+        </div>
+        <a asp-action="Index" class="action-btn primary">
+            <i class="fas fa-search"></i> Browse Items
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Claims.Count == 0)
+    {
+        <div class="empty-state">
+            <i class="fas fa-clipboard"></i>
+            <h3>No claims yet</h3>
+            <p>Lost something? Browse found items and submit a claim!</p>
+            <a asp-action="Index" class="action-btn primary">
+                <i class="fas fa-search"></i> Browse Found Items
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="claims-list">
+            @foreach (var claim in Model.Claims)
+            {
+                var statusClass = claim.Status.ToLower().Replace(" ", "");
+                <div class="claim-card @statusClass">
+                    <div class="claim-content">
+                        <div class="claim-image">
+                            @if (claim.Item?.Images.Count > 0)
+                            {
+                                <img src="@claim.Item.Images[0]" alt="@claim.Item?.Title">
+                            }
+                            else
+                            {
+                                <i class="fas fa-image placeholder-icon"></i>
+                            }
+                        </div>
+                        <div class="claim-details">
+                            <div class="claim-header">
+                                <div>
+                                    <h3 class="claim-title">
+                                        @claim.Item?.Title
+                                        <span class="claim-category">@claim.Item?.Category</span>
+                                    </h3>
+                                </div>
+                                @{
+                                    var statusText = claim.Status switch
+                                    {
+                                        "RetryAllowed" => "Retry Allowed",
+                                        _ => claim.Status
+                                    };
+                                    var statusIcon = claim.Status switch
+                                    {
+                                        "Pending" => "fa-hourglass-half",
+                                        "Verified" => "fa-check-circle",
+                                        "Blocked" => "fa-ban",
+                                        "RetryAllowed" => "fa-redo",
+                                        _ => "fa-info-circle"
+                                    };
+                                }
+                                <span class="status-badge @statusClass">
+                                    <i class="fas @statusIcon"></i> @statusText
+                                </span>
+                            </div>
+
+                            <div class="claim-meta">
+                                <span><i class="fas fa-map-marker-alt me-1"></i> @claim.Item?.FoundLocation</span>
+                                <span class="attempt-badge">Attempt @claim.AttemptCount / 2</span>
+                            </div>
+
+                            @if (claim.Status == ServConnect.Models.ClaimStatus.Pending)
+                            {
+                                <div class="status-message pending">
+                                    <i class="fas fa-hourglass-half"></i>
+                                    <span>Waiting for the finder to verify your ownership details.</span>
+                                </div>
+                            }
+                            else if (claim.Status == ServConnect.Models.ClaimStatus.Verified)
+                            {
+                                <div class="status-message verified">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span><strong>Verified!</strong> Your ownership has been confirmed. Please coordinate with the finder for handover.</span>
+                                </div>
+                            }
+                            else if (claim.Status == ServConnect.Models.ClaimStatus.RetryAllowed)
+                            {
+                                <div class="status-message retryallowed">
+                                    <i class="fas fa-redo"></i>
+                                    <div>
+                                        <span>Your claim was rejected. You have one final attempt to provide more detailed ownership information.</span>
+                                        @if (!string.IsNullOrEmpty(claim.VerificationNote))
+                                        {
+                                            <div class="mt-2"><strong>Note:</strong> @claim.VerificationNote</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            else if (claim.Status == ServConnect.Models.ClaimStatus.Blocked)
+                            {
+                                <div class="status-message blocked">
+                                    <i class="fas fa-ban"></i>
+                                    <span>You have been blocked from claiming this item due to repeated incorrect ownership details.</span>
+                                </div>
+                            }
+
+                            <div class="claim-actions">
+                                <a asp-action="Details" asp-route-id="@claim.ItemId" class="btn btn-outline">
+                                    <i class="fas fa-eye"></i> View Item
+                                </a>
+                                @if (claim.Status == ServConnect.Models.ClaimStatus.RetryAllowed)
+                                {
+                                    <a asp-action="RetryClaim" asp-route-id="@claim.Id" class="btn btn-warning">
+                                        <i class="fas fa-redo"></i> Submit Final Attempt
+                                    </a>
+                                }
+                            </div>
+
+                            <div class="claim-date">
+                                <i class="fas fa-clock me-1"></i> Claimed on @claim.CreatedAt.ToString("MMM dd, yyyy 'at' hh:mm tt")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

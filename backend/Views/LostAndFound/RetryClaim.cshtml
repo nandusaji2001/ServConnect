@@ -1,0 +1,136 @@
+@model ServConnect.ViewModels.RetryClaimViewModel
+@{
+    ViewData["Title"] = "Retry Claim - Final Attempt";
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Lost & Found</a></li>
+            <li class="breadcrumb-item"><a asp-action="MyClaims">My Claims</a></li>
+            <li class="breadcrumb-item active">Retry Claim</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Item Summary -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Item You're Claiming</h6>
+                </div>
+                @if (Model.Claim?.Item?.Images.Count > 0)
+                {
+                    <img src="@Model.Claim.Item.Images[0]" class="card-img-top" 
+                         style="height: 200px; object-fit: cover;">
+                }
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Claim?.Item?.Title</h5>
+                    <p class="card-text text-muted small">@Model.Claim?.Item?.Description</p>
+                </div>
+            </div>
+
+            <!-- Previous Attempt -->
+            <div class="card mt-3 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0"><i class="bi bi-x-circle me-2"></i>Previous Attempt (Rejected)</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2" style="white-space: pre-wrap;">@Model.Claim?.PrivateOwnershipDetails</p>
+                    @if (!string.IsNullOrEmpty(Model.Claim?.VerificationNote))
+                    {
+                        <div class="alert alert-light small mb-0">
+                            <strong>Finder's Note:</strong> @Model.Claim.VerificationNote
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Retry Form -->
+        <div class="col-lg-8">
+            <div class="card shadow border-warning">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Final Attempt</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h6><i class="bi bi-exclamation-octagon me-2"></i>This is your FINAL attempt!</h6>
+                        <p class="mb-0">If your claim is rejected again, you will be blocked from claiming this item.</p>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-lightbulb me-2"></i>Tips for a Successful Claim</h6>
+                        <ul class="mb-0 small">
+                            <li>Provide MORE specific details than before</li>
+                            <li>Mention unique features not visible in photos</li>
+                            <li>Include details about contents, marks, or personalization</li>
+                            <li>Upload proof documents if you have any</li>
+                        </ul>
+                    </div>
+
+                    <form asp-action="RetryClaim" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="ClaimId" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="NewPrivateOwnershipDetails" class="form-label">
+                                Updated Private Ownership Details <span class="text-danger">*</span>
+                            </label>
+                            <textarea asp-for="NewPrivateOwnershipDetails" class="form-control" rows="8" 
+                                      placeholder="Provide more detailed and specific ownership information. Be as precise as possible about unique features only you would know."></textarea>
+                            <span asp-validation-for="NewPrivateOwnershipDetails" class="text-danger"></span>
+                            <small class="text-muted">Minimum 30 characters. Be more specific than your previous attempt.</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="NewProofImages" class="form-label">Additional Proof Documents</label>
+                            <input asp-for="NewProofImages" type="file" class="form-control" multiple accept="image/*,.pdf" />
+                            <span asp-validation-for="NewProofImages" class="text-danger"></span>
+                            <small class="text-muted">Upload any additional proof - receipts, old photos, documents</small>
+                            <div id="proofPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-send me-2"></i>Submit Final Attempt
+                            </button>
+                            <a asp-action="MyClaims" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('NewProofImages')?.addEventListener('change', function(e) {
+            const preview = document.getElementById('proofPreview');
+            preview.innerHTML = '';
+            
+            Array.from(e.target.files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'rounded';
+                        img.style.width = '100px';
+                        img.style.height = '75px';
+                        img.style.objectFit = 'cover';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    const div = document.createElement('div');
+                    div.className = 'bg-light rounded p-2 small';
+                    div.innerHTML = '<i class="bi bi-file-pdf me-1"></i>' + file.name;
+                    preview.appendChild(div);
+                }
+            });
+        });
+    </script>
+}
