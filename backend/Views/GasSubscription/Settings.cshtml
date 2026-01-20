@@ -1,0 +1,260 @@
+@model ServConnect.Models.GasSubscription
+@{
+    ViewData["Title"] = "Gas Subscription Settings";
+    var vendors = ViewBag.Vendors as List<ServConnect.Models.Users> ?? new List<ServConnect.Models.Users>();
+    var userPhone = ViewBag.UserPhone as string ?? "";
+    var userAddress = ViewBag.UserAddress as string ?? "";
+}
+
+<div class="container py-4" style="max-width: 800px;">
+    <!-- Header -->
+    <div class="d-flex align-items-center mb-4">
+        <a href="@Url.Action("Index", "GasSubscription")" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-gear text-primary me-2"></i>
+                Gas Subscription Settings
+            </h2>
+            <p class="text-muted mb-0">Configure your IoT gas monitoring preferences</p>
+        </div>
+    </div>
+
+    <form id="settingsForm">
+        <!-- Auto-Booking Toggle -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">
+                            <i class="bi bi-lightning-charge text-warning me-2"></i>
+                            Automatic Gas Booking
+                        </h5>
+                        <p class="text-muted mb-0 small">
+                            Automatically order gas when cylinder level falls below threshold
+                        </p>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" 
+                               id="isAutoBookingEnabled" name="isAutoBookingEnabled"
+                               style="width: 50px; height: 26px;"
+                               @(Model?.IsAutoBookingEnabled == true ? "checked" : "")>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Device Configuration -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-bottom-0 pt-4">
+                <h5 class="mb-0">
+                    <i class="bi bi-cpu me-2"></i>Device Configuration
+                </h5>
+            </div>
+            <div class="card-body pt-2">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Device ID</label>
+                    <input type="text" class="form-control" id="deviceId" name="deviceId"
+                           placeholder="e.g., ESP32-GAS-001"
+                           value="@Model?.DeviceId">
+                    <div class="form-text">
+                        Enter the unique ID programmed in your ESP32 device
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Full Cylinder Weight (grams)</label>
+                        <input type="number" class="form-control" id="fullCylinderWeightGrams"
+                               name="fullCylinderWeightGrams" step="100" min="500" max="20000"
+                               value="@(Model?.FullCylinderWeightGrams ?? 2000)">
+                        <div class="form-text">For 2kg cylinder, use 2000</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Empty Cylinder Weight (grams)</label>
+                        <input type="number" class="form-control" id="tareCylinderWeightGrams"
+                               name="tareCylinderWeightGrams" step="50" min="0" max="5000"
+                               value="@(Model?.TareCylinderWeightGrams ?? 500)">
+                        <div class="form-text">Tare weight when cylinder is empty</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Threshold Configuration -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-bottom-0 pt-4">
+                <h5 class="mb-0">
+                    <i class="bi bi-sliders me-2"></i>Booking Threshold
+                </h5>
+            </div>
+            <div class="card-body pt-2">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">
+                        Trigger auto-booking when gas falls below: 
+                        <span id="thresholdDisplay" class="text-primary fw-bold">
+                            @(Model?.ThresholdPercentage ?? 20)%
+                        </span>
+                    </label>
+                    <input type="range" class="form-range" id="thresholdPercentage" 
+                           name="thresholdPercentage" min="5" max="50" step="5"
+                           value="@(Model?.ThresholdPercentage ?? 20)">
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>5%</span>
+                        <span>25%</span>
+                        <span>50%</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Recommendation:</strong> 20% threshold ensures you get a refill 
+                    before running out, giving enough time for delivery.
+                </div>
+            </div>
+        </div>
+
+        <!-- Vendor Selection -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-bottom-0 pt-4">
+                <h5 class="mb-0">
+                    <i class="bi bi-shop me-2"></i>Preferred Gas Vendor
+                </h5>
+            </div>
+            <div class="card-body pt-2">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Select Vendor</label>
+                    <select class="form-select" id="preferredVendorId" name="preferredVendorId">
+                        <option value="">-- Select a gas vendor --</option>
+                        @foreach (var vendor in vendors)
+                        {
+                            var isSelected = Model?.PreferredVendorId == vendor.Id;
+                            if (isSelected)
+                            {
+                                <option value="@vendor.Id" selected>
+                                    @(vendor.BusinessName ?? vendor.FullName)
+                                    @if (!string.IsNullOrEmpty(vendor.BusinessAddress))
+                                    {
+                                        @:- @vendor.BusinessAddress
+                                    }
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@vendor.Id">
+                                    @(vendor.BusinessName ?? vendor.FullName)
+                                    @if (!string.IsNullOrEmpty(vendor.BusinessAddress))
+                                    {
+                                        @:- @vendor.BusinessAddress
+                                    }
+                                </option>
+                            }
+                        }
+                    </select>
+                    <div class="form-text">
+                        Gas orders will be sent to this vendor automatically
+                    </div>
+                </div>
+
+                @if (!vendors.Any())
+                {
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        No gas vendors available. Please check back later or contact support.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Delivery Address -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-bottom-0 pt-4">
+                <h5 class="mb-0">
+                    <i class="bi bi-geo-alt me-2"></i>Delivery Details
+                </h5>
+            </div>
+            <div class="card-body pt-2">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Contact Phone</label>
+                    <input type="tel" class="form-control" id="userPhone" name="userPhone"
+                           placeholder="Enter phone number for delivery contact"
+                           value="@(Model?.UserPhone ?? userPhone)">
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label fw-medium">Delivery Address</label>
+                    <textarea class="form-control" id="deliveryAddress" name="deliveryAddress"
+                              rows="3" placeholder="Enter complete delivery address">@(Model?.DeliveryAddress ?? userAddress)</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-lg flex-grow-1" id="saveBtn">
+                <i class="bi bi-check-lg me-2"></i>Save Settings
+            </button>
+            <a href="@Url.Action("Index", "GasSubscription")" class="btn btn-outline-secondary btn-lg">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Update threshold display
+        document.getElementById('thresholdPercentage').addEventListener('input', function() {
+            document.getElementById('thresholdDisplay').textContent = this.value + '%';
+        });
+
+        // Form submission
+        document.getElementById('settingsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+            btn.disabled = true;
+
+            try {
+                const formData = {
+                    isAutoBookingEnabled: document.getElementById('isAutoBookingEnabled').checked,
+                    preferredVendorId: document.getElementById('preferredVendorId').value || null,
+                    thresholdPercentage: parseFloat(document.getElementById('thresholdPercentage').value),
+                    deviceId: document.getElementById('deviceId').value || null,
+                    deliveryAddress: document.getElementById('deliveryAddress').value,
+                    userPhone: document.getElementById('userPhone').value,
+                    fullCylinderWeightGrams: parseFloat(document.getElementById('fullCylinderWeightGrams').value),
+                    tareCylinderWeightGrams: parseFloat(document.getElementById('tareCylinderWeightGrams').value)
+                };
+
+                const response = await fetch('/api/GasSubscriptionApi/subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Show success
+                    btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Saved!';
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        window.location.href = '@Url.Action("Index", "GasSubscription")';
+                    }, 1000);
+                } else {
+                    throw new Error(result.message || 'Failed to save');
+                }
+            } catch (error) {
+                alert('Error saving settings: ' + error.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    </script>
+}

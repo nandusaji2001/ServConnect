@@ -1,0 +1,247 @@
+@model ServConnect.Models.GasOrder
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<div class="container py-4" style="max-width: 800px;">
+    <!-- Header -->
+    <div class="d-flex align-items-center mb-4">
+        <a href="@Url.Action("Orders", "GasSubscription")" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-receipt text-primary me-2"></i>
+                Order Details
+            </h2>
+            <p class="text-muted mb-0">Order #@Model.Id?.Substring(0, 8).ToUpper()</p>
+        </div>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="alert @GetStatusAlertClass(Model.Status) mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi @GetStatusIcon(Model.Status) fs-3 me-3"></i>
+            <div>
+                <h5 class="mb-0">@GetStatusText(Model.Status)</h5>
+                <small>@GetStatusDescription(Model.Status)</small>
+            </div>
+            @if (Model.IsAutoTriggered)
+            {
+                <span class="badge bg-info ms-auto">Auto-Triggered Order</span>
+            }
+        </div>
+    </div>
+
+    <!-- Order Progress -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-4">Order Progress</h5>
+            
+            <div class="position-relative">
+                <!-- Progress Line -->
+                <div class="progress mb-4" style="height: 4px;">
+                    <div class="progress-bar bg-success" style="width: @GetProgressWidth(Model.Status)%"></div>
+                </div>
+                
+                <!-- Progress Steps -->
+                <div class="d-flex justify-content-between">
+                    @{
+                        var steps = new[] { 
+                            (GasOrderStatus.Pending, "Order Placed", "bi-cart-check"),
+                            (GasOrderStatus.Accepted, "Accepted", "bi-check-circle"),
+                            (GasOrderStatus.OutForDelivery, "Out for Delivery", "bi-truck"),
+                            (GasOrderStatus.Delivered, "Delivered", "bi-house-check")
+                        };
+                    }
+                    @foreach (var (status, label, icon) in steps)
+                    {
+                        var isCompleted = (int)Model.Status >= (int)status;
+                        var isCurrent = Model.Status == status;
+                        
+                        <div class="text-center" style="flex: 1;">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 @(isCompleted ? "bg-success text-white" : "bg-light text-muted")"
+                                 style="width: 40px; height: 40px; @(isCurrent ? "box-shadow: 0 0 0 3px rgba(25,135,84,0.3);" : "")">
+                                <i class="bi @icon"></i>
+                            </div>
+                            <div class="small @(isCompleted ? "fw-medium" : "text-muted")">@label</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Order Info -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-box me-2"></i>Order Information
+                    </h5>
+                    
+                    <dl class="row mb-0">
+                        <dt class="col-5 text-muted">Order ID</dt>
+                        <dd class="col-7">@Model.Id?.Substring(0, 8).ToUpper()</dd>
+                        
+                        <dt class="col-5 text-muted">Item</dt>
+                        <dd class="col-7">@Model.GasItemName</dd>
+                        
+                        <dt class="col-5 text-muted">Price</dt>
+                        <dd class="col-7 fw-bold text-success">₹@Model.Price</dd>
+                        
+                        <dt class="col-5 text-muted">Order Type</dt>
+                        <dd class="col-7">
+                            @if (Model.IsAutoTriggered)
+                            {
+                                <span class="badge bg-info">Automatic</span>
+                                @if (Model.TriggerGasPercentage.HasValue)
+                                {
+                                    <br /><small class="text-muted">Triggered at @Model.TriggerGasPercentage.Value.ToString("F0")%</small>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Manual</span>
+                            }
+                        </dd>
+                        
+                        <dt class="col-5 text-muted">Ordered At</dt>
+                        <dd class="col-7">@Model.CreatedAt.ToString("g")</dd>
+                        
+                        @if (Model.DeliveredAt.HasValue)
+                        {
+                            <dt class="col-5 text-muted">Delivered At</dt>
+                            <dd class="col-7">@Model.DeliveredAt.Value.ToString("g")</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Info -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-geo-alt me-2"></i>Delivery Details
+                    </h5>
+                    
+                    <dl class="row mb-0">
+                        <dt class="col-5 text-muted">Vendor</dt>
+                        <dd class="col-7">@Model.VendorName</dd>
+                        
+                        <dt class="col-5 text-muted">Contact</dt>
+                        <dd class="col-7">@Model.UserPhone</dd>
+                        
+                        <dt class="col-5 text-muted">Address</dt>
+                        <dd class="col-7">@Model.DeliveryAddress</dd>
+                    </dl>
+                    
+                    @if (!string.IsNullOrEmpty(Model.VendorMessage))
+                    {
+                        <hr />
+                        <div class="bg-light p-3 rounded">
+                            <small class="text-muted d-block mb-1">Message from Vendor</small>
+                            <p class="mb-0">@Model.VendorMessage</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.IsDeliveryVerified)
+    {
+        <div class="alert alert-success mt-4">
+            <i class="bi bi-shield-check me-2"></i>
+            <strong>Delivery Verified!</strong> Weight sensor detected the new cylinder.
+            @if (Model.PostDeliveryWeightGrams.HasValue)
+            {
+                <br /><small>New weight: @((Model.PostDeliveryWeightGrams.Value / 1000).ToString("F2")) kg</small>
+            }
+        </div>
+    }
+
+    <!-- Actions -->
+    <div class="d-flex gap-2 mt-4">
+        <a href="@Url.Action("Orders", "GasSubscription")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Orders
+        </a>
+        @if (Model.Status == GasOrderStatus.Delivered)
+        {
+            <a href="@Url.Action("PlaceOrder", "GasSubscription")" class="btn btn-primary ms-auto">
+                <i class="bi bi-cart-plus me-1"></i>Order Again
+            </a>
+        }
+    </div>
+</div>
+
+@functions {
+    string GetStatusAlertClass(GasOrderStatus status)
+    {
+        return status switch
+        {
+            GasOrderStatus.Delivered => "alert-success",
+            GasOrderStatus.OutForDelivery => "alert-primary",
+            GasOrderStatus.Accepted => "alert-info",
+            GasOrderStatus.Pending => "alert-warning",
+            _ => "alert-secondary"
+        };
+    }
+
+    string GetStatusIcon(GasOrderStatus status)
+    {
+        return status switch
+        {
+            GasOrderStatus.Delivered => "bi-check-circle-fill",
+            GasOrderStatus.OutForDelivery => "bi-truck",
+            GasOrderStatus.Accepted => "bi-check-circle",
+            GasOrderStatus.Pending => "bi-hourglass-split",
+            GasOrderStatus.Cancelled => "bi-x-circle",
+            GasOrderStatus.Rejected => "bi-x-circle",
+            _ => "bi-circle"
+        };
+    }
+
+    string GetStatusText(GasOrderStatus status)
+    {
+        return status switch
+        {
+            GasOrderStatus.Delivered => "Order Delivered",
+            GasOrderStatus.OutForDelivery => "Out for Delivery",
+            GasOrderStatus.Accepted => "Order Accepted",
+            GasOrderStatus.Pending => "Pending Confirmation",
+            GasOrderStatus.Cancelled => "Order Cancelled",
+            GasOrderStatus.Rejected => "Order Rejected",
+            _ => "Unknown Status"
+        };
+    }
+
+    string GetStatusDescription(GasOrderStatus status)
+    {
+        return status switch
+        {
+            GasOrderStatus.Delivered => "Your gas cylinder has been delivered successfully",
+            GasOrderStatus.OutForDelivery => "Your order is on its way to you",
+            GasOrderStatus.Accepted => "The vendor has accepted your order",
+            GasOrderStatus.Pending => "Waiting for vendor to accept the order",
+            GasOrderStatus.Cancelled => "This order has been cancelled",
+            GasOrderStatus.Rejected => "The vendor was unable to fulfill this order",
+            _ => ""
+        };
+    }
+
+    int GetProgressWidth(GasOrderStatus status)
+    {
+        return status switch
+        {
+            GasOrderStatus.Pending => 12,
+            GasOrderStatus.Accepted => 37,
+            GasOrderStatus.OutForDelivery => 62,
+            GasOrderStatus.Delivered => 100,
+            _ => 0
+        };
+    }
+}

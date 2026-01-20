@@ -174,6 +174,10 @@ builder.Services.AddScoped<IRentalQueryService, RentalQueryService>();
 builder.Services.AddScoped<IWellnessPredictionService, WellnessPredictionService>();
 // Lost and Found service
 builder.Services.AddScoped<ILostAndFoundService, LostAndFoundService>();
+// Item Matching service (S-BERT ML for lost/found item matching)
+builder.Services.AddSingleton<IItemMatchingService, ItemMatchingService>();
+// Gas Subscription service for IoT-based automatic gas cylinder booking
+builder.Services.AddScoped<IGasSubscriptionService, GasSubscriptionService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

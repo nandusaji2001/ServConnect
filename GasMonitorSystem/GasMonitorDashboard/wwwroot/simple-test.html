@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gas Cylinder Monitor Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        
+        .main-grid { display: grid; grid-template-columns: 1fr 400px; gap: 20px; margin: 20px 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; }
+        .stat-value { font-size: 2em; font-weight: bold; margin: 10px 0; }
+        .stat-label { color: #666; font-size: 0.9em; }
+        
+        .gas-cylinder-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; }
+        .cylinder-visual { position: relative; width: 200px; height: 300px; margin: 20px auto; }
+        .cylinder-body { width: 120px; height: 250px; background: #e9ecef; border: 3px solid #6c757d; border-radius: 15px; position: relative; margin: 0 auto; overflow: hidden; }
+        .cylinder-fill { position: absolute; bottom: 0; left: 0; right: 0; transition: all 0.5s ease; border-radius: 0 0 12px 12px; }
+        .cylinder-valve { width: 40px; height: 30px; background: #495057; border-radius: 5px 5px 0 0; margin: 0 auto 10px; }
+        .cylinder-handle { width: 80px; height: 15px; background: #6c757d; border-radius: 10px; margin: 0 auto 5px; }
+        
+        .level-indicators { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }
+        .level-mark { font-size: 0.8em; color: #666; text-align: center; }
+        .level-line { width: 2px; height: 20px; background: #dee2e6; margin: 0 auto; }
+        
+        .gas-level-full { background: linear-gradient(to top, #28a745, #20c997); }
+        .gas-level-high { background: linear-gradient(to top, #ffc107, #28a745); }
+        .gas-level-medium { background: linear-gradient(to top, #fd7e14, #ffc107); }
+        .gas-level-low { background: linear-gradient(to top, #dc3545, #fd7e14); }
+        .gas-level-empty { background: linear-gradient(to top, #6c757d, #dc3545); }
+        
+        .current-weight { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .status-full { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+        .status-high { background: linear-gradient(135deg, #20c997 0%, #28a745 100%); color: white; }
+        .status-medium { background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); color: white; }
+        .status-low { background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%); color: white; }
+        .status-empty { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); color: white; }
+        
+        .percentage-display { font-size: 3em; font-weight: bold; color: #495057; margin: 15px 0; }
+        .weight-display { font-size: 1.5em; color: #6c757d; margin: 10px 0; }
+        
+        button { padding: 12px 24px; margin: 5px; cursor: pointer; border: none; border-radius: 8px; background: #007bff; color: white; font-weight: 500; }
+        button:hover { background: #0056b3; transform: translateY(-1px); }
+        button.secondary { background: #6c757d; }
+        button.secondary:hover { background: #545b62; }
+        
+        #readings { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .reading { padding: 12px; border-bottom: 1px solid #eee; display: grid; grid-template-columns: 60px 100px 120px 100px 1fr; gap: 15px; align-items: center; }
+        .reading:last-child { border-bottom: none; }
+        .reading-header { font-weight: bold; background: #f8f9fa; border-radius: 8px; }
+        
+        .auto-refresh { margin: 15px 0; }
+        .auto-refresh input { margin-right: 10px; }
+        
+        .last-updated { color: #666; font-size: 0.9em; margin-top: 10px; }
+        
+        .dashboard-header { background: rgba(255,255,255,0.95); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .dashboard-header h1 { margin: 0; color: #495057; font-size: 2.5em; }
+        .dashboard-header p { margin: 10px 0 0 0; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>🔥 Gas Cylinder Monitor</h1>
+            <p>Real-time monitoring of LPG cylinder levels (7.5kg - 12.5kg range)</p>
+        </div>
+        
+        <div class="main-grid">
+            <div class="left-panel">
+                <div class="stats-grid">
+                    <div class="stat-card current-weight">
+                        <div class="stat-label">Current Weight</div>
+                        <div class="stat-value" id="currentWeight">-- kg</div>
+                        <div class="stat-label" id="lastReading">No readings yet</div>
+                    </div>
+                    <div class="stat-card" id="statusCard">
+                        <div class="stat-label">Gas Level Status</div>
+                        <div class="stat-value" id="systemStatus">--</div>
+                        <div class="stat-label" id="deviceInfo">ESP32-001</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Readings</div>
+                        <div class="stat-value" id="totalReadings">0</div>
+                        <div class="stat-label">Recorded</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Average Weight</div>
+                        <div class="stat-value" id="averageWeight">-- kg</div>
+                        <div class="stat-label">Overall</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="gas-cylinder-container">
+                <h3>🔥 LPG Cylinder Status</h3>
+                <div class="percentage-display" id="gasPercentage">--%</div>
+                <div class="weight-display" id="gasWeight">-- kg</div>
+                
+                <div class="cylinder-visual">
+                    <div class="cylinder-valve"></div>
+                    <div class="cylinder-handle"></div>
+                    <div class="cylinder-body">
+                        <div class="cylinder-fill" id="cylinderFill"></div>
+                    </div>
+                </div>
+                
+                <div class="level-indicators">
+                    <div class="level-mark">
+                        <div class="level-line"></div>
+                        <div>Empty<br>7.5kg</div>
+                    </div>
+                    <div class="level-mark">
+                        <div class="level-line"></div>
+                        <div>1/4<br>8.75kg</div>
+                    </div>
+                    <div class="level-mark">
+                        <div class="level-line"></div>
+                        <div>Half<br>10kg</div>
+                    </div>
+                    <div class="level-mark">
+                        <div class="level-line"></div>
+                        <div>3/4<br>11.25kg</div>
+                    </div>
+                    <div class="level-mark">
+                        <div class="level-line"></div>
+                        <div>Full<br>12.5kg</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <button onclick="getReadings()">🔄 Refresh Data</button>
+            <button onclick="getStats()">📊 Update Stats</button>
+            <button onclick="testAPI()" class="secondary">🔧 Test API</button>
+            <button onclick="addTestData()" class="secondary">➕ Add Test Data</button>
+        </div>
+        
+        <div class="auto-refresh">
+            <label>
+                <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()"> 
+                Auto-refresh every 5 seconds
+            </label>
+        </div>
+        
+        <div id="status"></div>
+        
+        <div id="readings">
+            <h3>📋 Recent Gas Level Readings</h3>
+            <div class="reading reading-header">
+                <div>ID</div>
+                <div>Weight (kg)</div>
+                <div>Device</div>
+                <div>Gas Level</div>
+                <div>Timestamp</div>
+            </div>
+            <div id="readingsList">Loading...</div>
+            <div class="last-updated" id="lastUpdated"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://10.154.36.251:5000/api/weight';
+        let autoRefreshInterval = null;
+        
+        // Gas cylinder constants
+        const GAS_EMPTY_WEIGHT = 7.5;  // kg
+        const GAS_FULL_WEIGHT = 12.5;  // kg
+        const GAS_RANGE = GAS_FULL_WEIGHT - GAS_EMPTY_WEIGHT; // 5kg
+        
+        function calculateGasLevel(weight) {
+            if (weight <= GAS_EMPTY_WEIGHT) return { percentage: 0, status: 'Empty', level: 'empty' };
+            if (weight >= GAS_FULL_WEIGHT) return { percentage: 100, status: 'Full', level: 'full' };
+            
+            const gasWeight = weight - GAS_EMPTY_WEIGHT;
+            const percentage = Math.round((gasWeight / GAS_RANGE) * 100);
+            
+            let status, level;
+            if (percentage >= 75) { status = 'Full'; level = 'full'; }
+            else if (percentage >= 50) { status = '3/4 Full'; level = 'high'; }
+            else if (percentage >= 25) { status = 'Half Full'; level = 'medium'; }
+            else if (percentage > 0) { status = '1/4 Full'; level = 'low'; }
+            else { status = 'Empty'; level = 'empty'; }
+            
+            return { percentage, status, level };
+        }
+        
+        function updateCylinderVisual(weight) {
+            const gasLevel = calculateGasLevel(weight);
+            const cylinderFill = document.getElementById('cylinderFill');
+            const gasPercentage = document.getElementById('gasPercentage');
+            const gasWeight = document.getElementById('gasWeight');
+            
+            // Update percentage and weight display
+            gasPercentage.textContent = `${gasLevel.percentage}%`;
+            gasWeight.textContent = `${weight.toFixed(2)} kg`;
+            
+            // Update cylinder fill height and color
+            const fillHeight = (gasLevel.percentage / 100) * 250; // 250px is cylinder height
+            cylinderFill.style.height = `${fillHeight}px`;
+            
+            // Remove all gas level classes and add the current one
+            cylinderFill.className = 'cylinder-fill';
+            cylinderFill.classList.add(`gas-level-${gasLevel.level}`);
+            
+            return gasLevel;
+        }
+        
+        function showStatus(message, isError = false, isWarning = false) {
+            const statusDiv = document.getElementById('status');
+            const className = isError ? 'error' : isWarning ? 'warning' : 'success';
+            statusDiv.innerHTML = `<div class="status ${className}">${message}</div>`;
+        }
+        
+        async function testAPI() {
+            try {
+                const response = await fetch(`${API_BASE}/test`);
+                const data = await response.json();
+                showStatus(`✅ API Connection: ${data.message}`);
+            } catch (error) {
+                showStatus(`❌ API Connection Failed: ${error.message}`, true);
+            }
+        }
+        
+        async function addTestData() {
+            try {
+                const response = await fetch(`${API_BASE}/add-test-data`, { method: 'POST' });
+                const data = await response.json();
+                showStatus(`✅ ${data.message}`);
+                setTimeout(() => {
+                    getReadings();
+                    getStats();
+                }, 500);
+            } catch (error) {
+                showStatus(`❌ Failed to add test data: ${error.message}`, true);
+            }
+        }
+        
+        async function getStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const stats = await response.json();
+                
+                document.getElementById('currentWeight').textContent = `${stats.currentWeight.toFixed(2)} kg`;
+                document.getElementById('totalReadings').textContent = stats.totalReadings;
+                document.getElementById('averageWeight').textContent = `${stats.averageWeight.toFixed(2)} kg`;
+                
+                // Calculate gas level and update cylinder visual
+                const gasLevel = updateCylinderVisual(stats.currentWeight);
+                document.getElementById('systemStatus').textContent = gasLevel.status;
+                
+                if (stats.lastReading) {
+                    document.getElementById('lastReading').textContent = 
+                        `Last: ${new Date(stats.lastReading).toLocaleTimeString()}`;
+                }
+                
+                // Update status card color based on gas level
+                const statusCard = document.getElementById('statusCard');
+                statusCard.className = 'stat-card';
+                statusCard.classList.add(`status-${gasLevel.level}`);
+                
+            } catch (error) {
+                showStatus(`⚠️ Failed to get stats: ${error.message}`, false, true);
+            }
+        }
+        
+        async function getReadings() {
+            try {
+                const response = await fetch(`${API_BASE}/recent?count=15`);
+                const readings = await response.json();
+                
+                const readingsList = document.getElementById('readingsList');
+                const lastUpdated = document.getElementById('lastUpdated');
+                
+                if (readings.length === 0) {
+                    readingsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">📭 No readings yet. Make sure your ESP32 is connected and sending data.</div>';
+                    showStatus('⚠️ No readings found. Check ESP32 connection.', false, true);
+                } else {
+                    readingsList.innerHTML = readings.map(r => {
+                        const gasLevel = calculateGasLevel(r.weight);
+                        const statusEmoji = {
+                            'Full': '🔥',
+                            '3/4 Full': '✅',
+                            'Half Full': '⚠️',
+                            '1/4 Full': '🔴',
+                            'Empty': '📭'
+                        }[gasLevel.status] || '❓';
+                        
+                        return `<div class="reading">
+                            <div>#${r.id}</div>
+                            <div>${r.weight.toFixed(3)}</div>
+                            <div>${r.deviceId}</div>
+                            <div>${statusEmoji} ${gasLevel.status} (${gasLevel.percentage}%)</div>
+                            <div>${new Date(r.timestamp).toLocaleString()}</div>
+                        </div>`;
+                    }).join('');
+                    
+                    showStatus(`📊 Loaded ${readings.length} readings from ESP32`);
+                }
+                
+                lastUpdated.textContent = `Last updated: ${new Date().toLocaleString()}`;
+                
+            } catch (error) {
+                showStatus(`❌ Failed to get readings: ${error.message}`, true);
+                document.getElementById('readingsList').innerHTML = 
+                    '<div style="text-align: center; padding: 20px; color: #dc3545;">❌ Connection error. Check if the server is running.</div>';
+            }
+        }
+        
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('autoRefresh');
+            
+            if (checkbox.checked) {
+                autoRefreshInterval = setInterval(() => {
+                    getReadings();
+                    getStats();
+                }, 5000);
+                showStatus('🔄 Auto-refresh enabled (every 5 seconds)');
+            } else {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                showStatus('⏸️ Auto-refresh disabled');
+            }
+        }
+        
+        // Initialize on page load
+        window.onload = async function() {
+            showStatus('🔥 Initializing Gas Cylinder Monitor Dashboard...');
+            await testAPI();
+            await getReadings();
+            await getStats();
+            
+            // Enable auto-refresh by default
+            document.getElementById('autoRefresh').checked = true;
+            toggleAutoRefresh();
+        };
+        
+        // Cleanup on page unload
+        window.onbeforeunload = function() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        };
+    </script>
+</body>
+</html>

@@ -7,6 +7,7 @@ namespace ServConnect.Services
     {
         private readonly IMongoCollection<LostFoundItem> _items;
         private readonly IMongoCollection<ItemClaim> _claims;
+        private readonly IMongoCollection<LostItemReport> _lostReports;
 
         public LostAndFoundService(IConfiguration config)
         {
@@ -16,6 +17,7 @@ namespace ServConnect.Services
             var db = client.GetDatabase(dbName);
             _items = db.GetCollection<LostFoundItem>("LostFoundItems");
             _claims = db.GetCollection<ItemClaim>("ItemClaims");
+            _lostReports = db.GetCollection<LostItemReport>("LostItemReports");
         }
 
         #region Item Operations
@@ -268,6 +270,100 @@ namespace ServConnect.Services
             return (int)await _claims.CountDocumentsAsync(c => 
                 itemIds.Contains(c.ItemId) && 
                 c.Status == ClaimStatus.Pending);
+        }
+
+        public async Task<int> GetActiveLostReportsCountAsync()
+        {
+            return (int)await _lostReports.CountDocumentsAsync(r => r.Status == LostItemStatus.Active);
+        }
+
+        #endregion
+
+        #region Lost Item Report Operations
+
+        public async Task<LostItemReport> CreateLostReportAsync(LostItemReport report)
+        {
+            report.CreatedAt = DateTime.UtcNow;
+            report.UpdatedAt = report.CreatedAt;
+            report.Status = LostItemStatus.Active;
+            await _lostReports.InsertOneAsync(report);
+            return report;
+        }
+
+        public async Task<LostItemReport?> GetLostReportByIdAsync(string id)
+        {
+            return await _lostReports.Find(r => r.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task<List<LostItemReport>> GetAllLostReportsAsync(string? category = null, string? status = null)
+        {
+            var filter = Builders<LostItemReport>.Filter.Empty;
+
+            if (!string.IsNullOrWhiteSpace(category))
+                filter &= Builders<LostItemReport>.Filter.Eq(r => r.Category, category);
+
+            if (!string.IsNullOrWhiteSpace(status))
+                filter &= Builders<LostItemReport>.Filter.Eq(r => r.Status, status);
+
+            return await _lostReports.Find(filter)
+                .SortByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<LostItemReport>> GetLostReportsByUserAsync(Guid userId)
+        {
+            return await _lostReports.Find(r => r.LostByUserId == userId)
+                .SortByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<bool> MarkLostItemAsFoundAsync(string reportId, Guid foundByUserId, string foundByUserName,
+            string foundByUserEmail, string? foundByUserPhone, string? foundLocation, string? foundNote)
+        {
+            var update = Builders<LostItemReport>.Update
+                .Set(r => r.Status, LostItemStatus.FoundByOther)
+                .Set(r => r.FoundByUserId, foundByUserId)
+                .Set(r => r.FoundByUserName, foundByUserName)
+                .Set(r => r.FoundByUserEmail, foundByUserEmail)
+                .Set(r => r.FoundByUserPhone, foundByUserPhone)
+                .Set(r => r.FoundLocation, foundLocation)
+                .Set(r => r.FoundNote, foundNote)
+                .Set(r => r.FoundAt, DateTime.UtcNow)
+                .Set(r => r.UpdatedAt, DateTime.UtcNow);
+
+            var result = await _lostReports.UpdateOneAsync(r => r.Id == reportId, update);
+            return result.ModifiedCount == 1;
+        }
+
+        public async Task<bool> MarkLostItemAsRecoveredAsync(string reportId)
+        {
+            var update = Builders<LostItemReport>.Update
+                .Set(r => r.Status, LostItemStatus.Recovered)
+                .Set(r => r.RecoveredAt, DateTime.UtcNow)
+                .Set(r => r.UpdatedAt, DateTime.UtcNow);
+
+            var result = await _lostReports.UpdateOneAsync(r => r.Id == reportId, update);
+            return result.ModifiedCount == 1;
+        }
+
+        public async Task<bool> CloseLostReportAsync(string reportId)
+        {
+            var update = Builders<LostItemReport>.Update
+                .Set(r => r.Status, LostItemStatus.Closed)
+                .Set(r => r.UpdatedAt, DateTime.UtcNow);
+
+            var result = await _lostReports.UpdateOneAsync(r => r.Id == reportId, update);
+            return result.ModifiedCount == 1;
+        }
+
+        public async Task<bool> AddLostReportImageAsync(string id, string imageUrl)
+        {
+            var update = Builders<LostItemReport>.Update
+                .AddToSet(r => r.Images, imageUrl)
+                .Set(r => r.UpdatedAt, DateTime.UtcNow);
+
+            var result = await _lostReports.UpdateOneAsync(r => r.Id == id, update);
+            return result.ModifiedCount == 1;
         }
 
         #endregion

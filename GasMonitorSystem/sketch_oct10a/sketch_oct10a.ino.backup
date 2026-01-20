@@ -1,0 +1,213 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include "HX711.h"
+
+// ------------------------------
+// Pin definitions
+// ------------------------------
+#define DT  4   // HX711 Data Pin
+#define SCK 5   // HX711 Clock Pin
+
+// ------------------------------
+// Wi-Fi & API configuration
+// ------------------------------
+const char* WIFI_SSID     = "Darki";          // TODO: set your Wi-Fi SSID
+const char* WIFI_PASSWORD = "nandusaji123";      // TODO: set your Wi-Fi password
+const char* API_ENDPOINT  = "http://10.154.36.251:5227/api/weight/simple";
+const unsigned long POST_INTERVAL_MS    = 5000;   // send every 5 seconds (for testing)
+const float MIN_WEIGHT_DELTA_FOR_SEND   = 0.01f;  // kg; send only if change > 10 g (more sensitive)
+const float MIN_CALIBRATION_WEIGHT_GRAM = 50.0f;  // ignore calibration entries below 50 g
+
+HX711 scale;
+
+long zero_offset = 0;            // zero offset
+float calibration_factor = 0;    // set after calibration
+const int MOVING_AVG_SIZE = 10;
+float weight_history[MOVING_AVG_SIZE] = {0};
+int history_index = 0;
+
+float last_sent_weight_kg = 0;
+unsigned long last_post_ms = 0;
+
+// ------------------------------
+// Utility Helpers
+// ------------------------------
+void connectToWiFi()
+{
+  Serial.printf("Connecting to Wi-Fi '%s'\n", WIFI_SSID);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  unsigned long startAttemptTime = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 15000) {
+    Serial.print('.');
+    delay(500);
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWi-Fi connected");
+    Serial.print("Device IP: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\nFailed to connect to Wi-Fi. Will retry later.");
+  }
+}
+
+void ensureWiFi()
+{
+  if (WiFi.status() != WL_CONNECTED) {
+    connectToWiFi();
+  }
+}
+
+void postReading(float weightKg)
+{
+  ensureWiFi();
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Skipping POST because Wi-Fi is disconnected.");
+    return;
+  }
+
+  HTTPClient http;
+  http.begin(API_ENDPOINT);
+  http.addHeader("Content-Type", "application/json");
+
+  String payload = "{\"weight\": ";
+  payload += String(weightKg, 2);
+  payload += "}";
+
+  Serial.print("POST ");
+  Serial.print(API_ENDPOINT);
+  Serial.print(" payload: ");
+  Serial.println(payload);
+
+  int httpCode = http.POST(payload);
+  if (httpCode > 0) {
+    Serial.printf("POST response code: %d\n", httpCode);
+    String response = http.getString();
+    Serial.println("Response: " + response);
+  } else {
+    Serial.printf("POST failed, error: %s\n", http.errorToString(httpCode).c_str());
+  }
+
+  http.end();
+}
+
+bool shouldPost(float avgWeightKg)
+{
+  if (millis() - last_post_ms < POST_INTERVAL_MS) {
+    return false;
+  }
+
+  if (fabs(avgWeightKg - last_sent_weight_kg) < MIN_WEIGHT_DELTA_FOR_SEND) {
+    return false;
+  }
+
+  return true;
+}
+
+// ------------------------------
+// Arduino Lifecycle
+// ------------------------------
+void setup()
+{
+  Serial.begin(115200);
+  delay(1000);
+
+  scale.begin(DT, SCK);
+  Serial.println("=== HX711 ESP32 Weight Measurement System ===");
+  Serial.print("API Endpoint: ");
+  Serial.println(API_ENDPOINT);
+  Serial.print("Post Interval: ");
+  Serial.print(POST_INTERVAL_MS);
+  Serial.println(" ms");
+
+  connectToWiFi();
+
+  // Step 1: Tare the scale
+  Serial.println("Step 1: Remove all weight from scale for taring...");
+  delay(2000);
+
+  zero_offset = 0;
+  for (int i = 0; i < 10; i++) {
+    zero_offset += scale.read();
+    delay(100);
+  }
+  zero_offset /= 10;
+  Serial.print("Zero offset: ");
+  Serial.println(zero_offset);
+
+  // Step 2: Calibration prompt
+  Serial.println("\nStep 2: Place a known weight and type its weight in grams in Serial Monitor");
+  Serial.println("Example: type 150 and press Enter for 150 grams");
+}
+
+void loop()
+{
+  long raw = scale.read();
+
+  // Correct sign based on wiring
+  long corrected = -raw;
+
+  // Net reading after zero offset
+  long net = corrected - (-zero_offset);
+
+  // Calibration input from Serial
+  if (Serial.available() > 0) {
+    float known_weight = Serial.parseFloat(); // read weight in grams
+    if (known_weight >= MIN_CALIBRATION_WEIGHT_GRAM) {
+      calibration_factor = (float)net / known_weight;
+      Serial.print("Calibration factor set to: ");
+      Serial.println(calibration_factor, 4);
+      Serial.println("You can now read weights. Remove/add items to see results.\n");
+    } else {
+      Serial.println("Ignored calibration input (too small or invalid). Try again.");
+    }
+  }
+
+  // Convert to weight in grams (only if calibrated)
+  float weight = 0;
+  if (calibration_factor != 0) {
+    weight = (float)net / calibration_factor;
+
+    // Moving average
+    weight_history[history_index] = weight;
+    history_index = (history_index + 1) % MOVING_AVG_SIZE;
+
+    float avg_weight = 0;
+    for (int i = 0; i < MOVING_AVG_SIZE; i++) {
+      avg_weight += weight_history[i];
+    }
+    avg_weight /= MOVING_AVG_SIZE;
+
+    float avg_weight_kg = avg_weight / 1000.0f;
+
+    Serial.print("Raw: ");
+    Serial.print(raw);
+    Serial.print("\tWeight (g): ");
+    Serial.print(avg_weight, 2);
+    Serial.print("\tWeight (kg): ");
+    Serial.println(avg_weight_kg, 3);
+
+    if (shouldPost(avg_weight_kg)) {
+      postReading(avg_weight_kg);
+      last_post_ms = millis();
+      last_sent_weight_kg = avg_weight_kg;
+    }
+  } else {
+    Serial.println("Waiting for calibration... type known weight in Serial Monitor");
+    
+    // FOR TESTING: Send raw readings even without calibration
+    // Remove this section once calibration is done
+    if (millis() - last_post_ms > POST_INTERVAL_MS) {
+      float test_weight = abs(net) / 1000000.0; // Convert raw reading to approximate kg
+      Serial.print("SENDING TEST READING: ");
+      Serial.print(test_weight, 3);
+      Serial.println(" kg (uncalibrated)");
+      postReading(test_weight);
+      last_post_ms = millis();
+    }
+  }
+
+  delay(200);
+}

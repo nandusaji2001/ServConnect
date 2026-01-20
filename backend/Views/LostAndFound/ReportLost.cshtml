@@ -1,0 +1,176 @@
+@model ServConnect.ViewModels.ReportLostItemViewModel
+@{
+    ViewData["Title"] = "Report Lost Item";
+}
+
+<style>
+    :root {
+        --primary: #10B981;
+        --primary-dark: #059669;
+        --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --shadow-glow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    body { background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%); min-height: 100vh; }
+
+    .form-container { padding: 40px 15px; max-width: 800px; margin: 0 auto; }
+
+    .back-btn {
+        display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+        color: var(--text-primary); border-radius: 50px; text-decoration: none;
+        font-weight: 500; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+        transition: all 0.3s ease; margin-bottom: 30px;
+    }
+    .back-btn:hover { transform: translateX(-5px); box-shadow: var(--shadow-md); color: var(--primary); border-color: var(--primary); text-decoration: none; }
+
+    .form-header { text-align: center; margin-bottom: 40px; }
+    .form-header h1 { font-size: 2.5rem; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+    .form-header p { font-size: 1.1rem; color: var(--text-secondary); }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+        border-radius: 24px; padding: 40px; box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .form-group { margin-bottom: 24px; }
+    .form-label { font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: block; }
+    .form-control, .form-select {
+        border: 2px solid var(--border-color); border-radius: 12px; padding: 14px 18px;
+        font-size: 1rem; transition: all 0.3s ease; width: 100%;
+    }
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); outline: none; }
+
+    .form-text { font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px; }
+
+    .image-upload-area {
+        border: 2px dashed var(--border-color); border-radius: 16px; padding: 40px;
+        text-align: center; transition: all 0.3s ease; cursor: pointer;
+    }
+    .image-upload-area:hover { border-color: var(--primary); background: rgba(16, 185, 129, 0.05); }
+    .image-upload-area i { font-size: 3rem; color: var(--primary); opacity: 0.5; margin-bottom: 16px; }
+    .image-upload-area p { color: var(--text-secondary); margin: 0; }
+
+    .btn-submit {
+        width: 100%; background: var(--gradient-primary); border: none; padding: 16px;
+        border-radius: 12px; color: white; font-weight: 600; font-size: 1.1rem;
+        cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-submit:hover { transform: translateY(-3px); box-shadow: var(--shadow-glow); }
+
+    .text-danger { color: #EF4444; font-size: 0.85rem; margin-top: 6px; }
+
+    .info-box {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 16px; padding: 20px; margin-bottom: 30px;
+        border-left: 4px solid #F59E0B;
+    }
+    .info-box h6 { color: #92400E; font-weight: 600; margin-bottom: 8px; }
+    .info-box p { color: #78350F; margin: 0; font-size: 0.9rem; }
+</style>
+
+<div class="form-container">
+    <a asp-action="LostItems" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Lost Items
+    </a>
+
+    <div class="form-header">
+        <h1><i class="fas fa-exclamation-triangle me-3"></i>Report Lost Item</h1>
+        <p>Describe your lost item so others can help you find it</p>
+    </div>
+
+    <div class="info-box">
+        <h6><i class="fas fa-info-circle me-2"></i>How it works</h6>
+        <p>Once you report your lost item, it will be visible to everyone. If someone finds it, they can mark it as found and their contact details will be shared with you so you can coordinate the return.</p>
+    </div>
+
+    <div class="form-card">
+        <form asp-action="ReportLost" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label asp-for="Title" class="form-label">Item Title *</label>
+                <input asp-for="Title" class="form-control" placeholder="e.g., Black Leather Wallet" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Category" class="form-label">Category *</label>
+                        <select asp-for="Category" class="form-select">
+                            <option value="">Select category...</option>
+                            @foreach (var cat in ServConnect.Models.LostFoundItemCategory.All)
+                            {
+                                <option value="@cat">@cat</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="LostDate" class="form-label">Date Lost *</label>
+                        <input asp-for="LostDate" type="date" class="form-control" />
+                        <span asp-validation-for="LostDate" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description" class="form-label">Description *</label>
+                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Describe your item in detail - color, brand, distinguishing features, etc."></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+                <div class="form-text">Provide as much detail as possible to help others identify your item.</div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="LostLocation" class="form-label">Location Lost *</label>
+                <input asp-for="LostLocation" class="form-control" placeholder="e.g., Central Park, Main Street" />
+                <span asp-validation-for="LostLocation" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="LostLocationDetails" class="form-label">Additional Location Details</label>
+                <textarea asp-for="LostLocationDetails" class="form-control" rows="2" placeholder="Any additional details about where you lost it..."></textarea>
+                <span asp-validation-for="LostLocationDetails" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Images (Optional)</label>
+                <div class="image-upload-area" onclick="document.getElementById('imageInput').click()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Click to upload images of your lost item</p>
+                    <p class="form-text">Upload photos to help others identify your item</p>
+                </div>
+                <input type="file" id="imageInput" name="Images" multiple accept="image/*" style="display: none;" onchange="showFileNames(this)" />
+                <div id="fileNames" class="form-text mt-2"></div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-paper-plane"></i> Submit Lost Item Report
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showFileNames(input) {
+        var fileNames = [];
+        for (var i = 0; i < input.files.length; i++) {
+            fileNames.push(input.files[i].name);
+        }
+        document.getElementById('fileNames').innerHTML = fileNames.length > 0 
+            ? '<i class="fas fa-check-circle text-success me-2"></i>' + fileNames.join(', ')
+            : '';
+    }
+</script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

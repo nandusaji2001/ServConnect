@@ -34,6 +34,14 @@ namespace ServConnect.Models
         public const string Returned = "Returned";
     }
 
+    public static class LostItemStatus
+    {
+        public const string Active = "Active";
+        public const string FoundByOther = "FoundByOther";
+        public const string Recovered = "Recovered";
+        public const string Closed = "Closed";
+    }
+
     public static class ClaimStatus
     {
         public const string Pending = "Pending";
@@ -83,6 +91,51 @@ namespace ServConnect.Models
         // Navigation - Claims for this item
         [BsonIgnore]
         public List<ItemClaim> Claims { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Lost Item Report - Published by users who lost an item
+    /// </summary>
+    [BsonIgnoreExtraElements]
+    public class LostItemReport
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; } = string.Empty;
+
+        // Item Information
+        public string Title { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public List<string> Images { get; set; } = new();
+
+        // Lost date & location
+        public DateTime LostDate { get; set; }
+        public string LostLocation { get; set; } = string.Empty;
+        public string? LostLocationDetails { get; set; }
+
+        // Lost User (owner)
+        public Guid LostByUserId { get; set; }
+        public string LostByUserName { get; set; } = string.Empty;
+        public string LostByUserEmail { get; set; } = string.Empty;
+        public string? LostByUserPhone { get; set; }
+
+        // Status
+        public string Status { get; set; } = LostItemStatus.Active;
+
+        // Found by someone (when marked as found)
+        public Guid? FoundByUserId { get; set; }
+        public string? FoundByUserName { get; set; }
+        public string? FoundByUserEmail { get; set; }
+        public string? FoundByUserPhone { get; set; }
+        public string? FoundLocation { get; set; }
+        public string? FoundNote { get; set; }
+        public DateTime? FoundAt { get; set; }
+
+        // Timestamps
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? RecoveredAt { get; set; }
     }
 
     [BsonIgnoreExtraElements]

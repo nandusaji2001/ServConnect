@@ -1,0 +1,423 @@
+@model ServConnect.Models.GasSubscriptionDashboard
+@{
+    ViewData["Title"] = "Gas Cylinder Monitor";
+    var vendors = ViewBag.Vendors as List<ServConnect.Models.Users> ?? new List<ServConnect.Models.Users>();
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-fire text-warning me-2"></i>
+                        Gas Cylinder Monitor
+                    </h2>
+                    <p class="text-muted mb-0">IoT-based automatic gas monitoring and booking</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="@Url.Action("Settings", "GasSubscription")" class="btn btn-outline-primary">
+                        <i class="bi bi-gear me-1"></i> Settings
+                    </a>
+                    <a href="@Url.Action("PlaceOrder", "GasSubscription")" class="btn btn-success">
+                        <i class="bi bi-cart-plus me-1"></i> Order Gas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model?.Subscription == null)
+    {
+        <!-- No Subscription Setup Yet -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-fire display-1 text-warning mb-4"></i>
+                        <h4>Set Up Gas Cylinder Monitoring</h4>
+                        <p class="text-muted mb-4">
+                            Connect your IoT device to automatically monitor gas levels and 
+                            get automatic refills when your cylinder runs low.
+                        </p>
+                        <a href="@Url.Action("Settings", "GasSubscription")" class="btn btn-primary btn-lg">
+                            <i class="bi bi-gear me-2"></i>Configure Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Main Dashboard -->
+        <div class="row g-4">
+            <!-- Gas Level Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-speedometer2 me-2"></i>Current Gas Level
+                        </h5>
+                        
+                        <!-- Circular Progress -->
+                        <div class="position-relative d-inline-block mb-3" style="width: 180px; height: 180px;">
+                            <svg viewBox="0 0 36 36" class="circular-chart" style="width: 100%; height: 100%;">
+                                <path class="circle-bg"
+                                    stroke="#eee"
+                                    stroke-width="3"
+                                    fill="none"
+                                    d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="gasLevelPath"
+                                    stroke="@GetStatusColor(Model.GasStatus)"
+                                    stroke-width="3"
+                                    stroke-linecap="round"
+                                    fill="none"
+                                    stroke-dasharray="@Model.CurrentGasPercentage, 100"
+                                    d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                <span id="gasPercentage" class="display-5 fw-bold">@Model.CurrentGasPercentage.ToString("F0")</span>
+                                <span class="fs-4">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <span id="gasStatus" class="badge fs-6 @GetStatusBadgeClass(Model.GasStatus)">
+                                @Model.GasStatus
+                            </span>
+                        </div>
+                        
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-clock me-1"></i>
+                            Last updated: <span id="lastUpdate">@(Model.Subscription.LastReadingAt?.ToString("g") ?? "Never")</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weight & Status Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="bi bi-box me-2"></i>Cylinder Details
+                        </h5>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Current Weight</span>
+                                <span id="currentWeight" class="fw-bold">@(Model.CurrentWeightGrams / 1000).ToString("F2") kg</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar @GetProgressBarClass(Model.GasStatus)" 
+                                     role="progressbar" 
+                                     style="width: @Model.CurrentGasPercentage%"
+                                     id="weightProgress"></div>
+                            </div>
+                        </div>
+                        
+                        <hr />
+                        
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Full Weight</small>
+                                    <span class="fw-bold">@((Model.Subscription.FullCylinderWeightGrams / 1000).ToString("F1")) kg</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Threshold</small>
+                                    <span class="fw-bold">@Model.Subscription.ThresholdPercentage%</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Auto-Booking</small>
+                                    <span class="fw-bold @(Model.Subscription.IsAutoBookingEnabled ? "text-success" : "text-danger")">
+                                        @(Model.Subscription.IsAutoBookingEnabled ? "Enabled" : "Disabled")
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Device</small>
+                                    <span class="fw-bold text-truncate d-block" style="max-width: 100px;">
+                                        @(Model.Subscription.DeviceId ?? "Not Set")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Order / Vendor Card -->
+            <div class="col-lg-4 col-md-12">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        @if (Model.CurrentOrder != null)
+                        {
+                            <h5 class="card-title mb-3">
+                                <i class="bi bi-truck me-2"></i>Active Order
+                            </h5>
+                            
+                            <div class="alert @GetOrderAlertClass(Model.CurrentOrder.Status) mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi @GetOrderIcon(Model.CurrentOrder.Status) me-2 fs-4"></i>
+                                    <div>
+                                        <strong>@Model.CurrentOrder.Status</strong>
+                                        @if (Model.CurrentOrder.IsAutoTriggered)
+                                        {
+                                            <span class="badge bg-info ms-2">Auto</span>
+                                        }
+                                        <br />
+                                        <small>@Model.CurrentOrder.VendorName</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Order Progress -->
+                            <div class="position-relative mb-3">
+                                <div class="progress" style="height: 4px;">
+                                    <div class="progress-bar bg-success" style="width: @GetOrderProgress(Model.CurrentOrder.Status)%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small class="@(Model.CurrentOrder.Status >= GasOrderStatus.Pending ? "text-success" : "text-muted")">
+                                        <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Ordered
+                                    </small>
+                                    <small class="@(Model.CurrentOrder.Status >= GasOrderStatus.Accepted ? "text-success" : "text-muted")">
+                                        <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Accepted
+                                    </small>
+                                    <small class="@(Model.CurrentOrder.Status >= GasOrderStatus.OutForDelivery ? "text-success" : "text-muted")">
+                                        <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Shipping
+                                    </small>
+                                    <small class="@(Model.CurrentOrder.Status >= GasOrderStatus.Delivered ? "text-success" : "text-muted")">
+                                        <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Delivered
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="small text-muted">
+                                <p class="mb-1"><strong>Order ID:</strong> @Model.CurrentOrder.Id?.Substring(0, 8)...</p>
+                                <p class="mb-1"><strong>Price:</strong> ₹@Model.CurrentOrder.Price</p>
+                                <p class="mb-0"><strong>Ordered:</strong> @Model.CurrentOrder.CreatedAt.ToString("g")</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <h5 class="card-title mb-3">
+                                <i class="bi bi-shop me-2"></i>Preferred Vendor
+                            </h5>
+                            
+                            @if (Model.Subscription.PreferredVendorId != null)
+                            {
+                                <div class="text-center py-3">
+                                    <i class="bi bi-building display-6 text-primary mb-2"></i>
+                                    <h6 class="mb-1">@Model.Subscription.PreferredVendorName</h6>
+                                    <p class="text-muted small mb-3">Your preferred gas supplier</p>
+                                    <a href="@Url.Action("PlaceOrder", "GasSubscription")" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-cart-plus me-1"></i>Order Now
+                                    </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-3">
+                                    <i class="bi bi-exclamation-triangle display-6 text-warning mb-2"></i>
+                                    <p class="text-muted mb-3">No vendor selected for auto-booking</p>
+                                    <a href="@Url.Action("Settings", "GasSubscription")" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-gear me-1"></i>Configure
+                                    </a>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders Row -->
+        <div class="row g-4 mt-2">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-clock-history me-2"></i>Recent Orders
+                            </h5>
+                            <a href="@Url.Action("Orders", "GasSubscription")" class="btn btn-sm btn-link">View All</a>
+                        </div>
+                        
+                        @if (Model.OrderHistory?.Any() == true)
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var order in Model.OrderHistory.Take(5))
+                                {
+                                    <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-medium">@order.VendorName</span>
+                                            @if (order.IsAutoTriggered)
+                                            {
+                                                <span class="badge bg-info ms-1">Auto</span>
+                                            }
+                                            <br />
+                                            <small class="text-muted">@order.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                        </div>
+                                        <span class="badge @GetStatusBadgeClass(order.Status.ToString())">
+                                            @order.Status
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center py-4">No orders yet</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-refresh dashboard every 60 seconds
+        let refreshInterval = null;
+        
+        function startRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(refreshDashboard, 60000);
+        }
+        
+        async function refreshDashboard() {
+            try {
+                // Use lightweight endpoint that only fetches current reading
+                const response = await fetch('/api/GasSubscriptionApi/readings/latest');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.gasPercentage !== undefined) {
+                        document.getElementById('gasPercentage').textContent = Math.round(data.gasPercentage);
+                        document.getElementById('gasStatus').textContent = data.status;
+                        document.getElementById('currentWeight').textContent = (data.weightGrams / 1000).toFixed(2) + ' kg';
+                        document.getElementById('weightProgress').style.width = data.gasPercentage + '%';
+                        document.getElementById('gasLevelPath').setAttribute('stroke-dasharray', data.gasPercentage + ', 100');
+                        document.getElementById('lastUpdate').textContent = new Date(data.timestamp).toLocaleString();
+                        
+                        // Update status badge color
+                        const statusBadge = document.getElementById('gasStatus');
+                        statusBadge.className = 'badge fs-6 ' + getStatusClass(data.status);
+                    }
+                }
+            } catch (e) {
+                console.log('Dashboard refresh failed:', e);
+            }
+        }
+        
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Full': return 'bg-success';
+                case 'Good': return 'bg-info';
+                case 'Half': return 'bg-warning text-dark';
+                case 'Low': return 'bg-warning text-dark';
+                case 'Critical': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        // Start refresh when page is visible, pause when hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (refreshInterval) clearInterval(refreshInterval);
+            } else {
+                startRefresh();
+            }
+        });
+        
+        startRefresh();
+    </script>
+}
+
+@functions {
+    string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Full" => "#198754",
+            "Good" => "#20c997",
+            "Half" => "#ffc107",
+            "Low" => "#fd7e14",
+            "Critical" => "#dc3545",
+            _ => "#6c757d"
+        };
+    }
+
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Full" or "Delivered" => "bg-success",
+            "Good" or "Accepted" => "bg-info",
+            "Half" or "OutForDelivery" => "bg-warning text-dark",
+            "Low" or "Pending" => "bg-warning text-dark",
+            "Critical" or "Cancelled" or "Rejected" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetProgressBarClass(string status)
+    {
+        return status switch
+        {
+            "Full" or "Good" => "bg-success",
+            "Half" => "bg-warning",
+            "Low" => "bg-warning",
+            "Critical" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetOrderAlertClass(GasOrderStatus status)
+    {
+        return status switch
+        {
+            GasOrderStatus.Pending => "alert-warning",
+            GasOrderStatus.Accepted => "alert-info",
+            GasOrderStatus.OutForDelivery => "alert-primary",
+            GasOrderStatus.Delivered => "alert-success",
+            _ => "alert-secondary"
+        };
+    }
+
+    string GetOrderIcon(GasOrderStatus status)
+    {
+        return status switch
+        {
+            GasOrderStatus.Pending => "bi-hourglass-split",
+            GasOrderStatus.Accepted => "bi-check-circle",
+            GasOrderStatus.OutForDelivery => "bi-truck",
+            GasOrderStatus.Delivered => "bi-check2-all",
+            _ => "bi-circle"
+        };
+    }
+
+    int GetOrderProgress(GasOrderStatus status)
+    {
+        return status switch
+        {
+            GasOrderStatus.Pending => 25,
+            GasOrderStatus.Accepted => 50,
+            GasOrderStatus.OutForDelivery => 75,
+            GasOrderStatus.Delivered => 100,
+            _ => 0
+        };
+    }
+}
