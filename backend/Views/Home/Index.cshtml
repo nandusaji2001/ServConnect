@@ -5,6 +5,50 @@
 }
 
 <style>
+    /* Override navbar for Index page - transparent overlay on hero */
+    header .app-navbar,
+    .app-navbar,
+    nav.app-navbar,
+    .navbar.app-navbar {
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border-bottom: none !important;
+    }
+    
+    .app-navbar::before,
+    nav.app-navbar::before,
+    .navbar.app-navbar::before {
+        display: none !important;
+        background: transparent !important;
+        opacity: 0 !important;
+    }
+    
+    /* Add subtle text shadow for better readability on video */
+    .app-navbar .nav-link,
+    .app-navbar .navbar-brand {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Navbar background on scroll */
+    .app-navbar.scrolled,
+    nav.app-navbar.scrolled,
+    .navbar.app-navbar.scrolled {
+        background: linear-gradient(135deg, rgba(6, 62, 28, 0.95) 0%, rgba(22, 88, 48, 0.95) 100%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .app-navbar.scrolled::before,
+    nav.app-navbar.scrolled::before {
+        display: block !important;
+        opacity: 1 !important;
+    }
+
     /* CSS Variables for Light Theme */
     :root {
         --primary: #10B981;
@@ -47,26 +91,22 @@
         width: 100%;
     }
 
-    /* 3D Canvas Container */
-    #hero-canvas-container {
+    /* Video Background Container */
+    #hero-video-container {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         z-index: 1;
-        cursor: grab;
+        overflow: hidden;
     }
 
-    #hero-canvas {
+    #hero-video {
         width: 100%;
         height: 100%;
+        object-fit: cover;
         display: block;
-        cursor: grab;
-    }
-
-    #hero-canvas:active {
-        cursor: grabbing;
     }
 
     /* Subtle gradient overlay */
@@ -941,27 +981,14 @@
     }
 </style>
 
-<!-- Three.js with ES Module imports for proper GLTFLoader -->
-<script type="importmap">
-{
-    "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-}
-</script>
-
 <!-- Hero Section -->
 <div class="hero-section">
-    <!-- 3D Canvas Container -->
-    <div id="hero-canvas-container">
-        <canvas id="hero-canvas"></canvas>
-        <!-- Loading spinner while 3D model loads -->
-        <div id="model-loader" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;text-align:center;">
-            <div style="width:40px;height:40px;border:3px solid rgba(16,185,129,0.2);border-top-color:#10B981;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div>
-            <p style="color:#10B981;margin-top:12px;font-size:0.85rem;font-weight:500;">Loading 3D scene...</p>
-        </div>
-        <style>@@keyframes spin{to{transform:rotate(360deg)}}</style>
+    <!-- Video Background Container -->
+    <div id="hero-video-container">
+        <video id="hero-video" autoplay muted loop playsinline>
+            <source src="/smart_city.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
     </div>
     
     <!-- Gradient overlay for text readability -->
@@ -1071,8 +1098,8 @@
                 </a>
             }
             
-            <a href="#" class="action-card stagger-item" onclick="alert('@Localizer["Msg.NoResults"]');return false;">
-                <i class="fas fa-sync-alt"></i>
+            <a asp-controller="GasSubscription" asp-action="Index" class="action-card stagger-item">
+                <i class="fas fa-fire text-warning"></i>
                 <div class="card-content">
                     <div class="fw-bold">@Localizer["CTA.DailyEssentials.Title"]</div>
                     <small>@Localizer["CTA.DailyEssentials.Desc"]</small>
@@ -1334,575 +1361,6 @@
 </div>
 
 <script type="module">
-    // ============================================
-    // Three.js 3D Model Initialization Function
-    // ============================================
-    import * as THREE from 'three';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-    import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-    import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-
-    function initHero3DScene() {
-        var canvas = document.getElementById('hero-canvas');
-        var container = document.getElementById('hero-canvas-container');
-        
-        if (!canvas || !container) {
-            console.warn('Hero canvas elements not found');
-            return;
-        }
-
-        // Scene setup - transparent background for light theme
-        var scene = new THREE.Scene();
-        scene.background = null; // Transparent background
-
-        // Camera setup - closer position for better view
-        var camera = new THREE.PerspectiveCamera(
-            45,
-            container.clientWidth / container.clientHeight,
-            0.1,
-            1000
-        );
-        camera.position.set(0, 2.5, 4.5);
-        camera.lookAt(0, 0, 0);
-
-        // Renderer setup
-        var renderer = new THREE.WebGLRenderer({
-            canvas: canvas,
-            antialias: true,
-            alpha: true,
-            logarithmicDepthBuffer: true,  // Helps prevent z-fighting/depth glitches
-            precision: 'highp',  // High precision for better rendering quality
-            powerPreference: 'high-performance'  // Use dedicated GPU if available
-        });
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        // Use full device pixel ratio for sharper rendering (up to 3x for retina displays)
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;  // Slightly reduced for better contrast
-        renderer.setClearColor(0x000000, 0); // Transparent clear color
-        
-        // Enable shadow mapping for better depth perception
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-        // Enhanced Lighting for better color reproduction
-        var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-
-        var directionalLight1 = new THREE.DirectionalLight(0xffffff, 2.5);
-        directionalLight1.position.set(10, 20, 10);
-        directionalLight1.castShadow = true;
-        directionalLight1.shadow.mapSize.width = 2048;
-        directionalLight1.shadow.mapSize.height = 2048;
-        directionalLight1.shadow.camera.near = 0.5;
-        directionalLight1.shadow.camera.far = 100;
-        directionalLight1.shadow.bias = -0.0001;
-        scene.add(directionalLight1);
-
-        var directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.2);
-        directionalLight2.position.set(-10, 10, -10);
-        scene.add(directionalLight2);
-
-        var directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight3.position.set(0, -10, 10);
-        scene.add(directionalLight3);
-
-        // Hemisphere light for natural lighting
-        var hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
-        hemiLight.position.set(0, 20, 0);
-        scene.add(hemiLight);
-
-        // Model variable
-        var model = null;
-        
-        // Animation mixer for playing model animations
-        var mixer = null;
-        var clock = new THREE.Clock();
-        
-        // ============================================
-        // 3D Rotating Text Ring (Background Layer)
-        // ============================================
-        var textRing = new THREE.Group();
-        textRing.position.z = -15; // Push text ring far behind the model
-        textRing.position.y = -4; // Move text ring much lower to avoid blocking view
-        scene.add(textRing);
-        
-        // 3D Text configuration
-        var textWords = [
-            'SERVICES',
-            'MARKETPLACE', 
-            'NEWS',
-            'DAILY ESSENTIALS',
-            'NEARBY STORES',
-            'HOMES',
-            'COMMUNITY',
-            'RENTALS',
-            'BOOKINGS',
-            'CONNECT'
-        ];
-        
-        // Light green and grey color scheme to match the model
-        var textColors = [
-            0x10B981, // Emerald green
-            0x34D399, // Light emerald
-            0x6EE7B7, // Pale green
-            0xA7F3D0, // Very light green
-            0x9CA3AF, // Grey
-            0x10B981, // Emerald green
-            0x34D399, // Light emerald
-            0x6EE7B7, // Pale green
-            0xA7F3D0, // Very light green
-            0x9CA3AF  // Grey
-        ];
-        
-        // Load font and create 3D texts - Using modern Optimer Bold font
-        var fontLoader = new FontLoader();
-        fontLoader.load(
-            'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/fonts/optimer_bold.typeface.json',
-            function(font) {
-                var radius = 18; // Large radius for background circle
-                var textCount = textWords.length;
-                var angleStep = (Math.PI * 2) / textCount;
-                
-                textWords.forEach(function(word, index) {
-                    // Create text geometry - larger size for better visibility
-                    var textGeometry = new TextGeometry(word, {
-                        font: font,
-                        size: 1.8,
-                        height: 0.25, // Depth of the text (3D extrusion)
-                        curveSegments: 16,
-                        bevelEnabled: true,
-                        bevelThickness: 0.05,
-                        bevelSize: 0.03,
-                        bevelOffset: 0,
-                        bevelSegments: 8
-                    });
-                    
-                    // Center the text geometry
-                    textGeometry.computeBoundingBox();
-                    var centerOffset = -0.5 * (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
-                    
-                    // Create subtle material with soft glow - light green/grey theme
-                    var textMaterial = new THREE.MeshStandardMaterial({
-                        color: textColors[index % textColors.length],
-                        metalness: 0.1,
-                        roughness: 0.6,
-                        emissive: textColors[index % textColors.length],
-                        emissiveIntensity: 0.35,
-                        transparent: true,
-                        opacity: 0.90
-                    });
-                    
-                    var textMesh = new THREE.Mesh(textGeometry, textMaterial);
-                    
-                    // Position text in a large circle in the background
-                    // Offset angle to spread SERVICES and CONNECT apart (they are index 0 and 9)
-                    var angleOffset = 0.15; // Add small offset to spread words more evenly
-                    var angle = index * angleStep + angleOffset;
-                    // Keep all texts in lower positions (-4 to 0 range instead of -3 to 3)
-                    var yOffset = (index % 3 - 2) * 2; // Vary height: -4, -2, 0
-                    
-                    // Create a pivot group for each text
-                    var textPivot = new THREE.Group();
-                    
-                    // Position text at radius distance
-                    textMesh.position.set(centerOffset, 0, 0);
-                    
-                    // Create inner group to hold text and rotate it to face outward (readable from center)
-                    var textHolder = new THREE.Group();
-                    textHolder.add(textMesh);
-                    textHolder.position.set(radius, yOffset, 0);
-                    textHolder.rotation.y = -Math.PI / 2; // Face outward so text is readable from center
-                    
-                    textPivot.add(textHolder);
-                    textPivot.rotation.y = angle; // Spread around the circle
-                    
-                    textRing.add(textPivot);
-                });
-                
-                console.log('3D text ring created with', textCount, 'words');
-            },
-            function(xhr) {
-                console.log('Font loading: ' + (xhr.loaded / xhr.total * 100).toFixed(0) + '%');
-            },
-            function(error) {
-                console.error('Error loading font:', error);
-                // Create fallback sprite-based text
-                createFallbackTextRing();
-            }
-        );
-        
-        // Fallback text using sprites if font fails to load
-        function createFallbackTextRing() {
-            var radius = 18;
-            var textCount = textWords.length;
-            var angleStep = (Math.PI * 2) / textCount;
-            
-            textWords.forEach(function(word, index) {
-                var canvas = document.createElement('canvas');
-                var context = canvas.getContext('2d');
-                canvas.width = 512;
-                canvas.height = 128;
-                
-                // Create gradient background
-                context.fillStyle = 'transparent';
-                context.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw text with modern styling
-                context.font = 'bold 48px Arial, sans-serif';
-                context.textAlign = 'center';
-                context.textBaseline = 'middle';
-                
-                // Add glow effect - light green/grey
-                context.shadowColor = '#' + textColors[index % textColors.length].toString(16).padStart(6, '0');
-                context.shadowBlur = 20;
-                context.fillStyle = '#' + textColors[index % textColors.length].toString(16).padStart(6, '0');
-                context.fillText(word, canvas.width / 2, canvas.height / 2);
-                
-                var texture = new THREE.CanvasTexture(canvas);
-                var spriteMaterial = new THREE.SpriteMaterial({ 
-                    map: texture,
-                    transparent: true,
-                    opacity: 0.90
-                });
-                var sprite = new THREE.Sprite(spriteMaterial);
-                sprite.scale.set(6, 1.5, 1);
-                
-                var angle = index * angleStep;
-                var yOffset = (index % 3 - 1) * 3;
-                
-                var spritePivot = new THREE.Group();
-                sprite.position.set(radius, yOffset, 0);
-                spritePivot.add(sprite);
-                spritePivot.rotation.y = angle;
-                
-                textRing.add(spritePivot);
-            });
-        }
-
-        // Load the GLB model
-        console.log('Starting to load 3D model...');
-        
-        // Setup Draco loader for compressed models (Sketchfab often uses Draco compression)
-        var dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-        
-        var loader = new GLTFLoader();
-        loader.setDRACOLoader(dracoLoader);
-        
-        loader.load(
-            '/city_pack_5_optimized.glb',
-            function(gltf) {
-                console.log('GLTF loaded successfully:', gltf);
-                model = gltf.scene;
-                
-                // Apply correct color space and quality settings to all textures
-                model.traverse(function(child) {
-                    if (child.isMesh) {
-                        // Enable shadow casting and receiving
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        
-                        if (child.material) {
-                            // Handle array of materials
-                            var materials = Array.isArray(child.material) ? child.material : [child.material];
-                            materials.forEach(function(mat) {
-                                // Improve texture quality with anisotropic filtering
-                                if (mat.map) {
-                                    mat.map.colorSpace = THREE.SRGBColorSpace;
-                                    mat.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                                    mat.map.minFilter = THREE.LinearMipmapLinearFilter;
-                                    mat.map.magFilter = THREE.LinearFilter;
-                                    mat.map.generateMipmaps = true;
-                                }
-                                if (mat.emissiveMap) {
-                                    mat.emissiveMap.colorSpace = THREE.SRGBColorSpace;
-                                    mat.emissiveMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                                }
-                                if (mat.aoMap) {
-                                    mat.aoMap.colorSpace = THREE.SRGBColorSpace;
-                                }
-                                if (mat.normalMap) {
-                                    mat.normalMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                                }
-                                if (mat.roughnessMap) {
-                                    mat.roughnessMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                                }
-                                if (mat.metalnessMap) {
-                                    mat.metalnessMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                                }
-                                // Ensure material updates
-                                mat.needsUpdate = true;
-                            });
-                        }
-                        
-                        // Improve geometry quality
-                        if (child.geometry) {
-                            child.geometry.computeVertexNormals();
-                        }
-                    }
-                });
-                
-                // Center the model
-                var box = new THREE.Box3().setFromObject(model);
-                var center = box.getCenter(new THREE.Vector3());
-                var size = box.getSize(new THREE.Vector3());
-                
-                console.log('Model size:', size);
-                console.log('Model center:', center);
-                
-                // Move model to center
-                model.position.sub(center);
-                
-                // Scale model larger for closer view
-                var maxDim = Math.max(size.x, size.y, size.z);
-                var scale = 18 / maxDim;
-                model.scale.setScalar(scale);
-                
-                // Position model slightly lower
-                model.position.x = 0;
-                model.position.y = -1.5;
-                
-                scene.add(model);
-                console.log('3D model added to scene with original colors');
-                
-                // Hide loading spinner
-                var loader_el = document.getElementById('model-loader');
-                if (loader_el) loader_el.style.display = 'none';
-                
-                // Setup and play animations if available
-                if (gltf.animations && gltf.animations.length > 0) {
-                    console.log('Found ' + gltf.animations.length + ' animations in model');
-                    mixer = new THREE.AnimationMixer(model);
-                    
-                    // Play all animations
-                    gltf.animations.forEach(function(clip) {
-                        console.log('Playing animation:', clip.name);
-                        var action = mixer.clipAction(clip);
-                        action.play();
-                    });
-                } else {
-                    console.log('No animations found in model');
-                }
-            },
-            function(xhr) {
-                if (xhr.total > 0) {
-                    var percent = (xhr.loaded / xhr.total * 100).toFixed(0);
-                    console.log('Loading 3D model: ' + percent + '%');
-                } else {
-                    console.log('Loading 3D model: ' + xhr.loaded + ' bytes');
-                }
-            },
-            function(error) {
-                console.error('Error loading 3D model:', error);
-                // Create fallback geometric shape
-                createFallbackGeometry(scene);
-            }
-        );
-
-        // Fallback geometry if model fails to load
-        function createFallbackGeometry(targetScene) {
-            console.log('Creating fallback geometry...');
-            var group = new THREE.Group();
-            
-            // Create several geometric shapes as fallback with colors
-            var material1 = new THREE.MeshStandardMaterial({ color: 0x10B981, metalness: 0.3, roughness: 0.4 });
-            var material2 = new THREE.MeshStandardMaterial({ color: 0x3B82F6, metalness: 0.3, roughness: 0.4 });
-            var material3 = new THREE.MeshStandardMaterial({ color: 0x8B5CF6, metalness: 0.3, roughness: 0.4 });
-            var material4 = new THREE.MeshStandardMaterial({ color: 0xF59E0B, metalness: 0.3, roughness: 0.4 });
-            
-            // Building-like shapes
-            var building1 = new THREE.Mesh(new THREE.BoxGeometry(1.5, 3, 1.5), material1);
-            building1.position.set(-3, 0, 0);
-            group.add(building1);
-            
-            var building2 = new THREE.Mesh(new THREE.BoxGeometry(1, 4, 1), material2);
-            building2.position.set(-1, 0.5, 1);
-            group.add(building2);
-            
-            var building3 = new THREE.Mesh(new THREE.BoxGeometry(2, 2.5, 2), material3);
-            building3.position.set(1.5, -0.25, 0);
-            group.add(building3);
-            
-            var building4 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 3.5, 1.2), material4);
-            building4.position.set(3.5, 0.25, -0.5);
-            group.add(building4);
-            
-            // Ground plane
-            var groundMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.1, roughness: 0.8 });
-            var ground = new THREE.Mesh(new THREE.BoxGeometry(12, 0.2, 6), groundMat);
-            ground.position.set(0, -1.6, 0);
-            group.add(ground);
-            
-            model = group;
-            targetScene.add(group);
-        }
-
-        // ============================================
-        // Mouse/Touch Drag Controls
-        // ============================================
-        var isDragging = false;
-        var previousMousePosition = { x: 0, y: 0 };
-        var autoRotate = true;
-        var dragRotationSpeed = 0.008;
-        var autoRotationResumeDelay = 2000; // Resume auto-rotation after 2 seconds of no interaction
-        var lastInteractionTime = 0;
-
-        // Mouse down - start dragging
-        container.addEventListener('mousedown', function(e) {
-            isDragging = true;
-            autoRotate = false;
-            previousMousePosition = { x: e.clientX, y: e.clientY };
-            container.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
-
-        // Mouse move - rotate model while dragging
-        window.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-            
-            var deltaX = e.clientX - previousMousePosition.x;
-            
-            if (model) {
-                model.rotation.y += deltaX * dragRotationSpeed;
-            }
-            if (textRing) {
-                textRing.rotation.y += deltaX * dragRotationSpeed;
-            }
-            
-            previousMousePosition = { x: e.clientX, y: e.clientY };
-            lastInteractionTime = Date.now();
-        });
-
-        // Mouse up - stop dragging
-        window.addEventListener('mouseup', function() {
-            if (isDragging) {
-                isDragging = false;
-                container.style.cursor = 'grab';
-                lastInteractionTime = Date.now();
-            }
-        });
-
-        // Touch support for mobile
-        container.addEventListener('touchstart', function(e) {
-            if (e.touches.length === 1) {
-                isDragging = true;
-                autoRotate = false;
-                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        container.addEventListener('touchmove', function(e) {
-            if (!isDragging || e.touches.length !== 1) return;
-            e.preventDefault();
-            
-            var deltaX = e.touches[0].clientX - previousMousePosition.x;
-            
-            if (model) {
-                model.rotation.y += deltaX * dragRotationSpeed;
-            }
-            if (textRing) {
-                textRing.rotation.y += deltaX * dragRotationSpeed;
-            }
-            
-            previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            lastInteractionTime = Date.now();
-        }, { passive: false });
-
-        container.addEventListener('touchend', function() {
-            isDragging = false;
-            lastInteractionTime = Date.now();
-        });
-
-        // Set initial cursor style
-        container.style.cursor = 'grab';
-
-        // Animation loop with continuous horizontal rotation
-        var rotationSpeed = 0.003;
-        var textRotationSpeed = 0.003; // Same speed as model for synchronized rotation
-        var isAnimating = true;
-        var isHeroVisible = true;
-        var animationFrameId = null;
-        
-        // Pause animation when tab is inactive
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                isAnimating = false;
-            } else {
-                isAnimating = true;
-                if (!animationFrameId) {
-                    animate();
-                }
-            }
-        });
-        
-        // Pause animation when hero section is off-screen
-        var heroObserver = new IntersectionObserver(function(entries) {
-            entries.forEach(function(entry) {
-                isHeroVisible = entry.isIntersecting;
-                if (isHeroVisible && !animationFrameId && isAnimating) {
-                    animate();
-                }
-            });
-        }, { threshold: 0.1 });
-        
-        var heroSection = document.querySelector('.hero-section');
-        if (heroSection) {
-            heroObserver.observe(heroSection);
-        }
-        
-        function animate() {
-            // Only continue animation if tab is active and hero is visible
-            if (!isAnimating || !isHeroVisible) {
-                animationFrameId = null;
-                return;
-            }
-            
-            animationFrameId = requestAnimationFrame(animate);
-            
-            // Update animation mixer for model animations
-            var delta = clock.getDelta();
-            if (mixer) {
-                mixer.update(delta);
-            }
-            
-            // Resume auto-rotation after delay
-            if (!autoRotate && !isDragging && Date.now() - lastInteractionTime > autoRotationResumeDelay) {
-                autoRotate = true;
-            }
-            
-            // Rotate model horizontally (around Y axis) when auto-rotate is enabled
-            if (autoRotate) {
-                if (model) {
-                    model.rotation.y += rotationSpeed;
-                }
-                
-                // Rotate text ring in sync with the model
-                if (textRing) {
-                    textRing.rotation.y += textRotationSpeed;
-                }
-            }
-            
-            renderer.render(scene, camera);
-        }
-        
-        animate();
-
-        // Handle window resize
-        function onWindowResize() {
-            var width = container.clientWidth;
-            var height = container.clientHeight;
-            
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-            renderer.setSize(width, height);
-        }
-        
-        window.addEventListener('resize', onWindowResize);
-    }
 
     // ============================================
     // Hero Search Functionality
@@ -2046,11 +1504,28 @@
     // Initialize Everything on DOM Ready
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize 3D scene
-        initHero3DScene();
-        
         // Initialize scroll animations
         initScrollAnimations();
+        
+        // Navbar scroll effect - add background when scrolled past hero
+        var navbar = document.querySelector('.app-navbar');
+        var heroSection = document.querySelector('.hero-section');
+        
+        if (navbar && heroSection) {
+            function updateNavbarOnScroll() {
+                var heroHeight = heroSection.offsetHeight;
+                var scrollY = window.scrollY || window.pageYOffset;
+                
+                if (scrollY > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+            
+            window.addEventListener('scroll', updateNavbarOnScroll);
+            updateNavbarOnScroll(); // Initial check
+        }
         
         // Search event listeners
         var searchBtn = document.getElementById('searchBtn');

@@ -498,6 +498,9 @@
             <a asp-action="ReportFound" class="action-btn primary">
                 <i class="fas fa-plus-circle"></i> Report Found Item
             </a>
+            <a asp-action="LostItems" class="action-btn secondary">
+                <i class="fas fa-exclamation-triangle"></i> Browse Lost Items
+            </a>
             <a asp-action="MyFoundItems" class="action-btn secondary">
                 <i class="fas fa-box"></i> My Found Items
             </a>
@@ -509,6 +512,9 @@
         {
             <a href="/Account/Login?returnUrl=/LostAndFound/ReportFound" class="action-btn primary">
                 <i class="fas fa-plus-circle"></i> Report Found Item
+            </a>
+            <a asp-action="LostItems" class="action-btn secondary">
+                <i class="fas fa-exclamation-triangle"></i> Browse Lost Items
             </a>
         }
     </div>
@@ -602,6 +608,12 @@
                 <h5>My Claims</h5>
                 <p>Track the status of your item claims and verification progress</p>
                 <a asp-action="MyClaims" class="btn">View Claims</a>
+            </div>
+            <div class="dashboard-card">
+                <i class="fas fa-exclamation-triangle" style="color: #EF4444;"></i>
+                <h5>My Lost Items</h5>
+                <p>Track items you've reported as lost and see if anyone found them</p>
+                <a asp-action="MyLostItems" class="btn">View Lost Items</a>
             </div>
         </div>
     }

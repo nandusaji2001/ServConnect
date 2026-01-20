@@ -1,0 +1,274 @@
+================================================================================
+         GAS CYLINDER IoT SUBSCRIPTION SYSTEM - WORKFLOW GUIDE
+================================================================================
+
+This guide explains the complete workflow for the IoT-based Gas Cylinder 
+Subscription System in ServConnect.
+
+================================================================================
+                            HARDWARE SETUP
+================================================================================
+
+COMPONENTS REQUIRED:
+--------------------
+1. ESP32 DevKit V1 (or similar)
+2. HX711 Load Cell Amplifier Module
+3. 2kg Load Cell (strain gauge sensor)
+4. Jumper wires
+5. USB cable for programming
+6. 5V power supply (USB power bank works)
+
+WIRING CONNECTIONS:
+-------------------
+    ESP32          HX711          Load Cell
+    -----          -----          ---------
+    GPIO 4   -->   DT
+    GPIO 5   -->   SCK
+    3.3V     -->   VCC
+    GND      -->   GND
+                   E+        <--  Red Wire
+                   E-        <--  Black Wire
+                   A-        <--  White Wire
+                   A+        <--  Green Wire
+
+Note: Load cell wire colors may vary. Check your specific model's datasheet.
+
+================================================================================
+                         SOFTWARE SETUP
+================================================================================
+
+STEP 1: ARDUINO IDE SETUP
+-------------------------
+1. Download Arduino IDE from https://www.arduino.cc/en/software
+2. Open Arduino IDE
+3. Go to File > Preferences
+4. Add this URL to "Additional Board Manager URLs":
+   https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+5. Go to Tools > Board > Boards Manager
+6. Search "esp32" and install "ESP32 by Espressif Systems"
+
+STEP 2: INSTALL LIBRARIES
+-------------------------
+Go to Sketch > Include Library > Manage Libraries
+Install:
+- HX711 by Bogdan Necula
+- ArduinoJson by Benoit Blanchon
+
+STEP 3: CONFIGURE ESP32 CODE
+----------------------------
+1. Open file: GasMonitorSystem/sketch_oct10a/gas_monitor_servconnect.ino
+2. Update these values:
+
+   const char* WIFI_SSID     = "YOUR_WIFI_NAME";
+   const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+   const char* API_ENDPOINT  = "http://YOUR_SERVER_IP:5000/api/GasSubscriptionApi/reading";
+   const char* DEVICE_ID     = "ESP32-GAS-001";
+
+   Note: Use your computer's local IP for development (e.g., 192.168.1.100)
+         Use your server URL for production
+
+STEP 4: UPLOAD CODE TO ESP32
+----------------------------
+1. Connect ESP32 via USB
+2. Select Board: Tools > Board > ESP32 Dev Module
+3. Select Port: Tools > Port > COM# (your ESP32 port)
+4. Click Upload button
+5. Open Serial Monitor (115200 baud)
+
+STEP 5: CALIBRATE THE LOAD CELL
+-------------------------------
+1. Remove all weight from load cell
+2. Wait for tare to complete (zero offset will be displayed)
+3. Place a known weight (e.g., 500g water bottle)
+4. Type the weight in grams in Serial Monitor (e.g., "500")
+5. Press Enter
+6. Calibration factor will be set
+7. Test with other known weights to verify accuracy
+
+================================================================================
+                         BACKEND SETUP
+================================================================================
+
+STEP 1: START THE BACKEND
+-------------------------
+1. Open terminal in backend folder
+2. Run: dotnet run
+3. Server starts at http://localhost:5000
+
+STEP 2: VERIFY API IS WORKING
+-----------------------------
+Test the API endpoint:
+- Open browser: http://localhost:5000/api/GasSubscriptionApi/reading
+- Should return 405 (Method Not Allowed) - this is expected for GET
+
+================================================================================
+                         USER WORKFLOW
+================================================================================
+
+STEP 1: REGISTER/LOGIN
+----------------------
+1. Go to http://localhost:5000
+2. Register a new account or login
+3. Complete profile if required
+
+STEP 2: CONFIGURE GAS SUBSCRIPTION
+----------------------------------
+1. Click "Daily Essentials" on home page (or go to /GasSubscription)
+2. Click "Settings" button
+3. Configure:
+   - Enable "Automatic Gas Booking" toggle
+   - Select a Gas Vendor from dropdown
+   - Set Threshold Percentage (default 20% = ~400g for 2kg cylinder)
+   - Enter Device ID (must match ESP32 DEVICE_ID)
+   - Enter Delivery Address
+   - Enter Phone Number
+4. Click "Save Settings"
+
+STEP 3: MONITOR GAS LEVEL
+-------------------------
+1. Go to /GasSubscription (Gas Monitor Dashboard)
+2. View:
+   - Real-time gas percentage (circular gauge)
+   - Current weight in kg
+   - Gas level status (Full/Good/Half/Low/Critical)
+   - Historical chart of gas usage
+   - Recent orders
+
+STEP 4: AUTOMATIC BOOKING (HAPPENS AUTOMATICALLY)
+-------------------------------------------------
+When gas level drops below threshold:
+1. System detects low gas from ESP32 reading
+2. Auto-creates order to preferred vendor
+3. User receives notification
+4. Order appears in "Current Order" section
+5. User can track order progress
+
+STEP 5: MANUAL ORDERING (OPTIONAL)
+----------------------------------
+1. Click "Order Gas" button on dashboard
+2. Select vendor
+3. Confirm order
+4. Track delivery
+
+================================================================================
+                         VENDOR WORKFLOW
+================================================================================
+
+STEP 1: LOGIN AS VENDOR
+-----------------------
+1. Login with vendor account
+2. Go to Vendor Dashboard (/Vendor/Dashboard)
+3. Click "Gas Orders" quick action
+
+STEP 2: VIEW INCOMING ORDERS
+----------------------------
+1. Go to /Vendor/GasOrders
+2. View tabs:
+   - Pending: New orders waiting for acceptance
+   - Active: Accepted orders in progress
+   - Completed: Delivered orders
+
+STEP 3: PROCESS ORDERS
+----------------------
+For each pending order:
+1. Review customer details (name, phone, address)
+2. Check if auto-triggered (shows gas level at trigger time)
+3. Click "Accept" to accept order
+   OR Click "X" to reject with reason
+
+STEP 4: UPDATE DELIVERY STATUS
+------------------------------
+For accepted orders:
+1. Click "Mark Out for Delivery" when dispatching
+2. Customer receives notification
+3. Click "Mark as Delivered" after delivery
+4. Order moves to Completed tab
+
+================================================================================
+                    GAS LEVEL REFERENCE (2KG CYLINDER)
+================================================================================
+
+    Weight (g)    |  Percentage  |   Status   |   Action
+    --------------|--------------|------------|------------------
+    1800 - 2000   |   80 - 100%  |   Full     |   Normal use
+    1000 - 1800   |   50 - 80%   |   Good     |   Normal use
+     750 - 1000   |   25 - 50%   |   Half     |   Monitor
+     500 -  750   |   10 - 25%   |   Low      |   Consider ordering
+       0 -  500   |    0 - 10%   |  Critical  |   AUTO-BOOKING TRIGGERS
+
+Default threshold: 20% (~400g of gas remaining)
+
+================================================================================
+                         TROUBLESHOOTING
+================================================================================
+
+PROBLEM: ESP32 not connecting to WiFi
+SOLUTION: 
+- Verify SSID and password are correct
+- Ensure 2.4GHz network (ESP32 doesn't support 5GHz)
+- Check if router is in range
+
+PROBLEM: Weight readings are zero or negative
+SOLUTION:
+- Check HX711 wiring connections
+- Swap E+ and E- wires on load cell
+- Ensure load cell is properly mounted
+
+PROBLEM: API POST fails (error in Serial Monitor)
+SOLUTION:
+- Verify server is running (dotnet run)
+- Check API_ENDPOINT IP address is correct
+- Ensure ESP32 and server are on same network
+- Check firewall isn't blocking port 5000
+
+PROBLEM: Auto-booking not triggering
+SOLUTION:
+- Verify auto-booking is enabled in settings
+- Verify preferred vendor is selected
+- Verify device ID matches ESP32
+- Check if there's already a pending order
+- Verify threshold is set correctly
+
+PROBLEM: Vendor not seeing orders
+SOLUTION:
+- Ensure logged in with Vendor role
+- Go to /Vendor/GasOrders specifically
+- Refresh the page
+
+================================================================================
+                         TESTING CHECKLIST
+================================================================================
+
+[ ] ESP32 connects to WiFi
+[ ] Serial Monitor shows weight readings
+[ ] Calibration completed successfully
+[ ] API receives readings (check backend logs)
+[ ] User subscription configured
+[ ] Device ID matches between ESP32 and settings
+[ ] Gas level displays on dashboard
+[ ] Auto-booking triggers when below threshold
+[ ] Vendor receives order notification
+[ ] Vendor can accept/reject order
+[ ] Order status updates work
+[ ] User receives delivery notification
+
+================================================================================
+                         QUICK REFERENCE URLS
+================================================================================
+
+User Dashboard:      /GasSubscription
+User Settings:       /GasSubscription/Settings
+User Orders:         /GasSubscription/Orders
+Place Order:         /GasSubscription/PlaceOrder
+
+Vendor Gas Orders:   /Vendor/GasOrders
+
+API Endpoints:
+- POST /api/GasSubscriptionApi/reading        (ESP32 sends data here)
+- GET  /api/GasSubscriptionApi/dashboard      (Dashboard data)
+- POST /api/GasSubscriptionApi/subscription   (Save settings)
+- GET  /api/GasSubscriptionApi/vendors        (List vendors)
+
+================================================================================
+                              END OF GUIDE
+================================================================================

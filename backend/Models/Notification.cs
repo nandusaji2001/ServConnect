@@ -48,6 +48,25 @@ namespace ServConnect.Models
         ServiceTransferRequest,
         ServiceTransferApproved,
         ServiceTransferRejected,
-        ServiceTransferCompleted
+        ServiceTransferCompleted,
+        // Lost & Found notifications
+        LostFoundNewClaim,
+        LostFoundClaimVerified,
+        LostFoundClaimRejected,
+        LostFoundClaimBlocked,
+        LostFoundItemReturned,
+        LostFoundClaimRetry,
+        // Lost Item Report notifications
+        LostItemFound,
+        LostItemRecovered,
+        // Item Matching notifications
+        PotentialItemMatch,
+        // Gas Subscription notifications
+        GasLevelLow,
+        GasAutoBookingTriggered,
+        GasOrderAccepted,
+        GasOrderOutForDelivery,
+        GasOrderDelivered,
+        GasOrderCancelled
     }
 }

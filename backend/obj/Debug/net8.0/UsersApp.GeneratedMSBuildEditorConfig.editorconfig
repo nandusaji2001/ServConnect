@@ -274,6 +274,26 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZlbnRzXF9FdmVudENhcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/GasSubscription/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2FzU3Vic2NyaXB0aW9uXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/GasSubscription/OrderDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2FzU3Vic2NyaXB0aW9uXE9yZGVyRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/GasSubscription/Orders.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2FzU3Vic2NyaXB0aW9uXE9yZGVycy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/GasSubscription/PlaceOrder.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2FzU3Vic2NyaXB0aW9uXFBsYWNlT3JkZXIuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/GasSubscription/Settings.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2FzU3Vic2NyaXB0aW9uXFNldHRpbmdzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Guardian/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3VhcmRpYW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -370,12 +390,28 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/LostItemDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXExvc3RJdGVtRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/LostItems.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXExvc3RJdGVtcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/MarkAsFound.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXE1hcmtBc0ZvdW5kLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/MyClaims.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXE15Q2xhaW1zLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/MyFoundItems.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXE15Rm91bmRJdGVtcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/MyLostItems.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXE15TG9zdEl0ZW1zLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/PendingVerifications.cshtml]
@@ -386,8 +422,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXFJlcG9ydEZvdW5kLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/ReportLost.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXFJlcG9ydExvc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/RetryClaim.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXFJldHJ5Q2xhaW0uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/SuggestedMatches.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXFN1Z2dlc3RlZE1hdGNoZXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/LostAndFound/VerifyClaim.cshtml]
@@ -476,6 +520,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmVuZG9yXERhc2hib2FyZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/GasOrders.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmVuZG9yXEdhc09yZGVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Vendor/Orders.cshtml]

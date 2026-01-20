@@ -1,0 +1,216 @@
+@model ServConnect.ViewModels.MyLostItemsViewModel
+@{
+    ViewData["Title"] = "My Lost Items";
+}
+
+<style>
+    :root {
+        --primary: #10B981;
+        --primary-dark: #059669;
+        --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --shadow-glow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    body { background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%); min-height: 100vh; }
+
+    .dashboard-container { padding: 40px 15px; max-width: 1600px; margin: 0 auto; }
+
+    .back-btn {
+        display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+        color: var(--text-primary); border-radius: 50px; text-decoration: none;
+        font-weight: 500; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+        transition: all 0.3s ease; margin-bottom: 30px;
+    }
+    .back-btn:hover { transform: translateX(-5px); box-shadow: var(--shadow-md); color: var(--primary); border-color: var(--primary); text-decoration: none; }
+
+    .dashboard-header { text-align: center; margin-bottom: 40px; }
+    .dashboard-header h1 { font-size: 2.5rem; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+    .dashboard-header p { font-size: 1.1rem; color: var(--text-secondary); }
+
+    .action-buttons { display: flex; justify-content: center; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; }
+    .action-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border-radius: 50px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; }
+    .action-btn i { font-size: 0.85rem; }
+    .action-btn.primary { background: var(--gradient-primary); color: white; }
+    .action-btn.primary:hover { transform: translateY(-3px); box-shadow: var(--shadow-glow); color: white; text-decoration: none; }
+    .action-btn.secondary { background: rgba(255, 255, 255, 0.95); color: var(--primary); border: 2px solid var(--primary); }
+    .action-btn.secondary:hover { background: var(--primary); color: white; transform: translateY(-3px); text-decoration: none; }
+
+    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
+
+    .item-card {
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+        border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color); transition: all 0.3s ease;
+    }
+    .item-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+
+    .item-image { height: 180px; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); position: relative; overflow: hidden; }
+    .item-image img { width: 100%; height: 100%; object-fit: cover; }
+    .item-image .placeholder { display: flex; align-items: center; justify-content: center; height: 100%; }
+    .item-image .placeholder i { font-size: 4rem; color: #EF4444; opacity: 0.3; }
+
+    .status-badge {
+        position: absolute; top: 12px; right: 12px; padding: 6px 16px;
+        border-radius: 50px; font-size: 0.8rem; font-weight: 600; color: white;
+    }
+    .status-badge.active { background: #EF4444; }
+    .status-badge.foundbyother { background: #F59E0B; }
+    .status-badge.recovered { background: var(--primary); }
+    .status-badge.closed { background: #6B7280; }
+
+    .item-content { padding: 24px; }
+    .item-title { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .item-category { display: inline-block; padding: 4px 12px; background: #f3f4f6; border-radius: 20px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; }
+    .item-meta { display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px; }
+    .item-meta i { color: #EF4444; width: 20px; }
+
+    .item-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .item-btn {
+        flex: 1; min-width: 120px; padding: 12px 16px; border-radius: 10px;
+        font-weight: 600; font-size: 0.85rem; text-decoration: none;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: all 0.3s ease; border: none; cursor: pointer;
+    }
+    .item-btn i { font-size: 0.85rem; }
+    .item-btn.view { background: var(--gradient-primary); color: white; }
+    .item-btn.view:hover { box-shadow: var(--shadow-glow); color: white; text-decoration: none; }
+    .item-btn.recover { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; }
+    .item-btn.recover:hover { box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3); color: white; }
+    .item-btn.close-btn { background: #f3f4f6; color: var(--text-secondary); }
+    .item-btn.close-btn:hover { background: #e5e7eb; }
+
+    .finder-info {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 12px; padding: 16px; margin-bottom: 16px;
+        border: 1px solid var(--primary);
+    }
+    .finder-info h6 { color: var(--primary-dark); font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; }
+    .finder-info p { margin: 0; font-size: 0.85rem; color: var(--text-primary); }
+
+    .empty-state { text-align: center; padding: 80px 20px; grid-column: 1 / -1; }
+    .empty-state i { font-size: 5rem; color: #EF4444; opacity: 0.3; margin-bottom: 24px; }
+    .empty-state h3 { font-size: 1.5rem; color: var(--text-primary); margin-bottom: 12px; }
+    .empty-state p { color: var(--text-secondary); max-width: 400px; margin: 0 auto 24px; }
+
+    .alert { border-radius: 16px; border: none; padding: 16px 24px; margin-bottom: 24px; }
+    .alert-success { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); color: var(--primary-dark); }
+</style>
+
+<div class="dashboard-container">
+    <a asp-action="LostItems" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Lost Items
+    </a>
+
+    <div class="dashboard-header">
+        <h1><i class="fas fa-list me-3"></i>My Lost Items</h1>
+        <p>Track the status of items you've reported as lost</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="action-buttons">
+        <a asp-action="ReportLost" class="action-btn primary">
+            <i class="fas fa-plus-circle"></i> Report Lost Item
+        </a>
+        <a asp-action="SuggestedMatches" class="action-btn primary" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+            <i class="fas fa-magic" style="font-size: 0.85rem;"></i> AI Suggested Matches
+        </a>
+        <a asp-action="LostItems" class="action-btn secondary">
+            <i class="fas fa-search" style="font-size: 0.85rem;"></i> Browse Lost Items
+        </a>
+    </div>
+
+    <div class="items-grid">
+        @if (Model.Reports.Count == 0)
+        {
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No lost items reported</h3>
+                <p>You haven't reported any lost items yet. If you've lost something, report it here!</p>
+                <a asp-action="ReportLost" class="action-btn primary">
+                    <i class="fas fa-plus-circle"></i> Report Lost Item
+                </a>
+            </div>
+        }
+        else
+        {
+            @foreach (var report in Model.Reports)
+            {
+                <div class="item-card">
+                    <div class="item-image">
+                        @if (report.Images.Count > 0)
+                        {
+                            <img src="@report.Images[0]" alt="@report.Title">
+                        }
+                        else
+                        {
+                            <div class="placeholder"><i class="fas fa-image"></i></div>
+                        }
+                        <span class="status-badge @report.Status.ToLower()">
+                            @if (report.Status == "Active") { <text>LOST</text> }
+                            else if (report.Status == "FoundByOther") { <text>FOUND</text> }
+                            else if (report.Status == "Recovered") { <text>RECOVERED</text> }
+                            else { @report.Status.ToUpper() }
+                        </span>
+                    </div>
+                    <div class="item-content">
+                        <h3 class="item-title">@report.Title</h3>
+                        <span class="item-category">@report.Category</span>
+                        <div class="item-meta">
+                            <div><i class="fas fa-map-marker-alt"></i> @report.LostLocation</div>
+                            <div><i class="fas fa-calendar"></i> Lost: @report.LostDate.ToString("MMM dd, yyyy")</div>
+                        </div>
+
+                        @if (report.Status == "FoundByOther" && report.FoundByUserId.HasValue)
+                        {
+                            <div class="finder-info">
+                                <h6><i class="fas fa-user-check me-1"></i> Found by @report.FoundByUserName</h6>
+                                <p><i class="fas fa-envelope me-1"></i> @report.FoundByUserEmail</p>
+                                @if (!string.IsNullOrEmpty(report.FoundByUserPhone))
+                                {
+                                    <p><i class="fas fa-phone me-1"></i> @report.FoundByUserPhone</p>
+                                }
+                            </div>
+                        }
+
+                        <div class="item-actions">
+                            <a asp-action="LostItemDetails" asp-route-id="@report.Id" class="item-btn view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            @if (report.Status == "FoundByOther")
+                            {
+                                <form asp-action="MarkAsRecovered" method="post" style="flex: 1; min-width: 120px;">
+                                    <input type="hidden" name="id" value="@report.Id" />
+                                    <button type="submit" class="item-btn recover" style="width: 100%;">
+                                        <i class="fas fa-check-circle"></i> Recovered
+                                    </button>
+                                </form>
+                            }
+                            @if (report.Status == "Active")
+                            {
+                                <form asp-action="CloseLostReport" method="post" style="flex: 1; min-width: 120px;" onsubmit="return confirm('Close this report?');">
+                                    <input type="hidden" name="id" value="@report.Id" />
+                                    <button type="submit" class="item-btn close-btn" style="width: 100%;">
+                                        <i class="fas fa-times"></i> Close
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

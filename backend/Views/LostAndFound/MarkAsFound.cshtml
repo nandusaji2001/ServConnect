@@ -1,0 +1,144 @@
+@model ServConnect.ViewModels.MarkAsFoundViewModel
+@{
+    ViewData["Title"] = "Mark Item as Found";
+}
+
+<style>
+    :root {
+        --primary: #10B981;
+        --primary-dark: #059669;
+        --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --shadow-glow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    body { background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%); min-height: 100vh; }
+
+    .form-container { padding: 40px 15px; max-width: 800px; margin: 0 auto; }
+
+    .back-btn {
+        display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+        color: var(--text-primary); border-radius: 50px; text-decoration: none;
+        font-weight: 500; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+        transition: all 0.3s ease; margin-bottom: 30px;
+    }
+    .back-btn:hover { transform: translateX(-5px); box-shadow: var(--shadow-md); color: var(--primary); border-color: var(--primary); text-decoration: none; }
+
+    .form-header { text-align: center; margin-bottom: 40px; }
+    .form-header h1 { font-size: 2.5rem; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+    .form-header p { font-size: 1.1rem; color: var(--text-secondary); }
+
+    .item-preview {
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+        border-radius: 20px; padding: 24px; margin-bottom: 30px;
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+        display: flex; gap: 20px; align-items: center;
+    }
+    .item-preview img { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; }
+    .item-preview .no-image { width: 100px; height: 100px; border-radius: 12px; background: #fef2f2; display: flex; align-items: center; justify-content: center; }
+    .item-preview .no-image i { font-size: 2rem; color: #EF4444; opacity: 0.3; }
+    .item-preview-info h4 { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .item-preview-info p { color: var(--text-secondary); margin: 0; font-size: 0.9rem; }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+        border-radius: 24px; padding: 40px; box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .form-group { margin-bottom: 24px; }
+    .form-label { font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: block; }
+    .form-control {
+        border: 2px solid var(--border-color); border-radius: 12px; padding: 14px 18px;
+        font-size: 1rem; transition: all 0.3s ease; width: 100%;
+    }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); outline: none; }
+
+    .form-text { font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px; }
+
+    .btn-submit {
+        width: 100%; background: var(--gradient-primary); border: none; padding: 16px;
+        border-radius: 12px; color: white; font-weight: 600; font-size: 1.1rem;
+        cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-submit:hover { transform: translateY(-3px); box-shadow: var(--shadow-glow); }
+
+    .info-box {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 16px; padding: 20px; margin-bottom: 30px;
+        border-left: 4px solid var(--primary);
+    }
+    .info-box h6 { color: var(--primary-dark); font-weight: 600; margin-bottom: 8px; }
+    .info-box p { color: #065F46; margin: 0; font-size: 0.9rem; }
+
+    .text-danger { color: #EF4444; font-size: 0.85rem; margin-top: 6px; }
+</style>
+
+<div class="form-container">
+    <a asp-action="LostItemDetails" asp-route-id="@Model.ReportId" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Item Details
+    </a>
+
+    <div class="form-header">
+        <h1><i class="fas fa-hand-holding-heart me-3"></i>I Found This Item</h1>
+        <p>Thank you for helping reunite this item with its owner!</p>
+    </div>
+
+    @if (Model.Report != null)
+    {
+        <div class="item-preview">
+            @if (Model.Report.Images.Count > 0)
+            {
+                <img src="@Model.Report.Images[0]" alt="@Model.Report.Title">
+            }
+            else
+            {
+                <div class="no-image"><i class="fas fa-image"></i></div>
+            }
+            <div class="item-preview-info">
+                <h4>@Model.Report.Title</h4>
+                <p><i class="fas fa-tag me-1"></i> @Model.Report.Category</p>
+                <p><i class="fas fa-map-marker-alt me-1"></i> Lost at: @Model.Report.LostLocation</p>
+            </div>
+        </div>
+    }
+
+    <div class="info-box">
+        <h6><i class="fas fa-info-circle me-2"></i>What happens next?</h6>
+        <p>Once you mark this item as found, your contact details (name, email, phone) will be shared with the owner so they can reach out to you to arrange the return of their item.</p>
+    </div>
+
+    <div class="form-card">
+        <form asp-action="MarkAsFound" method="post">
+            <input type="hidden" asp-for="ReportId" />
+
+            <div class="form-group">
+                <label asp-for="FoundLocation" class="form-label">Where did you find it? (Optional)</label>
+                <input asp-for="FoundLocation" class="form-control" placeholder="e.g., Near the coffee shop on Main Street" />
+                <span asp-validation-for="FoundLocation" class="text-danger"></span>
+                <div class="form-text">This helps the owner know where to meet you.</div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="FoundNote" class="form-label">Additional Note (Optional)</label>
+                <textarea asp-for="FoundNote" class="form-control" rows="3" placeholder="Any additional information for the owner..."></textarea>
+                <span asp-validation-for="FoundNote" class="text-danger"></span>
+                <div class="form-text">You can mention your availability or preferred contact method.</div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-check-circle"></i> Confirm - I Found This Item
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

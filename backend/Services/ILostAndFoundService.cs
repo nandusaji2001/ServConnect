@@ -4,7 +4,7 @@ namespace ServConnect.Services
 {
     public interface ILostAndFoundService
     {
-        // Item operations
+        // Found Item operations
         Task<LostFoundItem> CreateItemAsync(LostFoundItem item);
         Task<LostFoundItem?> GetItemByIdAsync(string id);
         Task<List<LostFoundItem>> GetAllItemsAsync(string? category = null, string? status = null);
@@ -27,8 +27,20 @@ namespace ServConnect.Services
         // Pending verification for found user
         Task<List<ItemClaim>> GetPendingClaimsForFoundUserAsync(Guid foundUserId);
 
+        // Lost Item Report operations
+        Task<LostItemReport> CreateLostReportAsync(LostItemReport report);
+        Task<LostItemReport?> GetLostReportByIdAsync(string id);
+        Task<List<LostItemReport>> GetAllLostReportsAsync(string? category = null, string? status = null);
+        Task<List<LostItemReport>> GetLostReportsByUserAsync(Guid userId);
+        Task<bool> MarkLostItemAsFoundAsync(string reportId, Guid foundByUserId, string foundByUserName, 
+            string foundByUserEmail, string? foundByUserPhone, string? foundLocation, string? foundNote);
+        Task<bool> MarkLostItemAsRecoveredAsync(string reportId);
+        Task<bool> CloseLostReportAsync(string reportId);
+        Task<bool> AddLostReportImageAsync(string id, string imageUrl);
+
         // Statistics
         Task<int> GetAvailableItemsCountAsync();
         Task<int> GetPendingClaimsCountAsync(Guid foundUserId);
+        Task<int> GetActiveLostReportsCountAsync();
     }
 }

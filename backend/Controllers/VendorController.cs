@@ -12,11 +12,16 @@ namespace ServConnect.Controllers
     {
         private readonly UserManager<Users> _userManager;
         private readonly IItemService _itemService;
+        private readonly IGasSubscriptionService _gasService;
 
-        public VendorController(UserManager<Users> userManager, IItemService itemService)
+        public VendorController(
+            UserManager<Users> userManager, 
+            IItemService itemService,
+            IGasSubscriptionService gasService)
         {
             _userManager = userManager;
             _itemService = itemService;
+            _gasService = gasService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -28,9 +33,12 @@ namespace ServConnect.Controllers
             }
 
             var myItems = await _itemService.GetByOwnerAsync(user.Id);
+            var gasOrders = await _gasService.GetPendingVendorOrdersAsync(user.Id);
+            
             ViewBag.UserName = user.FullName;
             ViewBag.TotalItems = myItems?.Count ?? 0;
             ViewBag.ActiveItems = myItems?.Count(i => i.IsActive) ?? 0;
+            ViewBag.PendingGasOrders = gasOrders?.Count ?? 0;
             return View();
         }
 
@@ -43,6 +51,21 @@ namespace ServConnect.Controllers
         {
             // Placeholder for managing orders
             return View();
+        }
+
+        /// <summary>
+        /// Gas cylinder orders from IoT auto-booking system
+        /// </summary>
+        public async Task<IActionResult> GasOrders()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var orders = await _gasService.GetVendorOrdersAsync(user.Id, 100);
+            return View(orders);
         }
 
         public IActionResult Profile()

@@ -412,6 +412,11 @@
             <span>View Orders</span>
         </a>
         
+        <a href="/Vendor/GasOrders" class="quick-action-btn">
+            <i class="fas fa-fire text-warning"></i>
+            <span>Gas Orders @(ViewBag.PendingGasOrders > 0 ? $"({ViewBag.PendingGasOrders})" : "")</span>
+        </a>
+        
         <a href="#" class="quick-action-btn">
             <i class="fas fa-warehouse"></i>
             <span>Inventory</span>

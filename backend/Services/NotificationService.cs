@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using ServConnect.Models;
 
@@ -7,6 +6,7 @@ namespace ServConnect.Services
     public class NotificationService : INotificationService
     {
         private readonly IMongoCollection<Notification> _notifications;
+        private const int MaxNotificationsPerUser = 10;
 
         public NotificationService(IConfiguration config)
         {
@@ -46,7 +46,32 @@ namespace ServConnect.Services
             };
 
             await _notifications.InsertOneAsync(notification);
+            
+            // Auto-cleanup: Keep only top 10 notifications per user
+            await CleanupOldNotificationsAsync(userId);
+            
             return notification;
+        }
+
+        /// <summary>
+        /// Automatically deletes notifications beyond the top 10 for a user
+        /// </summary>
+        private async Task CleanupOldNotificationsAsync(string userId)
+        {
+            // Get all notification IDs for this user, sorted by date descending
+            var allNotifications = await _notifications
+                .Find(n => n.UserId == userId)
+                .SortByDescending(n => n.CreatedAt)
+                .Project(n => n.Id)
+                .ToListAsync();
+
+            // If more than MaxNotificationsPerUser, delete the older ones
+            if (allNotifications.Count > MaxNotificationsPerUser)
+            {
+                var idsToDelete = allNotifications.Skip(MaxNotificationsPerUser).ToList();
+                var filter = Builders<Notification>.Filter.In(n => n.Id, idsToDelete);
+                await _notifications.DeleteManyAsync(filter);
+            }
         }
 
         public async Task MarkAsReadAsync(string notificationId)
