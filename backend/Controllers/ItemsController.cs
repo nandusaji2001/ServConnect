@@ -21,12 +21,23 @@ namespace ServConnect.Controllers
             _userManager = userManager;
         }
 
-        // Users can view all active items
+        // Users can view all active items (excludes own items when authenticated)
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] bool excludeOwn = false)
         {
             var items = await _itemService.GetAllAsync();
+            
+            // If user is authenticated and wants to exclude their own items
+            if (excludeOwn && User.Identity?.IsAuthenticated == true)
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me != null)
+                {
+                    items = items.Where(i => i.OwnerId != me.Id).ToList();
+                }
+            }
+            
             return Ok(items);
         }
 

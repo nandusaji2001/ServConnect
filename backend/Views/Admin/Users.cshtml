@@ -3,155 +3,821 @@
     ViewData["Title"] = "Manage Users";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">Users</h2>
-        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary">
+<style>
+    :root {
+        --primary-green: #10b981;
+        --primary-green-dark: #059669;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+        --card-shadow-hover: 0 12px 40px rgba(16, 185, 129, 0.15);
+        --bg-light: #f0fdf4;
+        --bg-secondary: #ecfdf5;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+    }
+
+    .users-page {
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header h2 i {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.6rem;
+        border-radius: 12px;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: translateX(-4px);
+    }
+
+    /* Filter Section */
+    .filter-section {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .filter-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-title i {
+        color: var(--primary-green);
+    }
+
+    .user-type-filters {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .filter-btn {
+        padding: 0.75rem 1.5rem;
+        border: 2px solid #e2e8f0;
+        background: white;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #475569;
+    }
+
+    .filter-btn:hover {
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+    }
+
+    .filter-btn.active {
+        background: var(--primary-gradient);
+        border-color: transparent;
+        color: white;
+    }
+
+    .filter-btn .count {
+        background: rgba(0, 0, 0, 0.1);
+        padding: 0.15rem 0.5rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+    }
+
+    .filter-btn.active .count {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .search-row {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .search-box {
+        flex: 1;
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 0.85rem 1.25rem 0.85rem 3rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 14px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--primary-green);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 1.1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    /* Stats Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(16, 185, 129, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+    }
+
+    .stat-icon.all { background: var(--primary-gradient); }
+    .stat-icon.providers { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
+    .stat-icon.vendors { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+    .stat-icon.users { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+
+    .stat-info h4 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .stat-info p {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin: 0;
+    }
+
+    /* Table Card */
+    .table-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .table-header {
+        padding: 1.5rem 2rem;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .table-header span {
+        font-weight: 700;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .table-header span i {
+        color: var(--primary-green);
+    }
+
+    .table-responsive {
+        padding: 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table thead th {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 700;
+        color: #475569;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    table tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    table tbody tr:hover {
+        background: var(--bg-light);
+    }
+
+    table tbody td {
+        padding: 1rem 1.5rem;
+        color: #334155;
+        vertical-align: middle;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 2px solid #e2e8f0;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .user-email {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .user-type-badge {
+        padding: 0.4rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .user-type-badge.admin {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .user-type-badge.service-provider {
+        background: #ccfbf1;
+        color: #0f766e;
+    }
+
+    .user-type-badge.vendor {
+        background: #ede9fe;
+        color: #6d28d9;
+    }
+
+    .user-type-badge.user {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .status-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-badge.verified {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-badge.suspended {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .action-btns {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 0.5rem 0.85rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        text-decoration: none;
+    }
+
+    .btn-action.view {
+        background: var(--bg-secondary);
+        color: var(--primary-green-dark);
+    }
+
+    .btn-action.view:hover {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .btn-action.suspend {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .btn-action.suspend:hover {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .btn-action.unsuspend {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .btn-action.unsuspend:hover {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-action.delete {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .btn-action.delete:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #d1fae5;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h4 {
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .user-type-filters {
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        table thead {
+            display: none;
+        }
+
+        table tbody tr {
+            display: block;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table tbody td {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border: none;
+        }
+
+        table tbody td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #64748b;
+        }
+    }
+</style>
+
+<div class="users-page">
+    <div class="page-header">
+        <h2><i class="fas fa-users"></i> Manage Users</h2>
+        <a asp-controller="Admin" asp-action="Dashboard" class="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 
-    <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-users me-2"></i> All Users</span>
-            <input id="userSearch" type="text" class="form-control w-auto" placeholder="Search..." style="min-width: 220px;">
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th style="width: 180px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody">
-                        <tr>
-                            <td colspan="4" class="text-center text-muted">Loading users...</td>
-                        </tr>
-                    </tbody>
-                </table>
+    <!-- Stats Row -->
+    <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+            <div class="stat-icon all"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+                <h4 id="totalCount">0</h4>
+                <p>Total Users</p>
             </div>
         </div>
+        <div class="stat-card">
+            <div class="stat-icon providers"><i class="fas fa-tools"></i></div>
+            <div class="stat-info">
+                <h4 id="providerCount">0</h4>
+                <p>Service Providers</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon vendors"><i class="fas fa-store"></i></div>
+            <div class="stat-info">
+                <h4 id="vendorCount">0</h4>
+                <p>Vendors</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon users"><i class="fas fa-user"></i></div>
+            <div class="stat-info">
+                <h4 id="userCount">0</h4>
+                <p>Regular Users</p>
+            </div>
+        </div>
+    </div>
 
-        <script>
-            async function loadUsers() {
-                const tbody = document.getElementById('usersTableBody');
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Loading users...</td></tr>`;
-                try {
-                    const res = await fetch('/api/admin/users', { credentials: 'same-origin' });
-                    if (!res.ok) throw new Error('Failed to load');
-                    let users = await res.json();
-                    // Apply suspended filter from query if present
-                    const url = new URL(window.location.href);
-                    const suspendedParam = url.searchParams.get('suspended');
-                    if (suspendedParam === 'true') {
-                        users = users.filter(u => u.suspended);
-                    }
-                    renderUsers(users);
-                } catch (err) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="text-danger text-center">Error loading users</td></tr>`;
-                }
-            }
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-title"><i class="fas fa-filter"></i> Filter by User Type</div>
+        <div class="user-type-filters">
+            <button class="filter-btn active" data-filter="all">
+                <i class="fas fa-th-large"></i> All Users <span class="count" id="filterAllCount">0</span>
+            </button>
+            <button class="filter-btn" data-filter="Service Provider">
+                <i class="fas fa-tools"></i> Service Providers <span class="count" id="filterProviderCount">0</span>
+            </button>
+            <button class="filter-btn" data-filter="Vendor">
+                <i class="fas fa-store"></i> Vendors <span class="count" id="filterVendorCount">0</span>
+            </button>
+            <button class="filter-btn" data-filter="User">
+                <i class="fas fa-user"></i> Regular Users <span class="count" id="filterUserCount">0</span>
+            </button>
+            <button class="filter-btn" data-filter="Admin">
+                <i class="fas fa-user-shield"></i> Admins <span class="count" id="filterAdminCount">0</span>
+            </button>
+        </div>
+        <div class="search-row">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input id="userSearch" type="text" placeholder="Search by name, email, or phone...">
+            </div>
+        </div>
+    </div>
 
-            function renderUsers(users) {
-                const tbody = document.getElementById('usersTableBody');
-                if (!users || users.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No users found.</td></tr>`;
-                    return;
-                }
-                tbody.innerHTML = '';
-                users.forEach(u => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${u.fullName || ''}</td>
-                        <td>${u.email || ''}</td>
-                        <td>${u.phoneNumber || ''}</td>
-                        <td>
-                            ${u.isAdmin ? '' : `
-                            <a class=\"btn btn-sm btn-outline-primary\" href=\"/Admin/UserDetails/${u.id}\">
-                                <i class=\"fas fa-eye\"></i> View
-                            </a>
-                            <button class=\"btn btn-sm ${u.suspended ? 'btn-success' : 'btn-warning'} btn-toggle-suspend\" data-id=\"${u.id}\" data-suspended=\"${u.suspended}\">
-                                <i class=\"fas ${u.suspended ? 'fa-unlock' : 'fa-user-slash'}\"></i> ${u.suspended ? 'Unsuspend' : 'Suspend'}
-                            </button>
-                            <button class=\"btn btn-sm btn-outline-danger\" data-id=\"${u.id}\">
-                                <i class=\"fas fa-trash\"></i> Delete
-                            </button>
-                            `}
-                        </td>`;
-                    tbody.appendChild(tr);
-                });
-
-                // Wire suspend/unsuspend buttons
-                tbody.querySelectorAll('.btn-toggle-suspend').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const b = e.currentTarget;
-                        const id = b.getAttribute('data-id');
-                        const suspended = b.getAttribute('data-suspended') === 'true';
-                        b.disabled = true;
-                        try {
-                            const res = await fetch(`/api/admin/users/${id}/suspend?suspend=${!suspended}`, {
-                                method: 'POST',
-                                credentials: 'same-origin'
-                            });
-                            if (res.ok) {
-                                // Toggle UI
-                                b.setAttribute('data-suspended', String(!suspended));
-                                b.classList.toggle('btn-warning', suspended);
-                                b.classList.toggle('btn-success', !suspended);
-                                b.innerHTML = `<i class="fas ${suspended ? 'fa-user-slash' : 'fa-unlock'}"></i> ${suspended ? 'Suspend' : 'Unsuspend'}`;
-                            } else {
-                                alert('Failed to update suspension');
-                            }
-                        } catch {
-                            alert('Failed to update suspension');
-                        } finally {
-                            b.disabled = false;
-                        }
-                    });
-                });
-
-                // Wire delete buttons
-                tbody.querySelectorAll('button[data-id]:not(.btn-toggle-suspend)').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const id = e.currentTarget.getAttribute('data-id');
-                        if (!confirm('Delete this user? This action cannot be undone.')) return;
-                        e.currentTarget.disabled = true;
-                        try {
-                            const res = await fetch(`/api/admin/users/${id}`, {
-                                method: 'DELETE',
-                                credentials: 'same-origin'
-                            });
-                            if (res.ok || res.status === 404) {
-                                // 204 = deleted; 404 = already gone -> consider success for UI
-                                const row = e.currentTarget.closest('tr');
-                                if (row) row.remove();
-                            } else {
-                                alert('Failed to delete user');
-                            }
-                        } catch {
-                            alert('Failed to delete user');
-                        } finally {
-                            e.currentTarget.disabled = false;
-                        }
-                    });
-                });
-            }
-
-            // Simple search filter
-            document.getElementById('userSearch').addEventListener('input', (e) => {
-                const q = e.target.value.toLowerCase();
-                const rows = document.querySelectorAll('#usersTableBody tr');
-                rows.forEach(r => {
-                    const t = r.textContent.toLowerCase();
-                    r.style.display = t.includes(q) ? '' : 'none';
-                });
-            });
-
-            document.addEventListener('DOMContentLoaded', loadUsers);
-        </script>
+    <!-- Table Card -->
+    <div class="table-card">
+        <div class="table-header">
+            <span><i class="fas fa-list"></i> User List</span>
+            <span id="resultCount" class="text-muted" style="font-weight: 500;">Loading...</span>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Phone</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th style="width: 220px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="5" class="text-center text-muted p-4">
+                            <div class="spinner-border" style="color: #10b981;" role="status"></div>
+                            <div class="mt-2">Loading users...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<script>
+    let allUsers = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    async function loadUsers() {
+        const tbody = document.getElementById('usersTableBody');
+        try {
+            const res = await fetch('/api/admin/users', { credentials: 'same-origin' });
+            if (!res.ok) throw new Error('Failed to load');
+            allUsers = await res.json();
+            
+            // Apply suspended filter from query if present
+            const url = new URL(window.location.href);
+            const suspendedParam = url.searchParams.get('suspended');
+            if (suspendedParam === 'true') {
+                allUsers = allUsers.filter(u => u.suspended);
+            }
+
+            updateCounts();
+            renderUsers();
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center p-4">Error loading users</td></tr>`;
+        }
+    }
+
+    function updateCounts() {
+        const total = allUsers.length;
+        const providers = allUsers.filter(u => u.userType === 'Service Provider').length;
+        const vendors = allUsers.filter(u => u.userType === 'Vendor').length;
+        const users = allUsers.filter(u => u.userType === 'User').length;
+        const admins = allUsers.filter(u => u.userType === 'Admin').length;
+
+        document.getElementById('totalCount').textContent = total;
+        document.getElementById('providerCount').textContent = providers;
+        document.getElementById('vendorCount').textContent = vendors;
+        document.getElementById('userCount').textContent = users;
+
+        document.getElementById('filterAllCount').textContent = total;
+        document.getElementById('filterProviderCount').textContent = providers;
+        document.getElementById('filterVendorCount').textContent = vendors;
+        document.getElementById('filterUserCount').textContent = users;
+        document.getElementById('filterAdminCount').textContent = admins;
+    }
+
+    function getFilteredUsers() {
+        let filtered = [...allUsers];
+        
+        if (currentFilter !== 'all') {
+            filtered = filtered.filter(u => u.userType === currentFilter);
+        }
+        
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            filtered = filtered.filter(u => 
+                (u.fullName || '').toLowerCase().includes(q) ||
+                (u.email || '').toLowerCase().includes(q) ||
+                (u.phoneNumber || '').toLowerCase().includes(q)
+            );
+        }
+        
+        return filtered;
+    }
+
+    function renderUsers() {
+        const tbody = document.getElementById('usersTableBody');
+        const users = getFilteredUsers();
+        
+        document.getElementById('resultCount').textContent = `Showing ${users.length} of ${allUsers.length} users`;
+
+        if (!users || users.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h4>No users found</h4>
+                            <p>Try adjusting your filters or search query</p>
+                        </div>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        tbody.innerHTML = '';
+        users.forEach(u => {
+            const tr = document.createElement('tr');
+            
+            const typeClass = u.userType === 'Admin' ? 'admin' : 
+                              u.userType === 'Service Provider' ? 'service-provider' :
+                              u.userType === 'Vendor' ? 'vendor' : 'user';
+            
+            const typeIcon = u.userType === 'Admin' ? 'fa-user-shield' : 
+                             u.userType === 'Service Provider' ? 'fa-tools' :
+                             u.userType === 'Vendor' ? 'fa-store' : 'fa-user';
+
+            const statusClass = u.suspended ? 'suspended' : (u.isVerified ? 'verified' : 'pending');
+            const statusText = u.suspended ? 'Suspended' : (u.isVerified ? 'Verified' : 'Pending');
+
+            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || u.email)}&background=10b981&color=fff&size=128`;
+
+            tr.innerHTML = `
+                <td data-label="User">
+                    <div class="user-info">
+                        <img src="${avatarUrl}" alt="avatar" class="user-avatar">
+                        <div>
+                            <div class="user-name">${u.fullName || '-'}</div>
+                            <div class="user-email">${u.email || ''}</div>
+                        </div>
+                    </div>
+                </td>
+                <td data-label="Phone">${u.phoneNumber || '-'}</td>
+                <td data-label="Type">
+                    <span class="user-type-badge ${typeClass}">
+                        <i class="fas ${typeIcon}"></i> ${u.userType}
+                    </span>
+                </td>
+                <td data-label="Status">
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </td>
+                <td data-label="Actions">
+                    ${u.isAdmin ? '<span class="text-muted">-</span>' : `
+                    <div class="action-btns">
+                        <a class="btn-action view" href="/Admin/UserDetails/${u.id}">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <button class="btn-action ${u.suspended ? 'unsuspend' : 'suspend'} btn-toggle-suspend" 
+                                data-id="${u.id}" data-suspended="${u.suspended}">
+                            <i class="fas ${u.suspended ? 'fa-unlock' : 'fa-user-slash'}"></i> 
+                            ${u.suspended ? 'Unsuspend' : 'Suspend'}
+                        </button>
+                        <button class="btn-action delete btn-delete" data-id="${u.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    `}
+                </td>`;
+            tbody.appendChild(tr);
+        });
+
+        // Wire suspend/unsuspend buttons
+        tbody.querySelectorAll('.btn-toggle-suspend').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const b = e.currentTarget;
+                const id = b.getAttribute('data-id');
+                const suspended = b.getAttribute('data-suspended') === 'true';
+                b.disabled = true;
+                try {
+                    const res = await fetch(`/api/admin/users/${id}/suspend?suspend=${!suspended}`, {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    });
+                    if (res.ok) {
+                        const user = allUsers.find(u => u.id === id);
+                        if (user) user.suspended = !suspended;
+                        renderUsers();
+                    } else {
+                        alert('Failed to update suspension');
+                    }
+                } catch {
+                    alert('Failed to update suspension');
+                } finally {
+                    b.disabled = false;
+                }
+            });
+        });
+
+        // Wire delete buttons
+        tbody.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                if (!confirm('Delete this user? This action cannot be undone.')) return;
+                e.currentTarget.disabled = true;
+                try {
+                    const res = await fetch(`/api/admin/users/${id}`, {
+                        method: 'DELETE',
+                        credentials: 'same-origin'
+                    });
+                    if (res.ok || res.status === 404) {
+                        allUsers = allUsers.filter(u => u.id !== id);
+                        updateCounts();
+                        renderUsers();
+                    } else {
+                        alert('Failed to delete user');
+                    }
+                } catch {
+                    alert('Failed to delete user');
+                } finally {
+                    e.currentTarget.disabled = false;
+                }
+            });
+        });
+    }
+
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.getAttribute('data-filter');
+            renderUsers();
+        });
+    });
+
+    // Search
+    document.getElementById('userSearch').addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderUsers();
+    });
+
+    document.addEventListener('DOMContentLoaded', loadUsers);
+</script>

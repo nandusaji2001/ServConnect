@@ -972,7 +972,7 @@
         `;
 
         try {
-            const response = await fetch('/api/items', { credentials: 'same-origin' });
+            const response = await fetch('/api/items?excludeOwn=true', { credentials: 'same-origin' });
             if (!response.ok) throw new Error('Failed to load products');
             
             allItems = await response.json();

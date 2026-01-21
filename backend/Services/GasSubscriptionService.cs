@@ -12,7 +12,9 @@ namespace ServConnect.Services
         private readonly IMongoCollection<Item> _items;
         private readonly UserManager<Users> _userManager;
         private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
         private readonly ILogger<GasSubscriptionService> _logger;
+        private readonly IConfiguration _config;
 
         // Weight thresholds for 2kg cylinder (in grams)
         private const double FULL_WEIGHT = 2000.0;    // 2kg = Full
@@ -24,6 +26,7 @@ namespace ServConnect.Services
             IConfiguration config,
             UserManager<Users> userManager,
             INotificationService notificationService,
+            IEmailService emailService,
             ILogger<GasSubscriptionService> logger)
         {
             var conn = config["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017";
@@ -37,7 +40,9 @@ namespace ServConnect.Services
             _items = db.GetCollection<Item>("Items");
             _userManager = userManager;
             _notificationService = notificationService;
+            _emailService = emailService;
             _logger = logger;
+            _config = config;
 
             // Create indexes for efficient queries
             CreateIndexes();
@@ -212,15 +217,25 @@ namespace ServConnect.Services
 
             await _readings.InsertOneAsync(reading);
 
-            // Update subscription with latest reading
+            // Get previous status before updating
+            var previousStatus = subscription.PreviousGasStatus ?? "Unknown";
+
+            // Update subscription with latest reading and status
             var subUpdate = Builders<GasSubscription>.Update
                 .Set(s => s.LastRecordedWeightGrams, weightGrams)
                 .Set(s => s.LastGasPercentage, reading.GasPercentage)
-                .Set(s => s.LastReadingAt, reading.Timestamp);
+                .Set(s => s.LastReadingAt, reading.Timestamp)
+                .Set(s => s.PreviousGasStatus, status);
 
             await _subscriptions.UpdateOneAsync(s => s.Id == subscription.Id, subUpdate);
 
-            // Check if auto-booking should be triggered
+            // Refresh subscription to get updated values
+            subscription = await GetSubscriptionByUserIdAsync(subscription.UserId) ?? subscription;
+
+            // Check if low gas email should be sent (independent of auto-booking)
+            await CheckAndSendLowGasEmailAsync(subscription, reading, previousStatus);
+
+            // Check if auto-booking should be triggered (once per month)
             await CheckAndTriggerAutoBookingAsync(subscription, reading);
 
             // Cleanup old readings (keep only last 500)
@@ -240,27 +255,210 @@ namespace ServConnect.Services
             return "Critical";
         }
 
+        // Helper to get status priority (higher = better status)
+        private int GetStatusPriority(string status)
+        {
+            return status switch
+            {
+                "Full" => 5,
+                "Good" => 4,
+                "Half" => 3,
+                "Low" => 2,
+                "Critical" => 1,
+                _ => 0
+            };
+        }
+
+        /// <summary>
+        /// Check and send low gas email independently of auto-booking.
+        /// Sends email when status drops from Half/Good/Full to Low/Critical.
+        /// </summary>
+        private async Task CheckAndSendLowGasEmailAsync(GasSubscription subscription, GasReading reading, string previousStatus)
+        {
+            // Only send email when current status is Low or Critical
+            if (reading.Status != "Low" && reading.Status != "Critical")
+            {
+                return;
+            }
+
+            var previousPriority = GetStatusPriority(previousStatus);
+            var currentPriority = GetStatusPriority(reading.Status);
+
+            // Send email if:
+            // 1. Previous status was "Unknown" (new subscription or first reading)
+            // 2. Status has dropped (previous status was better)
+            bool shouldSendEmail = previousStatus == "Unknown" || previousPriority > currentPriority;
+
+            if (!shouldSendEmail)
+            {
+                _logger.LogDebug("Status did not drop (Previous: {Previous}, Current: {Current}). No email needed.", 
+                    previousStatus, reading.Status);
+                return;
+            }
+
+            _logger.LogInformation("Gas status alert: Previous={Previous}, Current={Current} for user {UserId}. Checking email eligibility.",
+                previousStatus, reading.Status, subscription.UserId);
+
+            // Check if we already sent an email today (prevent spam)
+            if (subscription.LastLowGasEmailSentAt.HasValue)
+            {
+                var hoursSinceLastEmail = (DateTime.UtcNow - subscription.LastLowGasEmailSentAt.Value).TotalHours;
+                if (hoursSinceLastEmail < 24)
+                {
+                    _logger.LogInformation("Low gas email already sent {Hours:F1} hours ago. Skipping to prevent spam.", hoursSinceLastEmail);
+                    return;
+                }
+            }
+
+            // Send the low gas alert email (without order info since this is independent)
+            await SendLowGasAlertEmailAsync(subscription, reading.GasPercentage, reading.Status);
+
+            // Update the last email sent timestamp
+            var update = Builders<GasSubscription>.Update
+                .Set(s => s.LastLowGasEmailSentAt, DateTime.UtcNow);
+            await _subscriptions.UpdateOneAsync(s => s.Id == subscription.Id, update);
+        }
+
+        /// <summary>
+        /// Send a low gas alert email (without auto-booking info - just alerting the user)
+        /// </summary>
+        private async Task SendLowGasAlertEmailAsync(GasSubscription subscription, double gasPercentage, string status)
+        {
+            try
+            {
+                var baseUrl = _config["AppSettings:BaseUrl"] ?? "http://localhost:5227";
+                var dashboardUrl = $"{baseUrl}/GasSubscription";
+                var manualOrderUrl = $"{baseUrl}/GasSubscription/PlaceOrder";
+
+                var statusColor = status == "Critical" ? "#dc3545" : "#ff6b35";
+                var statusEmoji = status == "Critical" ? "🚨" : "⚠️";
+                var statusMessage = status == "Critical" 
+                    ? "Your gas is critically low and may run out soon!" 
+                    : "Your gas level is getting low.";
+
+                var emailBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+</head>
+<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;'>
+    <div style='max-width: 600px; margin: 0 auto; background-color: #ffffff;'>
+        <!-- Header -->
+        <div style='background: linear-gradient(135deg, {statusColor}, #f7931e); padding: 30px; text-align: center;'>
+            <h1 style='color: white; margin: 0; font-size: 28px;'>{statusEmoji} Gas Level {status}!</h1>
+        </div>
+        
+        <!-- Content -->
+        <div style='padding: 30px;'>
+            <p style='font-size: 16px; color: #333;'>Dear <strong>{subscription.UserName}</strong>,</p>
+            
+            <p style='font-size: 16px; color: #333;'>
+                {statusMessage} Our IoT monitoring system has detected a significant drop in your gas level.
+            </p>
+            
+            <!-- Gas Level Alert Box -->
+            <div style='background: #fff3e0; border-left: 4px solid {statusColor}; padding: 20px; margin: 20px 0; border-radius: 4px;'>
+                <div style='display: flex; align-items: center;'>
+                    <div style='font-size: 48px; margin-right: 20px;'>⛽</div>
+                    <div>
+                        <p style='margin: 0; font-size: 14px; color: #666;'>Current Gas Level</p>
+                        <p style='margin: 5px 0 0 0; font-size: 32px; font-weight: bold; color: {statusColor};'>{gasPercentage:F1}%</p>
+                        <p style='margin: 5px 0 0 0; font-size: 14px; color: #666;'>Status: <strong>{status}</strong></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Required Notice -->
+            <div style='background: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px; margin: 20px 0; border-radius: 4px;'>
+                <h3 style='margin: 0 0 10px 0; color: #1565c0;'>📦 Order a New Cylinder</h3>
+                <p style='margin: 0; color: #333;'>
+                    To avoid running out of gas, we recommend placing an order for a new gas cylinder soon.
+                    {(subscription.PreferredVendorName != null ? $"Your preferred vendor is <strong>{subscription.PreferredVendorName}</strong>." : "")}
+                </p>
+            </div>
+            
+            <!-- CTA Button -->
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{manualOrderUrl}' style='display: inline-block; background: {statusColor}; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;'>
+                    🛒 Order Gas Now
+                </a>
+            </div>
+            
+            <hr style='border: none; border-top: 1px solid #eee; margin: 30px 0;'>
+            
+            <p style='font-size: 14px; color: #666;'>
+                <a href='{dashboardUrl}' style='color: #ff6b35;'>View Dashboard</a> | 
+                <a href='{baseUrl}/GasSubscription/Settings' style='color: #ff6b35;'>Enable Auto-Booking</a>
+            </p>
+            
+            <p style='font-size: 12px; color: #999; margin-top: 20px;'>
+                💡 <strong>Tip:</strong> Enable auto-booking in settings to automatically place orders when gas runs low.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style='background: #f5f5f5; padding: 20px; text-align: center;'>
+            <p style='margin: 0; font-size: 12px; color: #999;'>
+                This is an automated message from ServConnect Gas Monitoring System.<br>
+                © 2026 ServConnect. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>";
+
+                await _emailService.SendEmailAsync(
+                    subscription.UserEmail,
+                    $"{statusEmoji} Gas Level {status} Alert | ServConnect",
+                    emailBody);
+
+                _logger.LogInformation("Low gas alert email sent to {Email} (Status: {Status}, Level: {Percentage}%)", 
+                    subscription.UserEmail, status, gasPercentage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send low gas alert email to {Email}", subscription.UserEmail);
+            }
+        }
+
         private async Task CheckAndTriggerAutoBookingAsync(GasSubscription subscription, GasReading reading)
         {
+            _logger.LogInformation("Checking auto-booking: AutoBookingEnabled={Enabled}, VendorId={VendorId}, BookingPending={Pending}, GasPercentage={Percent}%, Threshold={Threshold}%",
+                subscription.IsAutoBookingEnabled, subscription.PreferredVendorId, subscription.IsBookingPending, reading.GasPercentage, subscription.ThresholdPercentage);
+
             // Skip if auto-booking is disabled
             if (!subscription.IsAutoBookingEnabled)
             {
-                _logger.LogDebug("Auto-booking disabled for user {UserId}", subscription.UserId);
+                _logger.LogInformation("Auto-booking disabled for user {UserId}", subscription.UserId);
                 return;
             }
 
             // Skip if no preferred vendor set
             if (subscription.PreferredVendorId == null)
             {
-                _logger.LogDebug("No preferred vendor set for user {UserId}", subscription.UserId);
+                _logger.LogInformation("No preferred vendor set for user {UserId}", subscription.UserId);
                 return;
             }
 
             // Skip if booking is already pending
             if (subscription.IsBookingPending)
             {
-                _logger.LogDebug("Booking already pending for user {UserId}", subscription.UserId);
+                _logger.LogInformation("Booking already pending for user {UserId}", subscription.UserId);
                 return;
+            }
+
+            // Check if already auto-booked this month (once per month limit)
+            if (subscription.LastAutoBookingDate.HasValue)
+            {
+                var daysSinceLastAutoBooking = (DateTime.UtcNow - subscription.LastAutoBookingDate.Value).TotalDays;
+                if (daysSinceLastAutoBooking < 30)
+                {
+                    _logger.LogInformation("Auto-booking already triggered {Days:F1} days ago for user {UserId}. Limit: once per 30 days.",
+                        daysSinceLastAutoBooking, subscription.UserId);
+                    return;
+                }
             }
 
             // Check if gas level is below threshold
@@ -278,10 +476,11 @@ namespace ServConnect.Services
                         isAutoTriggered: true,
                         triggerPercentage: reading.GasPercentage);
 
-                    // Mark subscription as having pending booking
+                    // Mark subscription as having pending booking and record auto-booking date
                     var update = Builders<GasSubscription>.Update
                         .Set(s => s.IsBookingPending, true)
-                        .Set(s => s.CurrentPendingOrderId, order.Id);
+                        .Set(s => s.CurrentPendingOrderId, order.Id)
+                        .Set(s => s.LastAutoBookingDate, DateTime.UtcNow);
 
                     await _subscriptions.UpdateOneAsync(s => s.Id == subscription.Id, update);
 
@@ -309,6 +508,95 @@ namespace ServConnect.Services
                 {
                     _logger.LogError(ex, "Failed to trigger auto-booking for user {UserId}", subscription.UserId);
                 }
+            }
+        }
+
+        private async Task SendLowGasEmailAsync(GasSubscription subscription, double gasPercentage, string orderId)
+        {
+            try
+            {
+                var baseUrl = _config["AppSettings:BaseUrl"] ?? "http://localhost:5227";
+                var orderUrl = $"{baseUrl}/GasSubscription/OrderDetails/{orderId}";
+                var dashboardUrl = $"{baseUrl}/GasSubscription";
+
+                var emailBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+</head>
+<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;'>
+    <div style='max-width: 600px; margin: 0 auto; background-color: #ffffff;'>
+        <!-- Header -->
+        <div style='background: linear-gradient(135deg, #ff6b35, #f7931e); padding: 30px; text-align: center;'>
+            <h1 style='color: white; margin: 0; font-size: 28px;'>🔥 Low Gas Alert!</h1>
+        </div>
+        
+        <!-- Content -->
+        <div style='padding: 30px;'>
+            <p style='font-size: 16px; color: #333;'>Dear <strong>{subscription.UserName}</strong>,</p>
+            
+            <p style='font-size: 16px; color: #333;'>
+                Your gas cylinder is running low! Our IoT monitoring system has detected that your gas level has dropped below the threshold.
+            </p>
+            
+            <!-- Gas Level Alert Box -->
+            <div style='background: #fff3e0; border-left: 4px solid #ff6b35; padding: 20px; margin: 20px 0; border-radius: 4px;'>
+                <div style='display: flex; align-items: center;'>
+                    <div style='font-size: 48px; margin-right: 20px;'>⛽</div>
+                    <div>
+                        <p style='margin: 0; font-size: 14px; color: #666;'>Current Gas Level</p>
+                        <p style='margin: 5px 0 0 0; font-size: 32px; font-weight: bold; color: #ff6b35;'>{gasPercentage:F1}%</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Auto-Booking Notice -->
+            <div style='background: #e8f5e9; border-left: 4px solid #4caf50; padding: 20px; margin: 20px 0; border-radius: 4px;'>
+                <h3 style='margin: 0 0 10px 0; color: #2e7d32;'>✅ Automatic Order Placed</h3>
+                <p style='margin: 0; color: #333;'>
+                    Good news! An automatic order has been placed with <strong>{subscription.PreferredVendorName}</strong>.
+                    You'll receive updates as your order progresses.
+                </p>
+            </div>
+            
+            <!-- CTA Button -->
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{orderUrl}' style='display: inline-block; background: #ff6b35; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;'>
+                    📦 View Order Status
+                </a>
+            </div>
+            
+            <hr style='border: none; border-top: 1px solid #eee; margin: 30px 0;'>
+            
+            <p style='font-size: 14px; color: #666;'>
+                <a href='{dashboardUrl}' style='color: #ff6b35;'>View Dashboard</a> | 
+                <a href='{baseUrl}/GasSubscription/Settings' style='color: #ff6b35;'>Update Settings</a>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style='background: #f5f5f5; padding: 20px; text-align: center;'>
+            <p style='margin: 0; font-size: 12px; color: #999;'>
+                This is an automated message from ServConnect Gas Monitoring System.<br>
+                © 2026 ServConnect. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>";
+
+                await _emailService.SendEmailAsync(
+                    subscription.UserEmail,
+                    "🔥 Low Gas Alert - Automatic Order Placed | ServConnect",
+                    emailBody);
+
+                _logger.LogInformation("Low gas email sent to {Email}", subscription.UserEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send low gas email to {Email}", subscription.UserEmail);
             }
         }
 
@@ -537,9 +825,10 @@ namespace ServConnect.Services
 
         public async Task<List<Users>> GetGasVendorsAsync()
         {
-            // Get all vendors (users with Vendor role)
+            // Get all vendors (users with Vendor role) who are approved and registered as Gas vendors
             var vendors = await _userManager.GetUsersInRoleAsync(RoleTypes.Vendor);
-            return vendors.Where(v => v.IsAdminApproved).ToList();
+            return vendors.Where(v => v.IsAdminApproved && 
+                (v.IsGasVendor || string.Equals(v.VendorCategory, "Gas", StringComparison.OrdinalIgnoreCase))).ToList();
         }
 
         #endregion

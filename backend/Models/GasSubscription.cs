@@ -103,6 +103,22 @@ namespace ServConnect.Models
         public string? CurrentPendingOrderId { get; set; }
 
         /// <summary>
+        /// Date when last automatic booking was triggered (for once-per-month limit)
+        /// </summary>
+        public DateTime? LastAutoBookingDate { get; set; }
+
+        /// <summary>
+        /// Previous gas status (to detect status drops for email notification)
+        /// Values: Full, Good, Half, Low, Critical
+        /// </summary>
+        public string PreviousGasStatus { get; set; } = "Unknown";
+
+        /// <summary>
+        /// Last time a low gas email was sent (to prevent spam within same day)
+        /// </summary>
+        public DateTime? LastLowGasEmailSentAt { get; set; }
+
+        /// <summary>
         /// When subscription was created
         /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

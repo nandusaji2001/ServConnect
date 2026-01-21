@@ -388,13 +388,22 @@ namespace ServConnect.Controllers
             {
                 var roles = await _userManager.GetRolesAsync(u);
                 var isAdmin = roles.Contains(RoleTypes.Admin);
+                var isServiceProvider = roles.Contains(RoleTypes.ServiceProvider);
+                var isVendor = roles.Contains(RoleTypes.Vendor);
+                var userType = isAdmin ? "Admin" : 
+                               isServiceProvider ? "Service Provider" : 
+                               isVendor ? "Vendor" : "User";
                 shaped.Add(new {
                     u.Id,
                     u.FullName,
                     u.Email,
                     u.PhoneNumber,
                     Suspended = u.LockoutEnd.HasValue && u.LockoutEnd.Value > DateTimeOffset.UtcNow,
-                    IsAdmin = isAdmin
+                    IsAdmin = isAdmin,
+                    Roles = roles,
+                    UserType = userType,
+                    IsVerified = u.IsAdminApproved,
+                    ProfileCompleted = u.IsProfileCompleted
                 });
             }
             return new JsonResult(shaped);
