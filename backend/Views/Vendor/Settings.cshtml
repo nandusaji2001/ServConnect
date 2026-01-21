@@ -1,0 +1,524 @@
+@model ServConnect.Models.Users
+@{
+    ViewData["Title"] = "Vendor Settings";
+    var gasBrands = new[] { "Indane", "Bharat Gas", "HP Gas", "Other" };
+}
+
+<style>
+    :root {
+        --settings-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    }
+    
+    .settings-page {
+        min-height: 100vh;
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 30px 0 50px;
+        overflow-x: hidden;
+    }
+    
+    .settings-header {
+        background: var(--settings-gradient);
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .settings-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    
+    .settings-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .settings-header p {
+        margin: 0;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .back-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+        backdrop-filter: blur(10px);
+        z-index: 2;
+    }
+    
+    .back-btn:hover {
+        background: rgba(255,255,255,0.3);
+        color: #fff;
+        text-decoration: none;
+    }
+    
+    .settings-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 24px;
+    }
+    
+    .card-section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .card-section-title i {
+        color: #10b981;
+        font-size: 1.2rem;
+    }
+    
+    .form-label-custom {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+    
+    .form-control-modern {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    
+    .form-control-modern:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+    
+    .form-control-modern::placeholder {
+        color: #9ca3af;
+    }
+    
+    /* Gas Vendor Toggle */
+    .gas-toggle-section {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 2px solid #fbbf24;
+    }
+    
+    .gas-toggle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .gas-toggle-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .gas-toggle-title i {
+        font-size: 28px;
+        color: #d97706;
+    }
+    
+    .gas-toggle-title h4 {
+        margin: 0;
+        color: #92400e;
+        font-weight: 600;
+    }
+    
+    .gas-toggle-title p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #a16207;
+    }
+    
+    /* Modern Toggle Switch */
+    .toggle-switch {
+        position: relative;
+        width: 60px;
+        height: 32px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #d1d5db;
+        transition: 0.3s;
+        border-radius: 32px;
+    }
+    
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .toggle-switch input:checked + .toggle-slider {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(28px);
+    }
+    
+    /* Gas Details Section */
+    .gas-details-section {
+        display: none;
+        animation: slideDown 0.3s ease;
+    }
+    
+    .gas-details-section.show {
+        display: block;
+    }
+    
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .gas-details-inner {
+        background: #fffbeb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 16px;
+        border: 1px dashed #fbbf24;
+    }
+    
+    /* Brand Selection */
+    .brand-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+    }
+    
+    .brand-option {
+        position: relative;
+    }
+    
+    .brand-option input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+    
+    .brand-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #fff;
+    }
+    
+    .brand-card:hover {
+        border-color: #fbbf24;
+        background: #fffbeb;
+    }
+    
+    .brand-option input:checked + .brand-card {
+        border-color: #f59e0b;
+        background: #fef3c7;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+    }
+    
+    .brand-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        color: #fff;
+        font-size: 22px;
+    }
+    
+    .brand-name {
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.9rem;
+    }
+    
+    /* Submit Button */
+    .submit-btn {
+        background: var(--settings-gradient);
+        border: none;
+        color: #fff;
+        padding: 14px 40px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    /* Alert Styles */
+    .alert-modern {
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: none;
+    }
+    
+    .alert-modern.success {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .alert-modern.error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .alert-modern i {
+        font-size: 20px;
+    }
+    
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .settings-header {
+            padding: 20px;
+            padding-top: 50px;
+        }
+        
+        .back-btn {
+            position: static;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+        
+        .settings-card {
+            padding: 20px;
+        }
+        
+        .brand-options {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="settings-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header -->
+                <div class="settings-header">
+                    <a href="@Url.Action("Dashboard", "Vendor")" class="back-btn">
+                        <i class="bi bi-arrow-left me-1"></i> Dashboard
+                    </a>
+                    <h1><i class="bi bi-gear me-2"></i>Vendor Settings</h1>
+                    <p>Configure your business profile and preferences</p>
+                </div>
+                
+                <!-- Alerts -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert-modern success mb-4">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>@TempData["Success"]</span>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert-modern error mb-4">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        <span>@TempData["Error"]</span>
+                    </div>
+                }
+                
+                <form asp-action="UpdateSettings" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <!-- Business Information -->
+                    <div class="settings-card">
+                        <h3 class="card-section-title">
+                            <i class="bi bi-building"></i>
+                            Business Information
+                        </h3>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Business Name</label>
+                                <input type="text" class="form-control form-control-modern" 
+                                       name="BusinessName" value="@Model.BusinessName" 
+                                       placeholder="Enter your business name" />
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Registration Number</label>
+                                <input type="text" class="form-control form-control-modern" 
+                                       name="BusinessRegistrationNumber" value="@Model.BusinessRegistrationNumber" 
+                                       placeholder="GST / Business registration no." />
+                            </div>
+                            
+                            <div class="col-12">
+                                <label class="form-label-custom">Business Address</label>
+                                <textarea class="form-control form-control-modern" name="BusinessAddress" 
+                                          rows="3" placeholder="Enter complete business address">@Model.BusinessAddress</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gas Vendor Toggle Section -->
+                    <div class="gas-toggle-section">
+                        <div class="gas-toggle-header">
+                            <div class="gas-toggle-title">
+                                <i class="bi bi-fire"></i>
+                                <div>
+                                    <h4>Gas Cylinder Vendor</h4>
+                                    <p>Enable to receive IoT-based auto gas cylinder orders</p>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="gasVendorToggle" name="IsGasVendor" 
+                                       @(Model.IsGasVendor ? "checked" : "") value="true" />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <!-- Gas Details (shown when toggle is ON) -->
+                        <div class="gas-details-section @(Model.IsGasVendor ? "show" : "")" id="gasDetailsSection">
+                            <div class="gas-details-inner">
+                                <div class="row g-4">
+                                    <div class="col-12">
+                                        <label class="form-label-custom">
+                                            <i class="bi bi-tag me-1"></i> Gas Cylinder Brand
+                                        </label>
+                                        <div class="brand-options">
+                                            @foreach (var brand in gasBrands)
+                                            {
+                                                var isSelected = Model.GasCylinderBrand == brand;
+                                                <label class="brand-option">
+                                                    <input type="radio" name="GasCylinderBrand" value="@brand" 
+                                                           @(isSelected ? "checked" : "") />
+                                                    <div class="brand-card">
+                                                        <div class="brand-icon">
+                                                            <i class="bi bi-fire"></i>
+                                                        </div>
+                                                        <span class="brand-name">@brand</span>
+                                                    </div>
+                                                </label>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Gas Distribution License</label>
+                                        <input type="text" class="form-control form-control-modern" 
+                                               name="GasBusinessLicense" value="@Model.GasBusinessLicense" 
+                                               placeholder="Enter gas distribution license no." />
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 p-3 bg-white rounded-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        As a gas vendor, you'll receive automatic orders from customers using IoT gas monitoring devices.
+                                        Make sure your business details are accurate for seamless deliveries.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden field for VendorCategory (for backward compatibility) -->
+                    <input type="hidden" name="VendorCategory" id="vendorCategoryField" 
+                           value="@(Model.IsGasVendor ? "Gas" : Model.VendorCategory ?? "General")" />
+                    
+                    <!-- Submit -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="submit-btn">
+                            <i class="bi bi-check-lg"></i>
+                            Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const gasToggle = document.getElementById('gasVendorToggle');
+    const gasDetailsSection = document.getElementById('gasDetailsSection');
+    const vendorCategoryField = document.getElementById('vendorCategoryField');
+    
+    gasToggle.addEventListener('change', function() {
+        if (this.checked) {
+            gasDetailsSection.classList.add('show');
+            vendorCategoryField.value = 'Gas';
+        } else {
+            gasDetailsSection.classList.remove('show');
+            vendorCategoryField.value = 'General';
+        }
+    });
+});
+</script>

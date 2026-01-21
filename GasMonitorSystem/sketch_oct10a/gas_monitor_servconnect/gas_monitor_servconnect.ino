@@ -46,7 +46,7 @@ const char* WIFI_PASSWORD = "nandusaji123";   // Your WiFi password
 
 // API Configuration
 // Use your local IP for development, or your server URL for production
-const char* API_ENDPOINT  = "http://10.54.19.208:5227/api/GasSubscriptionApi/reading";
+const char* API_ENDPOINT  = "http://10.13.28.209:5227/api/GasSubscriptionApi/reading";
 const char* DEVICE_ID     = "ESP32-GAS-001";        // Unique device ID
 
 // Timing Configuration (in milliseconds)

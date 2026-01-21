@@ -2,99 +2,501 @@
     ViewData["Title"] = "Upload Advertisement";
 }
 
-<div class="container py-4" style="max-width:900px;">
-    <h3 class="mb-3">Upload Advertisement</h3>
-    <p class="text-muted">Choose advertisement type, upload your banner image and crop it to fit. No payment required - advertisement will be published immediately.</p>
+<style>
+    :root {
+        --primary-green: #10b981;
+        --primary-green-dark: #059669;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+        --card-shadow-hover: 0 12px 40px rgba(16, 185, 129, 0.15);
+        --bg-light: #f0fdf4;
+        --bg-secondary: #ecfdf5;
+    }
 
-    <form asp-controller="Admin" asp-action="CreateAd" method="post" enctype="multipart/form-data" class="card p-4">
+    body {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+    }
+
+    .create-ad-page {
+        min-height: 100vh;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header h2 i {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.6rem;
+        border-radius: 12px;
+    }
+
+    .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+    }
+
+    .btn-header {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-header:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: var(--primary-green);
+    }
+
+    /* Ad Type Selection */
+    .ad-type-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .ad-type-card {
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .ad-type-card:hover {
+        border-color: var(--primary-green);
+        background: #f0fdf4;
+    }
+
+    .ad-type-card.selected {
+        border-color: var(--primary-green);
+        background: #ecfdf5;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+    }
+
+    .ad-type-label {
+        cursor: pointer;
+        margin: 0;
+        display: block;
+    }
+
+    .ad-type-preview {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .ad-preview-box {
+        background: #f1f5f9;
+        border: 2px dashed #cbd5e1;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .ad-type-card.selected .ad-preview-box {
+        border-color: var(--primary-green);
+        background: #d1fae5;
+        color: var(--primary-green-dark);
+    }
+
+    .ad-type-card h6 {
+        margin: 0 0 0.5rem 0;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .ad-type-card small {
+        color: #64748b;
+    }
+
+    /* Form Inputs */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .form-control {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .form-hint {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 0.5rem;
+    }
+
+    /* Cropper Container */
+    .cropper-container {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .cropper-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .cropper-header h6 {
+        margin: 0;
+        font-weight: 700;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .cropper-header h6 i {
+        color: var(--primary-green);
+    }
+
+    .cropper-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    #imageContainer {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+    }
+
+    #previewImage {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 12px;
+    }
+
+    #cropBox {
+        position: absolute;
+        border: 3px solid var(--primary-green);
+        background: rgba(16, 185, 129, 0.1);
+        cursor: move;
+        min-width: 50px;
+        min-height: 30px;
+        display: none;
+        border-radius: 4px;
+    }
+
+    .resize-handle {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        background: var(--primary-green);
+        border: 2px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .resize-handle[data-direction="nw"] { top: -7px; left: -7px; cursor: nw-resize; }
+    .resize-handle[data-direction="ne"] { top: -7px; right: -7px; cursor: ne-resize; }
+    .resize-handle[data-direction="sw"] { bottom: -7px; left: -7px; cursor: sw-resize; }
+    .resize-handle[data-direction="se"] { bottom: -7px; right: -7px; cursor: se-resize; }
+
+    .resize-handle:hover {
+        background: var(--primary-green-dark);
+        transform: scale(1.1);
+    }
+
+    .preview-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .preview-card h6 {
+        margin: 0 0 1rem 0;
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    #previewCanvas {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        max-width: 100%;
+    }
+
+    .btn-reset {
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-top: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .btn-reset:hover {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    /* Submit Buttons */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn-submit {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-cancel {
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    @@media (max-width: 768px) {
+        .ad-type-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .cropper-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="create-ad-page">
+    <div class="page-header">
+        <div>
+            <h2><i class="fas fa-cloud-upload-alt"></i> Upload Advertisement</h2>
+            <p class="header-subtitle">Create a new advertisement banner for your platform</p>
+        </div>
+        <a class="btn-header" asp-controller="Admin" asp-action="Advertisements">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <form asp-controller="Admin" asp-action="CreateAd" method="post" enctype="multipart/form-data" class="form-card">
         <!-- Advertisement Type Selection -->
-        <div class="mb-4">
-            <label class="form-label fw-bold">Advertisement Type</label>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="ad-type-card" data-type="0">
-                        <input type="radio" name="adType" value="0" id="bottomPage" checked class="d-none">
-                        <label for="bottomPage" class="ad-type-label">
-                            <div class="ad-type-preview">
-                                <div class="ad-preview-box" style="width: 200px; height: 25px; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6c757d;">
-                                    728 x 90 px
-                                </div>
-                            </div>
-                            <h6 class="mt-2 mb-1">Bottom Page Advertisement</h6>
-                            <small class="text-muted">Displayed at the bottom of pages</small>
-                        </label>
+        <div class="section-title">
+            <i class="fas fa-layer-group"></i>
+            Advertisement Type
+        </div>
+        <div class="ad-type-grid">
+            <div class="ad-type-card selected" data-type="0">
+                <input type="radio" name="adType" value="0" id="bottomPage" checked class="d-none">
+                <label for="bottomPage" class="ad-type-label">
+                    <div class="ad-type-preview">
+                        <div class="ad-preview-box" style="width: 200px; height: 25px;">
+                            728 x 90 px
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="ad-type-card" data-type="1">
-                        <input type="radio" name="adType" value="1" id="heroBanner" class="d-none">
-                        <label for="heroBanner" class="ad-type-label">
-                            <div class="ad-type-preview">
-                                <div class="ad-preview-box" style="width: 200px; height: 21px; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6c757d;">
-                                    1920 x 200 px
-                                </div>
-                            </div>
-                            <h6 class="mt-2 mb-1">Hero Banner Advertisement</h6>
-                            <small class="text-muted">Displayed in the hero section (Full width)</small>
-                        </label>
+                    <h6>Bottom Page Ad</h6>
+                    <small>Displayed at the bottom of pages</small>
+                </label>
+            </div>
+            <div class="ad-type-card" data-type="1">
+                <input type="radio" name="adType" value="1" id="heroBanner" class="d-none">
+                <label for="heroBanner" class="ad-type-label">
+                    <div class="ad-type-preview">
+                        <div class="ad-preview-box" style="width: 200px; height: 21px;">
+                            1920 x 200 px
+                        </div>
                     </div>
-                </div>
+                    <h6>Hero Banner</h6>
+                    <small>Full width banner in hero section</small>
+                </label>
             </div>
         </div>
 
-        <!-- Image Upload with Simple Cropper -->
-        <div class="mb-4">
-            <label for="image" class="form-label fw-bold">Ad Image</label>
-            <input type="file" class="form-control" id="image" name="image" accept="image/*" required />
-            <div class="mt-2">
-                <small class="text-muted">Upload an image and use the crop tool below to select the area for your advertisement.</small>
+        <!-- Image Upload -->
+        <div class="form-group">
+            <div class="section-title">
+                <i class="fas fa-image"></i>
+                Upload Image
             </div>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*" required />
+            <p class="form-hint">Upload an image and use the crop tool to select the advertisement area.</p>
             <span class="text-danger">@Html.ValidationMessage("image")</span>
-            
-            <!-- Simple Image Cropper -->
-            <div id="cropperContainer" class="mt-3" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0">Crop Your Image</h6>
-                        <small class="text-muted">Drag the corners to resize the crop area</small>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div id="imageContainer" style="position: relative; display: inline-block; max-width: 100%;">
-                                    <img id="previewImage" style="max-width: 100%; height: auto; display: block;" />
-                                    <div id="cropBox" style="position: absolute; border: 2px solid #007bff; background: rgba(0,123,255,0.1); cursor: move; min-width: 50px; min-height: 30px; display: none;">
-                                        <div class="resize-handle" data-direction="nw" style="position: absolute; top: -5px; left: -5px; width: 10px; height: 10px; background: #007bff; cursor: nw-resize;"></div>
-                                        <div class="resize-handle" data-direction="ne" style="position: absolute; top: -5px; right: -5px; width: 10px; height: 10px; background: #007bff; cursor: ne-resize;"></div>
-                                        <div class="resize-handle" data-direction="sw" style="position: absolute; bottom: -5px; left: -5px; width: 10px; height: 10px; background: #007bff; cursor: sw-resize;"></div>
-                                        <div class="resize-handle" data-direction="se" style="position: absolute; bottom: -5px; right: -5px; width: 10px; height: 10px; background: #007bff; cursor: se-resize;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">Preview</h6>
-                                    </div>
-                                    <div class="card-body text-center">
-                                        <canvas id="previewCanvas" style="border: 1px solid #dee2e6; max-width: 100%;"></canvas>
-                                        <div class="mt-2">
-                                            <small class="text-muted">Final advertisement preview</small>
-                                        </div>
-                                        <button type="button" id="resetCrop" class="btn btn-sm btn-outline-secondary mt-2">Reset</button>
-                                    </div>
-                                </div>
+
+            <!-- Cropper -->
+            <div id="cropperContainer" class="cropper-container" style="display: none;">
+                <div class="cropper-header">
+                    <h6><i class="fas fa-crop-alt"></i> Crop Your Image</h6>
+                    <span style="font-size: 0.85rem; color: #64748b;">Drag corners to resize</span>
+                </div>
+                <div class="cropper-grid">
+                    <div>
+                        <div id="imageContainer">
+                            <img id="previewImage" />
+                            <div id="cropBox">
+                                <div class="resize-handle" data-direction="nw"></div>
+                                <div class="resize-handle" data-direction="ne"></div>
+                                <div class="resize-handle" data-direction="sw"></div>
+                                <div class="resize-handle" data-direction="se"></div>
                             </div>
                         </div>
                     </div>
+                    <div class="preview-card">
+                        <h6>Preview</h6>
+                        <canvas id="previewCanvas"></canvas>
+                        <button type="button" id="resetCrop" class="btn-reset">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="mb-3">
-            <label for="targetUrl" class="form-label fw-bold">Destination URL (Optional)</label>
-            <input type="url" class="form-control" id="targetUrl" name="targetUrl" placeholder="https://maps.google.com/..." />
-            <small class="text-muted">Where users will be redirected when they click your advertisement.</small>
+        <!-- Target URL -->
+        <div class="form-group">
+            <label for="targetUrl" class="form-label">
+                <i class="fas fa-link" style="color: var(--primary-green);"></i>
+                Destination URL (Optional)
+            </label>
+            <input type="url" class="form-control" id="targetUrl" name="targetUrl" placeholder="https://example.com/your-link" />
+            <p class="form-hint">Where users will be redirected when they click your advertisement.</p>
         </div>
 
         <!-- Hidden fields for crop coordinates -->
@@ -103,60 +505,16 @@
         <input type="hidden" id="cropWidth" name="cropWidth" />
         <input type="hidden" id="cropHeight" name="cropHeight" />
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-upload"></i> Upload Advertisement</button>
-            <a class="btn btn-secondary" asp-controller="Admin" asp-action="Advertisements">Cancel</a>
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-cloud-upload-alt"></i> Upload Advertisement
+            </button>
+            <a class="btn-cancel" asp-controller="Admin" asp-action="Advertisements">
+                <i class="fas fa-times"></i> Cancel
+            </a>
         </div>
     </form>
 </div>
-
-<style>
-    .ad-type-card {
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        height: 100%;
-    }
-
-    .ad-type-card:hover {
-        border-color: #0d6efd;
-        background-color: #f8f9ff;
-    }
-
-    .ad-type-card.selected {
-        border-color: #0d6efd;
-        background-color: #e7f1ff;
-    }
-
-    .ad-type-label {
-        cursor: pointer;
-        margin: 0;
-        display: block;
-        width: 100%;
-        height: 100%;
-    }
-
-    .ad-type-preview {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 10px;
-    }
-
-    .ad-preview-box {
-        border-radius: 4px;
-    }
-
-    .resize-handle {
-        border-radius: 50%;
-    }
-
-    .resize-handle:hover {
-        background: #0056b3 !important;
-    }
-</style>
 
 <script>
     let currentAdType = 0;
@@ -172,35 +530,30 @@
     let originalCropBox = {};
 
     // Handle advertisement type selection
-    document.querySelectorAll('input[name="adType"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            currentAdType = parseInt(this.value);
-            
-            // Update visual selection
-            document.querySelectorAll('.ad-type-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            this.closest('.ad-type-card').classList.add('selected');
-            
-            // Reset crop if image is loaded
+    document.querySelectorAll('.ad-type-card').forEach(card => {
+        card.addEventListener('click', function () {
+            const type = parseInt(this.dataset.type);
+            document.querySelector(`input[name="adType"][value="${type}"]`).checked = true;
+            currentAdType = type;
+
+            document.querySelectorAll('.ad-type-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+
             if (imageLoaded) {
                 resetCrop();
             }
         });
     });
 
-    // Initialize first option as selected
-    document.querySelector('.ad-type-card[data-type="0"]').classList.add('selected');
-
     // Handle image upload
-    document.getElementById('image').addEventListener('change', function(e) {
+    document.getElementById('image').addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 previewImage = document.getElementById('previewImage');
                 previewImage.src = e.target.result;
-                previewImage.onload = function() {
+                previewImage.onload = function () {
                     imageLoaded = true;
                     initializeCropper();
                     document.getElementById('cropperContainer').style.display = 'block';
@@ -210,71 +563,68 @@
         }
     });
 
+    function getAdDimensions() {
+        if (currentAdType === 1) {
+            return { width: 1920, height: 200 };
+        }
+        return { width: 728, height: 90 };
+    }
+
     function initializeCropper() {
         cropBox = document.getElementById('cropBox');
         previewCanvas = document.getElementById('previewCanvas');
         previewCtx = previewCanvas.getContext('2d');
-        
-        // Set up crop box
+
         resetCrop();
-        
-        // Add event listeners
+
         cropBox.addEventListener('mousedown', startDrag);
         document.addEventListener('mousemove', drag);
         document.addEventListener('mouseup', endDrag);
-        
-        // Add resize handle listeners
+
         document.querySelectorAll('.resize-handle').forEach(handle => {
             handle.addEventListener('mousedown', startResize);
         });
+
+        document.getElementById('resetCrop').addEventListener('click', resetCrop);
     }
 
     function resetCrop() {
         if (!previewImage || !cropBox) return;
-        
+
         const imageRect = previewImage.getBoundingClientRect();
-        const containerRect = document.getElementById('imageContainer').getBoundingClientRect();
-        
-        // Calculate crop box dimensions based on ad type
         const dimensions = getAdDimensions();
         const aspectRatio = dimensions.width / dimensions.height;
-        
-        // Calculate optimal crop box size
+
         let cropWidth = imageRect.width * 0.6;
         let cropHeight = cropWidth / aspectRatio;
-        
+
         if (cropHeight > imageRect.height * 0.8) {
             cropHeight = imageRect.height * 0.8;
             cropWidth = cropHeight * aspectRatio;
         }
-        
-        // Center the crop box
+
         const left = (imageRect.width - cropWidth) / 2;
         const top = (imageRect.height - cropHeight) / 2;
-        
+
         cropBox.style.left = left + 'px';
         cropBox.style.top = top + 'px';
         cropBox.style.width = cropWidth + 'px';
         cropBox.style.height = cropHeight + 'px';
         cropBox.style.display = 'block';
-        
+
         updatePreview();
         updateHiddenFields();
     }
 
     function startDrag(e) {
         if (e.target.classList.contains('resize-handle')) return;
-        
         isDragging = true;
         startX = e.clientX;
         startY = e.clientY;
-        
-        const rect = cropBox.getBoundingClientRect();
         originalCropBox = {
             left: parseInt(cropBox.style.left),
             top: parseInt(cropBox.style.top)
         };
-        
         e.preventDefault();
     }
 
@@ -283,14 +633,12 @@
         resizeDirection = e.target.dataset.direction;
         startX = e.clientX;
         startY = e.clientY;
-        
         originalCropBox = {
             left: parseInt(cropBox.style.left),
             top: parseInt(cropBox.style.top),
             width: parseInt(cropBox.style.width),
             height: parseInt(cropBox.style.height)
         };
-        
         e.preventDefault();
         e.stopPropagation();
     }
@@ -299,37 +647,31 @@
         if (isDragging) {
             const deltaX = e.clientX - startX;
             const deltaY = e.clientY - startY;
-            
             let newLeft = originalCropBox.left + deltaX;
             let newTop = originalCropBox.top + deltaY;
-            
-            // Keep within image bounds
             const imageRect = previewImage.getBoundingClientRect();
-            const containerRect = document.getElementById('imageContainer').getBoundingClientRect();
-            
+
             newLeft = Math.max(0, Math.min(newLeft, imageRect.width - parseInt(cropBox.style.width)));
             newTop = Math.max(0, Math.min(newTop, imageRect.height - parseInt(cropBox.style.height)));
-            
+
             cropBox.style.left = newLeft + 'px';
             cropBox.style.top = newTop + 'px';
-            
+
             updatePreview();
             updateHiddenFields();
         }
-        
+
         if (isResizing) {
             const deltaX = e.clientX - startX;
             const deltaY = e.clientY - startY;
-            
             const dimensions = getAdDimensions();
             const aspectRatio = dimensions.width / dimensions.height;
-            
+
             let newWidth = originalCropBox.width;
             let newHeight = originalCropBox.height;
             let newLeft = originalCropBox.left;
             let newTop = originalCropBox.top;
-            
-            // Calculate new dimensions based on resize direction
+
             if (resizeDirection.includes('e')) {
                 newWidth = originalCropBox.width + deltaX;
             }
@@ -344,34 +686,26 @@
                 newHeight = originalCropBox.height - deltaY;
                 newTop = originalCropBox.top + deltaY;
             }
-            
-            // Maintain aspect ratio
+
             if (newWidth / aspectRatio !== newHeight) {
                 if (Math.abs(deltaX) > Math.abs(deltaY)) {
                     newHeight = newWidth / aspectRatio;
-                    if (resizeDirection.includes('n')) {
-                        newTop = originalCropBox.top + originalCropBox.height - newHeight;
-                    }
                 } else {
                     newWidth = newHeight * aspectRatio;
-                    if (resizeDirection.includes('w')) {
-                        newLeft = originalCropBox.left + originalCropBox.width - newWidth;
-                    }
                 }
             }
-            
-            // Keep within bounds
+
             const imageRect = previewImage.getBoundingClientRect();
             newWidth = Math.max(50, Math.min(newWidth, imageRect.width - newLeft));
-            newHeight = Math.max(30, Math.min(newHeight, imageRect.height - newTop));
-            newLeft = Math.max(0, Math.min(newLeft, imageRect.width - newWidth));
-            newTop = Math.max(0, Math.min(newTop, imageRect.height - newHeight));
-            
-            cropBox.style.width = newWidth + 'px';
-            cropBox.style.height = newHeight + 'px';
+            newHeight = Math.max(50 / aspectRatio, Math.min(newHeight, imageRect.height - newTop));
+            newLeft = Math.max(0, Math.min(newLeft, imageRect.width - 50));
+            newTop = Math.max(0, Math.min(newTop, imageRect.height - 50));
+
             cropBox.style.left = newLeft + 'px';
             cropBox.style.top = newTop + 'px';
-            
+            cropBox.style.width = newWidth + 'px';
+            cropBox.style.height = newHeight + 'px';
+
             updatePreview();
             updateHiddenFields();
         }
@@ -380,88 +714,41 @@
     function endDrag() {
         isDragging = false;
         isResizing = false;
-        resizeDirection = '';
     }
 
     function updatePreview() {
-        if (!previewImage || !previewCanvas || !cropBox) return;
-        
+        if (!previewImage || !cropBox || !previewCanvas) return;
+
+        const dimensions = getAdDimensions();
+        previewCanvas.width = dimensions.width / 4;
+        previewCanvas.height = dimensions.height / 4;
+
         const imageRect = previewImage.getBoundingClientRect();
-        const containerRect = document.getElementById('imageContainer').getBoundingClientRect();
-        
-        // Get crop box position relative to image
-        const cropLeft = parseInt(cropBox.style.left);
-        const cropTop = parseInt(cropBox.style.top);
-        const cropWidth = parseInt(cropBox.style.width);
-        const cropHeight = parseInt(cropBox.style.height);
-        
-        // Calculate source coordinates on the actual image
         const scaleX = previewImage.naturalWidth / imageRect.width;
         const scaleY = previewImage.naturalHeight / imageRect.height;
-        
-        const sourceX = cropLeft * scaleX;
-        const sourceY = cropTop * scaleY;
-        const sourceWidth = cropWidth * scaleX;
-        const sourceHeight = cropHeight * scaleY;
-        
-        // Set preview canvas size - use fixed width and calculate height based on aspect ratio
-        const dimensions = getAdDimensions();
-        const previewWidth = 280; // Fixed preview width
-        const aspectRatio = dimensions.width / dimensions.height;
-        const previewHeight = previewWidth / aspectRatio;
-        
-        previewCanvas.width = previewWidth;
-        previewCanvas.height = previewHeight;
-        
-        // Draw cropped area to preview
-        previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+        const cropLeft = parseInt(cropBox.style.left) * scaleX;
+        const cropTop = parseInt(cropBox.style.top) * scaleY;
+        const cropWidth = parseInt(cropBox.style.width) * scaleX;
+        const cropHeight = parseInt(cropBox.style.height) * scaleY;
+
         previewCtx.drawImage(
             previewImage,
-            sourceX, sourceY, sourceWidth, sourceHeight,
+            cropLeft, cropTop, cropWidth, cropHeight,
             0, 0, previewCanvas.width, previewCanvas.height
         );
     }
 
     function updateHiddenFields() {
         if (!previewImage || !cropBox) return;
-        
+
         const imageRect = previewImage.getBoundingClientRect();
-        
-        // Get crop box position relative to image
-        const cropLeft = parseInt(cropBox.style.left);
-        const cropTop = parseInt(cropBox.style.top);
-        const cropWidth = parseInt(cropBox.style.width);
-        const cropHeight = parseInt(cropBox.style.height);
-        
-        // Calculate coordinates on the actual image
         const scaleX = previewImage.naturalWidth / imageRect.width;
         const scaleY = previewImage.naturalHeight / imageRect.height;
-        
-        document.getElementById('cropX').value = Math.round(cropLeft * scaleX);
-        document.getElementById('cropY').value = Math.round(cropTop * scaleY);
-        document.getElementById('cropWidth').value = Math.round(cropWidth * scaleX);
-        document.getElementById('cropHeight').value = Math.round(cropHeight * scaleY);
+
+        document.getElementById('cropX').value = Math.round(parseInt(cropBox.style.left) * scaleX);
+        document.getElementById('cropY').value = Math.round(parseInt(cropBox.style.top) * scaleY);
+        document.getElementById('cropWidth').value = Math.round(parseInt(cropBox.style.width) * scaleX);
+        document.getElementById('cropHeight').value = Math.round(parseInt(cropBox.style.height) * scaleY);
     }
-
-    function getAdDimensions() {
-        if (currentAdType === 1) { // Hero Banner
-            return { width: 1920, height: 200 };
-        } else { // Bottom Page
-            return { width: 728, height: 90 };
-        }
-    }
-
-    // Reset crop button
-    document.getElementById('resetCrop').addEventListener('click', function() {
-        if (imageLoaded) {
-            resetCrop();
-        }
-    });
-
-    // Form submission - just use the hidden fields
-    document.querySelector('form').addEventListener('submit', function(e) {
-        if (imageLoaded) {
-            updateHiddenFields();
-        }
-    });
 </script>

@@ -4,18 +4,25 @@
 
 <style>
     :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
-        --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #4a6741 100%);
-        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        --card-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
+        --primary-green: #10b981;
+        --primary-green-dark: #059669;
+        --primary-green-light: #34d399;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --success-gradient: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        --accent-gradient: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        --info-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        --purple-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        --dark-gradient: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        --card-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+        --card-shadow-hover: 0 12px 40px rgba(16, 185, 129, 0.15);
+        --bg-light: #f0fdf4;
+        --bg-secondary: #ecfdf5;
     }
 
     body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
@@ -29,10 +36,10 @@
     .dashboard-header {
         background: var(--primary-gradient);
         color: white;
-        padding: 2.5rem;
-        border-radius: 20px;
+        padding: 2.5rem 3rem;
+        border-radius: 24px;
         margin-bottom: 2rem;
-        box-shadow: var(--card-shadow);
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
         position: relative;
         overflow: hidden;
     }
@@ -40,29 +47,68 @@
     .dashboard-header::before {
         content: '';
         position: absolute;
-        top: 0;
-        right: 0;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .dashboard-header::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: 10%;
         width: 200px;
         height: 200px;
-        background: rgba(255, 255, 255, 0.1);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
         border-radius: 50%;
-        transform: translate(50px, -50px);
     }
 
     .dashboard-header h1 {
         margin: 0;
         font-size: 2.5rem;
-        font-weight: 700;
+        font-weight: 800;
         display: flex;
         align-items: center;
         gap: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .dashboard-header h1 i {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.75rem;
+        border-radius: 16px;
     }
 
     .dashboard-header p {
         margin: 1rem 0 0 0;
-        opacity: 0.9;
+        opacity: 0.95;
         font-size: 1.1rem;
         font-weight: 400;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-time {
+        position: absolute;
+        top: 2rem;
+        right: 3rem;
+        text-align: right;
+        z-index: 1;
+    }
+
+    .header-time .time {
+        font-size: 2rem;
+        font-weight: 700;
+        opacity: 0.95;
+    }
+
+    .header-time .date {
+        font-size: 0.95rem;
+        opacity: 0.8;
     }
 
     /* Analytics Grid */
@@ -75,18 +121,19 @@
 
     .analytics-card {
         background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
+        border-radius: 20px;
+        padding: 1.75rem;
         box-shadow: var(--card-shadow);
-        transition: all 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(16, 185, 129, 0.1);
         position: relative;
         overflow: hidden;
     }
 
     .analytics-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-8px);
         box-shadow: var(--card-shadow-hover);
+        border-color: rgba(16, 185, 129, 0.3);
     }
 
     .analytics-card::before {
@@ -95,68 +142,110 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
+        height: 5px;
         background: var(--primary-gradient);
+        border-radius: 20px 20px 0 0;
     }
 
     .analytics-card.users::before { background: var(--primary-gradient); }
-    .analytics-card.providers::before { background: var(--success-gradient); }
-    .analytics-card.vendors::before { background: var(--warning-gradient); }
-    .analytics-card.services::before { background: var(--danger-gradient); }
-    .analytics-card.complaints::before { background: var(--info-gradient); }
-    .analytics-card.revenue::before { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .analytics-card.providers::before { background: var(--accent-gradient); }
+    .analytics-card.vendors::before { background: var(--purple-gradient); }
+    .analytics-card.services::before { background: var(--info-gradient); }
+    .analytics-card.complaints::before { background: var(--warning-gradient); }
+    .analytics-card.revenue::before { background: var(--success-gradient); }
 
     .card-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
+        align-items: flex-start;
+        margin-bottom: 1.25rem;
     }
 
     .card-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.5rem;
         color: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     }
 
     .card-icon.users { background: var(--primary-gradient); }
-    .card-icon.providers { background: var(--success-gradient); }
-    .card-icon.vendors { background: var(--warning-gradient); }
-    .card-icon.services { background: var(--danger-gradient); }
-    .card-icon.complaints { background: var(--info-gradient); }
-    .card-icon.revenue { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .card-icon.providers { background: var(--accent-gradient); }
+    .card-icon.vendors { background: var(--purple-gradient); }
+    .card-icon.services { background: var(--info-gradient); }
+    .card-icon.complaints { background: var(--warning-gradient); }
+    .card-icon.revenue { background: var(--success-gradient); }
 
     .card-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #2d3748;
+        font-size: 2.75rem;
+        font-weight: 800;
+        color: #1e293b;
         margin: 0;
+        letter-spacing: -1px;
     }
 
     .card-label {
-        color: #718096;
-        font-size: 0.9rem;
-        font-weight: 500;
+        color: #64748b;
+        font-size: 0.95rem;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.75px;
         margin: 0.5rem 0 0 0;
     }
 
     .card-trend {
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
+        gap: 0.4rem;
+        margin-top: 0.75rem;
         font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
     }
 
-    .trend-up { color: #38a169; }
-    .trend-down { color: #e53e3e; }
+    .trend-up { 
+        color: #059669; 
+        background: #d1fae5;
+    }
+    .trend-down { 
+        color: #dc2626; 
+        background: #fee2e2;
+    }
+
+    .chart-container {
+        height: 80px;
+        margin-top: 1.25rem;
+        position: relative;
+    }
+
+    .mini-chart {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(16, 185, 129, 0.05), transparent);
+        border-radius: 12px;
+        display: flex;
+        align-items: flex-end;
+        padding: 0.5rem;
+        gap: 4px;
+    }
+
+    .chart-bar {
+        background: var(--primary-gradient);
+        border-radius: 4px 4px 0 0;
+        flex: 1;
+        opacity: 0.85;
+        transition: all 0.3s ease;
+    }
+
+    .chart-bar:hover {
+        opacity: 1;
+        transform: scaleY(1.05);
+    }
 
     /* Quick Actions Grid */
     .quick-actions {
@@ -165,64 +254,104 @@
 
     .section-title {
         font-size: 1.5rem;
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1.25rem;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
+    }
+
+    .section-title i {
+        color: var(--primary-green);
+        background: var(--bg-secondary);
+        padding: 0.5rem;
+        border-radius: 10px;
     }
 
     .actions-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
+        gap: 1.25rem;
     }
 
     .action-tile {
         background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
+        border-radius: 20px;
+        padding: 1.75rem;
         text-decoration: none;
         color: inherit;
         box-shadow: var(--card-shadow);
-        transition: all 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(16, 185, 129, 0.08);
         position: relative;
         overflow: hidden;
     }
 
+    .action-tile::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--primary-gradient);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
     .action-tile:hover {
-        transform: translateY(-3px);
+        transform: translateY(-6px) scale(1.02);
         box-shadow: var(--card-shadow-hover);
         text-decoration: none;
-        color: inherit;
+        color: white;
+    }
+
+    .action-tile:hover::before {
+        opacity: 1;
+    }
+
+    .action-tile:hover .tile-icon,
+    .action-tile:hover .tile-title,
+    .action-tile:hover .tile-subtitle {
+        position: relative;
+        z-index: 1;
+    }
+
+    .action-tile:hover .tile-icon {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .action-tile:hover .tile-title,
+    .action-tile:hover .tile-subtitle {
+        color: white;
     }
 
     .tile-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        background: var(--primary-gradient);
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        background: var(--bg-secondary);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        margin-bottom: 1rem;
+        font-size: 1.6rem;
+        color: var(--primary-green);
+        margin-bottom: 1.25rem;
         position: relative;
+        transition: all 0.3s ease;
     }
 
     .tile-title {
         font-size: 1.1rem;
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 0.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.35rem;
+        transition: color 0.3s ease;
     }
 
     .tile-subtitle {
-        font-size: 0.85rem;
-        color: #718096;
+        font-size: 0.875rem;
+        color: #64748b;
+        transition: color 0.3s ease;
     }
 
     /* Management Cards */
@@ -235,34 +364,35 @@
 
     .management-card {
         background: white;
-        border-radius: 16px;
+        border-radius: 20px;
         box-shadow: var(--card-shadow);
         overflow: hidden;
-        transition: all 0.3s ease;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(16, 185, 129, 0.08);
     }
 
     .management-card:hover {
-        transform: translateY(-3px);
+        transform: translateY(-4px);
         box-shadow: var(--card-shadow-hover);
     }
 
     .management-header {
-        padding: 1.5rem;
-        background: var(--dark-gradient);
+        padding: 1.5rem 1.75rem;
+        background: var(--primary-gradient);
         color: white;
     }
 
     .management-header h3 {
         margin: 0;
         font-size: 1.2rem;
-        font-weight: 600;
+        font-weight: 700;
         display: flex;
         align-items: center;
         gap: 0.75rem;
     }
 
     .management-body {
-        padding: 1.5rem;
+        padding: 1.5rem 1.75rem;
     }
 
     .management-list {
@@ -272,8 +402,8 @@
     }
 
     .management-list li {
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #e2e8f0;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
     }
 
     .management-list li:last-child {
@@ -281,52 +411,104 @@
     }
 
     .management-list a {
-        color: #4a5568;
+        color: #475569;
         text-decoration: none;
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        transition: all 0.2s ease;
-        padding: 0.5rem;
-        border-radius: 8px;
+        transition: all 0.25s ease;
+        padding: 0.75rem;
+        border-radius: 12px;
+        font-weight: 500;
     }
 
     .management-list a:hover {
-        background: #f7fafc;
-        color: #667eea;
+        background: var(--bg-secondary);
+        color: var(--primary-green-dark);
         text-decoration: none;
+        transform: translateX(4px);
     }
 
     .management-list i {
-        width: 20px;
-        color: #667eea;
+        width: 24px;
+        color: var(--primary-green);
         font-size: 1rem;
     }
 
     /* Activity Feed */
     .activity-feed {
         background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
+        border-radius: 20px;
+        padding: 2rem;
         box-shadow: var(--card-shadow);
         margin-bottom: 2rem;
+        border: 1px solid rgba(16, 185, 129, 0.08);
     }
 
     .activity-header {
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: center;
         margin-bottom: 1.5rem;
     }
 
     .activity-title {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #2d3748;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #1e293b;
         margin: 0;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
+    }
+
+    .activity-title i {
+        color: var(--primary-green);
+    }
+
+    /* Notification Badge */
+    .notification-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        animation: pulse 2s infinite;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+
+    /* Complaint Cards */
+    .complaint-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--primary-green);
+    }
+
+    .complaint-card:hover {
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
+        transform: translateX(4px);
+    }
+
+    .complaint-card:last-child {
+        margin-bottom: 0;
     }
 
     /* Responsive Design */
@@ -336,11 +518,16 @@
         }
         
         .dashboard-header {
-            padding: 1.5rem;
+            padding: 1.75rem;
+            border-radius: 16px;
         }
         
         .dashboard-header h1 {
-            font-size: 2rem;
+            font-size: 1.75rem;
+        }
+
+        .header-time {
+            display: none;
         }
         
         .analytics-grid {
@@ -356,65 +543,37 @@
         }
     }
 
-    /* Notification Badge */
-    .notification-badge {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background: #e53e3e;
-        color: white;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        font-weight: 600;
-        animation: pulse 2s infinite;
-    }
-
-    @@keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-
-    /* Chart Container */
-    .chart-container {
-        height: 100px;
-        margin-top: 1rem;
-        position: relative;
-    }
-
-    .mini-chart {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(45deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        border-radius: 8px;
-        display: flex;
-        align-items: end;
-        padding: 0.5rem;
-        gap: 2px;
-    }
-
-    .chart-bar {
+    /* Button Styles */
+    .btn-green {
         background: var(--primary-gradient);
-        border-radius: 2px;
-        flex: 1;
-        opacity: 0.7;
-        transition: opacity 0.3s ease;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
     }
 
-    .chart-bar:hover {
-        opacity: 1;
+    .btn-green:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+        color: white;
+        text-decoration: none;
     }
 </style>
 
 <div class="dashboard-container">
     <!-- Header -->
     <div class="dashboard-header">
-        <h1><i class="fas fa-crown"></i> Admin Dashboard</h1>
+        <div class="header-time">
+            <div class="time" id="currentTime">--:--</div>
+            <div class="date" id="currentDate">Loading...</div>
+        </div>
+        <h1><i class="fas fa-leaf"></i> Admin Dashboard</h1>
         <p>Welcome back, @ViewBag.AdminName! Here's what's happening with ServConnect today.</p>
     </div>
 
@@ -430,7 +589,7 @@
             <p class="card-label">Total Users</p>
             <div class="card-trend trend-up">
                 <i class="fas fa-arrow-up"></i>
-                <span>+12% from last month</span>
+                <span>+12% this month</span>
             </div>
             <div class="chart-container">
                 <div class="mini-chart">
@@ -455,17 +614,17 @@
             <p class="card-label">Service Providers</p>
             <div class="card-trend trend-up">
                 <i class="fas fa-arrow-up"></i>
-                <span>+8% from last month</span>
+                <span>+8% this month</span>
             </div>
             <div class="chart-container">
                 <div class="mini-chart">
-                    <div class="chart-bar" style="height: 40%;"></div>
-                    <div class="chart-bar" style="height: 65%;"></div>
-                    <div class="chart-bar" style="height: 55%;"></div>
-                    <div class="chart-bar" style="height: 80%;"></div>
-                    <div class="chart-bar" style="height: 75%;"></div>
-                    <div class="chart-bar" style="height: 95%;"></div>
-                    <div class="chart-bar" style="height: 100%;"></div>
+                    <div class="chart-bar" style="height: 40%; background: var(--accent-gradient);"></div>
+                    <div class="chart-bar" style="height: 65%; background: var(--accent-gradient);"></div>
+                    <div class="chart-bar" style="height: 55%; background: var(--accent-gradient);"></div>
+                    <div class="chart-bar" style="height: 80%; background: var(--accent-gradient);"></div>
+                    <div class="chart-bar" style="height: 75%; background: var(--accent-gradient);"></div>
+                    <div class="chart-bar" style="height: 95%; background: var(--accent-gradient);"></div>
+                    <div class="chart-bar" style="height: 100%; background: var(--accent-gradient);"></div>
                 </div>
             </div>
         </div>
@@ -480,17 +639,17 @@
             <p class="card-label">Vendors</p>
             <div class="card-trend trend-up">
                 <i class="fas fa-arrow-up"></i>
-                <span>+5% from last month</span>
+                <span>+5% this month</span>
             </div>
             <div class="chart-container">
                 <div class="mini-chart">
-                    <div class="chart-bar" style="height: 50%;"></div>
-                    <div class="chart-bar" style="height: 70%;"></div>
-                    <div class="chart-bar" style="height: 60%;"></div>
-                    <div class="chart-bar" style="height: 85%;"></div>
-                    <div class="chart-bar" style="height: 90%;"></div>
-                    <div class="chart-bar" style="height: 75%;"></div>
-                    <div class="chart-bar" style="height: 100%;"></div>
+                    <div class="chart-bar" style="height: 50%; background: var(--purple-gradient);"></div>
+                    <div class="chart-bar" style="height: 70%; background: var(--purple-gradient);"></div>
+                    <div class="chart-bar" style="height: 60%; background: var(--purple-gradient);"></div>
+                    <div class="chart-bar" style="height: 85%; background: var(--purple-gradient);"></div>
+                    <div class="chart-bar" style="height: 90%; background: var(--purple-gradient);"></div>
+                    <div class="chart-bar" style="height: 75%; background: var(--purple-gradient);"></div>
+                    <div class="chart-bar" style="height: 100%; background: var(--purple-gradient);"></div>
                 </div>
             </div>
         </div>
@@ -498,24 +657,24 @@
         <div class="analytics-card services">
             <div class="card-header">
                 <div class="card-icon services">
-                    <i class="fas fa-concierge-bell"></i>
+                    <i class="fas fa-user-friends"></i>
                 </div>
             </div>
             <h2 class="card-value" data-value="@ViewBag.RegularUsers">@ViewBag.RegularUsers</h2>
             <p class="card-label">Regular Users</p>
             <div class="card-trend trend-up">
                 <i class="fas fa-arrow-up"></i>
-                <span>+15% from last month</span>
+                <span>+15% this month</span>
             </div>
             <div class="chart-container">
                 <div class="mini-chart">
-                    <div class="chart-bar" style="height: 30%;"></div>
-                    <div class="chart-bar" style="height: 50%;"></div>
-                    <div class="chart-bar" style="height: 70%;"></div>
-                    <div class="chart-bar" style="height: 60%;"></div>
-                    <div class="chart-bar" style="height: 85%;"></div>
-                    <div class="chart-bar" style="height: 95%;"></div>
-                    <div class="chart-bar" style="height: 100%;"></div>
+                    <div class="chart-bar" style="height: 30%; background: var(--info-gradient);"></div>
+                    <div class="chart-bar" style="height: 50%; background: var(--info-gradient);"></div>
+                    <div class="chart-bar" style="height: 70%; background: var(--info-gradient);"></div>
+                    <div class="chart-bar" style="height: 60%; background: var(--info-gradient);"></div>
+                    <div class="chart-bar" style="height: 85%; background: var(--info-gradient);"></div>
+                    <div class="chart-bar" style="height: 95%; background: var(--info-gradient);"></div>
+                    <div class="chart-bar" style="height: 100%; background: var(--info-gradient);"></div>
                 </div>
             </div>
         </div>
@@ -530,17 +689,17 @@
             <p class="card-label">New Complaints</p>
             <div class="card-trend trend-down">
                 <i class="fas fa-arrow-down"></i>
-                <span>-3% from last month</span>
+                <span>-3% this month</span>
             </div>
             <div class="chart-container">
                 <div class="mini-chart">
-                    <div class="chart-bar" style="height: 100%;"></div>
-                    <div class="chart-bar" style="height: 85%;"></div>
-                    <div class="chart-bar" style="height: 70%;"></div>
-                    <div class="chart-bar" style="height: 60%;"></div>
-                    <div class="chart-bar" style="height: 45%;"></div>
-                    <div class="chart-bar" style="height: 35%;"></div>
-                    <div class="chart-bar" style="height: 30%;"></div>
+                    <div class="chart-bar" style="height: 100%; background: var(--warning-gradient);"></div>
+                    <div class="chart-bar" style="height: 85%; background: var(--warning-gradient);"></div>
+                    <div class="chart-bar" style="height: 70%; background: var(--warning-gradient);"></div>
+                    <div class="chart-bar" style="height: 60%; background: var(--warning-gradient);"></div>
+                    <div class="chart-bar" style="height: 45%; background: var(--warning-gradient);"></div>
+                    <div class="chart-bar" style="height: 35%; background: var(--warning-gradient);"></div>
+                    <div class="chart-bar" style="height: 30%; background: var(--warning-gradient);"></div>
                 </div>
             </div>
         </div>
@@ -555,11 +714,10 @@
             <p class="card-label">Total Revenue</p>
             <div class="card-trend @(ViewBag.RevenueGrowthRate >= 0 ? "trend-up" : "trend-down")">
                 <i class="fas fa-arrow-@(ViewBag.RevenueGrowthRate >= 0 ? "up" : "down")"></i>
-                <span>@ViewBag.RevenueGrowthRate.ToString("F1")% from last quarter</span>
+                <span>@ViewBag.RevenueGrowthRate.ToString("F1")% this quarter</span>
             </div>
             <div class="chart-container">
                 <div class="mini-chart" id="revenueChart">
-                    <!-- Revenue chart bars will be generated by JavaScript -->
                 </div>
             </div>
         </div>
@@ -577,19 +735,19 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="tile-title">Manage Users</div>
-                <div class="tile-subtitle">View, roles, actions</div>
+                <div class="tile-subtitle">View, filter & manage</div>
             </a>
             
             <a class="action-tile" asp-controller="Admin" asp-action="VerifyUsers">
                 <div class="tile-icon">
-                    <i class="fas fa-id-badge"></i>
+                    <i class="fas fa-user-check"></i>
                     @if (ViewBag.PendingUsersCount > 0)
                     {
                         <div class="notification-badge">@ViewBag.PendingUsersCount</div>
                     }
                 </div>
                 <div class="tile-title">Verify Users</div>
-                <div class="tile-subtitle">Approve or reject users</div>
+                <div class="tile-subtitle">Approve or reject</div>
             </a>
             
             <a class="action-tile" asp-controller="Admin" asp-action="CreateAd">
@@ -640,12 +798,16 @@
                 <div class="tile-subtitle">Analytics & Predictions</div>
             </a>
             
-            <a class="action-tile" asp-controller="Admin" asp-action="Settings">
+            <a class="action-tile" asp-controller="Admin" asp-action="Complaints">
                 <div class="tile-icon">
-                    <i class="fas fa-gear"></i>
+                    <i class="fas fa-comment-dots"></i>
+                    @if (ViewBag.PriorityComplaints > 0)
+                    {
+                        <div class="notification-badge">@ViewBag.PriorityComplaints</div>
+                    }
                 </div>
-                <div class="tile-title">Settings</div>
-                <div class="tile-subtitle">System preferences</div>
+                <div class="tile-title">Complaints</div>
+                <div class="tile-subtitle">View & resolve</div>
             </a>
         </div>
     </div>
@@ -701,7 +863,7 @@
             <div class="management-body">
                 <ul class="management-list">
                     <li><a href="#"><i class="fas fa-chart-pie"></i> Usage Statistics</a></li>
-                    <li><a href="#"><i class="fas fa-dollar-sign"></i> Revenue Reports</a></li>
+                    <li><a asp-controller="Admin" asp-action="Revenue"><i class="fas fa-rupee-sign"></i> Revenue Reports</a></li>
                     <li><a asp-controller="Admin" asp-action="Complaints"><i class="fas fa-envelope"></i> Complaints</a></li>
                     <li><a href="#"><i class="fas fa-download"></i> Export Data</a></li>
                 </ul>
@@ -714,187 +876,167 @@
         <div class="activity-header">
             <h3 class="activity-title">
                 <i class="fas fa-bell"></i>
-                Recent Activity & Complaints
+                Recent Complaints
             </h3>
+            <a class="btn-green" asp-controller="Admin" asp-action="Complaints">
+                <i class="fas fa-eye"></i> View All
+            </a>
         </div>
         <div id="complaintsContainer">
             <div class="d-flex justify-content-center p-4">
-                <div class="spinner-border text-primary" role="status">
+                <div class="spinner-border" style="color: var(--primary-green);" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
         </div>
-        <div class="mt-3 text-center">
-            <a class="btn btn-primary" asp-controller="Admin" asp-action="Complaints">
-                <i class="fas fa-eye"></i> View All Complaints
-            </a>
-        </div>
     </div>
 </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', async function(){
-            // Load complaints
-            const container = document.getElementById('complaintsContainer');
-            try {
-                const res = await fetch('/api/complaints?limit=5');
-                if(!res.ok){ 
-                    container.innerHTML = '<div class="text-center text-muted p-4">Failed to load complaints.</div>'; 
-                    return; 
-                }
-                const list = await res.json();
-                if(!list.length){ 
-                    container.innerHTML = '<div class="text-center text-muted p-4"><i class="fas fa-inbox fa-2x mb-2"></i><br>No recent complaints</div>'; 
-                    return; 
-                }
-                
-                container.innerHTML = '';
-                list.forEach(c => {
-                    const card = document.createElement('div');
-                    card.className = 'card mb-3 border-0 shadow-sm';
-                    card.style.borderLeft = '4px solid #667eea';
-                    card.innerHTML = `
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <h6 class="card-title mb-1 text-primary">${c.category}</h6>
-                                    <small class="text-muted">
-                                        <i class="fas fa-user"></i> ${c.complainantName} (${c.complainantRole})
-                                    </small>
-                                </div>
-                                <span class="badge ${c.status === 'New' ? 'bg-warning' : (c.status === 'Resolved' ? 'bg-success' : 'bg-secondary')}">${c.status}</span>
-                            </div>
-                            <p class="card-text small text-muted mb-2">${(c.description || '').substring(0, 120)}${c.description && c.description.length > 120 ? '...' : ''}</p>
-                            <small class="text-muted">
-                                <i class="fas fa-clock"></i> ${new Date(c.createdAt).toLocaleDateString()}
-                            </small>
-                        </div>`;
-                    container.appendChild(card);
-                });
-            } catch (e) {
-                container.innerHTML = '<div class="text-center text-danger p-4">Error loading complaints.</div>';
-            }
-
-            // Animate analytics cards
-            animateCounters();
-            
-            // Add hover effects to charts
-            addChartInteractivity();
-            
-            // Generate revenue chart
-            generateRevenueChart();
-        });
-
-        function animateCounters() {
-            const cardValues = document.querySelectorAll('.card-value');
-            cardValues.forEach(card => {
-                const finalNumber = parseInt(card.getAttribute('data-value') || card.textContent.replace(/,/g, ''));
-                if (isNaN(finalNumber)) return;
-                
-                let currentNumber = 0;
-                const increment = Math.max(1, Math.ceil(finalNumber / 60));
-                
-                const timer = setInterval(() => {
-                    currentNumber += increment;
-                    if (currentNumber >= finalNumber) {
-                        card.textContent = finalNumber.toLocaleString();
-                        clearInterval(timer);
-                    } else {
-                        card.textContent = Math.floor(currentNumber).toLocaleString();
-                    }
-                }, 50);
-            });
-        }
-
-        function addChartInteractivity() {
-            const chartBars = document.querySelectorAll('.chart-bar');
-            chartBars.forEach((bar, index) => {
-                // Add staggered animation
-                setTimeout(() => {
-                    bar.style.transform = 'scaleY(0)';
-                    bar.style.transformOrigin = 'bottom';
-                    bar.style.transition = 'transform 0.6s ease';
-                    
-                    setTimeout(() => {
-                        bar.style.transform = 'scaleY(1)';
-                    }, 100);
-                }, index * 100);
-
-                // Add tooltip on hover
-                bar.addEventListener('mouseenter', function() {
-                    const tooltip = document.createElement('div');
-                    tooltip.className = 'chart-tooltip';
-                    tooltip.style.cssText = `
-                        position: absolute;
-                        background: #2d3748;
-                        color: white;
-                        padding: 4px 8px;
-                        border-radius: 4px;
-                        font-size: 12px;
-                        pointer-events: none;
-                        z-index: 1000;
-                        transform: translateX(-50%);
-                        bottom: 100%;
-                        left: 50%;
-                        margin-bottom: 5px;
-                    `;
-                    tooltip.textContent = `${this.style.height}`;
-                    this.style.position = 'relative';
-                    this.appendChild(tooltip);
-                });
-
-                bar.addEventListener('mouseleave', function() {
-                    const tooltip = this.querySelector('.chart-tooltip');
-                    if (tooltip) tooltip.remove();
-                });
-            });
-        }
-
-        // Add real-time clock
-        function updateClock() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString();
-            const dateString = now.toLocaleDateString();
-            
-            // You can add a clock element to the header if needed
-            console.log(`Dashboard loaded at ${timeString} on ${dateString}`);
-        }
-
-        // Update clock every minute
-        setInterval(updateClock, 60000);
+<script>
+    document.addEventListener('DOMContentLoaded', async function(){
+        // Update time
         updateClock();
+        setInterval(updateClock, 1000);
 
-        // Generate revenue chart from monthly data
-        function generateRevenueChart() {
-            const revenueChart = document.getElementById('revenueChart');
-            if (!revenueChart) return;
-
-            // Get monthly revenue data from ViewBag
-            const monthlyRevenue = @Html.Raw(Json.Serialize(ViewBag.MonthlyRevenue ?? new Dictionary<string, decimal>()));
-            
-            // Convert to array and sort by date
-            const revenueArray = Object.entries(monthlyRevenue)
-                .sort(([a], [b]) => a.localeCompare(b))
-                .slice(-6); // Last 6 months
-            
-            if (revenueArray.length === 0) {
-                revenueChart.innerHTML = '<div class="text-center text-muted small">No revenue data</div>';
-                return;
+        // Load complaints
+        const container = document.getElementById('complaintsContainer');
+        try {
+            const res = await fetch('/api/complaints?limit=5');
+            if(!res.ok){ 
+                container.innerHTML = '<div class="text-center text-muted p-4">Failed to load complaints.</div>'; 
+                return; 
             }
-
-            // Find max value for scaling
-            const maxRevenue = Math.max(...revenueArray.map(([, value]) => value));
+            const list = await res.json();
+            if(!list.length){ 
+                container.innerHTML = '<div class="text-center text-muted p-4"><i class="fas fa-inbox fa-2x mb-2" style="color: #10b981;"></i><br>No recent complaints</div>'; 
+                return; 
+            }
             
-            // Generate bars
-            revenueChart.innerHTML = '';
-            revenueArray.forEach(([month, revenue]) => {
-                const bar = document.createElement('div');
-                bar.className = 'chart-bar';
-                const height = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
-                bar.style.height = `${Math.max(10, height)}%`;
-                bar.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
-                bar.title = `${month}: ₹${revenue.toLocaleString()}`;
-                revenueChart.appendChild(bar);
+            container.innerHTML = '';
+            list.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'complaint-card';
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="mb-1" style="color: #059669; font-weight: 600;">${c.category}</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-user"></i> ${c.complainantName} (${c.complainantRole})
+                            </small>
+                        </div>
+                        <span class="badge ${c.status === 'New' ? 'bg-warning' : (c.status === 'Resolved' ? 'bg-success' : 'bg-secondary')}" style="font-weight: 600;">${c.status}</span>
+                    </div>
+                    <p class="small text-muted mb-2">${(c.description || '').substring(0, 120)}${c.description && c.description.length > 120 ? '...' : ''}</p>
+                    <small class="text-muted">
+                        <i class="fas fa-clock"></i> ${new Date(c.createdAt).toLocaleDateString()}
+                    </small>`;
+                container.appendChild(card);
+            });
+        } catch (e) {
+            container.innerHTML = '<div class="text-center text-danger p-4">Error loading complaints.</div>';
+        }
+
+        // Animate analytics cards
+        animateCounters();
+        
+        // Add hover effects to charts
+        addChartInteractivity();
+        
+        // Generate revenue chart
+        generateRevenueChart();
+    });
+
+    function updateClock() {
+        const now = new Date();
+        const timeEl = document.getElementById('currentTime');
+        const dateEl = document.getElementById('currentDate');
+        
+        if (timeEl) {
+            timeEl.textContent = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
             });
         }
-    </script>
+        if (dateEl) {
+            dateEl.textContent = now.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+    }
+
+    function animateCounters() {
+        const cardValues = document.querySelectorAll('.card-value');
+        cardValues.forEach(card => {
+            const text = card.getAttribute('data-value') || card.textContent.replace(/[₹,]/g, '');
+            const finalNumber = parseInt(text);
+            if (isNaN(finalNumber)) return;
+            
+            let currentNumber = 0;
+            const increment = Math.max(1, Math.ceil(finalNumber / 60));
+            const isRupee = card.textContent.includes('₹');
+            
+            const timer = setInterval(() => {
+                currentNumber += increment;
+                if (currentNumber >= finalNumber) {
+                    card.textContent = isRupee ? '₹' + finalNumber.toLocaleString() : finalNumber.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    card.textContent = isRupee ? '₹' + Math.floor(currentNumber).toLocaleString() : Math.floor(currentNumber).toLocaleString();
+                }
+            }, 40);
+        });
+    }
+
+    function addChartInteractivity() {
+        const chartBars = document.querySelectorAll('.chart-bar');
+        chartBars.forEach((bar, index) => {
+            bar.style.transform = 'scaleY(0)';
+            bar.style.transformOrigin = 'bottom';
+            bar.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            setTimeout(() => {
+                bar.style.transform = 'scaleY(1)';
+            }, 100 + (index * 50));
+        });
+    }
+
+    function generateRevenueChart() {
+        const revenueChart = document.getElementById('revenueChart');
+        if (!revenueChart) return;
+
+        const monthlyRevenue = @Html.Raw(Json.Serialize(ViewBag.MonthlyRevenue ?? new Dictionary<string, decimal>()));
+        
+        const revenueArray = Object.entries(monthlyRevenue)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .slice(-6);
+        
+        if (revenueArray.length === 0) {
+            revenueChart.innerHTML = '<div class="text-center text-muted small d-flex align-items-center justify-content-center h-100">No revenue data</div>';
+            return;
+        }
+
+        const maxRevenue = Math.max(...revenueArray.map(([, value]) => value));
+        
+        revenueChart.innerHTML = '';
+        revenueArray.forEach(([month, revenue], idx) => {
+            const bar = document.createElement('div');
+            bar.className = 'chart-bar';
+            const height = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
+            bar.style.height = `${Math.max(10, height)}%`;
+            bar.style.background = 'var(--success-gradient)';
+            bar.title = `${month}: ₹${revenue.toLocaleString()}`;
+            bar.style.transform = 'scaleY(0)';
+            bar.style.transformOrigin = 'bottom';
+            bar.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            revenueChart.appendChild(bar);
+            
+            setTimeout(() => {
+                bar.style.transform = 'scaleY(1)';
+            }, 500 + (idx * 100));
+        });
+    }
+</script>

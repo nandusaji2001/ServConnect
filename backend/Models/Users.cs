@@ -41,5 +41,11 @@ namespace ServConnect.Models
         public string? BusinessName { get; set; }  // For Vendors
         public string? BusinessRegistrationNumber { get; set; } // For Vendors
         public string? BusinessAddress { get; set; } // For Vendors
+        public string? VendorCategory { get; set; } // For Vendors: "Gas", "Grocery", "General", etc.
+        
+        // Gas Vendor specific fields
+        public bool IsGasVendor { get; set; } = false;
+        public string? GasCylinderBrand { get; set; } // e.g., "Indane", "Bharat Gas", "HP Gas"
+        public string? GasBusinessLicense { get; set; } // Gas-specific license number
     }
 }

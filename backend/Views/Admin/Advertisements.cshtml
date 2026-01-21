@@ -3,79 +3,391 @@
 @{
     ViewData["Title"] = "Advertisements";
 }
-<div class="container py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">Advertisements</h3>
-        <div class="d-flex gap-2">
-            <a class="btn btn-outline-secondary" asp-controller="Admin" asp-action="AdvertisementRequests"><i class="bi bi-card-list"></i> Requests</a>
-            <a class="btn btn-primary" asp-controller="Admin" asp-action="CreateAd"><i class="bi bi-cloud-upload"></i> Upload Ad</a>
+
+<style>
+    :root {
+        --primary-green: #10b981;
+        --primary-green-dark: #059669;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+        --card-shadow-hover: 0 12px 40px rgba(16, 185, 129, 0.15);
+        --bg-light: #f0fdf4;
+        --bg-secondary: #ecfdf5;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+    }
+
+    .ads-page {
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header h2 i {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.6rem;
+        border-radius: 12px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-header {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-header:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .btn-header.primary {
+        background: white;
+        color: var(--primary-green-dark);
+    }
+
+    .btn-header.primary:hover {
+        background: #f0fdf4;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+    }
+
+    .alert-success-custom {
+        background: #d1fae5;
+        color: #059669;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+    }
+
+    .alert-success-custom i {
+        font-size: 1.25rem;
+    }
+
+    .ads-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .ad-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .ad-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .ad-preview {
+        position: relative;
+        background: #f8fafc;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 120px;
+        border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .ad-preview img {
+        max-width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .ad-type-badge {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ad-type-badge.hero {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .ad-type-badge.bottom {
+        background: #e0e7ff;
+        color: #4f46e5;
+    }
+
+    .ad-status {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .ad-status.active {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .ad-status.inactive {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .ad-body {
+        padding: 1.5rem;
+    }
+
+    .ad-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .ad-dimensions {
+        font-size: 0.85rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .ad-date {
+        font-size: 0.85rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .ad-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-delete {
+        flex: 1;
+        background: #fee2e2;
+        color: #dc2626;
+        border: none;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+    }
+
+    .btn-delete:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        grid-column: 1 / -1;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #d1fae5;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .empty-state p {
+        color: #64748b;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-create {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+        color: white;
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .header-actions {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .ads-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="ads-page">
+    <div class="page-header">
+        <h2><i class="fas fa-images"></i> Advertisements</h2>
+        <div class="header-actions">
+            <a class="btn-header" asp-controller="Admin" asp-action="AdvertisementRequests">
+                <i class="fas fa-list-alt"></i> Requests
+            </a>
+            <a class="btn-header primary" asp-controller="Admin" asp-action="CreateAd">
+                <i class="fas fa-cloud-upload-alt"></i> Upload Ad
+            </a>
+            <a class="btn-header" asp-controller="Admin" asp-action="Dashboard">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
         </div>
     </div>
 
     @if (TempData["AdMessage"] != null)
     {
-        <div class="alert alert-success">@TempData["AdMessage"]</div>
-    }
-
-    @if (Model == null || Model.Count == 0)
-    {
-        <div class="alert alert-info">No advertisements found.</div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Preview</th>
-                        <th>Type</th>
-                        <th>Created</th>
-                        <th>Status</th>
-                        <th style="width:160px"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach (var ad in Model)
-                {
-                    <tr>
-                        <td>
-                            @if (ad.Type == AdvertisementType.HeroBanner)
-                            {
-                                <img src="@ad.ImageUrl" alt="ad" width="120" height="36" style="object-fit:cover;border-radius:4px;" />
-                            }
-                            else
-                            {
-                                <img src="@ad.ImageUrl" alt="ad" width="364" height="45" style="object-fit:cover;border-radius:4px;" />
-                            }
-                        </td>
-                        <td>
-                            @if (ad.Type == AdvertisementType.HeroBanner)
-                            {
-                                <span class="badge bg-primary">Hero Banner</span>
-                                <small class="d-block text-muted">600x180</small>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Bottom Page</span>
-                                <small class="d-block text-muted">728x90</small>
-                            }
-                        </td>
-                        <td>@ad.CreatedAt.ToLocalTime().ToString("g")</td>
-                        <td>
-                            @if (ad.IsActive) { <span class="badge bg-success">Active</span>; } else { <span class="badge bg-secondary">Inactive</span>; }
-                        </td>
-                        <td>
-                            <form asp-controller="Admin" asp-action="DeleteAd" method="post">
-                                <input type="hidden" name="id" value="@ad.Id" />
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this ad?')">
-                                    <i class="bi bi-trash"></i> Delete
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-                </tbody>
-            </table>
+        <div class="alert-success-custom">
+            <i class="fas fa-check-circle"></i>
+            @TempData["AdMessage"]
         </div>
     }
+
+    <div class="ads-grid">
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty-state">
+                <i class="fas fa-image"></i>
+                <h3>No Advertisements</h3>
+                <p>You haven't created any advertisements yet.</p>
+                <a class="btn-create" asp-controller="Admin" asp-action="CreateAd">
+                    <i class="fas fa-plus"></i> Create Your First Ad
+                </a>
+            </div>
+        }
+        else
+        {
+            foreach (var ad in Model)
+            {
+                var isHero = ad.Type == AdvertisementType.HeroBanner;
+                <div class="ad-card">
+                    <div class="ad-preview">
+                        <span class="ad-type-badge @(isHero ? "hero" : "bottom")">
+                            @(isHero ? "Hero Banner" : "Bottom Page")
+                        </span>
+                        <span class="ad-status @(ad.IsActive ? "active" : "inactive")">
+                            @(ad.IsActive ? "Active" : "Inactive")
+                        </span>
+                        <img src="@ad.ImageUrl" alt="advertisement" style="@(isHero ? "max-height: 100px;" : "max-height: 60px;")">
+                    </div>
+                    <div class="ad-body">
+                        <div class="ad-info-row">
+                            <span class="ad-dimensions">
+                                <i class="fas fa-expand"></i>
+                                @(isHero ? "1920 x 200 px" : "728 x 90 px")
+                            </span>
+                            <span class="ad-date">
+                                <i class="fas fa-calendar"></i>
+                                @ad.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")
+                            </span>
+                        </div>
+                        <div class="ad-actions">
+                            <form asp-controller="Admin" asp-action="DeleteAd" method="post" style="flex: 1;">
+                                <input type="hidden" name="id" value="@ad.Id" />
+                                <button type="submit" class="btn-delete" onclick="return confirm('Delete this advertisement?')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
 </div>

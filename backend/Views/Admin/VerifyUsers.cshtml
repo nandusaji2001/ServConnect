@@ -3,89 +3,461 @@
     ViewData["Title"] = "Verify Users";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0"><i class="fas fa-id-badge"></i> Verify Users</h2>
-        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary">
+<style>
+    :root {
+        --primary-green: #10b981;
+        --primary-green-dark: #059669;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+        --card-shadow-hover: 0 12px 40px rgba(16, 185, 129, 0.15);
+        --bg-light: #f0fdf4;
+        --bg-secondary: #ecfdf5;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+    }
+
+    .verify-page {
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header h2 i {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.6rem;
+        border-radius: 12px;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: translateX(-4px);
+    }
+
+    .info-banner {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: var(--card-shadow);
+        border-left: 4px solid var(--primary-green);
+    }
+
+    .info-banner i {
+        color: var(--primary-green);
+        font-size: 1.5rem;
+    }
+
+    .info-banner p {
+        margin: 0;
+        color: #475569;
+    }
+
+    .info-banner strong {
+        color: #1e293b;
+    }
+
+    .search-box {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--card-shadow);
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 0.85rem 1.25rem 0.85rem 3rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 2.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .user-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .user-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .user-card-header {
+        background: var(--bg-secondary);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .user-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-info h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .user-info p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+
+    .user-card-body {
+        padding: 1.5rem;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 1rem;
+    }
+
+    .info-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-label {
+        width: 100px;
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .info-value {
+        flex: 1;
+        font-size: 0.95rem;
+        color: #1e293b;
+    }
+
+    .id-proof-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--bg-secondary);
+        color: var(--primary-green-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .id-proof-link:hover {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .user-card-footer {
+        padding: 1.25rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-approve {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 0.65rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-approve:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-reject {
+        background: #fee2e2;
+        color: #dc2626;
+        border: none;
+        padding: 0.65rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-reject:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-details {
+        background: white;
+        color: #475569;
+        border: 2px solid #e2e8f0;
+        padding: 0.65rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+    }
+
+    .btn-details:hover {
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+    }
+
+    .reject-input {
+        flex: 1;
+        padding: 0.65rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        min-width: 150px;
+    }
+
+    .reject-input:focus {
+        outline: none;
+        border-color: #fca5a5;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #d1fae5;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .empty-state p {
+        color: #64748b;
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .users-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .user-card-footer {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="verify-page">
+    <div class="page-header">
+        <h2><i class="fas fa-user-check"></i> Verify Users</h2>
+        <a asp-controller="Admin" asp-action="Dashboard" class="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 
-    <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-user-check me-2"></i> Pending Verification</span>
-            <input id="userSearch" type="text" class="form-control w-auto" placeholder="Search..." style="min-width: 220px;">
-        </div>
-        <div class="card-body">
-            <div id="usersContainer" class="row g-3">
-                @if (Model == null || !Model.Any())
-                {
-                    <div class="col-12 text-center text-muted">No users pending verification.</div>
-                }
-                else
-                {
-                    foreach (var u in Model)
-                    {
-                        <div class="col-12 col-md-6 col-lg-4 user-card" data-name="@u.FullName @u.Email @u.PhoneNumber">
-                            <div class="card h-100 shadow-sm">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <img src="@(string.IsNullOrWhiteSpace(u.ProfileImageUrl) ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(u.FullName ?? u.Email)}&background=10b981&color=fff&size=128" : u.ProfileImageUrl)" class="rounded-circle border me-3" style="width:56px;height:56px;object-fit:cover;" />
-                                        <div>
-                                            <div class="fw-semibold">@u.FullName</div>
-                                            <div class="text-muted small">@u.Email</div>
-                                        </div>
-                                    </div>
+    <div class="info-banner">
+        <i class="fas fa-info-circle"></i>
+        <p>Review users who have completed their profiles and are awaiting verification. <strong>@(Model?.Count() ?? 0) users</strong> pending approval.</p>
+    </div>
 
-                                    <div class="mb-2">
-                                        <div class="text-muted small">Phone</div>
-                                        <div>@(u.PhoneNumber ?? "-")</div>
-                                    </div>
-                                    <div class="mb-2">
-                                        <div class="text-muted small">Address</div>
-                                        <div>@(u.Address ?? "-")</div>
-                                    </div>
+    <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input id="userSearch" type="text" placeholder="Search by name, email, or phone...">
+    </div>
 
-                                    <div class="mb-3">
-                                        <div class="text-muted small">ID Proof</div>
-                                        @if (!string.IsNullOrWhiteSpace(u.IdentityProofUrl))
-                                        {
-                                            <a href="@u.IdentityProofUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-id-card"></i> View ID Proof
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <div class="text-muted">Not uploaded</div>
-                                        }
-                                    </div>
-
-                                    <div class="d-flex gap-2">
-                                        <form asp-controller="Admin" asp-action="ApproveUser" method="post" asp-antiforgery="true">
-                                            <input type="hidden" name="id" value="@u.Id" />
-                                            <button class="btn btn-success btn-sm" type="submit"><i class="fas fa-check"></i> Approve</button>
-                                        </form>
-                                        <form asp-controller="Admin" asp-action="RejectUser" method="post" asp-antiforgery="true" class="d-flex gap-2">
-                                            <input type="hidden" name="id" value="@u.Id" />
-                                            <input name="note" class="form-control form-control-sm" placeholder="Reason (optional)" />
-                                            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="fas fa-times"></i> Reject</button>
-                                        </form>
-                                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Admin" asp-action="UserDetails" asp-route-id="@u.Id">
-                                            <i class="fas fa-eye"></i> Details
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }
+    <div id="usersContainer" class="users-grid">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <i class="fas fa-check-circle"></i>
+                <h3>All caught up!</h3>
+                <p>No users are pending verification at the moment.</p>
             </div>
-        </div>
+        }
+        else
+        {
+            foreach (var u in Model)
+            {
+                var avatarUrl = string.IsNullOrWhiteSpace(u.ProfileImageUrl) 
+                    ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(u.FullName ?? u.Email)}&background=10b981&color=fff&size=128" 
+                    : u.ProfileImageUrl;
+                
+                <div class="user-card" data-name="@u.FullName @u.Email @u.PhoneNumber">
+                    <div class="user-card-header">
+                        <img src="@avatarUrl" alt="avatar" class="user-avatar">
+                        <div class="user-info">
+                            <h4>@u.FullName</h4>
+                            <p>@u.Email</p>
+                        </div>
+                    </div>
+                    <div class="user-card-body">
+                        <div class="info-row">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value">@(u.PhoneNumber ?? "-")</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Address</span>
+                            <span class="info-value">@(u.Address ?? "-")</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">ID Proof</span>
+                            <span class="info-value">
+                                @if (!string.IsNullOrWhiteSpace(u.IdentityProofUrl))
+                                {
+                                    <a href="@u.IdentityProofUrl" target="_blank" class="id-proof-link">
+                                        <i class="fas fa-id-card"></i> View ID Proof
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not uploaded</span>
+                                }
+                            </span>
+                        </div>
+                    </div>
+                    <div class="user-card-footer">
+                        <form asp-controller="Admin" asp-action="ApproveUser" method="post" asp-antiforgery="true" style="display: inline;">
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <button class="btn-approve" type="submit">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                        </form>
+                        <form asp-controller="Admin" asp-action="RejectUser" method="post" asp-antiforgery="true" style="display: flex; gap: 0.5rem; flex: 1;">
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <input name="note" class="reject-input" placeholder="Rejection reason (optional)" />
+                            <button class="btn-reject" type="submit">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </form>
+                        <a class="btn-details" asp-controller="Admin" asp-action="UserDetails" asp-route-id="@u.Id">
+                            <i class="fas fa-eye"></i> Details
+                        </a>
+                    </div>
+                </div>
+            }
+        }
     </div>
 </div>
 
 <script>
-    // Client-side filter
     document.getElementById('userSearch').addEventListener('input', (e) => {
         const q = e.target.value.toLowerCase();
         const cards = document.querySelectorAll('.user-card');

@@ -3,47 +3,465 @@
     ViewData["Title"] = "Manage Services";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">Services</h2>
-        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary">
+<style>
+    :root {
+        --primary-green: #10b981;
+        --primary-green-dark: #059669;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+        --card-shadow-hover: 0 12px 40px rgba(16, 185, 129, 0.15);
+        --bg-light: #f0fdf4;
+        --bg-secondary: #ecfdf5;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+    }
+
+    .services-page {
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header h2 i {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.6rem;
+        border-radius: 12px;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: translateX(-4px);
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-select, .filter-input {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .filter-select:focus, .filter-input:focus {
+        outline: none;
+        border-color: var(--primary-green);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .table-header {
+        padding: 1.5rem 2rem;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .table-header span {
+        font-weight: 700;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .table-header span i {
+        color: var(--primary-green);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table thead th {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 700;
+        color: #475569;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    table tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    table tbody tr:hover {
+        background: var(--bg-light);
+    }
+
+    table tbody td {
+        padding: 1rem 1.5rem;
+        color: #334155;
+        vertical-align: middle;
+    }
+
+    .service-name {
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .provider-info {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-badge.active {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .status-badge.inactive {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .rating-display {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: #f59e0b;
+        font-weight: 600;
+    }
+
+    .rating-display small {
+        color: #64748b;
+        font-weight: 400;
+    }
+
+    .action-btns {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 0.5rem 0.85rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .btn-action.edit {
+        background: var(--bg-secondary);
+        color: var(--primary-green-dark);
+    }
+
+    .btn-action.edit:hover {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .btn-action.suspend {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .btn-action.suspend:hover {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .btn-action.activate {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .btn-action.activate:hover {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-action.delete {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .btn-action.delete:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #d1fae5;
+        margin-bottom: 1rem;
+    }
+
+    /* Modal Styles */
+    .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .modal-title {
+        font-weight: 700;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #e2e8f0;
+        padding: 1rem 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #475569;
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .btn-save {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+        color: white;
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .filter-row {
+            flex-direction: column;
+        }
+
+        table thead {
+            display: none;
+        }
+
+        table tbody tr {
+            display: block;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table tbody td {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border: none;
+        }
+
+        table tbody td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #64748b;
+        }
+    }
+</style>
+
+<div class="services-page">
+    <div class="page-header">
+        <h2><i class="fas fa-cogs"></i> Manage Services</h2>
+        <a asp-controller="Admin" asp-action="Dashboard" class="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 
-    <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-cogs me-2"></i> All Provider Services</span>
-            <div class="d-flex gap-2">
-                <select id="statusFilter" class="form-select" style="min-width: 150px;">
+    <div class="filter-card">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="statusFilter" class="filter-select">
                     <option value="">All Services</option>
                     <option value="active">Active Only</option>
                     <option value="inactive">Inactive Only</option>
                 </select>
-                <input id="serviceSearch" type="text" class="form-control" placeholder="Search services..." style="min-width: 220px;">
+            </div>
+            <div class="filter-group" style="flex: 2;">
+                <label>Search</label>
+                <input id="serviceSearch" type="text" class="filter-input" placeholder="Search by service name or provider...">
             </div>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Service Name</th>
-                            <th>Provider</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                            <th>Rating</th>
-                            <th>Created</th>
-                            <th style="width: 250px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="servicesTableBody">
-                        <tr>
-                            <td colspan="7" class="text-center text-muted">Loading services...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header">
+            <span><i class="fas fa-list"></i> Provider Services</span>
+            <span id="resultCount" style="font-weight: 500; color: #64748b;">Loading...</span>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Provider</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Rating</th>
+                        <th>Created</th>
+                        <th style="width: 250px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="servicesTableBody">
+                    <tr>
+                        <td colspan="7" class="text-center p-4">
+                            <div class="spinner-border" style="color: #10b981;" role="status"></div>
+                            <div class="mt-2 text-muted">Loading services...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -52,7 +470,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editServiceModalLabel">Edit Service</h5>
+                    <h5 class="modal-title" id="editServiceModalLabel"><i class="fas fa-edit me-2"></i> Edit Service</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -113,230 +531,218 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveServiceChanges">Save Changes</button>
+                    <button type="button" class="btn-save" id="saveServiceChanges">Save Changes</button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        let allServices = [];
+<script>
+    let allServices = [];
 
-        async function loadServices() {
-            const tbody = document.getElementById('servicesTableBody');
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Loading services...</td></tr>`;
-            try {
-                const res = await fetch('/api/admin/services', { credentials: 'same-origin' });
-                if (!res.ok) throw new Error('Failed to load');
-                allServices = await res.json();
-                renderServices(allServices);
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">Error loading services</td></tr>`;
-            }
+    async function loadServices() {
+        const tbody = document.getElementById('servicesTableBody');
+        try {
+            const res = await fetch('/api/admin/services', { credentials: 'same-origin' });
+            if (!res.ok) throw new Error('Failed to load');
+            allServices = await res.json();
+            renderServices(allServices);
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center p-4">Error loading services</td></tr>`;
+        }
+    }
+
+    function getFilteredServices() {
+        let filtered = [...allServices];
+        const status = document.getElementById('statusFilter').value;
+        const search = document.getElementById('serviceSearch').value.toLowerCase();
+
+        if (status === 'active') {
+            filtered = filtered.filter(s => s.isActive && s.isAvailable);
+        } else if (status === 'inactive') {
+            filtered = filtered.filter(s => !s.isActive || !s.isAvailable);
         }
 
-        function renderServices(services) {
-            const tbody = document.getElementById('servicesTableBody');
-            if (!services || services.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No services found.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = '';
-            services.forEach(s => {
-                const tr = document.createElement('tr');
-                const statusBadge = s.isActive && s.isAvailable ? 
-                    '<span class="badge bg-success">Active</span>' : 
-                    '<span class="badge bg-danger">Inactive</span>';
-                const rating = s.reviewCount > 0 ? 
-                    `${s.rating.toFixed(1)} ⭐ (${s.reviewCount})` : 
-                    'No reviews';
-                
-                tr.innerHTML = `
-                    <td><strong>${s.serviceName}</strong></td>
-                    <td>
-                        <div>${s.providerName}</div>
-                        <small class="text-muted">${s.providerEmail}</small>
+        if (search) {
+            filtered = filtered.filter(s => 
+                (s.serviceName || '').toLowerCase().includes(search) ||
+                (s.providerName || '').toLowerCase().includes(search) ||
+                (s.providerEmail || '').toLowerCase().includes(search)
+            );
+        }
+
+        return filtered;
+    }
+
+    function renderServices(services) {
+        const tbody = document.getElementById('servicesTableBody');
+        services = services || getFilteredServices();
+        
+        document.getElementById('resultCount').textContent = `${services.length} services`;
+
+        if (!services || services.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="fas fa-cogs"></i>
+                            <h4>No services found</h4>
+                            <p>Try adjusting your filters</p>
+                        </div>
                     </td>
-                    <td>${s.price} ${s.currency} ${s.priceUnit}</td>
-                    <td>${statusBadge}</td>
-                    <td>${rating}</td>
-                    <td>${new Date(s.createdAt).toLocaleDateString()}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary btn-edit" data-id="${s.id}">
+                </tr>`;
+            return;
+        }
+
+        tbody.innerHTML = '';
+        services.forEach(s => {
+            const tr = document.createElement('tr');
+            const isActive = s.isActive && s.isAvailable;
+            const rating = s.reviewCount > 0 ? s.rating.toFixed(1) : '-';
+            
+            tr.innerHTML = `
+                <td data-label="Service"><span class="service-name">${s.serviceName}</span></td>
+                <td data-label="Provider">
+                    <div>${s.providerName}</div>
+                    <div class="provider-info">${s.providerEmail}</div>
+                </td>
+                <td data-label="Price">${s.price} ${s.currency} ${s.priceUnit}</td>
+                <td data-label="Status">
+                    <span class="status-badge ${isActive ? 'active' : 'inactive'}">
+                        <i class="fas ${isActive ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                        ${isActive ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td data-label="Rating">
+                    <div class="rating-display">
+                        ${rating !== '-' ? `<i class="fas fa-star"></i> ${rating} <small>(${s.reviewCount})</small>` : '<span class="text-muted">No reviews</span>'}
+                    </div>
+                </td>
+                <td data-label="Created">${new Date(s.createdAt).toLocaleDateString()}</td>
+                <td data-label="Actions">
+                    <div class="action-btns">
+                        <button class="btn-action edit" data-id="${s.id}">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="btn btn-sm ${s.isActive ? 'btn-warning' : 'btn-success'} btn-toggle-suspend" 
-                                data-id="${s.id}" data-active="${s.isActive}">
+                        <button class="btn-action ${s.isActive ? 'suspend' : 'activate'}" data-id="${s.id}" data-active="${s.isActive}">
                             <i class="fas ${s.isActive ? 'fa-pause' : 'fa-play'}"></i> 
                             ${s.isActive ? 'Suspend' : 'Activate'}
                         </button>
-                        <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${s.id}">
-                            <i class="fas fa-trash"></i> Delete
+                        <button class="btn-action delete" data-id="${s.id}">
+                            <i class="fas fa-trash"></i>
                         </button>
-                    </td>`;
-                tbody.appendChild(tr);
-            });
+                    </div>
+                </td>`;
+            tbody.appendChild(tr);
+        });
 
-            // Wire edit buttons
-            tbody.querySelectorAll('.btn-edit').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = e.currentTarget.getAttribute('data-id');
-                    const service = allServices.find(s => s.id === id);
-                    if (service) {
-                        openEditModal(service);
-                    }
-                });
+        // Wire edit buttons
+        tbody.querySelectorAll('.btn-action.edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                const service = allServices.find(s => s.id === id);
+                if (service) openEditModal(service);
             });
+        });
 
-            // Wire suspend/activate buttons
-            tbody.querySelectorAll('.btn-toggle-suspend').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const b = e.currentTarget;
-                    const id = b.getAttribute('data-id');
-                    const isActive = b.getAttribute('data-active') === 'true';
-                    b.disabled = true;
-                    try {
-                        const res = await fetch(`/api/admin/services/${id}/suspend?suspend=${isActive}`, {
-                            method: 'POST',
-                            credentials: 'same-origin'
-                        });
-                        if (res.ok) {
-                            // Reload services to reflect changes
-                            await loadServices();
-                        } else {
-                            alert('Failed to update service status');
-                        }
-                    } catch {
+        // Wire suspend/activate buttons
+        tbody.querySelectorAll('.btn-action.suspend, .btn-action.activate').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const b = e.currentTarget;
+                const id = b.getAttribute('data-id');
+                const isActive = b.getAttribute('data-active') === 'true';
+                b.disabled = true;
+                try {
+                    const res = await fetch(`/api/admin/services/${id}/suspend?suspend=${isActive}`, {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    });
+                    if (res.ok) {
+                        const service = allServices.find(s => s.id === id);
+                        if (service) service.isActive = !isActive;
+                        renderServices(getFilteredServices());
+                    } else {
                         alert('Failed to update service status');
-                    } finally {
-                        b.disabled = false;
                     }
-                });
-            });
-
-            // Wire delete buttons
-            tbody.querySelectorAll('.btn-delete').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const id = e.currentTarget.getAttribute('data-id');
-                    const service = allServices.find(s => s.id === id);
-                    if (!confirm(`Delete service "${service?.serviceName}" by ${service?.providerName}? This action cannot be undone.`)) return;
-                    e.currentTarget.disabled = true;
-                    try {
-                        const res = await fetch(`/api/admin/services/${id}`, {
-                            method: 'DELETE',
-                            credentials: 'same-origin'
-                        });
-                        if (res.ok || res.status === 404) {
-                            const row = e.currentTarget.closest('tr');
-                            if (row) row.remove();
-                            // Remove from local array
-                            allServices = allServices.filter(s => s.id !== id);
-                        } else {
-                            alert('Failed to delete service');
-                        }
-                    } catch {
-                        alert('Failed to delete service');
-                    } finally {
-                        e.currentTarget.disabled = false;
-                    }
-                });
-            });
-        }
-
-        function openEditModal(service) {
-            document.getElementById('editServiceId').value = service.id;
-            document.getElementById('editServiceName').value = service.serviceName;
-            document.getElementById('editProviderName').value = service.providerName;
-            document.getElementById('editDescription').value = service.description || '';
-            document.getElementById('editPrice').value = service.price;
-            document.getElementById('editPriceUnit').value = service.priceUnit;
-            document.getElementById('editCurrency').value = service.currency;
-            document.getElementById('editAvailableHours').value = service.availableHours || '';
-            
-            const modal = new bootstrap.Modal(document.getElementById('editServiceModal'));
-            modal.show();
-        }
-
-        // Search functionality
-        document.getElementById('serviceSearch').addEventListener('input', (e) => {
-            const q = e.target.value.toLowerCase();
-            filterServices();
-        });
-
-        // Status filter functionality
-        document.getElementById('statusFilter').addEventListener('change', (e) => {
-            filterServices();
-        });
-
-        function filterServices() {
-            const searchQuery = document.getElementById('serviceSearch').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            
-            let filtered = allServices;
-            
-            // Apply search filter
-            if (searchQuery) {
-                filtered = filtered.filter(s => 
-                    s.serviceName.toLowerCase().includes(searchQuery) ||
-                    s.providerName.toLowerCase().includes(searchQuery) ||
-                    s.providerEmail.toLowerCase().includes(searchQuery)
-                );
-            }
-            
-            // Apply status filter
-            if (statusFilter === 'active') {
-                filtered = filtered.filter(s => s.isActive && s.isAvailable);
-            } else if (statusFilter === 'inactive') {
-                filtered = filtered.filter(s => !s.isActive || !s.isAvailable);
-            }
-            
-            renderServices(filtered);
-        }
-
-        // Save service changes
-        document.getElementById('saveServiceChanges').addEventListener('click', async () => {
-            const id = document.getElementById('editServiceId').value;
-            const saveBtn = document.getElementById('saveServiceChanges');
-            
-            const data = {
-                description: document.getElementById('editDescription').value,
-                price: parseFloat(document.getElementById('editPrice').value),
-                priceUnit: document.getElementById('editPriceUnit').value,
-                currency: document.getElementById('editCurrency').value,
-                availableHours: document.getElementById('editAvailableHours').value,
-                availableDays: [] // Could be extended to include day selection
-            };
-            
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-            
-            try {
-                const res = await fetch(`/api/admin/services/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify(data)
-                });
-                
-                if (res.ok) {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editServiceModal'));
-                    modal.hide();
-                    // Reload services to reflect changes
-                    await loadServices();
-                    alert('Service updated successfully!');
-                } else {
-                    alert('Failed to update service. Please try again.');
+                } catch {
+                    alert('Failed to update service status');
+                } finally {
+                    b.disabled = false;
                 }
-            } catch (err) {
-                alert('Failed to update service. Please check your connection.');
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Save Changes';
-            }
+            });
         });
 
-        document.addEventListener('DOMContentLoaded', loadServices);
-    </script>
-</div>
+        // Wire delete buttons
+        tbody.querySelectorAll('.btn-action.delete').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                if (!confirm('Delete this service? This action cannot be undone.')) return;
+                e.currentTarget.disabled = true;
+                try {
+                    const res = await fetch(`/api/admin/services/${id}`, {
+                        method: 'DELETE',
+                        credentials: 'same-origin'
+                    });
+                    if (res.ok || res.status === 404) {
+                        allServices = allServices.filter(s => s.id !== id);
+                        renderServices(getFilteredServices());
+                    } else {
+                        alert('Failed to delete service');
+                    }
+                } catch {
+                    alert('Failed to delete service');
+                } finally {
+                    e.currentTarget.disabled = false;
+                }
+            });
+        });
+    }
+
+    function openEditModal(service) {
+        document.getElementById('editServiceId').value = service.id;
+        document.getElementById('editServiceName').value = service.serviceName;
+        document.getElementById('editProviderName').value = service.providerName;
+        document.getElementById('editDescription').value = service.description || '';
+        document.getElementById('editPrice').value = service.price;
+        document.getElementById('editPriceUnit').value = service.priceUnit || 'per service';
+        document.getElementById('editCurrency').value = service.currency || 'INR';
+        document.getElementById('editAvailableHours').value = service.availableHours || '';
+        
+        new bootstrap.Modal(document.getElementById('editServiceModal')).show();
+    }
+
+    document.getElementById('saveServiceChanges').addEventListener('click', async () => {
+        const id = document.getElementById('editServiceId').value;
+        const data = {
+            description: document.getElementById('editDescription').value,
+            price: parseFloat(document.getElementById('editPrice').value),
+            priceUnit: document.getElementById('editPriceUnit').value,
+            currency: document.getElementById('editCurrency').value,
+            availableHours: document.getElementById('editAvailableHours').value
+        };
+
+        try {
+            const res = await fetch(`/api/admin/services/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('editServiceModal')).hide();
+                loadServices();
+            } else {
+                alert('Failed to save changes');
+            }
+        } catch {
+            alert('Failed to save changes');
+        }
+    });
+
+    // Filters
+    document.getElementById('statusFilter').addEventListener('change', () => renderServices(getFilteredServices()));
+    document.getElementById('serviceSearch').addEventListener('input', () => renderServices(getFilteredServices()));
+
+    document.addEventListener('DOMContentLoaded', loadServices);
+</script>

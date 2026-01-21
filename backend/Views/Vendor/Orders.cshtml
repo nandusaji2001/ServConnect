@@ -2,262 +2,749 @@
     ViewData["Title"] = "Vendor Orders";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">Orders For My Items</h2>
-    </div>
+<style>
+    :root {
+        --orders-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        --card-hover-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    }
+    
+    .orders-page {
+        min-height: 100vh;
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        padding-bottom: 50px;
+        overflow-x: hidden;
+    }
+    
+    /* Header */
+    .orders-header {
+        background: var(--orders-gradient);
+        padding: 30px;
+        border-radius: 0 0 30px 30px;
+        margin: -20px 0 30px 0;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .orders-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -15%;
+        width: 350px;
+        height: 350px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    
+    .header-content h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .header-content p {
+        margin: 0;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .btn-header {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        text-decoration: none;
+        backdrop-filter: blur(10px);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .btn-header:hover {
+        background: rgba(255,255,255,0.3);
+        color: #fff;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    /* Stats Row */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+    
+    .stat-icon.pending { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+    .stat-icon.processing { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+    .stat-icon.shipped { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+    .stat-icon.delivered { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+    
+    .stat-content h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        line-height: 1;
+    }
+    
+    .stat-content p {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin: 4px 0 0 0;
+    }
+    
+    /* Orders Container */
+    .orders-container {
+        padding: 0 15px;
+    }
+    
+    .orders-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+    
+    .orders-card-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .orders-card-header h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .orders-card-header h3 i {
+        color: #10b981;
+    }
+    
+    /* Order Row */
+    .order-list {
+        padding: 0;
+    }
+    
+    .order-row {
+        display: grid;
+        grid-template-columns: 1fr 120px 100px 150px;
+        gap: 20px;
+        padding: 20px 24px;
+        border-bottom: 1px solid #f1f5f9;
+        align-items: center;
+        transition: background 0.2s;
+    }
+    
+    .order-row:hover {
+        background: #f8fafc;
+    }
+    
+    .order-row:last-child {
+        border-bottom: none;
+    }
+    
+    .order-main {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+    }
+    
+    .order-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    
+    .order-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .order-image i {
+        font-size: 24px;
+        color: #10b981;
+    }
+    
+    .order-details h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 4px 0;
+    }
+    
+    .order-details .order-id {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-family: monospace;
+        margin-bottom: 4px;
+    }
+    
+    .order-details .order-customer {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    
+    .order-amount {
+        text-align: center;
+    }
+    
+    .order-amount .amount {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #10b981;
+    }
+    
+    .order-amount .qty {
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+    
+    .order-status-cell {
+        text-align: center;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-badge.pending { background: #fef3c7; color: #92400e; }
+    .status-badge.accepted { background: #dbeafe; color: #1e40af; }
+    .status-badge.packed { background: #e0e7ff; color: #4338ca; }
+    .status-badge.shipped { background: #f3e8ff; color: #7c3aed; }
+    .status-badge.delivery { background: #d1fae5; color: #065f46; }
+    .status-badge.delivered { background: #dcfce7; color: #166534; }
+    .status-badge.cancelled { background: #fee2e2; color: #991b1b; }
+    
+    .payment-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 4px;
+    }
+    
+    .payment-badge.paid { background: #dcfce7; color: #166534; }
+    .payment-badge.pending { background: #fef3c7; color: #92400e; }
+    .payment-badge.failed { background: #fee2e2; color: #991b1b; }
+    
+    .order-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .btn-order-action {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+    
+    .btn-order-action.primary {
+        background: var(--orders-gradient);
+        color: #fff;
+    }
+    
+    .btn-order-action.primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-order-action.secondary {
+        background: #f1f5f9;
+        color: #475569;
+    }
+    
+    .btn-order-action.secondary:hover {
+        background: #e2e8f0;
+    }
+    
+    .btn-order-action.danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+    
+    .btn-order-action.danger:hover {
+        background: rgba(239, 68, 68, 0.2);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    
+    .empty-state i {
+        font-size: 64px;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+        color: #475569;
+        margin-bottom: 8px;
+    }
+    
+    .empty-state p {
+        color: #94a3b8;
+    }
+    
+    /* Loading */
+    .loading-container {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #e5e7eb;
+        border-top-color: #10b981;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+    }
+    
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Dropdown */
+    .action-dropdown {
+        position: relative;
+    }
+    
+    .dropdown-menu-modern {
+        min-width: 180px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        border-radius: 12px;
+        padding: 8px;
+    }
+    
+    .dropdown-menu-modern .dropdown-item {
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .dropdown-menu-modern .dropdown-item:hover {
+        background: #f1f5f9;
+    }
+    
+    /* Address Tooltip */
+    .address-preview {
+        font-size: 0.8rem;
+        color: #64748b;
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: help;
+    }
+    
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .order-row {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .order-amount, .order-status-cell {
+            text-align: left;
+        }
+        
+        .order-actions {
+            flex-direction: row;
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .orders-header {
+            padding: 24px 20px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
 
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            <th>Total</th>
-                            <th>User</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                            <th>Address</th>
-                            <th>Placed</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody">
-                        <tr><td colspan="10" class="text-center text-muted">Loading...</td></tr>
-                    </tbody>
-                </table>
+<div class="orders-page">
+    <!-- Header -->
+    <div class="orders-header">
+        <div class="header-content">
+            <h1><i class="bi bi-bag-check me-2"></i>Orders</h1>
+            <p>Manage and fulfill customer orders</p>
+        </div>
+        <a href="/Vendor/Dashboard" class="btn-header">
+            <i class="bi bi-arrow-left"></i>
+            Dashboard
+        </a>
+    </div>
+    
+    <div class="orders-container">
+        <!-- Stats -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-icon pending">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="statPending">0</h3>
+                    <p>Pending</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon processing">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="statProcessing">0</h3>
+                    <p>Processing</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon shipped">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="statShipped">0</h3>
+                    <p>Shipped</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon delivered">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="statDelivered">0</h3>
+                    <p>Delivered</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orders Card -->
+        <div class="orders-card">
+            <div class="orders-card-header">
+                <h3><i class="bi bi-list-check"></i> All Orders</h3>
+                <button class="btn btn-sm btn-outline-primary" onclick="load()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                </button>
+            </div>
+            <div class="order-list" id="orderList">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p class="text-muted">Loading orders...</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-function fmtAmount(a){
-  return (a ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'});
+const statusMap = {
+    0: { text: 'Pending', class: 'pending', icon: 'hourglass-split' },
+    1: { text: 'Accepted', class: 'accepted', icon: 'check' },
+    2: { text: 'Packed', class: 'packed', icon: 'box-seam' },
+    3: { text: 'Shipped', class: 'shipped', icon: 'truck' },
+    4: { text: 'Out for Delivery', class: 'delivery', icon: 'bicycle' },
+    5: { text: 'Delivered', class: 'delivered', icon: 'check-circle' },
+    6: { text: 'Cancelled', class: 'cancelled', icon: 'x-circle' }
+};
+
+const paymentMap = {
+    0: { text: 'Pending', class: 'pending' },
+    1: { text: 'Paid', class: 'paid' },
+    2: { text: 'Failed', class: 'failed' },
+    3: { text: 'Refunded', class: 'failed' }
+};
+
+function fmtAmount(a) {
+    return '₹' + (a ?? 0).toLocaleString();
 }
 
-function getStatusText(status) {
-    const statusTexts = {
-        0: 'Pending',
-        1: 'Accepted', 
-        2: 'Packed',
-        3: 'Shipped',
-        4: 'Out for Delivery',
-        5: 'Delivered',
-        6: 'Cancelled'
-    };
-    return statusTexts[status] || 'Unknown';
-}
-
-function getStatusBadgeClass(status) {
-    const statusBadges = {
-        0: 'bg-warning text-dark',     // Pending
-        1: 'bg-primary text-white',    // Accepted
-        2: 'bg-info text-white',       // Packed
-        3: 'bg-secondary text-white',  // Shipped
-        4: 'bg-success text-white',    // Out for Delivery
-        5: 'bg-success',               // Delivered
-        6: 'bg-danger'                 // Cancelled
-    };
-    return statusBadges[status] || 'bg-secondary';
-}
-
-function canUpdateStatus(order, targetStatus) {
-    // Only paid orders can be updated
-    if (order.paymentStatus !== 1) return false;
+function getNextActions(order) {
+    if (order.paymentStatus !== 1) return [];
+    if (order.status === 5 || order.status === 6) return [];
     
-    // Can't update delivered or cancelled orders
-    if (order.status === 5 || order.status === 6) return false;
-    
-    // Status progression rules
-    switch (targetStatus) {
-        case 1: return order.status === 0; // Accept only from Pending
-        case 2: return order.status === 1; // Pack only from Accepted
-        case 3: return order.status === 2; // Ship only from Packed
-        case 4: return order.status === 3; // Out for delivery only from Shipped
-        default: return false;
-    }
+    const actions = [];
+    if (order.status === 0) actions.push({ status: 1, text: 'Accept Order', icon: 'check-lg' });
+    if (order.status === 1) actions.push({ status: 2, text: 'Mark Packed', icon: 'box-seam' });
+    if (order.status === 2) actions.push({ status: 3, text: 'Mark Shipped', icon: 'truck' });
+    if (order.status === 3) actions.push({ status: 4, text: 'Out for Delivery', icon: 'bicycle' });
+    return actions;
 }
 
-function getAvailableStatuses(order) {
-    const statuses = [];
-    if (canUpdateStatus(order, 1)) statuses.push({value: 1, text: 'Accept Order'});
-    if (canUpdateStatus(order, 2)) statuses.push({value: 2, text: 'Mark as Packed'});
-    if (canUpdateStatus(order, 3)) statuses.push({value: 3, text: 'Mark as Shipped'});
-    if (canUpdateStatus(order, 4)) statuses.push({value: 4, text: 'Mark as Out for Delivery'});
-    return statuses;
+function canCancel(order) {
+    return order.paymentStatus === 1 && (order.status === 0 || order.status === 1 || order.status === 2);
 }
 
 function formatAddress(order) {
     if (order.shippingFullName && order.shippingAddressLine1) {
-        return `${order.shippingFullName}<br>
-                ${order.shippingAddressLine1}${order.shippingAddressLine2 ? ', ' + order.shippingAddressLine2 : ''}<br>
-                ${order.shippingCity}, ${order.shippingState} - ${order.shippingPostalCode}<br>
-                Phone: ${order.shippingPhoneNumber}`;
+        return `${order.shippingFullName}, ${order.shippingAddressLine1}${order.shippingAddressLine2 ? ', ' + order.shippingAddressLine2 : ''}, ${order.shippingCity}, ${order.shippingState} - ${order.shippingPostalCode}`;
     }
-    return order.shippingAddress || 'No address provided';
+    return order.shippingAddress || 'No address';
 }
 
-function row(o){
-  const created = o.createdAtUtc ? new Date(o.createdAtUtc).toLocaleString() : '';
-  const payBadge = o.paymentStatus === 1 ? 'bg-success' : (o.paymentStatus === 0 ? 'bg-warning text-dark' : 'bg-danger');
-  const statusBadge = getStatusBadgeClass(o.status);
-  const statusText = getStatusText(o.status);
-  
-  const availableStatuses = getAvailableStatuses(o);
-  const canCancel = o.paymentStatus === 1 && (o.status === 0 || o.status === 1 || o.status === 2);
-  
-  let statusDropdown = '';
-  if (availableStatuses.length > 0) {
-    statusDropdown = `
-      <div class="dropdown">
-        <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-          Update Status
-        </button>
-        <ul class="dropdown-menu">
-          ${availableStatuses.map(s => `<li><a class="dropdown-item status-update" href="#" data-order-id="${o.id}" data-status="${s.value}">${s.text}</a></li>`).join('')}
-        </ul>
-      </div>`;
-  }
-  
-  const trackingButton = o.status >= 3 ? `<button class="btn btn-sm btn-outline-secondary track-btn" data-order-id="${o.id}">Set Tracking</button>` : '';
-  const cancelButton = canCancel ? `<button class="btn btn-sm btn-outline-danger cancel-btn" data-order-id="${o.id}">Cancel</button>` : '';
-
-  return `<tr>
-    <td><code>${o.id}</code></td>
-    <td>${o.itemTitle}</td>
-    <td>${o.quantity}</td>
-    <td>${fmtAmount(o.totalAmount)}</td>
-    <td>${o.userEmail || ''}</td>
-    <td><span class="badge ${payBadge}">${['Created','Paid','Failed','Refunded'][o.paymentStatus] || ''}</span></td>
-    <td><span class="badge ${statusBadge}">${statusText}</span></td>
-    <td><small>${formatAddress(o)}</small></td>
-    <td>${created}</td>
-    <td>
-      <div class="d-flex flex-column gap-1">
-        ${statusDropdown}
-        <div class="d-flex gap-1">
-          ${trackingButton}
-          ${cancelButton}
+function renderOrder(o) {
+    const status = statusMap[o.status] || statusMap[0];
+    const payment = paymentMap[o.paymentStatus] || paymentMap[0];
+    const actions = getNextActions(o);
+    const created = o.createdAtUtc ? new Date(o.createdAtUtc).toLocaleDateString() : '';
+    
+    return `
+        <div class="order-row" data-order-id="${o.id}">
+            <div class="order-main">
+                <div class="order-image">
+                    <i class="bi bi-bag"></i>
+                </div>
+                <div class="order-details">
+                    <h4>${o.itemTitle || 'Unknown Item'}</h4>
+                    <div class="order-id">#${o.id?.substring(0, 8) || 'N/A'}</div>
+                    <div class="order-customer">
+                        <i class="bi bi-person me-1"></i>${o.userEmail || 'Unknown'}
+                    </div>
+                    <div class="address-preview" title="${formatAddress(o)}">
+                        <i class="bi bi-geo-alt me-1"></i>${formatAddress(o)}
+                    </div>
+                    <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>${created}</small>
+                </div>
+            </div>
+            <div class="order-amount">
+                <div class="amount">${fmtAmount(o.totalAmount)}</div>
+                <div class="qty">Qty: ${o.quantity}</div>
+                <span class="payment-badge ${payment.class}">${payment.text}</span>
+            </div>
+            <div class="order-status-cell">
+                <span class="status-badge ${status.class}">
+                    <i class="bi bi-${status.icon}"></i>
+                    ${status.text}
+                </span>
+            </div>
+            <div class="order-actions">
+                ${actions.length > 0 ? `
+                    <button class="btn-order-action primary status-update" 
+                            data-order-id="${o.id}" data-status="${actions[0].status}">
+                        <i class="bi bi-${actions[0].icon}"></i>
+                        ${actions[0].text}
+                    </button>
+                ` : ''}
+                ${canCancel(o) ? `
+                    <button class="btn-order-action danger cancel-btn" data-order-id="${o.id}">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </button>
+                ` : ''}
+                ${o.status >= 3 && o.status < 5 ? `
+                    <button class="btn-order-action secondary track-btn" data-order-id="${o.id}">
+                        <i class="bi bi-link-45deg"></i> Tracking
+                    </button>
+                ` : ''}
+            </div>
         </div>
-      </div>
-    </td>
-  </tr>`;
+    `;
 }
 
-async function load(){
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">Loading...</td></tr>`;
-  try {
-    const res = await fetch('/api/orders/vendor', { credentials: 'same-origin' });
-    if(!res.ok) throw new Error('Failed');
-    const list = await res.json();
-    if(!list || list.length === 0){
-      tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No orders yet.</td></tr>`;
-      return;
+async function load() {
+    const orderList = document.getElementById('orderList');
+    orderList.innerHTML = `
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <p class="text-muted">Loading orders...</p>
+        </div>`;
+    
+    try {
+        const res = await fetch('/api/orders/vendor', { credentials: 'same-origin' });
+        if (!res.ok) throw new Error('Failed');
+        const list = await res.json();
+        
+        // Update stats
+        const pending = list.filter(o => o.status === 0).length;
+        const processing = list.filter(o => o.status >= 1 && o.status <= 2).length;
+        const shipped = list.filter(o => o.status >= 3 && o.status <= 4).length;
+        const delivered = list.filter(o => o.status === 5).length;
+        
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statProcessing').textContent = processing;
+        document.getElementById('statShipped').textContent = shipped;
+        document.getElementById('statDelivered').textContent = delivered;
+        
+        if (!list || list.length === 0) {
+            orderList.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h3>No Orders Yet</h3>
+                    <p>Orders from customers will appear here</p>
+                </div>`;
+            return;
+        }
+        
+        orderList.innerHTML = list.map(renderOrder).join('');
+        wireEvents();
+    } catch {
+        orderList.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-exclamation-triangle"></i>
+                <h3>Failed to Load Orders</h3>
+                <p>Please try refreshing the page</p>
+                <button class="btn btn-primary mt-3" onclick="load()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Retry
+                </button>
+            </div>`;
     }
-    tbody.innerHTML = list.map(row).join('');
-    wire();
-  } catch {
-    tbody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Failed to load orders.</td></tr>`;
-  }
 }
 
 async function updateOrderStatus(orderId, status, trackingUrl = null) {
-  try {
-    const res = await fetch('/api/orders/update-status', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      credentials: 'same-origin',
-      body: JSON.stringify({ orderId, status: status.toString(), trackingUrl })
-    });
-    
-    if (res.ok) {
-      await load();
-      alert('Order status updated successfully!');
-    } else {
-      const error = await res.text();
-      alert('Failed to update status: ' + error);
+    try {
+        const res = await fetch('/api/orders/update-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ orderId, status: status.toString(), trackingUrl })
+        });
+        
+        if (res.ok) {
+            await load();
+        } else {
+            const error = await res.text();
+            alert('Failed to update status: ' + error);
+        }
+    } catch (ex) {
+        alert('Failed to update status: ' + ex.message);
     }
-  } catch (ex) {
-    alert('Failed to update status: ' + ex.message);
-  }
 }
 
-function wire(){
-  // Status update handlers
-  document.querySelectorAll('.status-update').forEach(link => {
-    link.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const orderId = e.target.getAttribute('data-order-id');
-      const status = parseInt(e.target.getAttribute('data-status'));
-      const statusText = e.target.textContent;
-      
-      let trackingUrl = null;
-      if (status === 3) { // Shipped status
-        trackingUrl = prompt('Optional: Enter tracking URL (leave blank to skip)');
-      }
-      
-      if (confirm(`${statusText}?`)) {
-        await updateOrderStatus(orderId, status, trackingUrl);
-      }
-    });
-  });
-  
-  // Tracking URL handlers
-  document.querySelectorAll('.track-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const orderId = e.target.getAttribute('data-order-id');
-      const trackingUrl = prompt('Enter tracking URL');
-      if (!trackingUrl) return;
-      
-      try {
-        const res = await fetch('/api/orders/set-tracking', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          credentials: 'same-origin',
-          body: JSON.stringify({ orderId, trackingUrl })
+function wireEvents() {
+    document.querySelectorAll('.status-update').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const orderId = e.currentTarget.getAttribute('data-order-id');
+            const status = parseInt(e.currentTarget.getAttribute('data-status'));
+            
+            let trackingUrl = null;
+            if (status === 3) {
+                trackingUrl = prompt('Optional: Enter tracking URL');
+            }
+            
+            if (confirm('Update order status?')) {
+                await updateOrderStatus(orderId, status, trackingUrl);
+            }
         });
-        
-        if (res.ok) {
-          alert('Tracking URL updated successfully!');
-        } else {
-          alert('Failed to set tracking URL');
-        }
-      } catch {
-        alert('Failed to set tracking URL');
-      }
     });
-  });
-  
-  // Cancel handlers
-  document.querySelectorAll('.cancel-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const orderId = e.target.getAttribute('data-order-id');
-      if (!confirm('Cancel this order?')) return;
-      
-      try {
-        const res = await fetch('/api/orders/cancel', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          credentials: 'same-origin',
-          body: JSON.stringify({ orderId })
+    
+    document.querySelectorAll('.track-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const orderId = e.currentTarget.getAttribute('data-order-id');
+            const trackingUrl = prompt('Enter tracking URL');
+            if (!trackingUrl) return;
+            
+            try {
+                const res = await fetch('/api/orders/set-tracking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ orderId, trackingUrl })
+                });
+                
+                if (res.ok) {
+                    alert('Tracking URL updated!');
+                } else {
+                    alert('Failed to set tracking URL');
+                }
+            } catch {
+                alert('Failed to set tracking URL');
+            }
         });
-        
-        if (res.ok) {
-          await load();
-          alert('Order cancelled successfully!');
-        } else {
-          alert('Failed to cancel order');
-        }
-      } catch {
-        alert('Failed to cancel order');
-      }
     });
-  });
+    
+    document.querySelectorAll('.cancel-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const orderId = e.currentTarget.getAttribute('data-order-id');
+            if (!confirm('Cancel this order?')) return;
+            
+            try {
+                const res = await fetch('/api/orders/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ orderId })
+                });
+                
+                if (res.ok) {
+                    await load();
+                } else {
+                    alert('Failed to cancel order');
+                }
+            } catch {
+                alert('Failed to cancel order');
+            }
+        });
+    });
 }
 
 document.addEventListener('DOMContentLoaded', load);

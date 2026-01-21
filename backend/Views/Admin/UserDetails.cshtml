@@ -3,99 +3,572 @@
     ViewData["Title"] = "User Details";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">User Details</h2>
-        <a asp-controller="Admin" asp-action="Users" class="btn btn-secondary">
+<style>
+    :root {
+        --primary-green: #10b981;
+        --primary-green-dark: #059669;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+        --card-shadow-hover: 0 12px 40px rgba(16, 185, 129, 0.15);
+        --bg-light: #f0fdf4;
+        --bg-secondary: #ecfdf5;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+    }
+
+    .details-page {
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header h2 i {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.6rem;
+        border-radius: 12px;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: translateX(-4px);
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 1.5rem;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: 1px solid rgba(16, 185, 129, 0.1);
+        height: fit-content;
+    }
+
+    .profile-header {
+        background: var(--primary-gradient);
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 20px;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        margin-bottom: 1rem;
+    }
+
+    .profile-name {
+        color: white;
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .profile-email {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.95rem;
+    }
+
+    .profile-body {
+        padding: 1.5rem;
+    }
+
+    .status-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .status-badge.approved {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-badge.incomplete {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .review-note {
+        margin-top: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: #f8fafc;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        color: #64748b;
+        border-left: 3px solid var(--primary-green);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-approve {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-approve:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-approve:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-reject {
+        background: #fee2e2;
+        color: #dc2626;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-reject:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .reject-form {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+        margin-top: 0.75rem;
+    }
+
+    .reject-input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.9rem;
+    }
+
+    .reject-input:focus {
+        outline: none;
+        border-color: #fca5a5;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .info-header {
+        background: var(--bg-secondary);
+        padding: 1.25rem 1.75rem;
+        border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+        font-weight: 700;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .info-header i {
+        color: var(--primary-green);
+    }
+
+    .info-body {
+        padding: 1.75rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .info-item {
+        background: #f8fafc;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+    }
+
+    .info-item label {
+        display: block;
+        font-size: 0.8rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.35rem;
+        font-weight: 600;
+    }
+
+    .info-item span {
+        font-size: 1rem;
+        color: #1e293b;
+        font-weight: 500;
+    }
+
+    .roles-list {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .role-badge {
+        padding: 0.4rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--bg-secondary);
+        color: var(--primary-green-dark);
+    }
+
+    .items-card {
+        margin-top: 1.5rem;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .items-table th {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 700;
+        color: #475569;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .items-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+    }
+
+    .items-table tr:hover {
+        background: var(--bg-light);
+    }
+
+    .item-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 2px solid #e2e8f0;
+    }
+
+    .badge-active {
+        background: #d1fae5;
+        color: #059669;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-inactive {
+        background: #f1f5f9;
+        color: #64748b;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .empty-items {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #64748b;
+    }
+
+    .empty-items i {
+        font-size: 3rem;
+        color: #d1fae5;
+        margin-bottom: 1rem;
+    }
+
+    @@media (max-width: 992px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="details-page">
+    <div class="page-header">
+        <h2><i class="fas fa-user"></i> User Details</h2>
+        <a asp-controller="Admin" asp-action="Users" class="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Users
         </a>
     </div>
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="mb-3">
-                <span class="badge bg-@(Model.User.IsAdminApproved ? "success" : (Model.User.IsProfileCompleted ? "warning" : "secondary"))">
-                    @(Model.User.IsAdminApproved ? "Approved" : (Model.User.IsProfileCompleted ? "Pending Approval" : "Profile Incomplete"))
-                </span>
-                @if (!string.IsNullOrWhiteSpace(Model.User.AdminReviewNote))
-                {
-                    <span class="ms-2 text-muted">@Model.User.AdminReviewNote</span>
+    <div class="content-grid">
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="profile-header">
+                @{
+                    var avatarUrl = string.IsNullOrWhiteSpace(Model.User.ProfileImageUrl) 
+                        ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.User.FullName ?? Model.User.Email)}&background=10b981&color=fff&size=128" 
+                        : Model.User.ProfileImageUrl;
                 }
+                <img src="@avatarUrl" alt="avatar" class="profile-avatar">
+                <h3 class="profile-name">@Model.User.FullName</h3>
+                <p class="profile-email">@Model.User.Email</p>
             </div>
-            <form asp-action="ApproveUser" asp-controller="Admin" method="post" class="d-inline">
-                <input type="hidden" name="id" value="@Model.User.Id" />
-                <button type="submit" class="btn btn-success" @(Model.User.IsAdminApproved ? "disabled" : null)>Approve</button>
-            </form>
-            <form asp-action="RejectUser" asp-controller="Admin" method="post" class="d-inline ms-2">
-                <input type="hidden" name="id" value="@Model.User.Id" />
-                <input type="text" name="note" class="form-control d-inline" style="width:240px" placeholder="Reason (optional)" />
-                <button type="submit" class="btn btn-danger ms-1">Reject</button>
-            </form>
-            <hr />
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-2"><strong>Name:</strong> @Model.User.FullName</div>
-                    <div class="mb-2"><strong>Email:</strong> @Model.User.Email</div>
-                    <div class="mb-2"><strong>Phone:</strong> @Model.User.PhoneNumber</div>
-                    <div class="mb-2"><strong>Roles:</strong> @(string.Join(", ", Model.Roles))</div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-2"><strong>Business Name:</strong> @Model.User.BusinessName</div>
-                    <div class="mb-2"><strong>Business Reg No:</strong> @Model.User.BusinessRegistrationNumber</div>
-                    <div class="mb-2"><strong>Address:</strong> @Model.User.Address</div>
-                    <div class="mb-2"><strong>License No:</strong> @Model.User.LicenseNumber</div>
-                </div>
-            </div>
-        </div>
-    </div>
+            <div class="profile-body">
+                <div class="status-section">
+                    @if (Model.User.IsAdminApproved)
+                    {
+                        <span class="status-badge approved"><i class="fas fa-check-circle"></i> Approved</span>
+                    }
+                    else if (Model.User.IsProfileCompleted)
+                    {
+                        <span class="status-badge pending"><i class="fas fa-clock"></i> Pending Approval</span>
+                    }
+                    else
+                    {
+                        <span class="status-badge incomplete"><i class="fas fa-user-clock"></i> Profile Incomplete</span>
+                    }
 
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-box me-2"></i> Items</span>
-        </div>
-        <div class="card-body">
-            @if (Model.Items == null || Model.Items.Count == 0)
-            {
-                <div class="text-muted">No items found for this user.</div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead>
-                            <tr>
-                                <th style="width:80px;">Image</th>
-                                <th>Title</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach (var i in Model.Items)
-                        {
-                            <tr>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(i.ImageUrl))
-                                    {
-                                        <img src="@i.ImageUrl" alt="img" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />
-                                    }
-                                </td>
-                                <td>@i.Title</td>
-                                <td>@i.Category</td>
-                                <td>@i.Price.ToString("C")</td>
-                                <td>@i.Stock</td>
-                                <td>
-                                    @if (i.IsActive) { <span class="badge bg-success">Active</span>; }
-                                    else { <span class="badge bg-secondary">Inactive</span>; }
-                                </td>
-                            </tr>
-                        }
-                        </tbody>
-                    </table>
+                    @if (!string.IsNullOrWhiteSpace(Model.User.AdminReviewNote))
+                    {
+                        <div class="review-note">
+                            <strong>Note:</strong> @Model.User.AdminReviewNote
+                        </div>
+                    }
                 </div>
-            }
+
+                <div class="action-buttons">
+                    <form asp-action="ApproveUser" asp-controller="Admin" method="post">
+                        <input type="hidden" name="id" value="@Model.User.Id" />
+                        <button type="submit" class="btn-approve" @(Model.User.IsAdminApproved ? "disabled" : null)>
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                    </form>
+                </div>
+                <form asp-action="RejectUser" asp-controller="Admin" method="post" class="reject-form">
+                    <input type="hidden" name="id" value="@Model.User.Id" />
+                    <input type="text" name="note" class="reject-input" placeholder="Reason (optional)" />
+                    <button type="submit" class="btn-reject"><i class="fas fa-times"></i> Reject</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div>
+            <div class="info-card">
+                <div class="info-header">
+                    <i class="fas fa-info-circle"></i> User Information
+                </div>
+                <div class="info-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Full Name</label>
+                            <span>@(Model.User.FullName ?? "-")</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Email</label>
+                            <span>@Model.User.Email</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Phone</label>
+                            <span>@(Model.User.PhoneNumber ?? "-")</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Address</label>
+                            <span>@(Model.User.Address ?? "-")</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Business Name</label>
+                            <span>@(Model.User.BusinessName ?? "-")</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Business Reg No</label>
+                            <span>@(Model.User.BusinessRegistrationNumber ?? "-")</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Vendor Category</label>
+                            <span>
+                                @if (!string.IsNullOrEmpty(Model.User.VendorCategory))
+                                {
+                                    <span class="role-badge">@Model.User.VendorCategory</span>
+                                }
+                                else
+                                {
+                                    <text>-</text>
+                                }
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <label>License No</label>
+                            <span>@(Model.User.LicenseNumber ?? "-")</span>
+                        </div>
+                        <div class="info-item" style="grid-column: span 2;">
+                            <label>Roles</label>
+                            <div class="roles-list">
+                                @foreach (var role in Model.Roles)
+                                {
+                                    <span class="role-badge">@role</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Card -->
+            <div class="info-card items-card">
+                <div class="info-header">
+                    <i class="fas fa-box"></i> Items
+                </div>
+                <div class="info-body" style="padding: 0;">
+                    @if (Model.Items == null || Model.Items.Count == 0)
+                    {
+                        <div class="empty-items">
+                            <i class="fas fa-box-open"></i>
+                            <h4>No Items Found</h4>
+                            <p>This user has not added any items yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">Image</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var i in Model.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(i.ImageUrl))
+                                            {
+                                                <img src="@i.ImageUrl" alt="img" class="item-image" />
+                                            }
+                                        </td>
+                                        <td><strong>@i.Title</strong></td>
+                                        <td>@i.Category</td>
+                                        <td>@i.Price.ToString("C")</td>
+                                        <td>@i.Stock</td>
+                                        <td>
+                                            @if (i.IsActive)
+                                            {
+                                                <span class="badge-active">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-inactive">Inactive</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>

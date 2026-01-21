@@ -53,38 +53,41 @@
     {
         <!-- Main Dashboard -->
         <div class="row g-4">
-            <!-- Gas Level Card -->
+            <!-- Gas Cylinder Visual Card -->
             <div class="col-lg-4 col-md-6">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body text-center">
                         <h5 class="card-title mb-3">
-                            <i class="bi bi-speedometer2 me-2"></i>Current Gas Level
+                            <i class="bi bi-fire me-2"></i>Gas Cylinder Status
                         </h5>
                         
-                        <!-- Circular Progress -->
-                        <div class="position-relative d-inline-block mb-3" style="width: 180px; height: 180px;">
-                            <svg viewBox="0 0 36 36" class="circular-chart" style="width: 100%; height: 100%;">
-                                <path class="circle-bg"
-                                    stroke="#eee"
-                                    stroke-width="3"
-                                    fill="none"
-                                    d="M18 2.0845
-                                        a 15.9155 15.9155 0 0 1 0 31.831
-                                        a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path id="gasLevelPath"
-                                    stroke="@GetStatusColor(Model.GasStatus)"
-                                    stroke-width="3"
-                                    stroke-linecap="round"
-                                    fill="none"
-                                    stroke-dasharray="@Model.CurrentGasPercentage, 100"
-                                    d="M18 2.0845
-                                        a 15.9155 15.9155 0 0 1 0 31.831
-                                        a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            </svg>
-                            <div class="position-absolute top-50 start-50 translate-middle text-center">
-                                <span id="gasPercentage" class="display-5 fw-bold">@Model.CurrentGasPercentage.ToString("F0")</span>
-                                <span class="fs-4">%</span>
+                        <!-- Gas Cylinder Visual -->
+                        <div class="gas-cylinder-container mb-3">
+                            <div class="gas-cylinder">
+                                <div class="cylinder-cap"></div>
+                                <div class="cylinder-valve"></div>
+                                <div class="cylinder-body">
+                                    <div class="gas-level" id="gasLevelFill" style="height: @Model.CurrentGasPercentage%;">
+                                        <div class="gas-bubbles">
+                                            <span class="bubble"></span>
+                                            <span class="bubble"></span>
+                                            <span class="bubble"></span>
+                                        </div>
+                                    </div>
+                                    <div class="cylinder-lines">
+                                        <div class="line" style="bottom: 75%;"><span>75%</span></div>
+                                        <div class="line" style="bottom: 50%;"><span>50%</span></div>
+                                        <div class="line" style="bottom: 25%;"><span>25%</span></div>
+                                    </div>
+                                </div>
+                                <div class="cylinder-base"></div>
                             </div>
+                            <div class="cylinder-shadow"></div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <span class="display-4 fw-bold" id="gasPercentage">@Model.CurrentGasPercentage.ToString("F0")</span>
+                            <span class="fs-4">%</span>
                         </div>
                         
                         <div class="mb-2">
@@ -95,7 +98,10 @@
                         
                         <p class="text-muted small mb-0">
                             <i class="bi bi-clock me-1"></i>
-                            Last updated: <span id="lastUpdate">@(Model.Subscription.LastReadingAt?.ToString("g") ?? "Never")</span>
+                            <span id="lastUpdate">@(Model.Subscription.LastReadingAt?.ToString("g") ?? "Never")</span>
+                            <span class="ms-2 badge bg-light text-dark" id="refreshIndicator">
+                                <i class="bi bi-arrow-repeat"></i> Live
+                            </span>
                         </p>
                     </div>
                 </div>
@@ -112,7 +118,7 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="text-muted">Current Weight</span>
-                                <span id="currentWeight" class="fw-bold">@(Model.CurrentWeightGrams / 1000).ToString("F2") kg</span>
+                                <span id="currentWeight" class="fw-bold">@((Model.CurrentWeightGrams / 1000).ToString("F2")) kg</span>
                             </div>
                             <div class="progress" style="height: 8px;">
                                 <div class="progress-bar @GetProgressBarClass(Model.GasStatus)" 
@@ -290,35 +296,55 @@
 
 @section Scripts {
     <script>
-        // Auto-refresh dashboard every 60 seconds
+        // Auto-refresh dashboard every 3 seconds
         let refreshInterval = null;
         
         function startRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(refreshDashboard, 60000);
+            refreshInterval = setInterval(refreshDashboard, 3000);
+            // Initial refresh
+            refreshDashboard();
         }
         
         async function refreshDashboard() {
             try {
-                // Use lightweight endpoint that only fetches current reading
+                const indicator = document.getElementById('refreshIndicator');
+                if (indicator) indicator.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Updating...';
+                
                 const response = await fetch('/api/GasSubscriptionApi/readings/latest');
                 if (response.ok) {
                     const data = await response.json();
                     if (data && data.gasPercentage !== undefined) {
+                        // Update percentage display
                         document.getElementById('gasPercentage').textContent = Math.round(data.gasPercentage);
                         document.getElementById('gasStatus').textContent = data.status;
                         document.getElementById('currentWeight').textContent = (data.weightGrams / 1000).toFixed(2) + ' kg';
                         document.getElementById('weightProgress').style.width = data.gasPercentage + '%';
-                        document.getElementById('gasLevelPath').setAttribute('stroke-dasharray', data.gasPercentage + ', 100');
                         document.getElementById('lastUpdate').textContent = new Date(data.timestamp).toLocaleString();
+                        
+                        // Update gas cylinder fill level
+                        const gasLevelFill = document.getElementById('gasLevelFill');
+                        if (gasLevelFill) {
+                            gasLevelFill.style.height = data.gasPercentage + '%';
+                            // Update color based on status
+                            gasLevelFill.className = 'gas-level gas-level-' + data.status.toLowerCase();
+                        }
                         
                         // Update status badge color
                         const statusBadge = document.getElementById('gasStatus');
                         statusBadge.className = 'badge fs-6 ' + getStatusClass(data.status);
+                        
+                        // Update progress bar class
+                        const progressBar = document.getElementById('weightProgress');
+                        progressBar.className = 'progress-bar ' + getProgressClass(data.status);
                     }
                 }
+                
+                if (indicator) indicator.innerHTML = '<i class="bi bi-arrow-repeat"></i> Live';
             } catch (e) {
                 console.log('Dashboard refresh failed:', e);
+                const indicator = document.getElementById('refreshIndicator');
+                if (indicator) indicator.innerHTML = '<i class="bi bi-exclamation-circle"></i> Offline';
             }
         }
         
@@ -328,6 +354,16 @@
                 case 'Good': return 'bg-info';
                 case 'Half': return 'bg-warning text-dark';
                 case 'Low': return 'bg-warning text-dark';
+                case 'Critical': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function getProgressClass(status) {
+            switch(status) {
+                case 'Full': case 'Good': return 'bg-success';
+                case 'Half': return 'bg-warning';
+                case 'Low': return 'bg-warning';
                 case 'Critical': return 'bg-danger';
                 default: return 'bg-secondary';
             }
@@ -344,6 +380,158 @@
         
         startRefresh();
     </script>
+    
+    <style>
+        /* Gas Cylinder Styles */
+        .gas-cylinder-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .gas-cylinder {
+            position: relative;
+            width: 120px;
+        }
+        
+        .cylinder-cap {
+            width: 40px;
+            height: 15px;
+            background: linear-gradient(to bottom, #666, #444);
+            margin: 0 auto;
+            border-radius: 5px 5px 0 0;
+            position: relative;
+        }
+        
+        .cylinder-valve {
+            width: 20px;
+            height: 25px;
+            background: linear-gradient(to right, #555, #777, #555);
+            margin: 0 auto;
+            border-radius: 3px;
+        }
+        
+        .cylinder-body {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(to right, #e74c3c 0%, #c0392b 20%, #e74c3c 50%, #c0392b 80%, #e74c3c 100%);
+            border-radius: 10px 10px 20px 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset -10px 0 20px rgba(0,0,0,0.3), inset 10px 0 20px rgba(255,255,255,0.1);
+        }
+        
+        .gas-level {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, #3498db, #5dade2, #85c1e9);
+            transition: height 0.5s ease-out;
+            border-radius: 0 0 18px 18px;
+        }
+        
+        .gas-level-full, .gas-level-good {
+            background: linear-gradient(to top, #27ae60, #2ecc71, #58d68d);
+        }
+        
+        .gas-level-half {
+            background: linear-gradient(to top, #f39c12, #f1c40f, #f9e79f);
+        }
+        
+        .gas-level-low {
+            background: linear-gradient(to top, #e67e22, #f39c12, #f8c471);
+        }
+        
+        .gas-level-critical {
+            background: linear-gradient(to top, #c0392b, #e74c3c, #f1948a);
+            animation: pulse-critical 1s ease-in-out infinite;
+        }
+        
+        @@keyframes pulse-critical {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .gas-bubbles {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .bubble {
+            position: absolute;
+            bottom: -20px;
+            width: 10px;
+            height: 10px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            animation: bubble-rise 3s ease-in infinite;
+        }
+        
+        .bubble:nth-child(1) { left: 20%; animation-delay: 0s; }
+        .bubble:nth-child(2) { left: 50%; animation-delay: 1s; width: 8px; height: 8px; }
+        .bubble:nth-child(3) { left: 75%; animation-delay: 2s; width: 6px; height: 6px; }
+        
+        @@keyframes bubble-rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.6; }
+            100% { transform: translateY(-180px) scale(0.5); opacity: 0; }
+        }
+        
+        .cylinder-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        
+        .cylinder-lines .line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .cylinder-lines .line span {
+            position: absolute;
+            right: -35px;
+            top: -8px;
+            font-size: 10px;
+            color: #999;
+        }
+        
+        .cylinder-base {
+            width: 110px;
+            height: 15px;
+            background: linear-gradient(to bottom, #444, #222);
+            margin: 0 auto;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .cylinder-shadow {
+            width: 100px;
+            height: 20px;
+            background: radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, transparent 70%);
+            margin: 5px auto 0;
+        }
+        
+        /* Spin animation for refresh indicator */
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        @@keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
 }
 
 @functions {

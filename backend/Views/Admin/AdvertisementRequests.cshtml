@@ -2,105 +2,528 @@
 @using ServConnect.Models
 @{
     ViewData["Title"] = "Advertisement Requests";
+    var pendingCount = Model?.Count(r => r.Status == AdRequestStatus.Pending) ?? 0;
+    var approvedCount = Model?.Count(r => r.Status == AdRequestStatus.Approved) ?? 0;
+    var rejectedCount = Model?.Count(r => r.Status == AdRequestStatus.Rejected) ?? 0;
 }
-<div class="container py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">Advertisement Requests</h3>
+
+<style>
+    :root {
+        --primary-green: #10b981;
+        --primary-green-dark: #059669;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+        --card-shadow-hover: 0 12px 40px rgba(16, 185, 129, 0.15);
+        --bg-light: #f0fdf4;
+        --bg-secondary: #ecfdf5;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+    }
+
+    .requests-page {
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header h2 i {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.6rem;
+        border-radius: 12px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-header {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-header:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    /* Stats Row */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(16, 185, 129, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .stat-icon.pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .stat-icon.approved {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .stat-icon.rejected {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .stat-info h4 {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .stat-info .count {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    /* Filter Tabs */
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-tab {
+        background: white;
+        border: 2px solid transparent;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-tab:hover {
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+    }
+
+    .filter-tab.active {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .filter-tab .badge {
+        background: rgba(0, 0, 0, 0.15);
+        padding: 0.2rem 0.5rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+    }
+
+    .filter-tab.active .badge {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Requests List */
+    .requests-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .request-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.2s ease;
+    }
+
+    .request-item:hover {
+        background: #f8fafc;
+    }
+
+    .request-item:last-child {
+        border-bottom: none;
+    }
+
+    .request-preview {
+        width: 180px;
+        height: 90px;
+        background: #f1f5f9;
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .request-preview img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .request-info h4 {
+        margin: 0 0 0.5rem 0;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .request-info p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+
+    .request-info .meta {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.75rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-badge.approved {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .status-badge.rejected {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .request-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-approve {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .btn-approve:hover {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-reject {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .btn-reject:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #d1fae5;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .empty-state p {
+        color: #64748b;
+    }
+
+    @@media (max-width: 992px) {
+        .request-item {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .request-preview {
+            margin: 0 auto;
+        }
+
+        .request-actions {
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-tabs {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="requests-page">
+    <div class="page-header">
+        <h2><i class="fas fa-clipboard-list"></i> Advertisement Requests</h2>
+        <div class="header-actions">
+            <a class="btn-header" asp-controller="Admin" asp-action="Advertisements">
+                <i class="fas fa-images"></i> All Ads
+            </a>
+            <a class="btn-header" asp-controller="Admin" asp-action="Dashboard">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+        </div>
     </div>
 
-    @if (TempData["AdReqMessage"] != null)
-    {
-        <div class="alert alert-info">@TempData["AdReqMessage"]</div>
-    }
-
-    @if (Model == null || Model.Count == 0)
-    {
-        <div class="alert alert-info">No requests found.</div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Preview</th>
-                        <th>Type</th>
-                        <th>User</th>
-                        <th>Submitted</th>
-                        <th>Payment</th>
-                        <th>Status</th>
-                        <th style="width:260px"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in Model)
-                    {
-                        <tr>
-                            <td>
-                                @if (r.Type == AdvertisementType.HeroBanner)
-                                {
-                                    <img src="@r.ImageUrl" alt="ad" width="120" height="36" style="object-fit:cover;border-radius:4px;" />
-                                }
-                                else
-                                {
-                                    <img src="@r.ImageUrl" alt="ad" width="364" height="45" style="object-fit:cover;border-radius:4px;" />
-                                }
-                            </td>
-                            <td>
-                                @if (r.Type == AdvertisementType.HeroBanner)
-                                {
-                                    <span class="badge bg-primary">Hero Banner</span>
-                                    <small class="d-block text-muted">600x180</small>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Bottom Page</span>
-                                    <small class="d-block text-muted">728x90</small>
-                                }
-                            </td>
-                            <td>@r.RequestedByUserId</td>
-                            <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
-                            <td>@(r.IsPaid ? "Paid" : "Unpaid")</td>
-                            <td>
-                                @switch(r.Status)
-                                {
-                                    case AdRequestStatus.Pending:
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                        break;
-                                    case AdRequestStatus.Approved:
-                                        <span class="badge bg-success">Approved</span>
-                                        break;
-                                    case AdRequestStatus.Rejected:
-                                        <span class="badge bg-danger">Rejected</span>
-                                        break;
-                                }
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <form asp-controller="Admin" asp-action="ApproveAdRequest" method="post">
-                                        <input type="hidden" name="id" value="@r.Id" />
-                                        <button type="submit" class="btn btn-sm btn-success" @(r.Status == AdRequestStatus.Approved ? "disabled" : null)>
-                                            <i class="bi bi-check2-circle"></i> Accept
-                                        </button>
-                                    </form>
-                                    <form asp-controller="Admin" asp-action="RejectAdRequest" method="post">
-                                        <input type="hidden" name="id" value="@r.Id" />
-                                        <button type="submit" class="btn btn-sm btn-danger" @(r.Status == AdRequestStatus.Rejected ? "disabled" : null)>
-                                            <i class="bi bi-x-circle"></i> Reject
-                                        </button>
-                                    </form>
-                                    @if (!string.IsNullOrEmpty(r.TargetUrl))
-                                    {
-                                        <a href="@r.TargetUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-geo-alt"></i> Open Link
-                                        </a>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon pending">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <h4>Pending</h4>
+                <span class="count">@pendingCount</span>
+            </div>
         </div>
-    }
+        <div class="stat-card">
+            <div class="stat-icon approved">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h4>Approved</h4>
+                <span class="count">@approvedCount</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon rejected">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h4>Rejected</h4>
+                <span class="count">@rejectedCount</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">
+            <i class="fas fa-list"></i> All
+            <span class="badge">@(Model?.Count ?? 0)</span>
+        </button>
+        <button class="filter-tab" data-filter="pending">
+            <i class="fas fa-clock"></i> Pending
+            <span class="badge">@pendingCount</span>
+        </button>
+        <button class="filter-tab" data-filter="approved">
+            <i class="fas fa-check"></i> Approved
+            <span class="badge">@approvedCount</span>
+        </button>
+        <button class="filter-tab" data-filter="rejected">
+            <i class="fas fa-times"></i> Rejected
+            <span class="badge">@rejectedCount</span>
+        </button>
+    </div>
+
+    <div class="requests-container">
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No Requests Found</h3>
+                <p>There are no advertisement requests at the moment.</p>
+            </div>
+        }
+        else
+        {
+            foreach (var request in Model.OrderByDescending(r => r.CreatedAt))
+            {
+                var statusClass = request.Status == AdRequestStatus.Pending ? "pending" :
+                                  request.Status == AdRequestStatus.Approved ? "approved" : "rejected";
+                var statusText = request.Status.ToString();
+                var isPending = request.Status == AdRequestStatus.Pending;
+
+                <div class="request-item" data-status="@statusClass">
+                    <div class="request-preview">
+                        <img src="@request.ImageUrl" alt="Ad preview" />
+                    </div>
+                    <div class="request-info">
+                        <h4>@(request.Type == AdvertisementType.HeroBanner ? "Hero Banner Request" : "Bottom Page Request")</h4>
+                        <p>@(request.Type == AdvertisementType.HeroBanner ? "1920 x 200 pixels" : "728 x 90 pixels")</p>
+                        <div class="meta">
+                            <span class="meta-item">
+                                <i class="fas fa-user"></i>
+                                User ID: @request.RequestedByUserId.ToString().Substring(0, 8)...
+                            </span>
+                            <span class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                @request.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")
+                            </span>
+                        </div>
+                    </div>
+                    <span class="status-badge @statusClass">@statusText</span>
+                    @if (isPending)
+                    {
+                        <div class="request-actions">
+                            <form asp-controller="Admin" asp-action="ApproveAdvertisementRequest" method="post">
+                                <input type="hidden" name="id" value="@request.Id" />
+                                <button type="submit" class="btn-action btn-approve" title="Approve">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                            <form asp-controller="Admin" asp-action="RejectAdvertisementRequest" method="post">
+                                <input type="hidden" name="id" value="@request.Id" />
+                                <button type="submit" class="btn-action btn-reject" title="Reject">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="request-actions" style="width: 94px;"></div>
+                    }
+                </div>
+            }
+        }
+    </div>
 </div>
+
+<script>
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function () {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            const filter = this.dataset.filter;
+            document.querySelectorAll('.request-item').forEach(item => {
+                if (filter === 'all' || item.dataset.status === filter) {
+                    item.style.display = 'grid';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>

@@ -2,65 +2,458 @@
     ViewData["Title"] = Localizer["Title.ManageProducts"];
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>@Localizer["Heading.ManageProducts"]</h2>
-                <button class="btn btn-primary" onclick="openCreate()">
-                    <i class="fas fa-plus"></i> @Localizer["Button.AddNewProduct"]
-                </button>
-            </div>
-        </div>
-    </div>
+<style>
+    :root {
+        --product-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --card-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        --card-hover-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    }
+    
+    .products-page {
+        min-height: 100vh;
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        padding-bottom: 50px;
+        overflow-x: hidden;
+    }
+    
+    /* Header */
+    .products-header {
+        background: var(--product-gradient);
+        padding: 30px;
+        border-radius: 0 0 30px 30px;
+        margin: -20px 0 30px 0;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .products-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -15%;
+        width: 350px;
+        height: 350px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    
+    .header-content h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .header-content p {
+        margin: 0;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .header-actions {
+        display: flex;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .btn-header {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        text-decoration: none;
+        backdrop-filter: blur(10px);
+    }
+    
+    .btn-header:hover {
+        background: rgba(255,255,255,0.3);
+        color: #fff;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    .btn-header.primary {
+        background: #fff;
+        color: #667eea;
+    }
+    
+    .btn-header.primary:hover {
+        background: #f0f0ff;
+        color: #764ba2;
+    }
+    
+    /* Products Grid */
+    .products-container {
+        padding: 0 15px;
+    }
+    
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+    }
+    
+    .product-card {
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255,255,255,0.8);
+    }
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-hover-shadow);
+    }
+    
+    .product-image {
+        width: 100%;
+        height: 180px;
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .product-image i {
+        font-size: 48px;
+        color: #10b981;
+        opacity: 0.5;
+    }
+    
+    .product-status {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .product-status.active {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .product-status.inactive {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+    
+    .product-body {
+        padding: 20px;
+    }
+    
+    .product-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .product-category {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .product-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+    }
+    
+    .product-price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #10b981;
+    }
+    
+    .product-stock {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    
+    .product-stock.low {
+        color: #ef4444;
+    }
+    
+    .product-actions {
+        display: flex;
+        gap: 8px;
+        padding: 16px 20px;
+        background: #f8fafc;
+        border-top: 1px solid #f1f5f9;
+    }
+    
+    .btn-action {
+        flex: 1;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-action.edit {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+    
+    .btn-action.edit:hover {
+        background: rgba(16, 185, 129, 0.2);
+    }
+    
+    .btn-action.delete {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+    
+    .btn-action.delete:hover {
+        background: rgba(239, 68, 68, 0.2);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 80px 20px;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .empty-state i {
+        font-size: 64px;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+        color: #475569;
+        margin-bottom: 8px;
+    }
+    
+    .empty-state p {
+        color: #94a3b8;
+        margin-bottom: 24px;
+    }
+    
+    /* Modal Styles */
+    .modal-modern .modal-content {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .modal-modern .modal-header {
+        background: var(--product-gradient);
+        color: #fff;
+        border: none;
+        padding: 20px 24px;
+    }
+    
+    .modal-modern .modal-title {
+        font-weight: 600;
+    }
+    
+    .modal-modern .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+    
+    .modal-modern .modal-body {
+        padding: 24px;
+    }
+    
+    .modal-modern .modal-footer {
+        border: none;
+        padding: 16px 24px 24px;
+    }
+    
+    .form-label-modern {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+    
+    .form-control-modern {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    
+    .form-control-modern:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+    
+    .form-control-modern.is-invalid {
+        border-color: #ef4444;
+    }
+    
+    .form-control-modern.is-valid {
+        border-color: #10b981;
+    }
+    
+    .btn-submit {
+        background: var(--product-gradient);
+        border: none;
+        color: #fff;
+        padding: 12px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        color: #fff;
+    }
+    
+    /* Variants Section */
+    .variants-section {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .variant-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 10px;
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .variant-row input {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    /* Loading */
+    .loading-container {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #e5e7eb;
+        border-top-color: #10b981;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+    }
+    
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .products-header {
+            padding: 24px 20px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .header-actions {
+            width: 100%;
+        }
+        
+        .btn-header {
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .products-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>@Localizer["YourProducts"]</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th style="width:80px;">@Localizer["Tbl.Image"]</th>
-                                    <th>@Localizer["Tbl.ProductName"]</th>
-                                    <th>@Localizer["Tbl.Category"]</th>
-                                    <th>@Localizer["Tbl.Price"]</th>
-                                    <th>Unit</th>
-                                    <th>Variants</th>
-                                    <th>@Localizer["Tbl.Stock"]</th>
-                                    <th>@Localizer["Tbl.Status"]</th>
-                                    <th style="width:160px;">@Localizer["Tbl.Actions"]</th>
-                                </tr>
-                            </thead>
-                            <tbody id="myItemsBody">
-                                <tr>
-                                    <td colspan="9" class="text-center text-muted">
-                                        @Localizer["Loading"]
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+<div class="products-page">
+    <!-- Header -->
+    <div class="products-header">
+        <div class="header-content">
+            <h1><i class="bi bi-box-seam me-2"></i>@Localizer["Heading.ManageProducts"]</h1>
+            <p>Manage your product listings and inventory</p>
         </div>
-    </div>
-
-    <div class="row mt-3">
-        <div class="col-md-12">
-            <a asp-action="Dashboard" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> @Localizer["BackToDashboard"]
+        <div class="header-actions">
+            <a href="/Vendor/Dashboard" class="btn-header">
+                <i class="bi bi-arrow-left"></i>
+                Dashboard
             </a>
+            <button class="btn-header primary" onclick="openCreate()">
+                <i class="bi bi-plus-circle"></i>
+                @Localizer["Button.AddNewProduct"]
+            </button>
+        </div>
+    </div>
+    
+    <!-- Products Grid -->
+    <div class="products-container">
+        <div class="products-grid" id="productsGrid">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="text-muted">@Localizer["Loading"]</p>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Create/Edit Product Modal -->
-<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade modal-modern" id="productModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -70,96 +463,93 @@
             <div class="modal-body">
                 <form id="productForm">
                     <input type="hidden" id="productId">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="productName" class="form-label">@Localizer["Lbl.ProductName"]</label>
-                                <input type="text" class="form-control" id="productName" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="productCategory" class="form-label">@Localizer["Lbl.Category"]</label>
-                                <select class="form-control" id="productCategory">
-                                    <option value="">@Localizer["Opt.SelectCategory"]</option>
-                                    <option value="Electronics">@Localizer["Opt.Electronics"]</option>
-                                    <option value="Clothing">@Localizer["Opt.Clothing"]</option>
-                                    <option value="Home & Garden">@Localizer["Opt.HomeGarden"]</option>
-                                    <option value="Sports">@Localizer["Opt.Sports"]</option>
-                                    <option value="Books">@Localizer["Opt.Books"]</option>
-                                    <option value="Other">@Localizer["Opt.Other"]</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productDescription" class="form-label">@Localizer["Lbl.Description"]</label>
-                        <textarea class="form-control" id="productDescription" rows="3"></textarea>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="productPrice" class="form-label">@Localizer["Lbl.Price"] (₹)</label>
-                                <input type="number" class="form-control" id="productPrice" step="0.01" min="0" max="1000000">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="productUnit" class="form-label">Unit</label>
-                                <select class="form-control" id="productUnit">
-                                    <option value="">Select Unit</option>
-                                    <option value="Piece">Piece</option>
-                                    <option value="Kg">Kg</option>
-                                    <option value="Gram">Gram</option>
-                                    <option value="Litre">Litre</option>
-                                    <option value="ml">ml</option>
-                                    <option value="Meter">Meter</option>
-                                    <option value="Pair">Pair</option>
-                                    <option value="Dozen">Dozen</option>
-                                    <option value="Packet">Packet</option>
-                                    <option value="Box">Box</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="productStock" class="form-label">@Localizer["Lbl.StockQty"]</label>
-                                <input type="number" class="form-control" id="productStock" min="0" max="100000">
-                            </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label-modern" for="productName">@Localizer["Lbl.ProductName"] *</label>
+                            <input type="text" class="form-control form-control-modern" id="productName" 
+                                   placeholder="Enter product name" required>
                         </div>
                         <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="productSKU" class="form-label">@Localizer["Lbl.SKU"]</label>
-                                <input type="text" class="form-control" id="productSKU" readonly>
-                            </div>
+                            <label class="form-label-modern" for="productCategory">@Localizer["Lbl.Category"] *</label>
+                            <select class="form-control form-control-modern" id="productCategory">
+                                <option value="">@Localizer["Opt.SelectCategory"]</option>
+                                <option value="Electronics">@Localizer["Opt.Electronics"]</option>
+                                <option value="Clothing">@Localizer["Opt.Clothing"]</option>
+                                <option value="Home & Garden">@Localizer["Opt.HomeGarden"]</option>
+                                <option value="Sports">@Localizer["Opt.Sports"]</option>
+                                <option value="Books">@Localizer["Opt.Books"]</option>
+                                <option value="Grocery">Grocery</option>
+                                <option value="Other">@Localizer["Opt.Other"]</option>
+                            </select>
                         </div>
-
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Variants</label>
-                        <div id="variantsContainer">
-                            <!-- Variants will be added here -->
+                    
+                    <div class="mt-3">
+                        <label class="form-label-modern" for="productDescription">@Localizer["Lbl.Description"]</label>
+                        <textarea class="form-control form-control-modern" id="productDescription" rows="3"
+                                  placeholder="Describe your product"></textarea>
+                    </div>
+                    
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <label class="form-label-modern" for="productPrice">@Localizer["Lbl.Price"] (₹)</label>
+                            <input type="number" class="form-control form-control-modern" id="productPrice" 
+                                   step="0.01" min="0" max="1000000" placeholder="0.00">
                         </div>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" id="addVariantBtn">Add Variant</button>
+                        <div class="col-md-4">
+                            <label class="form-label-modern" for="productStock">@Localizer["Lbl.StockQty"]</label>
+                            <input type="number" class="form-control form-control-modern" id="productStock" 
+                                   min="0" max="100000" placeholder="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-modern" for="productUnit">Unit</label>
+                            <select class="form-control form-control-modern" id="productUnit">
+                                <option value="">Select Unit</option>
+                                <option value="Piece">Piece</option>
+                                <option value="Kg">Kg</option>
+                                <option value="Gram">Gram</option>
+                                <option value="Litre">Litre</option>
+                                <option value="ml">ml</option>
+                                <option value="Meter">Meter</option>
+                                <option value="Pair">Pair</option>
+                                <option value="Dozen">Dozen</option>
+                                <option value="Packet">Packet</option>
+                                <option value="Box">Box</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="productImage" class="form-label">@Localizer["Lbl.ProductImage"]</label>
-                        <input type="file" class="form-control" id="productImage" accept="image/*">
+                    
+                    <input type="hidden" id="productSKU">
+                    
+                    <div class="variants-section mt-3">
+                        <label class="form-label-modern">Product Variants</label>
+                        <div id="variantsContainer"></div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="addVariantBtn">
+                            <i class="bi bi-plus me-1"></i> Add Variant
+                        </button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">@Localizer["Lbl.Active"]</label>
-                        <select class="form-select" id="productIsActive">
-                            <option value="true" selected>@Localizer["Opt.Yes"]</option>
-                            <option value="false">@Localizer["Opt.No"]</option>
-                        </select>
+                    
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label-modern" for="productImage">@Localizer["Lbl.ProductImage"]</label>
+                            <input type="file" class="form-control form-control-modern" id="productImage" accept="image/*">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-modern" for="productIsActive">@Localizer["Lbl.Active"]</label>
+                            <select class="form-control form-control-modern" id="productIsActive">
+                                <option value="true" selected>@Localizer["Opt.Yes"] - Active</option>
+                                <option value="false">@Localizer["Opt.No"] - Inactive</option>
+                            </select>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Btn.Cancel"]</button>
-                <button id="submitProduct" type="button" class="btn btn-primary">@Localizer["Btn.Save"]</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">@Localizer["Btn.Cancel"]</button>
+                <button id="submitProduct" type="button" class="btn btn-submit">
+                    <i class="bi bi-check-lg me-1"></i> @Localizer["Btn.Save"]
+                </button>
             </div>
         </div>
     </div>
@@ -167,46 +557,89 @@
 
 <script>
     async function loadMine(){
-        const tbody = document.getElementById('myItemsBody');
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">@Localizer["Loading"]</td></tr>`;
+        const grid = document.getElementById('productsGrid');
+        grid.innerHTML = `
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="text-muted">@Localizer["Loading"]</p>
+            </div>`;
+        
         try{
             const res = await fetch('/api/items/mine', { credentials: 'same-origin' });
             if(!res.ok) throw new Error('Failed');
             const items = await res.json();
+            
             if(!items || items.length === 0){
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">@Localizer["NoProductsYet"]</td></tr>`;
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-box-seam"></i>
+                        <h3>@Localizer["NoProductsYet"]</h3>
+                        <p>Start by adding your first product to the marketplace</p>
+                        <button class="btn btn-submit" onclick="openCreate()">
+                            <i class="bi bi-plus-circle me-1"></i> Add First Product
+                        </button>
+                    </div>`;
                 return;
             }
-            tbody.innerHTML = items.map(i => `
-                <tr>
-                    <td>${i.imageUrl ? `<img src='${i.imageUrl}' alt='img' style='width:60px;height:60px;object-fit:cover;border-radius:6px;'>` : ''}</td>
-                    <td>${i.title || ''}</td>
-                    <td>${i.category || ''}</td>
-                    <td>${(i.price ?? 0).toLocaleString(undefined,{style:'currency',currency:'INR'})}</td>
-                    <td>${i.unit || ''}</td>
-                    <td>${i.variants ? i.variants.map(v => `${v.variantName}: ${v.variantValues.join(', ')}`).join('; ') : ''}</td>
-                    <td>${i.stock ?? 0}</td>
-                    <td>${i.isActive ? `<span class="badge bg-success">@Localizer["Status.Active"]</span>` : `<span class="badge bg-secondary">@Localizer["Status.Inactive"]</span>`}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick='openEdit(${JSON.stringify(i).replace(/'/g, "&apos;")})'>@Localizer["Btn.Edit"]</button>
-                        <button class="btn btn-sm btn-outline-danger" data-id="${i.id}">@Localizer["Btn.Delete"]</button>
-                    </td>
-                </tr>`).join('');
+            
+            grid.innerHTML = items.map(i => `
+                <div class="product-card" data-item-id="${i.id}">
+                    <div class="product-image">
+                        ${i.imageUrl ? 
+                            `<img src="${i.imageUrl}" alt="${i.title || 'Product'}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                             <i class="bi bi-image" style="display:none;"></i>` : 
+                            `<i class="bi bi-box-seam"></i>`}
+                        <span class="product-status ${i.isActive ? 'active' : 'inactive'}">
+                            ${i.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                    <div class="product-body">
+                        <h4 class="product-title">${i.title || 'Untitled'}</h4>
+                        <div class="product-category">
+                            <i class="bi bi-tag"></i>
+                            ${i.category || 'Uncategorized'}
+                            ${i.unit ? ` • ${i.unit}` : ''}
+                        </div>
+                        <div class="product-meta">
+                            <div class="product-price">₹${(i.price ?? 0).toLocaleString()}</div>
+                            <div class="product-stock ${(i.stock ?? 0) < 10 ? 'low' : ''}">
+                                <i class="bi bi-box me-1"></i>${i.stock ?? 0} in stock
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn-action edit" onclick='openEdit(${JSON.stringify(i).replace(/'/g, "&apos;")})'>
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn-action delete" data-id="${i.id}">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
 
-            // wire delete (optimistic: confirm only, remove row immediately; no success/failure alerts)
-            tbody.querySelectorAll('button[data-id]').forEach(btn => {
+            // Wire delete buttons
+            grid.querySelectorAll('.btn-action.delete').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
                     if(!confirm('@Localizer["Confirm.DeleteItem"]')) return;
-                    const row = e.currentTarget.closest('tr');
-                    row?.remove(); // optimistic UI update
+                    const card = e.currentTarget.closest('.product-card');
+                    card?.remove();
                     try{
                         await fetch(`/api/items/${id}`, { method:'DELETE', credentials:'same-origin' });
-                    }catch{ /* ignore errors to avoid confusing alerts */ }
+                    }catch{}
                 });
             });
         }catch{
-            tbody.innerHTML = `<tr><td colspan="9" class="text-danger text-center">@Localizer["Error.FailedToLoad"]</td></tr>`;
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <h3>@Localizer["Error.FailedToLoad"]</h3>
+                    <p>Please try refreshing the page</p>
+                    <button class="btn btn-submit" onclick="loadMine()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Retry
+                    </button>
+                </div>`;
         }
     }
 
@@ -222,6 +655,7 @@
         document.getElementById('productUnit').value = '';
         clearVariants();
         document.getElementById('productIsActive').value = 'true';
+        document.getElementById('productImage').value = '';
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         modal.show();
     }
@@ -246,7 +680,6 @@
     }
 
     document.getElementById('submitProduct').addEventListener('click', async () => {
-        // Validate all fields
         const name = document.getElementById('productName');
         const desc = document.getElementById('productDescription');
         const price = document.getElementById('productPrice');
@@ -276,7 +709,6 @@
         const isEdit = !!id;
 
         if(isEdit){
-            // PUT JSON for update
             const payload = {
                 title: document.getElementById('productName').value,
                 description: document.getElementById('productDescription').value,
@@ -298,7 +730,6 @@
                 loadMine();
             }catch{ alert('@Localizer["Error.UpdateFailed"]'); }
         }else{
-            // POST multipart for create-with-image
             const fd = new FormData();
             fd.append('title', document.getElementById('productName').value);
             fd.append('description', document.getElementById('productDescription').value);
@@ -322,15 +753,16 @@
     document.addEventListener('DOMContentLoaded', loadMine);
 
     // Variants management
-    let variantIndex = 0;
     function addVariant(name = '', values = '') {
         const container = document.getElementById('variantsContainer');
         const div = document.createElement('div');
-        div.className = 'variant-row mb-2 d-flex align-items-center';
+        div.className = 'variant-row';
         div.innerHTML = `
-            <input type="text" class="form-control me-2" placeholder="Variant Name (e.g., Color)" value="${name}" data-variant-name>
-            <input type="text" class="form-control me-2" placeholder="Values (comma separated, e.g., Red,Blue)" value="${values}" data-variant-values>
-            <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()">Remove</button>
+            <input type="text" class="form-control form-control-modern" placeholder="Variant Name (e.g., Color)" value="${name}" data-variant-name>
+            <input type="text" class="form-control form-control-modern" placeholder="Values (comma separated)" value="${values}" data-variant-values>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
         `;
         container.appendChild(div);
     }
@@ -349,7 +781,7 @@
         document.getElementById('variantsContainer').innerHTML = '';
     }
 
-    // Live validations
+    // Validation
     function validateField(field, validator) {
         const value = field.value;
         const isValid = validator(value);
@@ -358,32 +790,25 @@
         return isValid;
     }
 
-    // Title: required, max 100 chars
     document.getElementById('productName').addEventListener('input', function() {
         validateField(this, v => v.trim().length > 0 && v.length <= 100);
     });
 
-    // Description: max 500 chars
     document.getElementById('productDescription').addEventListener('input', function() {
         validateField(this, v => v.length <= 500);
     });
 
-    // Price: >=0, <=1000000
     document.getElementById('productPrice').addEventListener('input', function() {
         const val = parseFloat(this.value);
         validateField(this, v => !isNaN(val) && val >= 0 && val <= 1000000);
     });
 
-    // Stock: >=0, <=100000
     document.getElementById('productStock').addEventListener('input', function() {
         const val = parseInt(this.value);
         validateField(this, v => !isNaN(val) && val >= 0 && val <= 100000);
     });
 
-    // Category: required
     document.getElementById('productCategory').addEventListener('change', function() {
         validateField(this, v => v !== '');
     });
-
-    // Unit: optional for now
 </script>

@@ -248,7 +248,7 @@
         const grid = document.getElementById('itemsGrid');
         grid.innerHTML = `<div class='col-12 text-center text-muted'>Loading...</div>`;
         try{
-            const res = await fetch('/api/items', { credentials: 'same-origin' });
+            const res = await fetch('/api/items?excludeOwn=true', { credentials: 'same-origin' });
             if(!res.ok) throw new Error();
             allItems = await res.json();
             render(allItems);

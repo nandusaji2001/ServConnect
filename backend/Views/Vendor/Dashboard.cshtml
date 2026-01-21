@@ -1,655 +1,807 @@
 @{
     ViewData["Title"] = "Vendor Dashboard";
+    var isGasVendor = ViewBag.IsGasVendor ?? false;
 }
 
 <style>
-    .dashboard-container {
-        padding: 0;
-        background-color: #f8f9fa;
+    :root {
+        --vendor-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --vendor-primary: #10b981;
+        --vendor-secondary: #059669;
+        --card-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        --card-hover-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    }
+    
+    .vendor-dashboard {
         min-height: 100vh;
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        padding-bottom: 40px;
+        overflow-x: hidden;
     }
     
-    .dashboard-header {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
-        margin-bottom: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    /* Hero Header */
+    .dashboard-hero {
+        background: var(--vendor-gradient);
+        padding: 40px 30px;
+        border-radius: 0 0 30px 30px;
+        margin: -20px 0 30px 0;
+        position: relative;
+        overflow: hidden;
     }
     
-    .dashboard-header h1 {
-        margin: 0;
-        font-size: 2.5rem;
-        font-weight: 300;
+    .dashboard-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
     }
     
-    .dashboard-header p {
-        margin: 10px 0 0 0;
-        opacity: 0.9;
-        font-size: 1.1rem;
+    .dashboard-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -60%;
+        left: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
     }
     
-    .welcome-name {
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-content h1 {
+        font-size: 2rem;
+        font-weight: 700;
         color: #fff;
-        font-weight: 500;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        margin-bottom: 8px;
     }
     
-    .stats-grid {
+    .hero-content p {
+        color: rgba(255,255,255,0.85);
+        font-size: 1.05rem;
+        margin: 0;
+    }
+    
+    .hero-date {
+        background: rgba(255,255,255,0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+        color: #fff;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 12px;
+        backdrop-filter: blur(10px);
+    }
+    
+    /* Stat Cards */
+    .stats-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 20px;
         margin-bottom: 30px;
+        margin-top: -60px;
+        position: relative;
+        z-index: 10;
     }
     
     .stat-card {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border-left: 4px solid;
+        background: #fff;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255,255,255,0.8);
     }
     
     .stat-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        box-shadow: var(--card-hover-shadow);
     }
     
-    .stat-card.products { border-left-color: #4CAF50; }
-    .stat-card.orders { border-left-color: #2196F3; }
-    .stat-card.revenue { border-left-color: #FF9800; }
-    .stat-card.customers { border-left-color: #9C27B0; }
+    .stat-icon-wrap {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
     
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin: 0;
-        color: #333;
+    .stat-icon-wrap i {
+        font-size: 24px;
+        color: #fff;
+    }
+    
+    .stat-icon-wrap.products { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .stat-icon-wrap.active { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+    .stat-icon-wrap.inactive { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .stat-icon-wrap.gas { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1;
+        margin-bottom: 4px;
     }
     
     .stat-label {
-        color: #666;
-        font-size: 1rem;
-        margin: 5px 0 0 0;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .stat-icon {
-        float: right;
-        font-size: 2rem;
-        opacity: 0.3;
-        margin-top: -10px;
-    }
-    
-    .quick-actions {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 30px;
-    }
-    
-    .quick-action-btn {
-        background: white;
-        border: none;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        transition: all 0.3s ease;
-        text-decoration: none;
-        color: #333;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-    
-    .quick-action-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        color: #fa709a;
-        text-decoration: none;
-    }
-    
-    .quick-action-btn i {
-        font-size: 2rem;
-        margin-bottom: 10px;
-        color: #fa709a;
-    }
-    
-    .quick-action-btn span {
+        color: #64748b;
+        font-size: 0.9rem;
         font-weight: 500;
     }
     
-    .content-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 20px;
-        margin-bottom: 30px;
-    }
-    
-    .main-content {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-    }
-    
-    .sidebar-content {
+    /* Quick Actions Grid */
+    .section-header {
         display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .sidebar-card {
-        background: white;
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
     }
     
     .section-title {
-        margin: 0 0 20px 0;
-        color: #333;
-        font-size: 1.5rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
         display: flex;
         align-items: center;
+        gap: 10px;
     }
     
     .section-title i {
-        margin-right: 10px;
-        color: #fa709a;
+        color: var(--vendor-primary);
     }
     
-    .order-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 0;
-        border-bottom: 1px solid #eee;
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
     }
     
-    .order-item:last-child {
-        border-bottom: none;
+    .action-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px 20px;
+        text-align: center;
+        text-decoration: none;
+        color: #1e293b;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        position: relative;
+        overflow: hidden;
     }
     
-    .order-info h4 {
-        margin: 0 0 5px 0;
-        color: #333;
-        font-size: 1.1rem;
+    .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--vendor-gradient);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
     }
     
-    .order-info p {
-        margin: 0;
-        color: #666;
-        font-size: 0.9rem;
+    .action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-hover-shadow);
+        text-decoration: none;
+        color: #1e293b;
+        border-color: rgba(102, 126, 234, 0.2);
     }
     
-    .order-status {
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        text-transform: uppercase;
+    .action-card:hover::before {
+        transform: scaleX(1);
     }
     
-    .status-pending {
-        background: #fff3cd;
-        color: #856404;
-    }
-    
-    .status-processing {
-        background: #cce5ff;
-        color: #004085;
-    }
-    
-    .status-shipped {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .status-delivered {
-        background: #d1ecf1;
-        color: #0c5460;
-    }
-    
-    .product-item {
-        display: flex;
-        align-items: center;
-        padding: 15px 0;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .product-item:last-child {
-        border-bottom: none;
-    }
-    
-    .product-image {
+    .action-icon {
         width: 50px;
         height: 50px;
-        background: #fa709a;
-        border-radius: 8px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 1.2rem;
-        margin-right: 15px;
+        margin: 0 auto 14px;
+        font-size: 22px;
     }
     
-    .product-info {
+    .action-icon.purple { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+    .action-icon.green { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+    .action-icon.blue { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+    .action-icon.orange { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+    .action-icon.red { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+    .action-icon.pink { background: rgba(236, 72, 153, 0.12); color: #ec4899; }
+    .action-icon.teal { background: rgba(20, 184, 166, 0.12); color: #14b8a6; }
+    .action-icon.indigo { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+    
+    .action-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+    }
+    
+    .action-subtitle {
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+    
+    .action-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    /* Content Cards */
+    .content-section {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 24px;
+    }
+    
+    .content-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .card-header-custom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .card-title-custom {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .card-title-custom i {
+        color: var(--vendor-primary);
+    }
+    
+    .btn-outline-primary {
+        color: var(--vendor-primary);
+        border-color: var(--vendor-primary);
+    }
+    
+    .btn-outline-primary:hover {
+        background: var(--vendor-primary);
+        border-color: var(--vendor-primary);
+        color: #fff;
+    }
+    
+    /* Activity Items */
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .activity-item {
+        display: flex;
+        gap: 14px;
+        padding: 14px;
+        background: #f8fafc;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+    
+    .activity-item:hover {
+        background: #f1f5f9;
+    }
+    
+    .activity-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .activity-content {
         flex: 1;
     }
     
-    .product-info h5 {
-        margin: 0 0 5px 0;
-        color: #333;
-        font-size: 1rem;
+    .activity-title {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 2px;
     }
     
-    .product-info p {
+    .activity-meta {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #64748b;
+    }
+    
+    .empty-state i {
+        font-size: 48px;
+        color: #cbd5e1;
+        margin-bottom: 16px;
+    }
+    
+    /* Tips Card */
+    .tips-card {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 16px;
+        padding: 20px;
+        color: #fff;
+    }
+    
+    .tips-card h5 {
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .tips-card ul {
+        list-style: none;
+        padding: 0;
         margin: 0;
-        color: #666;
+    }
+    
+    .tips-card li {
+        padding: 8px 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
         font-size: 0.9rem;
+        opacity: 0.95;
     }
     
-    .product-stock {
-        text-align: right;
+    .tips-card li i {
+        margin-top: 2px;
     }
     
-    .stock-count {
-        font-weight: bold;
-        color: #333;
+    /* Quick Stats Mini */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
     
-    .stock-low {
-        color: #dc3545;
+    .quick-stat-item {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
     }
     
-    .stock-good {
-        color: #28a745;
+    .quick-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
     }
     
-    .chart-container {
-        height: 250px;
+    .quick-stat-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 2px;
+    }
+    
+    /* Gas Vendor Banner */
+    .gas-vendor-banner {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        background: #f8f9fa;
+        gap: 16px;
+        color: #78350f;
+    }
+    
+    .gas-vendor-banner i {
+        font-size: 32px;
+    }
+    
+    .gas-vendor-banner .banner-content h5 {
+        font-weight: 600;
+        margin: 0 0 4px 0;
+    }
+    
+    .gas-vendor-banner .banner-content p {
+        margin: 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .gas-vendor-banner .banner-btn {
+        margin-left: auto;
+        background: #fff;
+        color: #f59e0b;
+        padding: 10px 20px;
         border-radius: 10px;
-        color: #666;
-        font-style: italic;
-        margin-top: 20px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
     }
     
-    .alert-item {
-        display: flex;
-        align-items: center;
-        padding: 10px 15px;
-        background: #fff3cd;
-        border-left: 4px solid #ffc107;
-        border-radius: 5px;
-        margin-bottom: 10px;
+    .gas-vendor-banner .banner-btn:hover {
+        background: #fef3c7;
+        text-decoration: none;
     }
     
-    .alert-item:last-child {
-        margin-bottom: 0;
-    }
-    
-    .alert-item i {
-        color: #856404;
-        margin-right: 10px;
-    }
-    
-    .alert-item span {
-        color: #856404;
-        font-size: 0.9rem;
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .content-section {
+            grid-template-columns: 1fr;
+        }
     }
     
     @@media (max-width: 768px) {
-        .dashboard-container {
-            padding: 0;
+        .dashboard-hero {
+            padding: 30px 20px;
+            margin: -15px 0 30px 0;
         }
         
-        .dashboard-header {
-            padding: 20px;
+        .hero-content h1 {
+            font-size: 1.6rem;
         }
         
-        .dashboard-header h1 {
-            font-size: 2rem;
-        }
-        
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .quick-actions {
+        .stats-row {
             grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: -40px;
         }
         
-        .content-grid {
-            grid-template-columns: 1fr;
+        .stat-card {
+            padding: 18px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+        }
+        
+        .actions-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .action-card {
+            padding: 18px 14px;
+        }
+        
+        .gas-vendor-banner {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .gas-vendor-banner .banner-btn {
+            margin-left: 0;
+            margin-top: 12px;
         }
     }
 </style>
 
-<style>
-    .header-wave svg { display:block; width:100%; height:40px; margin-top:-10px; }
-    .dashboard-footer {
-        margin-top: 30px;
-        padding: 18px 22px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        color: #fff;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-    .dashboard-footer .cta { display:flex; gap:10px; }
-    .dashboard-footer .btn-outline-light { border-color:#fff; color:#fff; }
-    .dashboard-footer .btn-outline-light:hover { background:#fff; color:#fa709a; }
-</style>
-
-<div class="dashboard-container">
-    <!-- Header -->
-    <div class="dashboard-header">
-        <h1><i class="fas fa-store"></i> Vendor Dashboard</h1>
-        <p>Welcome back, <span class="welcome-name">@ViewBag.UserName</span>! Let's grow your business today.</p>
-    </div>
-    <div class="header-wave">
-        <svg preserveAspectRatio="none" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0,0V46.29c47.79,22.2,103.59,29,158,17C289.09,36,348.06-1.72,413,0c60.66,1.6,114.22,34.08,172,48,118.91,28.73,228.91-23.19,332-31,88.8-6.79,171.06,16.13,283,36V0Z" opacity=".25" fill="#fa709a"></path><path d="M0,0V15.81C13,36.92,27.64,56.39,47.69,72.05,99.41,112.19,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8C438.17,19.86,512.34,6.09,583,22.75c59.68,14.15,113.73,46.41,173,60.45,70.05,16.71,136.87,1.93,200-22.45,33-13.16,63.74-31.21,94-49.9V0Z" opacity=".5" fill="#fa709a"></path><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46C739.57,4.16,784.39,6.3,828,18.31c110.76,30.42,221.61,3.93,372-18.31V0Z" fill="#fa709a"></path></svg>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-        <div class="stat-card products">
-            <div class="stat-icon">
-                <i class="fas fa-box"></i>
-            </div>
-            <h2 class="stat-number">@ViewBag.TotalItems</h2>
-            <p class="stat-label">Total Items</p>
-        </div>
-        
-        <div class="stat-card orders">
-            <div class="stat-icon">
-                <i class="fas fa-toggle-on"></i>
-            </div>
-            <h2 class="stat-number">@ViewBag.ActiveItems</h2>
-            <p class="stat-label">Active Items</p>
-        </div>
-        
-        <div class="stat-card revenue">
-            <div class="stat-icon">
-                <i class="fas fa-box-open"></i>
-            </div>
-            <h2 class="stat-number">@((ViewBag.TotalItems ?? 0) - (ViewBag.ActiveItems ?? 0))</h2>
-            <p class="stat-label">Inactive Items</p>
-        </div>
-        
-        <div class="stat-card customers">
-            <div class="stat-icon">
-                <i class="fas fa-clock"></i>
-            </div>
-            <h2 class="stat-number">@DateTime.UtcNow.ToString("MMM yyyy")</h2>
-            <p class="stat-label">Updated</p>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-        <a href="/Vendor/Products" class="quick-action-btn">
-            <i class="fas fa-plus-circle"></i>
-            <span>Add Product</span>
-        </a>
-        
-        <a href="/Vendor/Orders" class="quick-action-btn">
-            <i class="fas fa-list-alt"></i>
-            <span>View Orders</span>
-        </a>
-        
-        <a href="/Vendor/GasOrders" class="quick-action-btn">
-            <i class="fas fa-fire text-warning"></i>
-            <span>Gas Orders @(ViewBag.PendingGasOrders > 0 ? $"({ViewBag.PendingGasOrders})" : "")</span>
-        </a>
-        
-        <a href="#" class="quick-action-btn">
-            <i class="fas fa-warehouse"></i>
-            <span>Inventory</span>
-        </a>
-        
-        <a href="#" class="quick-action-btn">
-            <i class="fas fa-chart-bar"></i>
-            <span>Analytics</span>
-        </a>
-        
-        <a href="/Complaints/Create" class="quick-action-btn">
-            <i class="fas fa-flag"></i>
-            <span>Raise Complaint</span>
-        </a>
-
-        <a href="/Complaints/MyComplaints" class="quick-action-btn">
-            <i class="fas fa-clipboard-list"></i>
-            <span>My Complaints</span>
-        </a>
-
-        <a href="/Home/Items?role=ServiceProvider" class="quick-action-btn">
-            <i class="fas fa-briefcase"></i>
-            <span>Browse Services</span>
-        </a>
-        
-        <a href="#" class="quick-action-btn" onclick="alert('Booking flow coming soon');return false;">
-            <i class="fas fa-calendar-check"></i>
-            <span>Book Service</span>
-        </a>
-        
-        <a href="/Home/Items?role=Vendor" class="quick-action-btn">
-            <i class="fas fa-store"></i>
-            <span>Seller Items</span>
-        </a>
-        
-        <a href="/Account/Profile" class="quick-action-btn">
-            <i class="fas fa-user-cog"></i>
-            <span>Profile</span>
-        </a>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div class="content-grid">
-        <!-- Items Summary -->
-        <div class="main-content">
-            <h3 class="section-title">
-                <i class="fas fa-boxes"></i>
-                My Items Snapshot
-            </h3>
-            <div class="row g-3">
-                <div class="col-sm-6 col-lg-3">
-                    <div class="stat-card products">
-                        <div class="stat-icon"><i class="fas fa-box"></i></div>
-                        <h2 class="stat-number">@ViewBag.TotalItems</h2>
-                        <p class="stat-label">Total Items</p>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                    <div class="stat-card orders">
-                        <div class="stat-icon"><i class="fas fa-toggle-on"></i></div>
-                        <h2 class="stat-number">@ViewBag.ActiveItems</h2>
-                        <p class="stat-label">Active</p>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                    <div class="stat-card revenue">
-                        <div class="stat-icon"><i class="fas fa-toggle-off"></i></div>
-                        <h2 class="stat-number">@((ViewBag.TotalItems ?? 0) - (ViewBag.ActiveItems ?? 0))</h2>
-                        <p class="stat-label">Inactive</p>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                    <div class="stat-card customers">
-                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                        <h2 class="stat-number">@DateTime.UtcNow.ToString("dd MMM")</h2>
-                        <p class="stat-label">As of</p>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-3">
-                <a href="/Vendor/Products" class="btn btn-primary"><i class="fas fa-plus"></i> Manage Items</a>
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="sidebar-content">
-            <!-- Top Products -->
-            <div class="sidebar-card">
-                <h4 class="section-title">
-                    <i class="fas fa-trophy"></i>
-                    Top Products
-                </h4>
-                
-                <div class="product-item">
-                    <div class="product-image">
-                        <i class="fas fa-laptop"></i>
-                    </div>
-                    <div class="product-info">
-                        <h5>Gaming Laptop</h5>
-                        <p>45 sold this month</p>
-                    </div>
-                    <div class="product-stock">
-                        <div class="stock-count stock-good">12 left</div>
-                    </div>
-                </div>
-                
-                <div class="product-item">
-                    <div class="product-image">
-                        <i class="fas fa-headphones"></i>
-                    </div>
-                    <div class="product-info">
-                        <h5>Wireless Headphones</h5>
-                        <p>38 sold this month</p>
-                    </div>
-                    <div class="product-stock">
-                        <div class="stock-count stock-low">3 left</div>
-                    </div>
-                </div>
-                
-                <div class="product-item">
-                    <div class="product-image">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <div class="product-info">
-                        <h5>Smartphone Case</h5>
-                        <p>29 sold this month</p>
-                    </div>
-                    <div class="product-stock">
-                        <div class="stock-count stock-good">25 left</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Alerts -->
-            <div class="sidebar-card">
-                <h4 class="section-title">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Alerts
-                </h4>
-                
-                <div class="alert-item">
-                    <i class="fas fa-box"></i>
-                    <span>5 products are low in stock</span>
-                </div>
-                
-                <div class="alert-item">
-                    <i class="fas fa-clock"></i>
-                    <span>3 orders need processing</span>
-                </div>
-                
-                <div class="alert-item">
-                    <i class="fas fa-star"></i>
-                    <span>2 new reviews to respond to</span>
-                </div>
-            </div>
-
-            <!-- Quick Stats -->
-            <div class="sidebar-card">
-                <h4 class="section-title">
-                    <i class="fas fa-tachometer-alt"></i>
-                    Quick Stats
-                </h4>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                    <span>Today's Sales:</span>
-                    <strong>$234.50</strong>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                    <span>Pending Orders:</span>
-                    <strong style="color: #FF9800;">7</strong>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                    <span>Conversion Rate:</span>
-                    <strong style="color: #4CAF50;">3.2%</strong>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Customer Rating:</span>
-                    <strong style="color: #FF9800;">⭐ 4.6/5</strong>
-                </div>
-            </div>
-        </div>
-        <div class="dashboard-footer">
-            <div>
-                <strong>Boost your catalog today</strong>
-                <div class="text-white-50">Add new products or review orders quickly.</div>
-            </div>
-            <div class="cta">
-                <a class="btn btn-sm btn-outline-light" href="/Vendor/Products"><i class="fas fa-plus-circle"></i> Add Product</a>
-                <a class="btn btn-sm btn-outline-light" href="/Vendor/Orders"><i class="fas fa-list"></i> Orders</a>
-                <a class="btn btn-sm btn-outline-light" href="/Account/Profile"><i class="fas fa-user-cog"></i> Profile</a>
+<div class="vendor-dashboard">
+    <!-- Hero Header -->
+    <div class="dashboard-hero">
+        <div class="hero-content">
+            <h1><i class="bi bi-shop"></i> Welcome, @ViewBag.UserName!</h1>
+            <p>Manage your products, track orders, and grow your business</p>
+            <div class="hero-date">
+                <i class="bi bi-calendar3"></i>
+                @DateTime.UtcNow.ToString("dddd, MMMM dd, yyyy")
             </div>
         </div>
     </div>
+    
+    <!-- Stats Cards -->
+    <div class="container-fluid px-3 px-md-4">
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon-wrap products">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="stat-value">@ViewBag.TotalItems</div>
+                <div class="stat-label">Total Products</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon-wrap active">
+                    <i class="bi bi-toggle-on"></i>
+                </div>
+                <div class="stat-value">@ViewBag.ActiveItems</div>
+                <div class="stat-label">Active Listings</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon-wrap inactive">
+                    <i class="bi bi-toggle-off"></i>
+                </div>
+                <div class="stat-value">@((ViewBag.TotalItems ?? 0) - (ViewBag.ActiveItems ?? 0))</div>
+                <div class="stat-label">Inactive Products</div>
+            </div>
+            
+            @if (isGasVendor)
+            {
+                <div class="stat-card">
+                    <div class="stat-icon-wrap gas">
+                        <i class="bi bi-fire"></i>
+                    </div>
+                    <div class="stat-value">@ViewBag.PendingGasOrders</div>
+                    <div class="stat-label">Gas Orders Pending</div>
+                </div>
+            }
+        </div>
+        
+        <!-- Gas Vendor Banner -->
+        @if (isGasVendor && ViewBag.PendingGasOrders > 0)
+        {
+            <div class="gas-vendor-banner">
+                <i class="bi bi-fire"></i>
+                <div class="banner-content">
+                    <h5>You have @ViewBag.PendingGasOrders pending gas orders!</h5>
+                    <p>Review and process customer orders from the IoT auto-booking system</p>
+                </div>
+                <a href="/Vendor/GasOrders" class="banner-btn">
+                    <i class="bi bi-arrow-right me-1"></i> View Orders
+                </a>
+            </div>
+        }
+        
+        <!-- Quick Actions -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-lightning-charge"></i>
+                Quick Actions
+            </h2>
+        </div>
+        
+        <div class="actions-grid">
+            <a href="/Vendor/Products" class="action-card">
+                <div class="action-icon purple">
+                    <i class="bi bi-plus-circle"></i>
+                </div>
+                <div class="action-title">Add Product</div>
+                <div class="action-subtitle">List new items</div>
+            </a>
+            
+            <a href="/Vendor/Products" class="action-card">
+                <div class="action-icon green">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="action-title">My Products</div>
+                <div class="action-subtitle">Manage listings</div>
+            </a>
+            
+            <a href="/Vendor/Orders" class="action-card">
+                <div class="action-icon blue">
+                    <i class="bi bi-bag-check"></i>
+                </div>
+                <div class="action-title">Orders</div>
+                <div class="action-subtitle">Track & fulfill</div>
+            </a>
+            
+            @if (isGasVendor)
+            {
+                <a href="/Vendor/GasOrders" class="action-card">
+                    @if (ViewBag.PendingGasOrders > 0)
+                    {
+                        <span class="action-badge">@ViewBag.PendingGasOrders</span>
+                    }
+                    <div class="action-icon orange">
+                        <i class="bi bi-fire"></i>
+                    </div>
+                    <div class="action-title">Gas Orders</div>
+                    <div class="action-subtitle">IoT bookings</div>
+                </a>
+            }
+            
+            <a href="/Home/Items" class="action-card">
+                <div class="action-icon teal">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </div>
+                <div class="action-title">Marketplace</div>
+                <div class="action-subtitle">Browse all</div>
+            </a>
+            
+            <a href="/Complaints/Create" class="action-card">
+                <div class="action-icon red">
+                    <i class="bi bi-flag"></i>
+                </div>
+                <div class="action-title">Raise Issue</div>
+                <div class="action-subtitle">Report problem</div>
+            </a>
+            
+            <a href="/Complaints/MyComplaints" class="action-card">
+                <div class="action-icon pink">
+                    <i class="bi bi-clipboard-check"></i>
+                </div>
+                <div class="action-title">My Complaints</div>
+                <div class="action-subtitle">Track issues</div>
+            </a>
+            
+            <a href="/Vendor/Settings" class="action-card">
+                <div class="action-icon indigo">
+                    <i class="bi bi-gear"></i>
+                </div>
+                <div class="action-title">Settings</div>
+                <div class="action-subtitle">Configure store</div>
+            </a>
+        </div>
+        
+        <!-- Content Section -->
+        <div class="content-section">
+            <!-- Main Content -->
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <h3 class="card-title-custom">
+                        <i class="bi bi-activity"></i>
+                        Recent Activity
+                    </h3>
+                    <a href="/Vendor/Orders" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                
+                <div class="activity-list" id="activityList">
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h5>No recent activity</h5>
+                        <p>Start by adding products to your store</p>
+                        <a href="/Vendor/Products" class="btn btn-primary mt-2">
+                            <i class="bi bi-plus-circle me-1"></i> Add First Product
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="d-flex flex-column gap-4">
+                <!-- Quick Stats -->
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <h3 class="card-title-custom">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            Overview
+                        </h3>
+                    </div>
+                    <div class="quick-stats">
+                        <div class="quick-stat-item">
+                            <div class="quick-stat-value text-success">@ViewBag.ActiveItems</div>
+                            <div class="quick-stat-label">Live Products</div>
+                        </div>
+                        <div class="quick-stat-item">
+                            <div class="quick-stat-value text-primary">@ViewBag.TotalItems</div>
+                            <div class="quick-stat-label">Total Listed</div>
+                        </div>
+                        @if (isGasVendor)
+                        {
+                            <div class="quick-stat-item">
+                                <div class="quick-stat-value text-warning">@ViewBag.PendingGasOrders</div>
+                                <div class="quick-stat-label">Gas Pending</div>
+                            </div>
+                            <div class="quick-stat-item">
+                                <div class="quick-stat-value text-info">
+                                    <i class="bi bi-patch-check-fill"></i>
+                                </div>
+                                <div class="quick-stat-label">Gas Vendor</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Tips -->
+                <div class="tips-card">
+                    <h5><i class="bi bi-lightbulb"></i> Seller Tips</h5>
+                    <ul>
+                        <li>
+                            <i class="bi bi-check-circle"></i>
+                            <span>Add high-quality product images for better sales</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle"></i>
+                            <span>Keep your inventory updated to avoid stockouts</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle"></i>
+                            <span>Respond to orders promptly for better ratings</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle"></i>
+                            <span>Complete your business profile for credibility</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-    // Add some interactivity
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate stat numbers on load
-        const statNumbers = document.querySelectorAll('.stat-number');
-        statNumbers.forEach(stat => {
-            const text = stat.textContent;
-            if (text.includes('$')) {
-                const finalNumber = parseInt(text.replace('$', '').replace(',', ''));
-                let currentNumber = 0;
-                const increment = finalNumber / 50;
-                
-                const timer = setInterval(() => {
-                    currentNumber += increment;
-                    if (currentNumber >= finalNumber) {
-                        stat.textContent = '$' + finalNumber.toLocaleString();
-                        clearInterval(timer);
-                    } else {
-                        stat.textContent = '$' + Math.floor(currentNumber).toLocaleString();
-                    }
-                }, 30);
-            } else {
-                const finalNumber = parseInt(text);
-                let currentNumber = 0;
-                const increment = finalNumber / 30;
-                
-                const timer = setInterval(() => {
-                    currentNumber += increment;
-                    if (currentNumber >= finalNumber) {
-                        stat.textContent = finalNumber;
-                        clearInterval(timer);
-                    } else {
-                        stat.textContent = Math.floor(currentNumber);
-                    }
-                }, 50);
-            }
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stat values
+    const statValues = document.querySelectorAll('.stat-value');
+    statValues.forEach(stat => {
+        const text = stat.textContent.trim();
+        const num = parseInt(text);
+        if (!isNaN(num) && num > 0) {
+            let current = 0;
+            const increment = Math.ceil(num / 20);
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= num) {
+                    stat.textContent = num;
+                    clearInterval(timer);
+                } else {
+                    stat.textContent = current;
+                }
+            }, 40);
+        }
     });
+    
+    // Load recent activity
+    loadRecentActivity();
+});
+
+async function loadRecentActivity() {
+    try {
+        const response = await fetch('/api/items/mine', { credentials: 'same-origin' });
+        if (response.ok) {
+            const items = await response.json();
+            const activityList = document.getElementById('activityList');
+            
+            if (items && items.length > 0) {
+                const recentItems = items.slice(0, 5);
+                activityList.innerHTML = recentItems.map(item => `
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: rgba(16, 185, 129, 0.12);">
+                            ${item.imageUrl ? 
+                                `<img src="${item.imageUrl}" alt="" style="width: 42px; height: 42px; object-fit: cover; border-radius: 12px;">` :
+                                `<i class="bi bi-box" style="color: #10b981; font-size: 18px;"></i>`
+                            }
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">${item.title || 'Untitled Product'}</div>
+                            <div class="activity-meta">
+                                ${item.isActive ? 
+                                    '<span class="text-success"><i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i>Active</span>' : 
+                                    '<span class="text-muted"><i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i>Inactive</span>'
+                                }
+                                &middot; ₹${(item.price || 0).toLocaleString()}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (e) {
+        console.log('Could not load activity');
+    }
+}
 </script>
