@@ -403,9 +403,9 @@
 
 @section Scripts {
     <script>
-        // Malayalam text constants
-        const notCheckedInText = '@Html.Raw(isMalayalam ? "ഇന്ന് ചെക്ക്-ഇൻ ചെയ്തില്ല!" : "Not checked in today!")';
-        const defaultCheckinText = '@Html.Raw(isMalayalam ? "നിങ്ങളുടെ സുഖം അറിയിക്കുക" : "Let us know you\u0027re okay")';
+        // Malayalam text constants - use Json.Serialize for proper escaping
+        const notCheckedInText = @Html.Raw(Json.Serialize(isMalayalam ? "ഇന്ന് ചെക്ക്-ഇൻ ചെയ്തില്ല!" : "Not checked in today!"));
+        const defaultCheckinText = @Html.Raw(Json.Serialize(isMalayalam ? "നിങ്ങളുടെ സുഖം അറിയിക്കുക" : "Let us know you're okay"));
         
         // Load dashboard alerts
         document.addEventListener('DOMContentLoaded', function() {

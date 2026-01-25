@@ -486,13 +486,13 @@
                     @if (isPending)
                     {
                         <div class="request-actions">
-                            <form asp-controller="Admin" asp-action="ApproveAdvertisementRequest" method="post">
+                            <form asp-controller="Admin" asp-action="ApproveAdRequest" method="post">
                                 <input type="hidden" name="id" value="@request.Id" />
                                 <button type="submit" class="btn-action btn-approve" title="Approve">
                                     <i class="fas fa-check"></i>
                                 </button>
                             </form>
-                            <form asp-controller="Admin" asp-action="RejectAdvertisementRequest" method="post">
+                            <form asp-controller="Admin" asp-action="RejectAdRequest" method="post">
                                 <input type="hidden" name="id" value="@request.Id" />
                                 <button type="submit" class="btn-action btn-reject" title="Reject">
                                     <i class="fas fa-times"></i>

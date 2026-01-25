@@ -1,0 +1,35 @@
+# ID Verification API Dockerfile
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies for EasyOCR
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install additional dependencies for ID verification
+RUN pip install --no-cache-dir easyocr Pillow
+
+# Copy the API code
+COPY id_verification_api.py .
+
+# Expose port
+EXPOSE 5004
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5004/health')" || exit 1
+
+# Run the API
+CMD ["python", "id_verification_api.py"]

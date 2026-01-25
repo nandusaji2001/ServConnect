@@ -353,10 +353,50 @@
                 <i class="bi bi-exclamation-triangle"></i> Please complete your profile to continue using the app.
             </div>
         }
+        else if (Model.IsIdAutoApproved && Model.IsAdminApproved)
+        {
+            <div class="alert-success">
+                <i class="bi bi-check-circle"></i> Your ID has been verified automatically! Your account is now approved.
+                @if (Model.IdVerificationScore > 0)
+                {
+                    <br /><small>Name match: @(Math.Round(Model.IdVerificationScore * 100, 1))%</small>
+                }
+            </div>
+        }
+        else if (!Model.IsAdminApproved && Model.IsProfileCompleted && !string.IsNullOrEmpty(Model.ExistingIdentityProofUrl))
+        {
+            @if (!string.IsNullOrEmpty(Model.IdVerificationMessage))
+            {
+                <div class="alert-warning">
+                    <i class="bi bi-clock-history"></i> @Model.IdVerificationMessage
+                    @if (Model.IdVerificationScore > 0 && Model.IdVerificationScore < 0.75)
+                    {
+                        <br /><small>Name similarity detected: @(Math.Round(Model.IdVerificationScore * 100, 1))% (minimum 75% required for auto-approval)</small>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ExtractedNameFromId))
+                    {
+                        <br /><small>Name detected on ID: @Model.ExtractedNameFromId</small>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert-info">
+                    <i class="bi bi-info-circle"></i> Your profile is pending admin approval. Some features are disabled until approval.
+                </div>
+            }
+        }
         else if (!Model.IsAdminApproved)
         {
             <div class="alert-info">
                 <i class="bi bi-info-circle"></i> Your profile is pending admin approval. Some features are disabled until approval.
+            </div>
+        }
+
+        @if (TempData["InfoMessage"] != null)
+        {
+            <div class="alert-info">
+                <i class="bi bi-info-circle"></i> @TempData["InfoMessage"]
             </div>
         }
 

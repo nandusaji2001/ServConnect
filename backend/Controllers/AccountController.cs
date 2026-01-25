@@ -19,6 +19,7 @@ namespace ServConnect.Controllers
     private readonly ISmsService _smsService;
     private readonly IOtpService _otpService;
     private readonly IFirebaseAuthService _firebaseAuthService;
+    private readonly IIdVerificationService _idVerificationService;
 
     public AccountController(
         UserManager<Users> userManager,
@@ -29,7 +30,8 @@ namespace ServConnect.Controllers
         ILogger<AccountController> logger,
         ISmsService smsService,
         IOtpService otpService,
-        IFirebaseAuthService firebaseAuthService)
+        IFirebaseAuthService firebaseAuthService,
+        IIdVerificationService idVerificationService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -40,6 +42,7 @@ namespace ServConnect.Controllers
         _smsService = smsService;
         _otpService = otpService;
         _firebaseAuthService = firebaseAuthService;
+        _idVerificationService = idVerificationService;
     }
 
     #region Registration
@@ -320,7 +323,8 @@ namespace ServConnect.Controllers
 
         if (user.IsAdminApproved && user.IsProfileCompleted)
         {
-            return RedirectToAction(nameof(ProfileUpdate));
+            // Approved users go to dashboard, not profile page
+            return RedirectToAction("Index", "Home");
         }
 
         // Restrict navigation while profile is incomplete
@@ -338,7 +342,13 @@ namespace ServConnect.Controllers
             IdentityProofRequired = !user.IsAdminApproved && string.IsNullOrWhiteSpace(user.IdentityProofUrl),
             ProfileImageRequired = !user.IsAdminApproved && string.IsNullOrWhiteSpace(user.ProfileImageUrl),
             ExistingProfileImageUrl = user.ProfileImageUrl,
-            ExistingIdentityProofUrl = user.IdentityProofUrl
+            ExistingIdentityProofUrl = user.IdentityProofUrl,
+            // ID Verification status
+            IsIdVerified = user.IsIdVerified,
+            IsIdAutoApproved = user.IsIdAutoApproved,
+            IdVerificationScore = user.IdVerificationScore,
+            IdVerificationMessage = user.IdVerificationMessage,
+            ExtractedNameFromId = user.ExtractedNameFromId
         };
 
         return View(model);
@@ -412,7 +422,8 @@ namespace ServConnect.Controllers
             user.ProfileImageUrl = profileImageBeforeUpdate;
         }
 
-        // Handle identity proof upload
+        // Handle identity proof upload with OCR-based verification
+        bool newIdUploaded = false;
         if (!user.IsAdminApproved && model.IdentityProof != null && model.IdentityProof.Length > 0)
         {
             var proofsFolder = Path.Combine(_env.WebRootPath, "uploads", "identity");
@@ -425,6 +436,75 @@ namespace ServConnect.Controllers
                 await model.IdentityProof.CopyToAsync(proofStream);
             }
             user.IdentityProofUrl = $"/uploads/identity/{uniqueProofName}";
+            newIdUploaded = true;
+            
+            // Perform OCR-based ID verification (only for image files, not PDF)
+            var isImageFile = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" }
+                .Contains(ext.ToLowerInvariant());
+            
+            if (isImageFile)
+            {
+                try
+                {
+                    // Read the file and convert to base64 for OCR verification
+                    using var memoryStream = new MemoryStream();
+                    await model.IdentityProof.OpenReadStream().CopyToAsync(memoryStream);
+                    var imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
+                    
+                    _logger.LogInformation("Performing OCR verification for user: {UserName}", model.Name);
+                    
+                    var verificationResult = await _idVerificationService.VerifyIdentityBase64Async(
+                        model.Name, 
+                        imageBase64
+                    );
+                    
+                    // Store verification results
+                    user.IsIdVerified = verificationResult.Verified;
+                    user.IsIdAutoApproved = verificationResult.AutoApproved;
+                    user.IdVerificationScore = verificationResult.SimilarityScore;
+                    user.IdVerificationMessage = verificationResult.Message;
+                    user.ExtractedNameFromId = verificationResult.BestMatch?.ExtractedName;
+                    user.IdVerifiedAtUtc = DateTime.UtcNow;
+                    
+                    _logger.LogInformation(
+                        "ID verification result for {UserName}: Verified={Verified}, AutoApproved={AutoApproved}, Score={Score}, Message={Message}",
+                        model.Name,
+                        verificationResult.Verified,
+                        verificationResult.AutoApproved,
+                        verificationResult.SimilarityScore,
+                        verificationResult.Message
+                    );
+                    
+                    // If auto-approved, set admin approval
+                    if (verificationResult.AutoApproved)
+                    {
+                        user.IsAdminApproved = true;
+                        user.AdminReviewNote = $"Auto-approved via OCR verification. Name match: {Math.Round(verificationResult.SimilarityScore * 100, 1)}%. Extracted name: {verificationResult.BestMatch?.ExtractedName ?? "N/A"}";
+                        user.AdminReviewedAtUtc = DateTime.UtcNow;
+                        TempData["SuccessMessage"] = "Your ID has been verified successfully! Your account is now approved.";
+                    }
+                    else
+                    {
+                        TempData["InfoMessage"] = verificationResult.Message ?? "Your ID could not be auto-verified. It will be reviewed by an admin.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during OCR verification for user: {UserName}", model.Name);
+                    user.IsIdVerified = false;
+                    user.IsIdAutoApproved = false;
+                    user.IdVerificationMessage = "OCR verification failed. Your ID will be reviewed by an admin.";
+                    TempData["InfoMessage"] = "ID verification service unavailable. Your ID will be reviewed by an admin.";
+                }
+            }
+            else
+            {
+                // PDF files cannot be OCR processed, require admin review
+                user.IsIdVerified = false;
+                user.IsIdAutoApproved = false;
+                user.IdVerificationMessage = "PDF documents require admin review for verification.";
+                TempData["InfoMessage"] = "PDF documents require admin review. Please wait for approval.";
+            }
         }
 
         var hasIdentityProof = !string.IsNullOrWhiteSpace(user.IdentityProofUrl);
@@ -435,7 +515,8 @@ namespace ServConnect.Controllers
                                   !string.IsNullOrWhiteSpace(user.ProfileImageUrl) &&
                                   hasIdentityProof;
         // Reset approval only when identity proof is updated or approval not granted yet
-        if (!adminApprovedBeforeUpdate)
+        // Skip reset if the new ID was auto-approved
+        if (!adminApprovedBeforeUpdate && !user.IsIdAutoApproved)
         {
             if (user.IsProfileCompleted)
             {
@@ -444,7 +525,7 @@ namespace ServConnect.Controllers
                 user.AdminReviewedAtUtc = null;
             }
         }
-        else if (identityProofBeforeUpdate != user.IdentityProofUrl && !string.IsNullOrWhiteSpace(user.IdentityProofUrl))
+        else if (identityProofBeforeUpdate != user.IdentityProofUrl && !string.IsNullOrWhiteSpace(user.IdentityProofUrl) && !user.IsIdAutoApproved)
         {
             user.IsAdminApproved = false;
             user.AdminReviewNote = null;
@@ -468,6 +549,13 @@ namespace ServConnect.Controllers
                 }
             }
 
+            // If user was auto-approved via OCR, redirect to dashboard
+            if (user.IsAdminApproved && user.IsProfileCompleted)
+            {
+                TempData["SuccessMessage"] = "Your profile has been verified and approved! Welcome to ServConnect.";
+                return RedirectToAction("Index", "Home");
+            }
+            
             TempData["SuccessMessage"] = "Profile updated successfully!";
             return RedirectToAction("Profile");
         }
