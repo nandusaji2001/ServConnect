@@ -13,11 +13,16 @@ namespace ServConnect.Controllers
     {
         private readonly IConfiguration _config;
         private readonly IContentModerationService _contentModeration;
+        private readonly IIdVerificationService _idVerification;
         
-        public DebugController(IConfiguration config, IContentModerationService contentModeration)
+        public DebugController(
+            IConfiguration config, 
+            IContentModerationService contentModeration,
+            IIdVerificationService idVerification)
         {
             _config = config;
             _contentModeration = contentModeration;
+            _idVerification = idVerification;
         }
 
         [HttpGet("/debug/content-moderation/test")]
@@ -39,6 +44,17 @@ namespace ServConnect.Controllers
             {
                 return StatusCode(500, new { error = ex.Message, stack = ex.StackTrace });
             }
+        }
+        
+        [HttpGet("/debug/id-verification/status")]
+        public IActionResult IdVerificationStatus()
+        {
+            return Ok(new
+            {
+                serviceAvailable = _idVerification.IsServiceAvailable,
+                apiUrl = _config["IdVerification:ApiUrl"],
+                threshold = _config["IdVerification:Threshold"]
+            });
         }
 
         private static string MaskMongoConnectionString(string conn)

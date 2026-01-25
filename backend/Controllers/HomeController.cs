@@ -193,6 +193,15 @@ namespace ServConnect.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Daily Essentials selection page - Milk, Newspaper, Gas subscriptions
+        /// </summary>
+        [Authorize]
+        public IActionResult DailyEssentials()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

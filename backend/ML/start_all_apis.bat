@@ -6,6 +6,7 @@ echo.
 echo   - Content Moderation API (Port 5050)
 echo   - Elder Wellness API (Port 5002)
 echo   - Item Matching API (Port 5003)
+echo   - ID Verification API (Port 5004)
 echo.
 echo ================================================
 
@@ -24,6 +25,7 @@ REM Install dependencies
 echo Installing dependencies...
 pip install -r requirements.txt -q
 pip install sentence-transformers -q
+pip install easyocr Pillow -q
 
 REM Check and train models if needed
 echo.
@@ -53,6 +55,9 @@ start "Elder Wellness API - Port 5002" cmd /k "cd /d "%~dp0" && call venv\Script
 timeout /t 2 /nobreak > nul
 
 start "Item Matching API - Port 5003" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python item_matching_api.py"
+timeout /t 2 /nobreak > nul
+
+start "ID Verification API - Port 5004" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python id_verification_api.py"
 
 echo.
 echo ================================================
@@ -62,6 +67,7 @@ echo.
 echo   Content Moderation API: http://localhost:5050
 echo   Elder Wellness API:     http://localhost:5002
 echo   Item Matching API:      http://localhost:5003
+echo   ID Verification API:    http://localhost:5004
 echo.
 echo   Each API is running in its own window.
 echo   Close this window or press any key to exit.

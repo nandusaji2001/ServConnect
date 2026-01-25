@@ -22,6 +22,14 @@ namespace ServConnect.Models
         public string? AdminReviewNote { get; set; }
         public DateTime? AdminReviewedAtUtc { get; set; }
         
+        // OCR-based ID Verification
+        public bool IsIdVerified { get; set; } = false;
+        public bool IsIdAutoApproved { get; set; } = false;
+        public double IdVerificationScore { get; set; } = 0;
+        public string? IdVerificationMessage { get; set; }
+        public string? ExtractedNameFromId { get; set; }
+        public DateTime? IdVerifiedAtUtc { get; set; }
+        
         // OTP and Password Reset
         public string? PasswordResetOtp { get; set; }
         public DateTime? OtpExpiryTime { get; set; }

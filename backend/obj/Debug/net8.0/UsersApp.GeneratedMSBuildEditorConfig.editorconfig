@@ -326,6 +326,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb250YWN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/DailyEssentials.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxEYWlseUVzc2VudGlhbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Home/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxEYXNoYm9hcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 

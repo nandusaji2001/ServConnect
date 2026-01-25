@@ -38,6 +38,13 @@ namespace ServConnect.ViewModels
         public bool ProfileImageRequired { get; set; }
         public string? ExistingProfileImageUrl { get; set; }
         public string? ExistingIdentityProofUrl { get; set; }
+        
+        // ID Verification status
+        public bool IsIdVerified { get; set; }
+        public bool IsIdAutoApproved { get; set; }
+        public double IdVerificationScore { get; set; }
+        public string? IdVerificationMessage { get; set; }
+        public string? ExtractedNameFromId { get; set; }
 
         // For password change
         [DataType(DataType.Password)]

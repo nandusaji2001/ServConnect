@@ -136,7 +136,22 @@
                         {
                             <!-- Main Navigation Items -->
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                                @if (User?.Identity?.IsAuthenticated == true && User.IsInRole(RoleTypes.Admin))
+                                {
+                                    <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">Home</a>
+                                }
+                                else if (User?.Identity?.IsAuthenticated == true && User.IsInRole(RoleTypes.ServiceProvider))
+                                {
+                                    <a class="nav-link" asp-controller="ServiceProvider" asp-action="Dashboard">Home</a>
+                                }
+                                else if (User?.Identity?.IsAuthenticated == true && User.IsInRole(RoleTypes.Vendor))
+                                {
+                                    <a class="nav-link" asp-controller="Vendor" asp-action="Dashboard">Home</a>
+                                }
+                                else
+                                {
+                                    <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                                }
                             </li>
                             
                             <!-- Services Dropdown -->

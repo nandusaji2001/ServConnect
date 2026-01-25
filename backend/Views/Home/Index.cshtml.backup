@@ -1,0 +1,1550 @@
+@{
+    ViewData["Title"] = "ServConnect - Your Service Marketplace";
+    var newsLocations = ViewBag.NewsLocations as string[] ?? new[] { "Kattappana", "Nedumkandam", "Kanjirappally", "Kumily", "Kuttikkanam" };
+    var defaultNewsLocation = newsLocations.Length > 0 ? newsLocations[0] : "Kattappana";
+}
+
+<style>
+    /* Override navbar for Index page - transparent overlay on hero */
+    header .app-navbar,
+    .app-navbar,
+    nav.app-navbar,
+    .navbar.app-navbar {
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border-bottom: none !important;
+    }
+    
+    .app-navbar::before,
+    nav.app-navbar::before,
+    .navbar.app-navbar::before {
+        display: none !important;
+        background: transparent !important;
+        opacity: 0 !important;
+    }
+    
+    /* Add subtle text shadow for better readability on video */
+    .app-navbar .nav-link,
+    .app-navbar .navbar-brand {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Navbar background on scroll */
+    .app-navbar.scrolled,
+    nav.app-navbar.scrolled,
+    .navbar.app-navbar.scrolled {
+        background: linear-gradient(135deg, rgba(6, 62, 28, 0.95) 0%, rgba(22, 88, 48, 0.95) 100%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .app-navbar.scrolled::before,
+    nav.app-navbar.scrolled::before {
+        display: block !important;
+        opacity: 1 !important;
+    }
+
+    /* CSS Variables for Light Theme */
+    :root {
+        --primary: #10B981;
+        --primary-dark: #059669;
+        --primary-light: #34D399;
+        --accent: #3B82F6;
+        --bg-light: #ffffff;
+        --bg-section: #f8fafc;
+        --bg-card: #ffffff;
+        --bg-card-hover: #f9fafb;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.15);
+        --shadow-glow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    body, html {
+        margin: 0;
+        padding: 0;
+        background: var(--bg-light) !important;
+    }
+
+    /* Hero Section with 3D Model */
+    .hero-section {
+        position: relative;
+        color: white;
+        padding: 0;
+        text-align: center;
+        margin: 0;
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    /* Video Background Container */
+    #hero-video-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    #hero-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* Subtle gradient overlay */
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 40%, transparent 70%);
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .hero-section > .container-fluid { 
+        position: relative; 
+        z-index: 3; 
+        margin: 0 auto;
+        padding: 0;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    /* Enable pointer events on interactive elements inside container */
+    .hero-section .search-wrap,
+    .hero-section .search-select,
+    .hero-section .search-input,
+    .hero-section .search-btn,
+    .hero-section a,
+    .hero-section button {
+        pointer-events: auto;
+    }
+
+    /* Modern Minimal Hero Content */
+    .hero-content {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+        animation: fadeIn 1s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-subtitle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+        animation: fadeInDown 0.8s ease-out 0.2s both;
+        text-shadow: 
+            -1px -1px 0 #fff,
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff,
+            0 0 20px rgba(255, 255, 255, 1),
+            0 0 40px rgba(255, 255, 255, 0.8);
+    }
+
+    .hero-subtitle i {
+        font-size: 1rem;
+        filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 20px;
+        line-height: 1.1;
+        color: var(--text-primary);
+        animation: fadeInUp 0.8s ease-out 0.3s both;
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
+        paint-order: stroke fill;
+        text-shadow: 
+            -2px -2px 0 #fff,
+            2px -2px 0 #fff,
+            -2px 2px 0 #fff,
+            2px 2px 0 #fff,
+            0 0 30px rgba(255, 255, 255, 1),
+            0 0 60px rgba(255, 255, 255, 0.9),
+            0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .hero-title .highlight-badge {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        -webkit-text-stroke: 2px #fff;
+        paint-order: stroke fill;
+        text-shadow: none;
+        filter: none;
+    }
+
+    .hero-section h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 20px;
+        line-height: 1.1;
+        color: var(--text-primary);
+        animation: fadeInUp 0.8s ease-out 0.3s both;
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
+        paint-order: stroke fill;
+        text-shadow: 
+            -2px -2px 0 #fff,
+            2px -2px 0 #fff,
+            -2px 2px 0 #fff,
+            2px 2px 0 #fff,
+            0 0 30px rgba(255, 255, 255, 1),
+            0 0 60px rgba(255, 255, 255, 0.9),
+            0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .hero-section h1 .highlight-text {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-description {
+        font-size: 1.15rem;
+        margin-bottom: 32px;
+        font-weight: 500;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+        text-shadow: 
+            -1px -1px 0 #fff,
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff,
+            0 0 20px rgba(255, 255, 255, 1),
+            0 0 40px rgba(255, 255, 255, 0.8);
+    }
+
+    /* Hero Stats - Minimal Inline */
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 32px;
+        margin-top: 40px;
+        animation: fadeInUp 0.8s ease-out 0.6s both;
+    }
+
+    .hero-stat-item {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+    }
+
+    .hero-stat-number {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--primary);
+        -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.5);
+        paint-order: stroke fill;
+        text-shadow: 
+            -1px -1px 0 #fff,
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff,
+            0 0 20px rgba(255, 255, 255, 1),
+            0 0 40px rgba(16, 185, 129, 0.5);
+    }
+
+    .hero-stat-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        text-shadow: 
+            -1px -1px 0 #fff,
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff,
+            0 0 15px rgba(255, 255, 255, 1);
+    }
+
+    .hero-stat-divider {
+        display: none;
+    }
+
+    /* Minimal Floating Search */
+    .search-container {
+        max-width: 520px;
+        margin: 0 auto;
+        position: relative;
+        animation: fadeInUp 0.8s ease-out 0.5s both;
+    }
+
+    .search-wrap {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 60px;
+        padding: 6px 6px 6px 20px;
+        display: grid;
+        grid-template-columns: 120px 1fr 48px;
+        gap: 4px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .search-wrap:focus-within {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .search-select { 
+        border: none; 
+        border-radius: 8px; 
+        padding: 12px 8px; 
+        font-weight: 500; 
+        font-size: 0.85rem;
+        background: transparent;
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border-right: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .search-select:focus {
+        outline: none;
+        color: var(--text-primary);
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: transparent;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
+    .search-input::placeholder {
+        color: #9ca3af;
+    }
+
+    .search-input:focus {
+        outline: none;
+    }
+
+    .search-btn {
+        background: var(--gradient-primary);
+        border: none;
+        border-radius: 50%;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .search-btn:hover { 
+        transform: scale(1.1);
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Animation keyframes */
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes fadeInRight {
+        from { opacity: 0; transform: translateX(30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Staggered reveal for cards */
+    .section-stagger .stagger-item { opacity: 0; transform: translateY(20px); }
+    .section-stagger.revealed .stagger-item { animation: sc-fade-up 0.6s ease forwards; }
+    .section-stagger.revealed .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+    .section-stagger.revealed .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+    .section-stagger.revealed .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+    .section-stagger.revealed .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+    .section-stagger.revealed .stagger-item:nth-child(5) { animation-delay: 0.5s; }
+    .section-stagger.revealed .stagger-item:nth-child(6) { animation-delay: 0.6s; }
+
+    @@keyframes sc-fade-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards Section - Light Theme */
+    .cards-section {
+        padding: 80px 0;
+        background: var(--bg-section);
+        position: relative;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .section-title h2 {
+        font-size: 2.5rem;
+        color: var(--text-primary);
+        margin-bottom: 20px;
+        font-weight: 800;
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: var(--gradient-primary);
+        border-radius: 2px;
+    }
+
+    .section-title p {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+        margin-top: 24px;
+    }
+
+    /* Modern Action Cards - Light Theme */
+    .action-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
+        width: 100%;
+    }
+
+    .action-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 28px 24px;
+        text-decoration: none;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--gradient-primary);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .action-card:hover::before {
+        transform: scaleY(1);
+    }
+
+    .action-card:hover {
+        transform: translateY(-6px);
+        background: var(--bg-card-hover);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+
+    .action-card i {
+        font-size: 1.5rem;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 14px;
+        color: var(--primary);
+        transition: all 0.3s ease;
+    }
+
+    .action-card:hover i {
+        transform: scale(1.1) rotate(5deg);
+        background: var(--gradient-primary);
+        color: white;
+    }
+
+    .action-card .card-content small {
+        color: var(--text-secondary);
+    }
+
+    /* Special card styles */
+    .action-card.news-card {
+        border-color: rgba(59, 130, 246, 0.3);
+    }
+    .action-card.news-card i {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        color: #3B82F6;
+    }
+    .action-card.news-card:hover i {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        color: white;
+    }
+
+    .action-card.explore-card {
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+    .action-card.explore-card i {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: var(--primary);
+    }
+
+    /* Advertisement Container - Light Theme */
+    .ad-section {
+        padding: 30px 50px;
+        background: var(--bg-light);
+    }
+
+    .ad-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    /* Features Section - Light Theme */
+    .features-section {
+        padding: 100px 0;
+        background: linear-gradient(180deg, var(--bg-section) 0%, var(--bg-light) 100%);
+        position: relative;
+    }
+
+    .feature-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 48px 36px;
+        border-radius: 24px;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        margin-bottom: 30px;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+        transform: scaleX(0);
+        transition: transform 0.4s ease;
+    }
+
+    .feature-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-12px);
+        background: var(--bg-card-hover);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--gradient-primary);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 28px;
+        font-size: 2rem;
+        color: white;
+        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.25);
+        transition: all 0.4s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 15px 40px rgba(16, 185, 129, 0.35);
+    }
+
+    .feature-card h3 {
+        color: var(--text-primary);
+        margin-bottom: 16px;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .feature-card p {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+
+    /* Services Section - Light Theme */
+    .services-section {
+        padding: 100px 0;
+        background: var(--bg-light);
+    }
+
+    .service-category {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 44px 32px;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        margin-bottom: 30px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        height: 320px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .service-category::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        opacity: 0.8;
+    }
+
+    .service-category:hover {
+        transform: translateY(-12px) scale(1.02);
+        background: var(--bg-card-hover);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .service-category.home-services::before { background: linear-gradient(90deg, #10B981, #34D399); }
+    .service-category.tech-services::before { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+    .service-category.beauty-services::before { background: linear-gradient(90deg, #EC4899, #F472B6); }
+    .service-category.business-services::before { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+
+    .service-icon {
+        font-size: 3.5rem;
+        margin-bottom: 24px;
+        transition: all 0.4s ease;
+    }
+
+    .service-category.home-services .service-icon { color: #10B981; }
+    .service-category.tech-services .service-icon { color: #3B82F6; }
+    .service-category.beauty-services .service-icon { color: #EC4899; }
+    .service-category.business-services .service-icon { color: #F59E0B; }
+
+    .service-category:hover .service-icon {
+        transform: scale(1.15) rotate(5deg);
+    }
+
+    .service-category a,
+    a .service-category {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .service-category h4 {
+        color: var(--text-primary);
+        margin-bottom: 14px;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .service-category p {
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+        font-size: 1rem;
+        line-height: 1.6;
+        flex-grow: 1;
+    }
+
+    .service-count {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        color: var(--primary);
+        display: inline-block;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        margin-top: auto;
+    }
+
+    .service-category:hover .service-count {
+        background: var(--gradient-primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Stats Section - Light Theme */
+    .stats-section {
+        padding: 100px 0;
+        background: linear-gradient(180deg, var(--bg-section) 0%, var(--bg-light) 100%);
+    }
+
+    .stat-item {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 30px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        transition: all 0.4s ease;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .stat-item:hover {
+        transform: translateY(-8px);
+        background: var(--bg-card-hover);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-number {
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 12px;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 600;
+    }
+
+    /* CTA Section - Light Theme */
+    .cta-section {
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+        color: white;
+        padding: 100px 0;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        animation: rotate 30s linear infinite;
+    }
+
+    @@keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .cta-section h2 {
+        font-size: 3rem;
+        margin-bottom: 24px;
+        font-weight: 800;
+        position: relative;
+    }
+
+    .cta-section p {
+        font-size: 1.25rem;
+        margin-bottom: 48px;
+        opacity: 0.9;
+        font-weight: 400;
+        position: relative;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+    }
+
+    .cta-btn {
+        padding: 18px 36px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 14px;
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .cta-btn:hover {
+        background: white;
+        color: #047857;
+        text-decoration: none;
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Hero Results - Light Theme */
+    .hero-results { margin-top:16px; }
+    .service-card { 
+        border: 1px solid var(--border-color); 
+        border-radius: 12px; 
+        padding: 12px 16px; 
+        background: var(--bg-card); 
+        margin-bottom: 10px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        box-shadow: var(--shadow-sm);
+    }
+    .service-title { font-weight: 600; color: var(--text-primary); }
+    .service-meta { font-size: .9rem; color: var(--text-secondary); }
+
+    /* Responsive Design - Minimal Theme */
+    @@media (max-width: 991px) {
+        .hero-title,
+        .hero-section h1 {
+            font-size: 2.8rem;
+        }
+
+        .hero-content {
+            padding: 16px;
+        }
+
+        .action-cards-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .hero-title,
+        .hero-section h1 {
+            font-size: 2.2rem;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+        }
+
+        .hero-overlay {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.5) 50%, transparent 80%);
+        }
+
+        .action-cards-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .section-title h2 {
+            font-size: 2rem;
+        }
+
+        .hero-stats {
+            gap: 20px;
+        }
+
+        .hero-stat-number {
+            font-size: 1.4rem;
+        }
+
+        .hero-stat-label {
+            font-size: 0.75rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .hero-title,
+        .hero-section h1 {
+            font-size: 1.8rem;
+        }
+
+        .search-wrap {
+            grid-template-columns: 1fr;
+            border-radius: 20px;
+            padding: 12px;
+            gap: 8px;
+        }
+
+        .search-select {
+            border-right: none;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .search-input {
+            text-align: center;
+        }
+
+        .search-btn {
+            width: 100%;
+            border-radius: 12px;
+            height: 44px;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section-title h2 {
+            font-size: 1.8rem;
+        }
+
+        .hero-stats {
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .hero-stat-item {
+            flex: 0 0 auto;
+        }
+
+        .action-cards-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <!-- Video Background Container -->
+    <div id="hero-video-container">
+        <video id="hero-video" autoplay muted loop playsinline>
+            <source src="/smart_city.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    
+    <!-- Gradient overlay for text readability -->
+    <div class="hero-overlay"></div>
+    
+    <div class="container-fluid">
+        <div class="row min-vh-100 mx-0 justify-content-center align-items-center">
+            <div class="col-12 text-center">
+                <!-- Minimal Hero Content -->
+                <div class="hero-content">
+                    <span class="hero-subtitle">
+                        <i class="bi bi-geo-alt-fill"></i> Your Local Service Marketplace
+                    </span>
+                    <h1 class="hero-title">Find the Perfect<br><span class="highlight-badge">Service</span> Near You</h1>
+                    <p class="hero-description">Connect with trusted professionals in your area. Fast, reliable, and hassle-free.</p>
+
+                    <div class="search-container">
+                        <div class="search-wrap">
+                            <select class="form-select search-select" id="searchLocation">
+                                @for (var i = 0; i < newsLocations.Length; i++)
+                                {
+                                    var place = newsLocations[i];
+                                    if (i == 0)
+                                    {
+                                        <option value="@place" selected>@place</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@place">@place</option>
+                                    }
+                                }
+                            </select>
+                            <input class="search-input" id="searchInput" placeholder="Search services..." />
+                            <button class="search-btn" id="searchBtn"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-stats">
+                        <div class="hero-stat-item">
+                            <span class="hero-stat-number">@(ViewBag.ServiceProviders > 0 ? ViewBag.ServiceProviders.ToString() + "+" : "0")</span>
+                            <span class="hero-stat-label">Providers</span>
+                        </div>
+                        <div class="hero-stat-item">
+                            <span class="hero-stat-number">@(ViewBag.CompletedServices > 0 ? ViewBag.CompletedServices.ToString("N0") + "+" : "0")</span>
+                            <span class="hero-stat-label">Services</span>
+                        </div>
+                        <div class="hero-stat-item">
+                            <span class="hero-stat-number">@(ViewBag.TotalUsers > 0 ? ViewBag.TotalUsers.ToString("N0") + "+" : "0")</span>
+                            <span class="hero-stat-label">Users</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cards Section -->
+<div class="cards-section reveal section-stagger">
+    <div class="container-fluid px-0">
+        <div class="section-title">
+            <h2>Quick Actions</h2>
+            <p>Access all features at a glance</p>
+        </div>
+        
+        <div class="action-cards-grid">
+            <a href="/Home/News" class="action-card news-card stagger-item">
+                <i class="fas fa-newspaper"></i>
+                <div class="card-content">
+                    <div class="fw-bold">Top News</div>
+                    <small>Stay updated with your city</small>
+                </div>
+            </a>
+            
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <a href="/Services/Browse" class="action-card stagger-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <div class="card-content">
+                        <div class="fw-bold">@Localizer["CTA.BookService.Title"]</div>
+                        <small>@Localizer["CTA.BookService.Desc"]</small>
+                    </div>
+                </a>
+                <a href="/Home/Items?role=Vendor" class="action-card stagger-item">
+                    <i class="fas fa-store"></i>
+                    <div class="card-content">
+                        <div class="fw-bold">@Localizer["CTA.VendorItems.Title"]</div>
+                        <small>@Localizer["CTA.VendorItems.Desc"]</small>
+                    </div>
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="action-card stagger-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <div class="card-content">
+                        <div class="fw-bold">@Localizer["CTA.BookService.Title"]</div>
+                        <small>@Localizer["CTA.BookService.Desc"]</small>
+                    </div>
+                </a>
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Home/Items?role=Vendor" class="action-card stagger-item">
+                    <i class="fas fa-store"></i>
+                    <div class="card-content">
+                        <div class="fw-bold">@Localizer["CTA.VendorItems.Title"]</div>
+                        <small>@Localizer["CTA.VendorItems.Desc"]</small>
+                    </div>
+                </a>
+            }
+            
+            <a asp-controller="Home" asp-action="DailyEssentials" class="action-card stagger-item">
+                <i class="fas fa-fire text-warning"></i>
+                <div class="card-content">
+                    <div class="fw-bold">@Localizer["CTA.DailyEssentials.Title"]</div>
+                    <small>@Localizer["CTA.DailyEssentials.Desc"]</small>
+                </div>
+            </a>
+            
+            <a href="/Home/ExploreServices" class="action-card explore-card stagger-item">
+                <i class="fas fa-compass"></i>
+                <div class="card-content">
+                    <div class="fw-bold">Explore More Services</div>
+                    <small>Discover all available services</small>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Advertisement Section -->
+<div class="ad-section">
+    <div class="ad-container">
+        @await Component.InvokeAsync("HeroAdvertisement")
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="features-section reveal section-stagger">
+    <div class="container-fluid">
+        <div class="section-title">
+            <h2>Why Choose Us</h2>
+            <p>Experience the best service platform</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 stagger-item">
+                <div class="feature-card card-hover">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Trusted Providers</h3>
+                    <p>All service providers are verified and rated by real customers to ensure quality and reliability.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 stagger-item">
+                <div class="feature-card card-hover">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Quick Booking</h3>
+                    <p>Book services instantly with our easy-to-use platform. Get confirmed appointments in minutes.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 stagger-item">
+                <div class="feature-card card-hover">
+                    <div class="feature-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h3>Best Prices</h3>
+                    <p>Compare prices from multiple providers and choose the best deal that fits your budget.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Services Section -->
+<div class="services-section reveal section-stagger">
+    <div class="container-fluid">
+        <div class="section-title">
+            <h2>What You Can Do on ServConnect</h2>
+            <p>Explore our comprehensive platform features</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 col-lg-3 stagger-item">
+                @if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <a href="/Services/Browse" class="text-decoration-none">
+                        <div class="service-category home-services card-hover">
+                            <div class="service-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <h4>Service Booking</h4>
+                            <p>Find and book trusted service providers</p>
+                            <span class="service-count">Quick & Easy</span>
+                        </div>
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Services/Browse" class="text-decoration-none">
+                        <div class="service-category home-services card-hover">
+                            <div class="service-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <h4>Service Booking</h4>
+                            <p>Find and book trusted service providers</p>
+                            <span class="service-count">Quick & Easy</span>
+                        </div>
+                    </a>
+                }
+            </div>
+            
+            <div class="col-md-6 col-lg-3 stagger-item">
+                @if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <a href="/LocalDirectory/Discover" class="text-decoration-none">
+                        <div class="service-category tech-services card-hover">
+                            <div class="service-icon">
+                                <i class="fas fa-search-location"></i>
+                            </div>
+                            <h4>Discover Local Service</h4>
+                            <p>Find local businesses and services near you</p>
+                            <span class="service-count">Location-Based</span>
+                        </div>
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/LocalDirectory/Discover" class="text-decoration-none">
+                        <div class="service-category tech-services card-hover">
+                            <div class="service-icon">
+                                <i class="fas fa-search-location"></i>
+                            </div>
+                            <h4>Discover Local Service</h4>
+                            <p>Find local businesses and services near you</p>
+                            <span class="service-count">Location-Based</span>
+                        </div>
+                    </a>
+                }
+            </div>
+            
+            <div class="col-md-6 col-lg-3 stagger-item">
+                @if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <a href="/Home/Items" class="text-decoration-none">
+                        <div class="service-category beauty-services card-hover">
+                            <div class="service-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <h4>Shop Items</h4>
+                            <p>Browse and purchase items from vendors</p>
+                            <span class="service-count">Marketplace</span>
+                        </div>
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Home/Items" class="text-decoration-none">
+                        <div class="service-category beauty-services card-hover">
+                            <div class="service-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <h4>Shop Items</h4>
+                            <p>Browse and purchase items from vendors</p>
+                            <span class="service-count">Marketplace</span>
+                        </div>
+                    </a>
+                }
+            </div>
+            
+            <div class="col-md-6 col-lg-3 stagger-item">
+                <div class="service-category business-services card-hover" onclick="alert('Daily essentials subscription feature coming soon!')">
+                    <div class="service-icon">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <h4>Daily Essential Subscriptions</h4>
+                    <p>Subscribe to daily essentials delivery</p>
+                    <span class="service-count">Coming Soon</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="stats-section reveal">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">@(ViewBag.TotalUsers > 0 ? ViewBag.TotalUsers.ToString("N0") + "+" : "0")</div>
+                    <div class="stat-label">Happy Customers</div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">@(ViewBag.ServiceProviders > 0 ? ViewBag.ServiceProviders.ToString() + "+" : "0")</div>
+                    <div class="stat-label">Service Providers</div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">@(ViewBag.CompletedServices > 0 ? ViewBag.CompletedServices.ToString("N0") + "+" : "0")</div>
+                    <div class="stat-label">Services Completed</div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">@ViewBag.AverageRating</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-section">
+    <div class="container-fluid">
+        <h2>Ready to Get Started?</h2>
+        <p>Join thousands of satisfied customers and service providers</p>
+        
+        <div class="cta-buttons">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a href="/Advertisements/Submit" class="cta-btn">
+                    <i class="fas fa-bullhorn"></i>
+                    Publish Advertisement
+                </a>
+                <a href="/Advertisements/My" class="cta-btn">
+                    <i class="fas fa-rectangle-list"></i>
+                    My Advertisements
+                </a>
+                <a href="/Account/Profile" class="cta-btn">
+                    <i class="fas fa-user"></i>
+                    My Account
+                </a>
+                <a href="/Complaints/Create" class="cta-btn">
+                    <i class="fas fa-flag"></i>
+                    Raise Complaint
+                </a>
+                <a href="/Complaints/MyComplaints" class="cta-btn">
+                    <i class="fas fa-clipboard-list"></i>
+                    My Complaints
+                </a>
+            }
+            else
+            {
+                <a href="/Account/Register" class="cta-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Sign Up Now
+                </a>
+                <a href="/Account/Login" class="cta-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login
+                </a>
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Complaints/Create" class="cta-btn">
+                    <i class="fas fa-flag"></i>
+                    Raise Complaint
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<script type="module">
+
+    // ============================================
+    // Hero Search Functionality
+    // ============================================
+    function runHeroSearch() {
+        var loc = document.getElementById('searchLocation').value;
+        var q = (document.getElementById('searchInput').value || '').trim();
+        var url = new URL(location.origin + '/api/local/services');
+        if (q) url.searchParams.set('q', q);
+        url.searchParams.set('locationName', loc);
+        
+        fetch(url)
+            .then(function(res) { return res.json(); })
+            .then(function(list) {
+                var containerId = 'heroResults';
+                var container = document.getElementById(containerId);
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = containerId;
+                    container.className = 'hero-results';
+                    document.querySelector('.search-container').appendChild(container);
+                }
+                if (!Array.isArray(list) || list.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-secondary);" class="mt-3">No results found.</div>';
+                    return;
+                }
+                list.sort(function(a, b) { return (b.rating || 0) - (a.rating || 0); });
+                container.innerHTML = list.map(function(s) {
+                    var stars = (s.rating || 0) > 0 ? '<span class="badge bg-warning text-dark ms-2"><i class="fas fa-star"></i> ' + Number(s.rating).toFixed(1) + (s.ratingCount ? ' (' + s.ratingCount + ')' : '') + '</span>' : '';
+                    var addr = s.address ? '<div class="service-meta">' + s.address + '</div>' : '';
+                    var mapHref = s.mapUrl ? s.mapUrl : '/local/services/' + s.id + '/map';
+                    var rate = '<div class="mt-2"><span class="me-2">Rate:</span>' + 
+                        [1, 2, 3, 4, 5].map(function(n) {
+                            return '<button class="btn btn-sm ' + (n <= Math.round(s.rating) ? 'btn-warning' : 'btn-outline-secondary') + ' me-1" onclick="rateService(\'' + s.id + '\', ' + n + ')">' + n + '</button>';
+                        }).join('') + '</div>';
+                    return '<div class="service-card"><div><div class="service-title">' + s.name + ' ' + stars + '</div><div class="service-meta">' + (s.categoryName || '') + '</div>' + addr + rate + '</div><a class="btn btn-sm btn-outline-success" target="_blank" href="' + mapHref + '"><i class="fas fa-map-marker-alt"></i> Map</a></div>';
+                }).join('');
+            })
+            .catch(function() {
+                alert('Failed to load results');
+            });
+    }
+
+    // Make functions available globally
+    window.runHeroSearch = runHeroSearch;
+
+    window.rateService = function(id, rating) {
+        fetch('/api/local/services/' + id + '/rating', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rating: rating })
+        })
+        .then(function(res) {
+            if (res.ok) {
+                runHeroSearch();
+            } else if (res.status === 401) {
+                alert('Please login to rate');
+            } else {
+                alert('Failed to submit rating');
+            }
+        })
+        .catch(function() {
+            alert('Failed to submit rating');
+        });
+    };
+
+    // ============================================
+    // Scroll Reveal & Stats Animation
+    // ============================================
+    function initScrollAnimations() {
+        var observerOptions = {
+            threshold: 0.15
+        };
+
+        var revealObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        var revealSections = document.querySelectorAll('.reveal');
+        revealSections.forEach(function(sec) {
+            revealObserver.observe(sec);
+        });
+
+        // Stats counter animation
+        var statsObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var statNumbers = entry.target.querySelectorAll('.stat-number');
+                    statNumbers.forEach(function(stat) {
+                        var text = stat.textContent;
+                        var hasPlus = text.includes('+');
+                        var isDecimal = text.includes('.');
+
+                        if (isDecimal) {
+                            var finalNumber = parseFloat(text);
+                            var currentNumber = 0;
+                            var increment = finalNumber / 30;
+
+                            var timer = setInterval(function() {
+                                currentNumber += increment;
+                                if (currentNumber >= finalNumber) {
+                                    stat.textContent = finalNumber.toFixed(1);
+                                    clearInterval(timer);
+                                } else {
+                                    stat.textContent = currentNumber.toFixed(1);
+                                }
+                            }, 50);
+                        } else {
+                            var finalNum = parseInt(text.replace(/[^0-9]/g, ''));
+                            var currentNum = 0;
+                            var inc = finalNum / 50;
+
+                            var countTimer = setInterval(function() {
+                                currentNum += inc;
+                                if (currentNum >= finalNum) {
+                                    stat.textContent = finalNum.toLocaleString() + (hasPlus ? '+' : '');
+                                    clearInterval(countTimer);
+                                } else {
+                                    stat.textContent = Math.floor(currentNum).toLocaleString() + (hasPlus ? '+' : '');
+                                }
+                            }, 30);
+                        }
+                    });
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5, rootMargin: '0px 0px -100px 0px' });
+
+        var statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            statsObserver.observe(statsSection);
+        }
+    }
+
+    // ============================================
+    // Initialize Everything on DOM Ready
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize scroll animations
+        initScrollAnimations();
+        
+        // Navbar scroll effect - add background when scrolled past hero
+        var navbar = document.querySelector('.app-navbar');
+        var heroSection = document.querySelector('.hero-section');
+        
+        if (navbar && heroSection) {
+            function updateNavbarOnScroll() {
+                var heroHeight = heroSection.offsetHeight;
+                var scrollY = window.scrollY || window.pageYOffset;
+                
+                if (scrollY > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+            
+            window.addEventListener('scroll', updateNavbarOnScroll);
+            updateNavbarOnScroll(); // Initial check
+        }
+        
+        // Search event listeners
+        var searchBtn = document.getElementById('searchBtn');
+        var searchInput = document.getElementById('searchInput');
+        
+        if (searchBtn) {
+            searchBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                runHeroSearch();
+            });
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    runHeroSearch();
+                }
+            });
+        }
+    });
+</script>
