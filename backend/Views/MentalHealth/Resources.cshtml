@@ -1,0 +1,534 @@
+@{
+    ViewData["Title"] = "Mental Health Resources - ServConnect";
+}
+
+<style>
+    :root {
+        --primary: #8B5CF6;
+        --secondary: #10B981;
+        --danger: #EF4444;
+        --accent: #F59E0B;
+        --text-primary: #1F2937;
+        --text-secondary: #6B7280;
+    }
+
+    .resources-container {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 15px 8px 60px;
+    }
+
+    .resources-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .resources-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+
+    .resources-header p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .resource-section {
+        margin-bottom: 50px;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title i {
+        color: var(--primary);
+    }
+
+    /* Emergency Card */
+    .emergency-card {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        border-radius: 20px;
+        padding: 30px;
+        color: white;
+        margin-bottom: 40px;
+    }
+
+    .emergency-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .emergency-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .helpline-item {
+        background: rgba(255,255,255,0.15);
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+    .helpline-name {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .helpline-number {
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+
+    .helpline-number a {
+        color: white;
+        text-decoration: none;
+    }
+
+    .helpline-hours {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-top: 4px;
+    }
+
+    /* Technique Cards */
+    .techniques-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+    }
+
+    .technique-card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .technique-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+    }
+
+    .technique-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 16px;
+    }
+
+    .technique-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+    }
+
+    .technique-desc {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+
+    .technique-steps {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .technique-steps li {
+        padding: 8px 0;
+        display: flex;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .technique-steps li .step-num {
+        width: 24px;
+        height: 24px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    /* Article Cards */
+    .articles-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .article-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        display: flex;
+        gap: 16px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+    }
+
+    .article-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .article-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .article-content h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+
+    .article-content p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Apps Section */
+    .apps-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }
+
+    .app-card {
+        background: #F9FAFB;
+        border-radius: 14px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .app-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .app-info h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .app-info p {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* Back Button */
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 30px;
+        transition: color 0.3s ease;
+    }
+
+    .back-btn:hover {
+        color: var(--primary);
+    }
+
+    @@media (max-width: 900px) {
+        .articles-grid,
+        .apps-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .resources-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .articles-grid,
+        .apps-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="resources-container">
+    <a href="@Url.Action("Index", "MentalHealth")" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Mental Health
+    </a>
+
+    <div class="resources-header">
+        <h1><i class="fas fa-book-heart me-2" style="color: var(--primary);"></i>Mental Health Resources</h1>
+        <p>Access helpful information, techniques, and support resources for your mental wellbeing</p>
+    </div>
+
+    <!-- Emergency Helplines -->
+    <div class="emergency-card" id="helplines">
+        <h2 class="emergency-title">
+            <i class="fas fa-phone-alt"></i>
+            Kerala Mental Health Helplines
+        </h2>
+        <div class="emergency-content">
+            <div class="helpline-item">
+                <div class="helpline-name">DISHA (Kerala State)</div>
+                <div class="helpline-number"><a href="tel:1056">1056</a></div>
+                <div class="helpline-hours">24/7 Available</div>
+            </div>
+            <div class="helpline-item">
+                <div class="helpline-name">DISHA Helpline</div>
+                <div class="helpline-number"><a href="tel:04712552056">0471-2552056</a></div>
+                <div class="helpline-hours">24/7 Available</div>
+            </div>
+            <div class="helpline-item">
+                <div class="helpline-name">Maithri (Kochi)</div>
+                <div class="helpline-number"><a href="tel:04842540530">0484-2540530</a></div>
+                <div class="helpline-hours">24/7 Available</div>
+            </div>
+            <div class="helpline-item">
+                <div class="helpline-name">Thanal (Kozhikode)</div>
+                <div class="helpline-number"><a href="tel:04952760000">0495-2760000</a></div>
+                <div class="helpline-hours">10 AM - 5 PM</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Self-Help Techniques -->
+    <div class="resource-section" id="meditation">
+        <h2 class="section-title"><i class="fas fa-spa"></i>Self-Help Techniques</h2>
+        <div class="techniques-grid">
+            <div class="technique-card">
+                <div class="technique-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--primary);">
+                    <i class="fas fa-wind"></i>
+                </div>
+                <h3 class="technique-title">4-7-8 Breathing Technique</h3>
+                <p class="technique-desc">A calming breathing exercise that activates your parasympathetic nervous system</p>
+                <ul class="technique-steps">
+                    <li><span class="step-num">1</span> Inhale quietly through your nose for 4 seconds</li>
+                    <li><span class="step-num">2</span> Hold your breath for 7 seconds</li>
+                    <li><span class="step-num">3</span> Exhale completely through your mouth for 8 seconds</li>
+                    <li><span class="step-num">4</span> Repeat this cycle 3-4 times</li>
+                </ul>
+            </div>
+
+            <div class="technique-card">
+                <div class="technique-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--secondary);">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3 class="technique-title">5-4-3-2-1 Grounding</h3>
+                <p class="technique-desc">A grounding technique to help manage anxiety and bring you back to the present</p>
+                <ul class="technique-steps">
+                    <li><span class="step-num">5</span> Acknowledge 5 things you can SEE</li>
+                    <li><span class="step-num">4</span> Notice 4 things you can TOUCH</li>
+                    <li><span class="step-num">3</span> Listen for 3 things you can HEAR</li>
+                    <li><span class="step-num">2</span> Identify 2 things you can SMELL</li>
+                    <li><span class="step-num">1</span> Notice 1 thing you can TASTE</li>
+                </ul>
+            </div>
+
+            <div class="technique-card">
+                <div class="technique-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--accent);">
+                    <i class="fas fa-body-text"></i>
+                </div>
+                <h3 class="technique-title">Progressive Muscle Relaxation</h3>
+                <p class="technique-desc">Systematically tense and release muscle groups to reduce physical tension</p>
+                <ul class="technique-steps">
+                    <li><span class="step-num">1</span> Start with your feet - tense for 5 seconds</li>
+                    <li><span class="step-num">2</span> Release and feel the relaxation</li>
+                    <li><span class="step-num">3</span> Move up: calves, thighs, abdomen, chest, arms, face</li>
+                    <li><span class="step-num">4</span> Notice the difference between tension and relaxation</li>
+                </ul>
+            </div>
+
+            <div class="technique-card">
+                <div class="technique-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366F1;">
+                    <i class="fas fa-pencil-alt"></i>
+                </div>
+                <h3 class="technique-title">Gratitude Journaling</h3>
+                <p class="technique-desc">Writing down things you're grateful for can significantly improve mood</p>
+                <ul class="technique-steps">
+                    <li><span class="step-num">1</span> Set aside 5-10 minutes daily (morning or evening)</li>
+                    <li><span class="step-num">2</span> Write 3-5 things you're grateful for today</li>
+                    <li><span class="step-num">3</span> Be specific about why each thing matters</li>
+                    <li><span class="step-num">4</span> Review past entries when feeling low</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Articles Section -->
+    <div class="resource-section" id="articles">
+        <h2 class="section-title"><i class="fas fa-newspaper"></i>Understanding Mental Health</h2>
+        <div class="articles-grid">
+            <div class="article-card">
+                <div class="article-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--primary);">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <div class="article-content">
+                    <h4>What is Depression?</h4>
+                    <p>Depression is more than just feeling sad. It's a medical condition that affects how you think, feel, and handle daily activities. Symptoms can include persistent sadness, loss of interest, changes in appetite, and sleep problems.</p>
+                </div>
+            </div>
+
+            <div class="article-card">
+                <div class="article-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--secondary);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="article-content">
+                    <h4>Signs to Watch For</h4>
+                    <p>Common signs include feeling hopeless, losing interest in activities, changes in sleep or appetite, difficulty concentrating, and thoughts of self-harm. If you notice these, seek help.</p>
+                </div>
+            </div>
+
+            <div class="article-card">
+                <div class="article-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--accent);">
+                    <i class="fas fa-hands-helping"></i>
+                </div>
+                <div class="article-content">
+                    <h4>How to Help Someone</h4>
+                    <p>Listen without judgment, be patient, encourage professional help, stay connected, and educate yourself about mental health. Your support can make a significant difference.</p>
+                </div>
+            </div>
+
+            <div class="article-card">
+                <div class="article-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366F1;">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="article-content">
+                    <h4>Building Resilience</h4>
+                    <p>Resilience can be developed through maintaining connections, accepting change, setting goals, taking decisive actions, and keeping things in perspective. Small daily habits help.</p>
+                </div>
+            </div>
+
+            <div class="article-card">
+                <div class="article-icon" style="background: rgba(236, 72, 153, 0.1); color: #EC4899;">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="article-content">
+                    <h4>Self-Care Basics</h4>
+                    <p>Prioritize sleep, maintain a balanced diet, exercise regularly, practice mindfulness, set boundaries, and engage in activities you enjoy. Self-care is not selfish—it's essential.</p>
+                </div>
+            </div>
+
+            <div class="article-card">
+                <div class="article-icon" style="background: rgba(34, 197, 94, 0.1); color: #22C55E;">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="article-content">
+                    <h4>When to Seek Professional Help</h4>
+                    <p>If symptoms persist for more than two weeks, impact daily functioning, or include thoughts of self-harm, it's important to consult a mental health professional.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Apps -->
+    <div class="resource-section">
+        <h2 class="section-title"><i class="fas fa-mobile-alt"></i>Recommended Apps</h2>
+        <div class="apps-grid">
+            <div class="app-card">
+                <div class="app-icon">🧘</div>
+                <div class="app-info">
+                    <h4>Headspace</h4>
+                    <p>Guided meditation & mindfulness</p>
+                </div>
+            </div>
+            <div class="app-card">
+                <div class="app-icon">😴</div>
+                <div class="app-info">
+                    <h4>Calm</h4>
+                    <p>Sleep stories & relaxation</p>
+                </div>
+            </div>
+            <div class="app-card">
+                <div class="app-icon">📝</div>
+                <div class="app-info">
+                    <h4>Daylio</h4>
+                    <p>Mood tracking & journaling</p>
+                </div>
+            </div>
+            <div class="app-card">
+                <div class="app-icon">💬</div>
+                <div class="app-info">
+                    <h4>Wysa</h4>
+                    <p>AI-powered mental health support</p>
+                </div>
+            </div>
+            <div class="app-card">
+                <div class="app-icon">🌿</div>
+                <div class="app-info">
+                    <h4>Woebot</h4>
+                    <p>CBT-based emotional support</p>
+                </div>
+            </div>
+            <div class="app-card">
+                <div class="app-icon">📊</div>
+                <div class="app-info">
+                    <h4>Moodfit</h4>
+                    <p>Mental health tracker & tools</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Important Message -->
+    <div style="background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%); border-radius: 20px; padding: 30px; text-align: center; margin-top: 40px;">
+        <i class="fas fa-heart fa-2x mb-3" style="color: var(--primary);"></i>
+        <h3 style="color: var(--text-primary); margin-bottom: 12px;">Remember</h3>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto; line-height: 1.7;">
+            Mental health challenges are common and treatable. Seeking help is a sign of strength, not weakness. 
+            You are not alone in this journey, and with the right support, things can get better.
+        </p>
+    </div>
+</div>

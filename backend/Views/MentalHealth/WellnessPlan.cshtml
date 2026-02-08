@@ -1,0 +1,2157 @@
+@model ServConnect.Models.WellnessPlan
+@{
+    ViewData["Title"] = "Your Wellness Plan - ServConnect";
+    var currentDay = (int)(ViewBag.CurrentDay ?? 1);
+    var googleMapsApiKey = ViewBag.GoogleMapsApiKey as string ?? "";
+}
+
+<style>
+    :root {
+        --primary: #8B5CF6;
+        --primary-light: #A78BFA;
+        --secondary: #10B981;
+        --accent: #F59E0B;
+        --danger: #EF4444;
+        --text-primary: #1F2937;
+        --text-secondary: #6B7280;
+        --bg-light: #F3F4F6;
+        --card-bg: #FFFFFF;
+    }
+
+    .wellness-container {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 15px 8px 60px;
+    }
+
+    /* Header */
+    .wellness-header {
+        background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+        border-radius: 18px;
+        padding: 25px 20px;
+        margin-bottom: 20px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .wellness-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 40%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-title {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .header-subtitle {
+        opacity: 0.9;
+        margin-bottom: 24px;
+    }
+
+    /* Progress Bar */
+    .progress-wrapper {
+        background: rgba(255,255,255,0.2);
+        border-radius: 10px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .progress-info {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .progress-label {
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        opacity: 0.9;
+    }
+
+    .progress-bar-container {
+        height: 10px;
+        background: rgba(255,255,255,0.3);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: white;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    .progress-stats {
+        text-align: right;
+    }
+
+    .stat-big {
+        font-size: 2rem;
+        font-weight: 800;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    /* Day Tabs */
+    .day-tabs {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding: 8px 2px;
+        margin-bottom: 20px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .day-tab {
+        flex: 0 0 auto;
+        min-width: 70px;
+        padding: 12px 14px;
+        background: white;
+        border: 2px solid #E5E7EB;
+        border-radius: 12px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .day-tab:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+
+    .day-tab.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .day-tab.completed {
+        background: #D1FAE5;
+        border-color: var(--secondary);
+    }
+
+    .day-tab.completed .day-number {
+        color: var(--secondary);
+    }
+
+    .day-tab.active.completed {
+        background: var(--secondary);
+        color: white;
+    }
+
+    .day-tab.active.completed .day-number {
+        color: white;
+    }
+
+    .day-number {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .day-name {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 2px;
+    }
+
+    .day-tab.active .day-name,
+    .day-tab.active .day-number {
+        color: white;
+    }
+
+    .day-tab.locked {
+        background: #F3F4F6;
+        border-color: #E5E7EB;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .day-tab.locked:hover {
+        transform: none;
+        border-color: #E5E7EB;
+    }
+
+    .day-tab.locked .day-number {
+        color: #9CA3AF;
+    }
+
+    .day-tab.locked .day-name {
+        color: #9CA3AF;
+    }
+
+    .day-tab.locked .lock-icon {
+        font-size: 0.7rem;
+        margin-top: 4px;
+        color: #9CA3AF;
+    }
+
+    /* Locked Day Overlay */
+    .locked-overlay {
+        background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+        border-radius: 18px;
+        padding: 40px 20px;
+        text-align: center;
+        margin-bottom: 16px;
+    }
+
+    .locked-overlay .lock-icon-big {
+        font-size: 3rem;
+        color: #9CA3AF;
+        margin-bottom: 16px;
+    }
+
+    .locked-overlay h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+
+    .locked-overlay p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .locked-overlay .unlock-date {
+        background: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-top: 16px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    /* Affirmation Card */
+    .affirmation-card {
+        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .affirmation-icon {
+        font-size: 1.8rem;
+    }
+
+    .affirmation-text {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #92400E;
+        font-style: italic;
+    }
+
+    /* Task Cards */
+    .tasks-grid {
+        display: grid;
+        gap: 16px;
+    }
+
+    /* Featured Place Task */
+    .featured-place-task {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 20px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .featured-place-task::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 70%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+    }
+
+    .featured-place-task .featured-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(255,255,255,0.25);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        backdrop-filter: blur(10px);
+    }
+
+    .featured-place-task .featured-icon {
+        width: 55px;
+        height: 55px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 14px;
+    }
+
+    .featured-place-task .featured-category {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.9;
+        margin-bottom: 6px;
+    }
+
+    .featured-place-task .featured-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .featured-place-task .featured-desc {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        line-height: 1.5;
+        margin-bottom: 14px;
+    }
+
+    .featured-place-task .featured-place-card {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 14px;
+        padding: 14px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .featured-place-task .place-img {
+        width: 70px;
+        height: 70px;
+        border-radius: 12px;
+        object-fit: cover;
+        background: rgba(255,255,255,0.3);
+    }
+
+    .featured-place-task .place-name {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 3px;
+    }
+
+    .featured-place-task .place-addr {
+        font-size: 0.8rem;
+        opacity: 0.85;
+        margin-bottom: 6px;
+    }
+
+    .featured-place-task .place-meta-item {
+        background: rgba(255,255,255,0.2);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-right: 6px;
+    }
+
+    .featured-place-task .featured-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .featured-place-task .btn-featured {
+        padding: 12px 22px;
+        border-radius: 12px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .featured-place-task .btn-directions-white {
+        background: white;
+        color: #764ba2;
+    }
+
+    .featured-place-task .btn-directions-white:hover {
+        transform: scale(1.05);
+    }
+
+    .featured-place-task .btn-complete-white {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+
+    .featured-place-task .btn-complete-white:hover {
+        background: rgba(255,255,255,0.35);
+    }
+
+    .featured-place-task .btn-find-white {
+        background: white;
+        color: #764ba2;
+    }
+
+    .featured-place-task.completed-featured {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    }
+
+    /* Auto-loaded places section */
+    .auto-places-section {
+        margin-bottom: 14px;
+    }
+
+    .auto-places-loading {
+        background: rgba(255,255,255,0.15);
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    .auto-places-grid {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        scroll-snap-type: x mandatory;
+        justify-content: center;
+    }
+
+    .auto-places-grid::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .auto-places-grid::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
+    }
+
+    .auto-places-grid::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.4);
+        border-radius: 3px;
+    }
+
+    .auto-place-card {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 14px;
+        min-width: 180px;
+        max-width: 180px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+        scroll-snap-align: start;
+        flex-shrink: 0;
+    }
+
+    .auto-place-card:hover {
+        background: rgba(255,255,255,0.25);
+        transform: translateY(-4px);
+    }
+
+    .auto-place-card.selected {
+        border-color: white;
+        background: rgba(255,255,255,0.3);
+    }
+
+    .auto-place-card .place-img-container {
+        width: 100%;
+        height: 100px;
+        background: rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .auto-place-card .place-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .auto-place-card .place-img-container i {
+        font-size: 2rem;
+        opacity: 0.5;
+    }
+
+    .auto-place-card .rating-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0,0,0,0.7);
+        color: #F59E0B;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .auto-place-card .place-info {
+        padding: 12px;
+    }
+
+    .auto-place-card .place-name {
+        font-weight: 700;
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .auto-place-card .place-meta {
+        font-size: 0.7rem;
+        opacity: 0.85;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+
+    .auto-place-card .select-btn {
+        background: white;
+        color: #764ba2;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: transform 0.2s;
+        width: 100%;
+    }
+
+    .auto-place-card .select-btn:hover {
+        transform: scale(1.02);
+    }
+
+    /* Mini Games Section */
+    .games-section {
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        border-radius: 18px;
+        padding: 18px;
+        margin-bottom: 16px;
+        color: white;
+    }
+
+    .games-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .games-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .games-progress {
+        background: rgba(255,255,255,0.2);
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+    }
+
+    .game-card {
+        background: rgba(255,255,255,0.15);
+        border-radius: 14px;
+        padding: 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .game-card:hover {
+        background: rgba(255,255,255,0.25);
+        transform: translateY(-3px);
+    }
+
+    .game-card.game-completed {
+        background: rgba(16, 185, 129, 0.4);
+    }
+
+    .game-icon {
+        font-size: 1.8rem;
+        margin-bottom: 8px;
+    }
+
+    .game-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 3px;
+    }
+
+    .game-points {
+        font-size: 0.7rem;
+        opacity: 0.85;
+    }
+
+    .task-card {
+        background: white;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        display: flex;
+        gap: 14px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .task-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .task-card.completed {
+        background: #F0FDF4;
+        border: 2px solid #BBF7D0;
+    }
+
+    .task-card.completed::after {
+        content: '✓';
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 26px;
+        height: 26px;
+        background: var(--secondary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    .task-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .task-content {
+        flex: 1;
+    }
+
+    .task-category {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .task-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+
+    .task-description {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+
+    .task-meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .task-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .task-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    .btn-complete {
+        padding: 10px 20px;
+        background: var(--secondary);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        font-size: 0.85rem;
+    }
+
+    .btn-complete:hover {
+        background: #059669;
+        transform: scale(1.03);
+    }
+
+    .btn-complete:disabled {
+        background: #9CA3AF;
+        cursor: not-allowed;
+    }
+
+    .btn-find-place {
+        padding: 8px 16px;
+        background: #EEF2FF;
+        color: #4F46E5;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+    }
+
+    .btn-find-place:hover {
+        background: #E0E7FF;
+    }
+
+    /* Place Card */
+    .place-card {
+        background: #F8FAFC;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 12px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .place-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: #E5E7EB;
+    }
+
+    .place-info {
+        flex: 1;
+    }
+
+    .place-name {
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 3px;
+        font-size: 0.9rem;
+    }
+
+    .place-address {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+    }
+
+    .place-meta {
+        display: flex;
+        gap: 10px;
+        font-size: 0.75rem;
+    }
+
+    .place-rating {
+        color: #F59E0B;
+    }
+
+    .place-distance {
+        color: var(--text-secondary);
+    }
+
+    .place-status {
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .place-status.open {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .place-status.closed {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .btn-directions {
+        padding: 6px 12px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Game Modal */
+    .game-modal-content {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .breathing-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+        margin: 20px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: transform 4s ease-in-out;
+    }
+
+    .memory-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        max-width: 280px;
+        margin: 20px auto;
+    }
+
+    .memory-card {
+        aspect-ratio: 1;
+        background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .memory-card.flipped {
+        background: white;
+        border: 2px solid #8B5CF6;
+    }
+
+    .memory-card.matched {
+        background: #D1FAE5;
+        border: 2px solid #10B981;
+    }
+
+    .gratitude-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #E5E7EB;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+
+    .gratitude-input:focus {
+        border-color: var(--primary);
+        outline: none;
+    }
+
+    .word-puzzle-container {
+        margin: 20px 0;
+    }
+
+    .word-display {
+        font-size: 2rem;
+        letter-spacing: 8px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .word-input {
+        padding: 12px 20px;
+        border: 2px solid #E5E7EB;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        text-align: center;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        max-width: 200px;
+    }
+
+    .streak-display {
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        margin: 10px 0;
+    }
+
+    /* Recommendations Section */
+    .recommendations-section {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .recommendations-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .recommendations-list li {
+        padding: 12px 0;
+        border-bottom: 1px solid #E5E7EB;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .recommendations-list li:last-child {
+        border-bottom: none;
+    }
+
+    .recommendations-list li i {
+        color: var(--primary);
+        margin-top: 4px;
+    }
+
+    /* Places Modal */
+    .places-modal .modal-content {
+        border-radius: 20px;
+        border: none;
+    }
+
+    .places-modal .modal-header {
+        border-bottom: none;
+        padding: 24px 24px 12px;
+    }
+
+    .places-modal .modal-body {
+        padding: 12px 24px 24px;
+    }
+
+    .places-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .place-option {
+        padding: 16px;
+        border: 2px solid #E5E7EB;
+        border-radius: 14px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .place-option:hover {
+        border-color: var(--primary);
+        background: #F8FAFC;
+    }
+
+    .place-option.selected {
+        border-color: var(--primary);
+        background: rgba(139, 92, 246, 0.1);
+    }
+
+    /* Completion Modal */
+    .completion-modal .modal-content {
+        border-radius: 20px;
+        border: none;
+        text-align: center;
+    }
+
+    .completion-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+
+    .rating-stars {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 20px 0;
+    }
+
+    .rating-star {
+        font-size: 2rem;
+        color: #E5E7EB;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .rating-star:hover,
+    .rating-star.active {
+        color: #F59E0B;
+        transform: scale(1.1);
+    }
+
+    @@media (max-width: 768px) {
+        .task-card {
+            flex-direction: column;
+        }
+
+        .task-actions {
+            flex-direction: row;
+            width: 100%;
+        }
+
+        .progress-wrapper {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .progress-stats {
+            text-align: center;
+        }
+
+        .day-tabs {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+<div class="wellness-container">
+    <!-- Header with Progress -->
+    <div class="wellness-header">
+        <div class="header-content">
+            <h1 class="header-title">
+                <i class="fas fa-heart-pulse me-2"></i>Your 7-Day Wellness Journey
+            </h1>
+            <p class="header-subtitle">
+                Complete daily tasks to improve your mental wellbeing. You've got this! 💪
+            </p>
+            <div class="progress-wrapper">
+                <div class="progress-info">
+                    <div class="progress-label">Overall Progress</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBar" style="width: @Model.ProgressPercentage%"></div>
+                    </div>
+                </div>
+                <div class="progress-stats">
+                    <div class="stat-big" id="progressPercent">@Model.ProgressPercentage%</div>
+                    <div class="stat-label"><span id="completedCount">@Model.CompletedTasks</span> of @Model.TotalTasks tasks</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Tabs -->
+    <div class="day-tabs" id="dayTabs">
+        @foreach (var day in Model.Days)
+        {
+            var isActive = day.Day == currentDay;
+            var isCompleted = day.IsCompleted;
+            var isLocked = day.Day > currentDay;
+            <a href="javascript:void(0)" 
+               class="day-tab @(isActive ? "active" : "") @(isCompleted ? "completed" : "") @(isLocked ? "locked" : "")" 
+               data-day="@day.Day"
+               onclick="@(isLocked ? "showLockedMessage(" + day.Day + ")" : "showDay(" + day.Day + ")")">
+                <div class="day-number">@day.Day</div>
+                <div class="day-name">@day.DayName.Substring(0, 3)</div>
+                @if (isLocked)
+                {
+                    <div class="lock-icon"><i class="fas fa-lock"></i></div>
+                }
+            </a>
+        }
+    </div>
+
+    <!-- Day Content -->
+    @foreach (var day in Model.Days)
+    {
+        var isActive = day.Day == currentDay;
+        var isLocked = day.Day > currentDay;
+        var placeTasks = day.Tasks.Where(t => t.Category == "place_visit").ToList();
+        var otherTasks = day.Tasks.Where(t => t.Category != "place_visit").ToList();
+        var dayGamesCompleted = ViewBag.GamesCompleted ?? new Dictionary<int, List<string>>();
+        <div class="day-content" id="day-@day.Day" style="display: @(isActive ? "block" : "none");">
+            @if (isLocked)
+            {
+                <!-- Locked Day Overlay -->
+                <div class="locked-overlay">
+                    <div class="lock-icon-big"><i class="fas fa-lock"></i></div>
+                    <h3>Day @day.Day is Locked</h3>
+                    <p>Complete the previous days first! This day will unlock automatically.</p>
+                    <div class="unlock-date">
+                        <i class="fas fa-calendar-alt me-2"></i>Unlocks on @day.Date
+                    </div>
+                </div>
+            }
+            else
+            {
+            <!-- Affirmation -->
+            <div class="affirmation-card">
+                <div class="affirmation-icon">✨</div>
+                <div class="affirmation-text">"@day.Affirmation"</div>
+            </div>
+
+            <!-- Featured Place Tasks (Priority) -->
+            @if (placeTasks.Any())
+            {
+                foreach (var task in placeTasks)
+                {
+                    <div class="featured-place-task @(task.IsCompleted ? "completed-featured" : "")" id="task-@task.Id" data-task-id="@task.Id">
+                        <span class="featured-badge"><i class="fas fa-star me-1"></i>TODAY'S ADVENTURE</span>
+                        <div class="featured-icon">
+                            <i class="fas @task.Icon"></i>
+                        </div>
+                        <div class="featured-category">@task.CategoryName</div>
+                        <h3 class="featured-title">@task.Title</h3>
+                        <p class="featured-desc">@task.Description</p>
+
+                        @if (task.RequiresLocation && task.SuggestedPlace != null)
+                        {
+                            <div class="featured-place-card">
+                                @if (!string.IsNullOrEmpty(task.SuggestedPlace.PhotoUrl))
+                                {
+                                    <img src="@task.SuggestedPlace.PhotoUrl" alt="@task.SuggestedPlace.Name" class="place-img">
+                                }
+                                else
+                                {
+                                    <div class="place-img" style="display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-map-marker-alt" style="font-size: 1.3rem; opacity: 0.7;"></i>
+                                    </div>
+                                }
+                                <div style="flex: 1;">
+                                    <div class="place-name">@task.SuggestedPlace.Name</div>
+                                    <div class="place-addr">@task.SuggestedPlace.Address</div>
+                                    <div>
+                                        @if (task.SuggestedPlace.Rating.HasValue)
+                                        {
+                                            <span class="place-meta-item"><i class="fas fa-star"></i> @task.SuggestedPlace.Rating.Value.ToString("0.0")</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(task.SuggestedPlace.Distance))
+                                        {
+                                            <span class="place-meta-item"><i class="fas fa-location-dot"></i> @task.SuggestedPlace.Distance</span>
+                                        }
+                                        @if (task.SuggestedPlace.IsOpen.HasValue && task.SuggestedPlace.IsOpen.Value)
+                                        {
+                                            <span class="place-meta-item" style="background: rgba(16,185,129,0.3);"><i class="fas fa-clock"></i> Open</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="featured-actions">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=@task.SuggestedPlace.Latitude,@task.SuggestedPlace.Longitude" 
+                                   target="_blank" class="btn-featured btn-directions-white">
+                                    <i class="fas fa-directions me-1"></i> Get Directions
+                                </a>
+                                @if (!task.IsCompleted)
+                                {
+                                    <button class="btn-featured btn-complete-white" onclick="completeTask('@task.Id')">
+                                        <i class="fas fa-check me-1"></i> Mark Complete
+                                    </button>
+                                    <button class="btn-featured" style="background: rgba(255,255,255,0.2);" onclick="changePlace('@task.Id', '@task.PlaceType')">
+                                        <i class="fas fa-sync-alt me-1"></i> Change Place
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="btn-featured" style="background: rgba(255,255,255,0.3);"><i class="fas fa-check-circle me-1"></i> Completed!</span>
+                                }
+                            </div>
+                        }
+                        else if (task.RequiresLocation && task.SuggestedPlace == null)
+                        {
+                            <!-- Auto-loaded places section -->
+                            <div class="auto-places-section" id="autoPlaces-@task.Id" data-task-id="@task.Id" data-place-type="@task.PlaceType">
+                                <div class="auto-places-loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Finding nearby places...
+                                </div>
+                            </div>
+                            <div class="featured-actions">
+                                <button class="btn-featured btn-find-white" onclick="findPlaces('@task.Id', '@task.PlaceType')">
+                                    <i class="fas fa-compass me-1"></i> Discover More Places
+                                </button>
+                            </div>
+                        }
+                        else if (!task.IsCompleted)
+                        {
+                            <div class="featured-actions">
+                                <button class="btn-featured btn-complete-white" onclick="completeTask('@task.Id')">
+                                    <i class="fas fa-check me-1"></i> Mark Complete
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+            <!-- Mini Games Section -->
+            <div class="games-section">
+                <div class="games-header">
+                    <div class="games-title"><i class="fas fa-gamepad"></i> Daily Mind Games</div>
+                    <div class="games-progress" id="gamesProgress-@day.Day"><span id="gamesCount-@day.Day">0</span>/4 completed</div>
+                </div>
+                <div class="games-grid">
+                    <div class="game-card" onclick="playGame('breathing', @day.Day)" id="game-breathing-@day.Day">
+                        <div class="game-icon">🧘</div>
+                        <div class="game-name">Breathing</div>
+                        <div class="game-points">+10 pts</div>
+                    </div>
+                    <div class="game-card" onclick="playGame('memory', @day.Day)" id="game-memory-@day.Day">
+                        <div class="game-icon">🧠</div>
+                        <div class="game-name">Memory</div>
+                        <div class="game-points">+15 pts</div>
+                    </div>
+                    <div class="game-card" onclick="playGame('gratitude', @day.Day)" id="game-gratitude-@day.Day">
+                        <div class="game-icon">💝</div>
+                        <div class="game-name">Gratitude</div>
+                        <div class="game-points">+10 pts</div>
+                    </div>
+                    <div class="game-card" onclick="playGame('word', @day.Day)" id="game-word-@day.Day">
+                        <div class="game-icon">📝</div>
+                        <div class="game-name">Word Puzzle</div>
+                        <div class="game-points">+15 pts</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Tasks -->
+            <div class="tasks-grid">
+                @foreach (var task in otherTasks)
+                {
+                    <div class="task-card @(task.IsCompleted ? "completed" : "")" id="task-@task.Id" data-task-id="@task.Id">
+                        <div class="task-icon" style="background: @(task.Color)22; color: @task.Color;">
+                            <i class="fas @task.Icon"></i>
+                        </div>
+                        <div class="task-content">
+                            <div class="task-category" style="color: @task.Color;">@task.CategoryName</div>
+                            <h3 class="task-title">@task.Title</h3>
+                            <p class="task-description">@task.Description</p>
+                            <div class="task-meta">
+                                <div class="task-meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>@task.Duration</span>
+                                </div>
+                                @if (task.IsCompleted && task.CompletedAt.HasValue)
+                                {
+                                    <div class="task-meta-item" style="color: var(--secondary);">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Completed @task.CompletedAt.Value.ToString("MMM dd, h:mm tt")</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            @if (!task.IsCompleted)
+                            {
+                                <button class="btn-complete" onclick="completeTask('@task.Id')">
+                                    <i class="fas fa-check me-1"></i> Complete
+                                </button>
+                            }
+                            else
+                            {
+                                <div style="color: var(--secondary); font-weight: 600; font-size: 0.85rem;">
+                                    <i class="fas fa-check-circle me-1"></i> Done
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            } <!-- End of else (unlocked day) -->
+        </div>
+    }
+
+    <!-- Recommendations -->
+    <div class="recommendations-section">
+        <h2 class="section-title">
+            <i class="fas fa-lightbulb" style="color: var(--accent);"></i>
+            Professional Recommendations
+        </h2>
+        <ul class="recommendations-list">
+            @foreach (var rec in Model.Recommendations)
+            {
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    <span>@rec</span>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+<!-- Places Modal -->
+<div class="modal fade places-modal" id="placesModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-map-marker-alt me-2"></i>Choose a Place to Visit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="places-list" id="placesList">
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3" style="color: var(--primary);"></i>
+                        <p>Finding nearby places...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="selectPlaceBtn" disabled onclick="selectPlace()">
+                    <i class="fas fa-check me-1"></i> Select This Place
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Completion Modal -->
+<div class="modal fade completion-modal" id="completionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body p-4">
+                <div class="completion-icon">🎉</div>
+                <h4>Great Job!</h4>
+                <p class="text-muted">How was this activity?</p>
+                <div class="rating-stars" id="ratingStars">
+                    <i class="fas fa-star rating-star" data-rating="1"></i>
+                    <i class="fas fa-star rating-star" data-rating="2"></i>
+                    <i class="fas fa-star rating-star" data-rating="3"></i>
+                    <i class="fas fa-star rating-star" data-rating="4"></i>
+                    <i class="fas fa-star rating-star" data-rating="5"></i>
+                </div>
+                <div class="mb-3">
+                    <textarea class="form-control" id="taskNotes" rows="2" placeholder="Any thoughts or notes? (optional)"></textarea>
+                </div>
+                <button class="btn btn-success btn-lg w-100" onclick="submitCompletion()">
+                    <i class="fas fa-check-circle me-2"></i>Complete Task
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Breathing Game Modal -->
+<div class="modal fade" id="breathingGameModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px;">
+            <div class="modal-body game-modal-content">
+                <h4><i class="fas fa-wind me-2" style="color: #8B5CF6;"></i>Breathing Exercise</h4>
+                <p class="text-muted">Follow the circle to calm your mind</p>
+                <div class="breathing-circle" id="breathingCircle">
+                    <span id="breathingText">Ready</span>
+                </div>
+                <div class="streak-display" id="breathingStreak" style="display: none;">
+                    <i class="fas fa-fire"></i> <span id="breathStreakCount">0</span> cycles
+                </div>
+                <button class="btn btn-primary btn-lg mt-3" id="startBreathingBtn" onclick="startBreathingGame()">
+                    <i class="fas fa-play me-2"></i>Start
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Memory Game Modal -->
+<div class="modal fade" id="memoryGameModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px;">
+            <div class="modal-body game-modal-content">
+                <h4><i class="fas fa-brain me-2" style="color: #10B981;"></i>Memory Match</h4>
+                <p class="text-muted">Match the pairs to train your memory</p>
+                <div class="memory-grid" id="memoryGrid"></div>
+                <div class="streak-display mt-2">
+                    <i class="fas fa-trophy"></i> Moves: <span id="memoryMoves">0</span>
+                </div>
+                <button class="btn btn-success btn-lg mt-3" id="restartMemoryBtn" style="display: none;" onclick="initMemoryGame()">
+                    <i class="fas fa-redo me-2"></i>Play Again
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gratitude Game Modal -->
+<div class="modal fade" id="gratitudeGameModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px;">
+            <div class="modal-body game-modal-content">
+                <h4><i class="fas fa-heart me-2" style="color: #EF4444;"></i>Gratitude Journal</h4>
+                <p class="text-muted">Write 3 things you're grateful for today</p>
+                <div class="mt-3">
+                    <input type="text" class="gratitude-input" id="gratitude1" placeholder="1. I'm grateful for...">
+                    <input type="text" class="gratitude-input" id="gratitude2" placeholder="2. I'm grateful for...">
+                    <input type="text" class="gratitude-input" id="gratitude3" placeholder="3. I'm grateful for...">
+                </div>
+                <button class="btn btn-danger btn-lg mt-3 w-100" onclick="submitGratitude()">
+                    <i class="fas fa-heart me-2"></i>Save My Gratitude
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Word Puzzle Modal -->
+<div class="modal fade" id="wordGameModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px;">
+            <div class="modal-body game-modal-content">
+                <h4><i class="fas fa-spell-check me-2" style="color: #F59E0B;"></i>Positive Word Puzzle</h4>
+                <p class="text-muted">Unscramble the positive word</p>
+                <div class="word-puzzle-container">
+                    <div class="word-display" id="scrambledWord">HAPPY</div>
+                    <input type="text" class="word-input" id="wordGuess" placeholder="Type here" maxlength="10">
+                </div>
+                <div id="wordResult" style="display: none;" class="mt-2"></div>
+                <button class="btn btn-warning btn-lg mt-3" onclick="checkWord()">
+                    <i class="fas fa-check me-2"></i>Check Answer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const planId = '@Model.Id';
+        let currentTaskId = null;
+        let selectedPlace = null;
+        let selectedRating = 0;
+        let userLat = null;
+        let userLng = null;
+        let currentGameDay = 1;
+        
+        // Game state stored in localStorage
+        const gameStateKey = 'wellnessGames_' + planId;
+        let gameState = JSON.parse(localStorage.getItem(gameStateKey)) || {};
+
+        // Initialize game state display
+        function updateGameDisplay() {
+            for (let day = 1; day <= 7; day++) {
+                const dayGames = gameState[day] || [];
+                const count = dayGames.length;
+                const countEl = document.getElementById('gamesCount-' + day);
+                if (countEl) countEl.textContent = count;
+                
+                // Mark completed games
+                ['breathing', 'memory', 'gratitude', 'word'].forEach(game => {
+                    const gameCard = document.getElementById('game-' + game + '-' + day);
+                    if (gameCard && dayGames.includes(game)) {
+                        gameCard.classList.add('game-completed');
+                    }
+                });
+            }
+        }
+        updateGameDisplay();
+
+        // Get user location and auto-load places
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    userLat = pos.coords.latitude;
+                    userLng = pos.coords.longitude;
+                    // Auto-load places for place tasks without suggestions
+                    autoLoadAllPlaces();
+                },
+                err => {
+                    console.log('Location not available');
+                    // Show location required message in auto-places sections
+                    document.querySelectorAll('.auto-places-section').forEach(section => {
+                        section.innerHTML = `
+                            <div class="auto-places-loading">
+                                <i class="fas fa-map-marker-alt me-2"></i> Enable location to see nearby places
+                            </div>
+                        `;
+                    });
+                }
+            );
+        }
+
+        // Auto-load places for all place tasks without suggestions
+        async function autoLoadAllPlaces() {
+            const placeSections = document.querySelectorAll('.auto-places-section');
+            for (const section of placeSections) {
+                const taskId = section.dataset.taskId;
+                const placeType = section.dataset.placeType;
+                await autoLoadPlaces(taskId, placeType);
+            }
+        }
+
+        async function autoLoadPlaces(taskId, placeType) {
+            const section = document.getElementById('autoPlaces-' + taskId);
+            if (!section || !userLat || !userLng) return;
+
+            try {
+                const response = await fetch(`/MentalHealth/GetNearbyPlaces?latitude=${userLat}&longitude=${userLng}&placeType=${placeType}`);
+                const data = await response.json();
+
+                if (!data.success || !data.places || data.places.length === 0) {
+                    section.innerHTML = `
+                        <div class="auto-places-loading">
+                            <i class="fas fa-map-marker-alt me-2"></i> No places found nearby
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Sort by rating (highest first) and get top 3
+                const sortedPlaces = data.places
+                    .filter(p => p.rating !== null && p.rating !== undefined)
+                    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                const top3 = sortedPlaces.slice(0, 3);
+                
+                if (top3.length === 0) {
+                    section.innerHTML = `
+                        <div class="auto-places-loading">
+                            <i class="fas fa-map-marker-alt me-2"></i> No rated places found nearby
+                        </div>
+                    `;
+                    return;
+                }
+                
+                section.innerHTML = `
+                    <div class="auto-places-grid">
+                        ${top3.map((place, idx) => `
+                            <div class="auto-place-card" data-place='${JSON.stringify(place).replace(/'/g, "&#39;")}'>
+                                <div class="place-img-container">
+                                    ${place.photoUrl ? 
+                                        `<img src="${place.photoUrl}" alt="${place.name}">` :
+                                        `<i class="fas fa-map-marker-alt"></i>`
+                                    }
+                                </div>
+                                <div class="place-info">
+                                    <div class="place-name" title="${place.name}">${place.name}</div>
+                                    <div class="place-meta">
+                                        ${place.distance ? `<span><i class="fas fa-location-dot"></i> ${place.distance}</span>` : ''}
+                                        ${place.isOpen !== null ? 
+                                            `<span style="color: ${place.isOpen ? '#10B981' : '#EF4444'};">${place.isOpen ? '● Open' : '● Closed'}</span>` : ''
+                                        }
+                                    </div>
+                                    <button class="select-btn" onclick="event.stopPropagation(); selectAutoPlace('${taskId}', this.closest('.auto-place-card'))">
+                                        <i class="fas fa-check me-1"></i> Choose
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error auto-loading places:', error);
+                section.innerHTML = `
+                    <div class="auto-places-loading">
+                        <i class="fas fa-exclamation-circle me-2"></i> Error loading places
+                    </div>
+                `;
+            }
+        }
+
+        async function selectAutoPlace(taskId, cardElement) {
+            const place = JSON.parse(cardElement.dataset.place.replace(/&#39;/g, "'"));
+            
+            try {
+                const response = await fetch('/MentalHealth/SavePlaceSuggestion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        planId: planId,
+                        taskId: taskId,
+                        place: place
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Place selected! Refreshing...', 'success');
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    showToast('Error saving place. Please try again.', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error saving place. Please try again.', 'danger');
+            }
+        }
+
+        function showDay(dayNum) {
+            // Hide all days
+            document.querySelectorAll('.day-content').forEach(el => el.style.display = 'none');
+            // Show selected day
+            document.getElementById('day-' + dayNum).style.display = 'block';
+            // Update tabs
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.day == dayNum) {
+                    tab.classList.add('active');
+                }
+            });
+        }
+
+        function showLockedMessage(dayNum) {
+            showToast(`Day ${dayNum} is locked! Complete the current day's tasks first. 🔒`, 'info');
+        }
+
+        function changePlace(taskId, placeType) {
+            // Reuse findPlaces functionality to change the selected place
+            findPlaces(taskId, placeType);
+        }
+
+        function findPlaces(taskId, placeType) {
+            currentTaskId = taskId;
+            const modal = new bootstrap.Modal(document.getElementById('placesModal'));
+            modal.show();
+
+            const placesList = document.getElementById('placesList');
+            placesList.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-3" style="color: var(--primary);"></i>
+                    <p>Finding nearby places...</p>
+                </div>
+            `;
+
+            if (!userLat || !userLng) {
+                // Try to get location again
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        pos => {
+                            userLat = pos.coords.latitude;
+                            userLng = pos.coords.longitude;
+                            fetchPlaces(placeType);
+                        },
+                        err => {
+                            placesList.innerHTML = `
+                                <div class="text-center py-4">
+                                    <i class="fas fa-map-marker-alt fa-2x mb-3" style="color: var(--danger);"></i>
+                                    <p>Please enable location to find nearby places.</p>
+                                    <button class="btn btn-primary" onclick="requestLocation('${placeType}')">
+                                        <i class="fas fa-location-arrow me-1"></i> Enable Location
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    );
+                }
+            } else {
+                fetchPlaces(placeType);
+            }
+        }
+
+        function requestLocation(placeType) {
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    userLat = pos.coords.latitude;
+                    userLng = pos.coords.longitude;
+                    fetchPlaces(placeType);
+                },
+                err => {
+                    alert('Unable to get your location. Please enable location services.');
+                }
+            );
+        }
+
+        async function fetchPlaces(placeType) {
+            try {
+                const response = await fetch(`/MentalHealth/GetNearbyPlaces?latitude=${userLat}&longitude=${userLng}&placeType=${placeType}`);
+                const data = await response.json();
+
+                const placesList = document.getElementById('placesList');
+
+                if (!data.success || !data.places || data.places.length === 0) {
+                    placesList.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-search fa-2x mb-3" style="color: var(--accent);"></i>
+                            <p>No nearby places found. Try a different type or location.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                placesList.innerHTML = data.places.map(place => `
+                    <div class="place-option" data-place='${JSON.stringify(place)}' onclick="selectPlaceOption(this)">
+                        <div style="display: flex; gap: 16px; align-items: center;">
+                            ${place.photoUrl ? 
+                                `<img src="${place.photoUrl}" style="width: 70px; height: 70px; border-radius: 10px; object-fit: cover;">` :
+                                `<div style="width: 70px; height: 70px; border-radius: 10px; background: #E5E7EB; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-map-marker-alt" style="font-size: 1.2rem; color: #9CA3AF;"></i>
+                                </div>`
+                            }
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700; margin-bottom: 4px;">${place.name}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">${place.address}</div>
+                                <div style="display: flex; gap: 12px; font-size: 0.8rem;">
+                                    ${place.rating ? `<span style="color: #F59E0B;"><i class="fas fa-star"></i> ${place.rating.toFixed(1)}</span>` : ''}
+                                    ${place.distance ? `<span style="color: var(--text-secondary);"><i class="fas fa-map-marker-alt"></i> ${place.distance}</span>` : ''}
+                                    ${place.isOpen !== null ? 
+                                        `<span class="place-status ${place.isOpen ? 'open' : 'closed'}">${place.isOpen ? 'Open' : 'Closed'}</span>` : ''
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error fetching places:', error);
+                document.getElementById('placesList').innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-circle fa-2x mb-3" style="color: var(--danger);"></i>
+                        <p>Error loading places. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function selectPlaceOption(element) {
+            document.querySelectorAll('.place-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedPlace = JSON.parse(element.dataset.place);
+            document.getElementById('selectPlaceBtn').disabled = false;
+        }
+
+        async function selectPlace() {
+            if (!selectedPlace || !currentTaskId) return;
+
+            try {
+                const response = await fetch('/MentalHealth/SavePlaceSuggestion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        planId: planId,
+                        taskId: currentTaskId,
+                        place: selectedPlace
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Close modal and refresh page to show the place
+                    bootstrap.Modal.getInstance(document.getElementById('placesModal')).hide();
+                    location.reload();
+                } else {
+                    alert('Error saving place. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error saving place. Please try again.');
+            }
+        }
+
+        function completeTask(taskId) {
+            currentTaskId = taskId;
+            selectedRating = 0;
+            document.querySelectorAll('.rating-star').forEach(star => star.classList.remove('active'));
+            document.getElementById('taskNotes').value = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('completionModal'));
+            modal.show();
+        }
+
+        // Rating stars interaction
+        document.querySelectorAll('.rating-star').forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.dataset.rating);
+                document.querySelectorAll('.rating-star').forEach((s, idx) => {
+                    s.classList.toggle('active', idx < selectedRating);
+                });
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.dataset.rating);
+                document.querySelectorAll('.rating-star').forEach((s, idx) => {
+                    s.style.color = idx < rating ? '#F59E0B' : '#E5E7EB';
+                });
+            });
+        });
+
+        document.getElementById('ratingStars').addEventListener('mouseleave', function() {
+            document.querySelectorAll('.rating-star').forEach((star, idx) => {
+                star.style.color = idx < selectedRating ? '#F59E0B' : '#E5E7EB';
+            });
+        });
+
+        async function submitCompletion() {
+            if (!currentTaskId) return;
+
+            const notes = document.getElementById('taskNotes').value;
+
+            try {
+                const response = await fetch('/MentalHealth/CompleteTask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        planId: planId,
+                        taskId: currentTaskId,
+                        notes: notes,
+                        rating: selectedRating || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update UI
+                    const taskCard = document.getElementById('task-' + currentTaskId);
+                    taskCard.classList.add('completed');
+                    
+                    // Check if it's a featured place task or regular task
+                    const isFeatured = taskCard.classList.contains('featured-place-task');
+
+                    // Update task actions - handle both regular and featured task cards
+                    const actionsDiv = taskCard.querySelector('.task-actions') || taskCard.querySelector('.featured-actions');
+                    if (actionsDiv) {
+                        if (isFeatured) {
+                            // Keep the directions button, update complete button
+                            const directionsBtn = actionsDiv.querySelector('.btn-directions-white');
+                            const directionsHtml = directionsBtn ? directionsBtn.outerHTML : '';
+                            actionsDiv.innerHTML = directionsHtml + `
+                                <span class="btn-featured" style="background: rgba(255,255,255,0.3);">
+                                    <i class="fas fa-check-circle me-1"></i> Completed!
+                                </span>
+                            `;
+                            taskCard.classList.add('completed-featured');
+                        } else {
+                            actionsDiv.innerHTML = `
+                                <div style="color: var(--secondary); font-weight: 600;">
+                                    <i class="fas fa-check-circle me-1"></i> Completed
+                                </div>
+                            `;
+                        }
+                    }
+
+                    // Update progress
+                    document.getElementById('progressBar').style.width = data.progressPercentage + '%';
+                    document.getElementById('progressPercent').textContent = data.progressPercentage + '%';
+                    document.getElementById('completedCount').textContent = data.completedTasks;
+
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('completionModal')).hide();
+
+                    // Show success message
+                    showToast('Task completed! Keep up the great work! 🎉', 'success');
+
+                    // Check if all tasks completed
+                    if (data.isCompleted) {
+                        setTimeout(() => {
+                            showCelebration();
+                        }, 500);
+                    }
+                } else {
+                    alert(data.message || 'Error completing task. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error completing task. Please try again.');
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            const alertClass = type === 'success' ? 'success' : type === 'info' ? 'info' : 'danger';
+            const icon = type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle';
+            toast.className = `alert alert-${alertClass} position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; animation: fadeIn 0.3s; max-width: 350px;';
+            toast.innerHTML = `<i class="fas fa-${icon} me-2"></i>${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function showCelebration() {
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content" style="border-radius: 24px; text-align: center; padding: 40px;">
+                            <div style="font-size: 5rem; margin-bottom: 20px;">🎊</div>
+                            <h2 style="color: var(--secondary); margin-bottom: 16px;">Congratulations!</h2>
+                            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 24px;">
+                                You've completed your 7-day wellness journey! We're so proud of you for taking care of your mental health.
+                            </p>
+                            <a href="/MentalHealth" class="btn btn-success btn-lg">
+                                <i class="fas fa-home me-2"></i>Back to Mental Health
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // ==================== GAMES ====================
+        
+        function playGame(gameType, day) {
+            currentGameDay = day;
+            const dayGames = gameState[day] || [];
+            
+            if (dayGames.includes(gameType)) {
+                showToast('You already completed this game today! Try another one.', 'info');
+                return;
+            }
+            
+            switch(gameType) {
+                case 'breathing':
+                    new bootstrap.Modal(document.getElementById('breathingGameModal')).show();
+                    break;
+                case 'memory':
+                    initMemoryGame();
+                    new bootstrap.Modal(document.getElementById('memoryGameModal')).show();
+                    break;
+                case 'gratitude':
+                    document.getElementById('gratitude1').value = '';
+                    document.getElementById('gratitude2').value = '';
+                    document.getElementById('gratitude3').value = '';
+                    new bootstrap.Modal(document.getElementById('gratitudeGameModal')).show();
+                    break;
+                case 'word':
+                    initWordGame();
+                    new bootstrap.Modal(document.getElementById('wordGameModal')).show();
+                    break;
+            }
+        }
+        
+        function completeGame(gameType) {
+            if (!gameState[currentGameDay]) gameState[currentGameDay] = [];
+            if (!gameState[currentGameDay].includes(gameType)) {
+                gameState[currentGameDay].push(gameType);
+                localStorage.setItem(gameStateKey, JSON.stringify(gameState));
+                updateGameDisplay();
+                showToast('Game completed! +' + (gameType === 'memory' || gameType === 'word' ? '15' : '10') + ' points! 🎮', 'success');
+            }
+        }
+        
+        // Breathing Game
+        let breathingInterval = null;
+        let breathCycles = 0;
+        
+        function startBreathingGame() {
+            const circle = document.getElementById('breathingCircle');
+            const text = document.getElementById('breathingText');
+            const streakDiv = document.getElementById('breathingStreak');
+            const btn = document.getElementById('startBreathingBtn');
+            
+            btn.style.display = 'none';
+            streakDiv.style.display = 'inline-flex';
+            breathCycles = 0;
+            
+            const phases = [
+                { text: 'Breathe In', scale: 1.4, duration: 4000 },
+                { text: 'Hold', scale: 1.4, duration: 4000 },
+                { text: 'Breathe Out', scale: 1, duration: 4000 }
+            ];
+            let phase = 0;
+            
+            function nextPhase() {
+                const current = phases[phase % 3];
+                text.textContent = current.text;
+                circle.style.transform = `scale(${current.scale})`;
+                
+                if (phase % 3 === 2) {
+                    breathCycles++;
+                    document.getElementById('breathStreakCount').textContent = breathCycles;
+                    
+                    if (breathCycles >= 3) {
+                        clearInterval(breathingInterval);
+                        text.textContent = 'Done! 🎉';
+                        completeGame('breathing');
+                        setTimeout(() => {
+                            bootstrap.Modal.getInstance(document.getElementById('breathingGameModal')).hide();
+                            btn.style.display = 'inline-block';
+                            streakDiv.style.display = 'none';
+                        }, 1500);
+                        return;
+                    }
+                }
+                phase++;
+            }
+            
+            nextPhase();
+            breathingInterval = setInterval(nextPhase, 4000);
+        }
+        
+        // Memory Game
+        const memoryEmojis = ['🌸', '🌈', '☀️', '🌙', '💫', '🦋', '🌺', '🍀'];
+        let memoryCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let memoryMoves = 0;
+        
+        function initMemoryGame() {
+            const grid = document.getElementById('memoryGrid');
+            const emojis = [...memoryEmojis.slice(0, 4), ...memoryEmojis.slice(0, 4)];
+            memoryCards = emojis.sort(() => Math.random() - 0.5);
+            flippedCards = [];
+            matchedPairs = 0;
+            memoryMoves = 0;
+            document.getElementById('memoryMoves').textContent = '0';
+            document.getElementById('restartMemoryBtn').style.display = 'none';
+            
+            grid.innerHTML = memoryCards.map((emoji, i) => `
+                <div class="memory-card" data-index="${i}" data-emoji="${emoji}" onclick="flipCard(this)">
+                    <span style="display: none;">${emoji}</span>
+                </div>
+            `).join('');
+        }
+        
+        function flipCard(card) {
+            if (flippedCards.length >= 2 || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            
+            card.classList.add('flipped');
+            card.querySelector('span').style.display = 'block';
+            flippedCards.push(card);
+            
+            if (flippedCards.length === 2) {
+                memoryMoves++;
+                document.getElementById('memoryMoves').textContent = memoryMoves;
+                
+                const [card1, card2] = flippedCards;
+                if (card1.dataset.emoji === card2.dataset.emoji) {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    matchedPairs++;
+                    flippedCards = [];
+                    
+                    if (matchedPairs === 4) {
+                        setTimeout(() => {
+                            completeGame('memory');
+                            document.getElementById('restartMemoryBtn').style.display = 'inline-block';
+                        }, 500);
+                    }
+                } else {
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        card1.querySelector('span').style.display = 'none';
+                        card2.querySelector('span').style.display = 'none';
+                        flippedCards = [];
+                    }, 800);
+                }
+            }
+        }
+        
+        // Gratitude Game
+        function submitGratitude() {
+            const g1 = document.getElementById('gratitude1').value.trim();
+            const g2 = document.getElementById('gratitude2').value.trim();
+            const g3 = document.getElementById('gratitude3').value.trim();
+            
+            if (g1 && g2 && g3) {
+                completeGame('gratitude');
+                bootstrap.Modal.getInstance(document.getElementById('gratitudeGameModal')).hide();
+            } else {
+                showToast('Please fill in all 3 gratitude entries', 'error');
+            }
+        }
+        
+        // Word Puzzle Game
+        const positiveWords = ['HAPPY', 'PEACE', 'SMILE', 'LOVE', 'CALM', 'JOY', 'HOPE', 'KIND', 'BRAVE', 'STRONG'];
+        let currentWord = '';
+        
+        function initWordGame() {
+            currentWord = positiveWords[Math.floor(Math.random() * positiveWords.length)];
+            const scrambled = currentWord.split('').sort(() => Math.random() - 0.5).join('');
+            document.getElementById('scrambledWord').textContent = scrambled;
+            document.getElementById('wordGuess').value = '';
+            document.getElementById('wordResult').style.display = 'none';
+        }
+        
+        function checkWord() {
+            const guess = document.getElementById('wordGuess').value.toUpperCase().trim();
+            const resultDiv = document.getElementById('wordResult');
+            
+            if (guess === currentWord) {
+                resultDiv.innerHTML = '<span style="color: #10B981; font-weight: 700;"><i class="fas fa-check-circle me-2"></i>Correct! The word is ' + currentWord + '</span>';
+                resultDiv.style.display = 'block';
+                completeGame('word');
+                setTimeout(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('wordGameModal')).hide();
+                }, 1500);
+            } else {
+                resultDiv.innerHTML = '<span style="color: #EF4444;"><i class="fas fa-times-circle me-2"></i>Try again!</span>';
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        // Listen for Enter key in word input
+        document.getElementById('wordGuess')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkWord();
+        });
+    </script>
+}

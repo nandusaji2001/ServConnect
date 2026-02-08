@@ -442,6 +442,30 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9zdEFuZEZvdW5kXFZlcmlmeUNsYWltLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/MentalHealth/Assessment.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVudGFsSGVhbHRoXEFzc2Vzc21lbnQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/MentalHealth/History.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVudGFsSGVhbHRoXEhpc3RvcnkuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/MentalHealth/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVudGFsSGVhbHRoXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/MentalHealth/Resources.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVudGFsSGVhbHRoXFJlc291cmNlcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/MentalHealth/Results.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVudGFsSGVhbHRoXFJlc3VsdHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/MentalHealth/WellnessPlan.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVudGFsSGVhbHRoXFdlbGxuZXNzUGxhbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Darklord/MCA_2024/S3/ServConnect/backend/Views/Notifications/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

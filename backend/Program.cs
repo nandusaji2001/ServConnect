@@ -174,6 +174,8 @@ builder.Services.AddScoped<IRentalSubscriptionService, RentalSubscriptionService
 builder.Services.AddScoped<IRentalQueryService, RentalQueryService>();
 // Wellness prediction service for elder care AI recommendations
 builder.Services.AddScoped<IWellnessPredictionService, WellnessPredictionService>();
+// Depression prediction service for mental health assessment
+builder.Services.AddScoped<IDepressionPredictionService, DepressionPredictionService>();
 // Lost and Found service
 builder.Services.AddScoped<ILostAndFoundService, LostAndFoundService>();
 // Item Matching service (S-BERT ML for lost/found item matching)
