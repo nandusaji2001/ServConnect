@@ -3,6 +3,31 @@ using MongoDbGenericRepository.Attributes;
 
 namespace ServConnect.Models
 {
+    // Kerala Districts
+    public static class KeralaDistricts
+    {
+        public const string Thiruvananthapuram = "Thiruvananthapuram";
+        public const string Kollam = "Kollam";
+        public const string Pathanamthitta = "Pathanamthitta";
+        public const string Alappuzha = "Alappuzha";
+        public const string Kottayam = "Kottayam";
+        public const string Idukki = "Idukki";
+        public const string Ernakulam = "Ernakulam";
+        public const string Thrissur = "Thrissur";
+        public const string Palakkad = "Palakkad";
+        public const string Malappuram = "Malappuram";
+        public const string Kozhikode = "Kozhikode";
+        public const string Wayanad = "Wayanad";
+        public const string Kannur = "Kannur";
+        public const string Kasaragod = "Kasaragod";
+
+        public static readonly string[] All = {
+            Thiruvananthapuram, Kollam, Pathanamthitta, Alappuzha, Kottayam,
+            Idukki, Ernakulam, Thrissur, Palakkad, Malappuram,
+            Kozhikode, Wayanad, Kannur, Kasaragod
+        };
+    }
+
     [CollectionName("Users")]
     public class Users : MongoIdentityUser<Guid>
     {
@@ -14,6 +39,10 @@ namespace ServConnect.Models
         
         // Contact Information
         public string? Address { get; set; } = string.Empty;
+        
+        // District for location-based filtering (Kerala Districts)
+        // New users must select their district - no default value
+        public string? District { get; set; }
         public string? IdentityProofUrl { get; set; }
 
         // Profile completion / verification

@@ -1,14 +1,15 @@
 @model ServConnect.Models.WellnessPlan
 @{
-    ViewData["Title"] = "Your Wellness Plan - ServConnect";
+    var isMaintenancePlan = Model.PlanType == "maintenance";
+    ViewData["Title"] = isMaintenancePlan ? "Wellness Maintenance - ServConnect" : "Your Wellness Plan - ServConnect";
     var currentDay = (int)(ViewBag.CurrentDay ?? 1);
     var googleMapsApiKey = ViewBag.GoogleMapsApiKey as string ?? "";
 }
 
 <style>
     :root {
-        --primary: #8B5CF6;
-        --primary-light: #A78BFA;
+        --primary: @(isMaintenancePlan ? "#10B981" : "#8B5CF6");
+        --primary-light: @(isMaintenancePlan ? "#34D399" : "#A78BFA");
         --secondary: #10B981;
         --accent: #F59E0B;
         --danger: #EF4444;
@@ -26,7 +27,7 @@
 
     /* Header */
     .wellness-header {
-        background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+        background: linear-gradient(135deg, @(isMaintenancePlan ? "#10B981" : "#8B5CF6") 0%, @(isMaintenancePlan ? "#059669" : "#6366F1") 100%);
         border-radius: 18px;
         padding: 25px 20px;
         margin-bottom: 20px;
@@ -1094,10 +1095,24 @@
     <div class="wellness-header">
         <div class="header-content">
             <h1 class="header-title">
-                <i class="fas fa-heart-pulse me-2"></i>Your 7-Day Wellness Journey
+                @if (isMaintenancePlan)
+                {
+                    <i class="fas fa-leaf me-2"></i>@:Your Wellness Maintenance Plan
+                }
+                else
+                {
+                    <i class="fas fa-heart-pulse me-2"></i>@:Your 7-Day Wellness Journey
+                }
             </h1>
             <p class="header-subtitle">
-                Complete daily tasks to improve your mental wellbeing. You've got this! 💪
+                @if (isMaintenancePlan)
+                {
+                    @:Keep up your healthy habits with these daily wellness tasks! 🌟
+                }
+                else
+                {
+                    @:Complete daily tasks to improve your mental wellbeing. You've got this! 💪
+                }
             </p>
             <div class="progress-wrapper">
                 <div class="progress-info">

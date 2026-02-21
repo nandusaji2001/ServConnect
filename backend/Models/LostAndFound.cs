@@ -69,6 +69,9 @@ namespace ServConnect.Models
         public DateTime FoundDate { get; set; }
         public string FoundLocation { get; set; } = string.Empty;
         public string? FoundLocationDetails { get; set; }
+        
+        // District for location-based filtering (Kerala Districts)
+        public string District { get; set; } = KeralaDistricts.Idukki;
 
         // Found User (auto-filled)
         public Guid FoundByUserId { get; set; }
@@ -113,6 +116,9 @@ namespace ServConnect.Models
         public DateTime LostDate { get; set; }
         public string LostLocation { get; set; } = string.Empty;
         public string? LostLocationDetails { get; set; }
+        
+        // District for location-based filtering (Kerala Districts)
+        public string District { get; set; } = KeralaDistricts.Idukki;
 
         // Lost User (owner)
         public Guid LostByUserId { get; set; }

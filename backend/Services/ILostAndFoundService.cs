@@ -7,7 +7,7 @@ namespace ServConnect.Services
         // Found Item operations
         Task<LostFoundItem> CreateItemAsync(LostFoundItem item);
         Task<LostFoundItem?> GetItemByIdAsync(string id);
-        Task<List<LostFoundItem>> GetAllItemsAsync(string? category = null, string? status = null);
+        Task<List<LostFoundItem>> GetAllItemsAsync(string? category = null, string? status = null, string? district = null);
         Task<List<LostFoundItem>> GetItemsByFoundUserAsync(Guid userId);
         Task<bool> UpdateItemStatusAsync(string id, string status);
         Task<bool> MarkAsReturnedAsync(string id, Guid verifiedClaimantId, string claimantName);
@@ -30,7 +30,7 @@ namespace ServConnect.Services
         // Lost Item Report operations
         Task<LostItemReport> CreateLostReportAsync(LostItemReport report);
         Task<LostItemReport?> GetLostReportByIdAsync(string id);
-        Task<List<LostItemReport>> GetAllLostReportsAsync(string? category = null, string? status = null);
+        Task<List<LostItemReport>> GetAllLostReportsAsync(string? category = null, string? status = null, string? district = null);
         Task<List<LostItemReport>> GetLostReportsByUserAsync(Guid userId);
         Task<bool> MarkLostItemAsFoundAsync(string reportId, Guid foundByUserId, string foundByUserName, 
             string foundByUserEmail, string? foundByUserPhone, string? foundLocation, string? foundNote);
@@ -39,8 +39,8 @@ namespace ServConnect.Services
         Task<bool> AddLostReportImageAsync(string id, string imageUrl);
 
         // Statistics
-        Task<int> GetAvailableItemsCountAsync();
+        Task<int> GetAvailableItemsCountAsync(string? district = null);
         Task<int> GetPendingClaimsCountAsync(Guid foundUserId);
-        Task<int> GetActiveLostReportsCountAsync();
+        Task<int> GetActiveLostReportsCountAsync(string? district = null);
     }
 }

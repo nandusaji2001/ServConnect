@@ -30,11 +30,22 @@ namespace ServConnect.Controllers
             _env = env;
         }
 
-        // GET: Browse all available items
+        // GET: Browse all available items (filtered by user's district)
         [AllowAnonymous]
         public async Task<IActionResult> Index(string? category = null)
         {
-            var items = await _lostFoundService.GetAllItemsAsync(category, LostFoundItemStatus.Available);
+            // Get user's district for filtering
+            string? userDistrict = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me != null)
+                {
+                    userDistrict = me.District;
+                }
+            }
+            
+            var items = await _lostFoundService.GetAllItemsAsync(category, LostFoundItemStatus.Available, userDistrict);
             var vm = new LostFoundListViewModel
             {
                 Items = items,
@@ -118,6 +129,7 @@ namespace ServConnect.Controllers
                 FoundDate = vm.FoundDate,
                 FoundLocation = vm.FoundLocation,
                 FoundLocationDetails = vm.FoundLocationDetails,
+                District = user.District, // Set district from user's profile
                 FoundByUserId = user.Id,
                 FoundByUserName = user.FullName ?? user.UserName ?? "Unknown",
                 FoundByUserEmail = user.Email ?? string.Empty,
@@ -606,11 +618,22 @@ namespace ServConnect.Controllers
 
         #region Lost Item Report Actions
 
-        // GET: Browse all lost item reports
+        // GET: Browse all lost item reports (filtered by user's district)
         [AllowAnonymous]
         public async Task<IActionResult> LostItems(string? category = null)
         {
-            var reports = await _lostFoundService.GetAllLostReportsAsync(category, LostItemStatus.Active);
+            // Get user's district for filtering
+            string? userDistrict = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me != null)
+                {
+                    userDistrict = me.District;
+                }
+            }
+            
+            var reports = await _lostFoundService.GetAllLostReportsAsync(category, LostItemStatus.Active, userDistrict);
             var vm = new LostItemsListViewModel
             {
                 Reports = reports,
@@ -666,6 +689,7 @@ namespace ServConnect.Controllers
                 LostDate = vm.LostDate,
                 LostLocation = vm.LostLocation,
                 LostLocationDetails = vm.LostLocationDetails,
+                District = user.District, // Set district from user's profile
                 LostByUserId = user.Id,
                 LostByUserName = user.FullName ?? user.UserName ?? "Unknown",
                 LostByUserEmail = user.Email ?? string.Empty,

@@ -43,6 +43,9 @@ namespace ServConnect.Models
         [StringLength(20)]
         public string Pincode { get; set; } = string.Empty;
 
+        // District for location-based filtering (Kerala Districts)
+        public string District { get; set; } = KeralaDistricts.Idukki;
+
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
 

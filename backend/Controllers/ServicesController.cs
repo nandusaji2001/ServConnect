@@ -52,7 +52,18 @@ namespace ServConnect.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Providers(string slug)
         {
-            var providers = await _catalog.GetProviderLinksBySlugAsync(slug);
+            // Get user's district for filtering
+            string? userDistrict = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me != null)
+                {
+                    userDistrict = me.District;
+                }
+            }
+            
+            var providers = await _catalog.GetProviderLinksBySlugAsync(slug, userDistrict);
             var def = await _catalog.GetBySlugAsync(slug);
             var vm = new ServiceProvidersViewModel
             {
@@ -98,12 +109,23 @@ namespace ServConnect.Controllers
             return Ok(servicesWithImages.ToList());
         }
 
-        // API: providers who offer a selected service
+        // API: providers who offer a selected service (filtered by user's district)
         [HttpGet("/api/services/{slug}/providers")]
         [AllowAnonymous]
         public async Task<IActionResult> ProvidersByService(string slug)
         {
-            var providers = await _catalog.GetProviderLinksBySlugAsync(slug);
+            // Get user's district for filtering
+            string? userDistrict = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me != null)
+                {
+                    userDistrict = me.District;
+                }
+            }
+            
+            var providers = await _catalog.GetProviderLinksBySlugAsync(slug, userDistrict);
             return Ok(providers);
         }
 

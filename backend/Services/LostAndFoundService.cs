@@ -36,7 +36,7 @@ namespace ServConnect.Services
             return await _items.Find(i => i.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<List<LostFoundItem>> GetAllItemsAsync(string? category = null, string? status = null)
+        public async Task<List<LostFoundItem>> GetAllItemsAsync(string? category = null, string? status = null, string? district = null)
         {
             var filter = Builders<LostFoundItem>.Filter.Empty;
 
@@ -45,6 +45,10 @@ namespace ServConnect.Services
 
             if (!string.IsNullOrWhiteSpace(status))
                 filter &= Builders<LostFoundItem>.Filter.Eq(i => i.Status, status);
+
+            // Filter by district if specified
+            if (!string.IsNullOrWhiteSpace(district))
+                filter &= Builders<LostFoundItem>.Filter.Eq(i => i.District, district);
 
             return await _items.Find(filter)
                 .SortByDescending(i => i.CreatedAt)
@@ -257,9 +261,12 @@ namespace ServConnect.Services
 
         #region Statistics
 
-        public async Task<int> GetAvailableItemsCountAsync()
+        public async Task<int> GetAvailableItemsCountAsync(string? district = null)
         {
-            return (int)await _items.CountDocumentsAsync(i => i.Status == LostFoundItemStatus.Available);
+            var filter = Builders<LostFoundItem>.Filter.Eq(i => i.Status, LostFoundItemStatus.Available);
+            if (!string.IsNullOrWhiteSpace(district))
+                filter &= Builders<LostFoundItem>.Filter.Eq(i => i.District, district);
+            return (int)await _items.CountDocumentsAsync(filter);
         }
 
         public async Task<int> GetPendingClaimsCountAsync(Guid foundUserId)
@@ -272,9 +279,12 @@ namespace ServConnect.Services
                 c.Status == ClaimStatus.Pending);
         }
 
-        public async Task<int> GetActiveLostReportsCountAsync()
+        public async Task<int> GetActiveLostReportsCountAsync(string? district = null)
         {
-            return (int)await _lostReports.CountDocumentsAsync(r => r.Status == LostItemStatus.Active);
+            var filter = Builders<LostItemReport>.Filter.Eq(r => r.Status, LostItemStatus.Active);
+            if (!string.IsNullOrWhiteSpace(district))
+                filter &= Builders<LostItemReport>.Filter.Eq(r => r.District, district);
+            return (int)await _lostReports.CountDocumentsAsync(filter);
         }
 
         #endregion
@@ -295,7 +305,7 @@ namespace ServConnect.Services
             return await _lostReports.Find(r => r.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<List<LostItemReport>> GetAllLostReportsAsync(string? category = null, string? status = null)
+        public async Task<List<LostItemReport>> GetAllLostReportsAsync(string? category = null, string? status = null, string? district = null)
         {
             var filter = Builders<LostItemReport>.Filter.Empty;
 
@@ -304,6 +314,10 @@ namespace ServConnect.Services
 
             if (!string.IsNullOrWhiteSpace(status))
                 filter &= Builders<LostItemReport>.Filter.Eq(r => r.Status, status);
+
+            // Filter by district if specified
+            if (!string.IsNullOrWhiteSpace(district))
+                filter &= Builders<LostItemReport>.Filter.Eq(r => r.District, district);
 
             return await _lostReports.Find(filter)
                 .SortByDescending(r => r.CreatedAt)

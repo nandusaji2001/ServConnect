@@ -21,21 +21,30 @@ namespace ServConnect.Controllers
             _userManager = userManager;
         }
 
-        // Users can view all active items (excludes own items when authenticated)
+        // Users can view all active items in their district (excludes own items when authenticated)
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] bool excludeOwn = false)
         {
-            var items = await _itemService.GetAllAsync();
+            string? userDistrict = null;
+            Users? me = null;
             
-            // If user is authenticated and wants to exclude their own items
-            if (excludeOwn && User.Identity?.IsAuthenticated == true)
+            // Get user's district for filtering
+            if (User.Identity?.IsAuthenticated == true)
             {
-                var me = await _userManager.GetUserAsync(User);
+                me = await _userManager.GetUserAsync(User);
                 if (me != null)
                 {
-                    items = items.Where(i => i.OwnerId != me.Id).ToList();
+                    userDistrict = me.District;
                 }
+            }
+            
+            var items = await _itemService.GetAllAsync(district: userDistrict);
+            
+            // If user is authenticated and wants to exclude their own items
+            if (excludeOwn && me != null)
+            {
+                items = items.Where(i => i.OwnerId != me.Id).ToList();
             }
             
             return Ok(items);
@@ -71,6 +80,7 @@ namespace ServConnect.Controllers
             input.OwnerId = me.Id;
             var roles = await _userManager.GetRolesAsync(me);
             input.OwnerRole = RoleTypes.Vendor;
+            input.District = me.District; // Set district from vendor's profile
             input.CreatedAt = DateTime.UtcNow;
             input.UpdatedAt = DateTime.UtcNow;
             // Respect requested activation state (default to true if unspecified)

@@ -182,6 +182,8 @@ builder.Services.AddScoped<ILostAndFoundService, LostAndFoundService>();
 builder.Services.AddSingleton<IItemMatchingService, ItemMatchingService>();
 // Gas Subscription service for IoT-based automatic gas cylinder booking
 builder.Services.AddScoped<IGasSubscriptionService, GasSubscriptionService>();
+// TransitConnect service for community transport updates
+builder.Services.AddScoped<ITransportUpdateService, TransportUpdateService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();

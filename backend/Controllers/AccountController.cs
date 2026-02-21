@@ -153,7 +153,7 @@ namespace ServConnect.Controllers
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(
-                    model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+                    model.Email, model.Password, isPersistent: false, lockoutOnFailure: true);
 
                 if (result.Succeeded)
                 {
@@ -336,6 +336,7 @@ namespace ServConnect.Controllers
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
             Address = user.Address,
+            District = user.District,
             IsProfileCompleted = user.IsProfileCompleted,
             IsAdminApproved = user.IsAdminApproved,
             CanUploadIdentityProof = !user.IsAdminApproved,
@@ -402,6 +403,7 @@ namespace ServConnect.Controllers
         user.UserName = model.Email;
         user.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : FormatPhoneNumber(model.PhoneNumber);
         user.Address = model.Address;
+        user.District = model.District;
 
         // Handle profile image upload (allowed for all, optional after approval)
         if (model.Image != null && model.Image.Length > 0)
@@ -589,6 +591,7 @@ namespace ServConnect.Controllers
             Email = user.Email ?? string.Empty,
             PhoneNumber = NormalizePhoneNumberForForm(user.PhoneNumber),
             Address = user.Address,
+            District = user.District,
             ExistingProfileImageUrl = user.ProfileImageUrl
         };
 
@@ -645,6 +648,7 @@ namespace ServConnect.Controllers
         user.UserName = model.Email;
         user.PhoneNumber = normalizedPhone;
         user.Address = model.Address;
+        user.District = model.District;
 
         if (model.Image != null && model.Image.Length > 0)
         {

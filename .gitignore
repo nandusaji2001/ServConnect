@@ -12,3 +12,4 @@ venv/
 
 # Keep ML models (don't ignore .pkl files)
 !backend/ML/models/*.pkl
+.fake

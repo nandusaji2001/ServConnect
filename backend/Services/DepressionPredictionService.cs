@@ -225,6 +225,36 @@ namespace ServConnect.Services
                 }
 
                 var radius = 10000; // 10km radius
+                var allPlaces = new List<SuggestedPlace>();
+
+                // Handle religious_place by fetching all three types
+                if (placeType == "religious_place")
+                {
+                    var religiousTypes = new[] { "hindu_temple", "church", "mosque" };
+                    foreach (var religType in religiousTypes)
+                    {
+                        var religiousPlaces = await FetchPlacesFromApi(latitude, longitude, religType, radius, apiKey);
+                        allPlaces.AddRange(religiousPlaces);
+                    }
+                    // Sort by rating and return top results
+                    return allPlaces.OrderByDescending(p => p.Rating ?? 0).Take(10).ToList();
+                }
+                else
+                {
+                    return await FetchPlacesFromApi(latitude, longitude, placeType, radius, apiKey);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching nearby places");
+                return new List<SuggestedPlace>();
+            }
+        }
+
+        private async Task<List<SuggestedPlace>> FetchPlacesFromApi(double latitude, double longitude, string placeType, int radius, string apiKey)
+        {
+            try
+            {
                 var url = $"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={latitude},{longitude}&radius={radius}&type={placeType}&key={apiKey}";
 
                 var response = await _httpClient.GetAsync(url);

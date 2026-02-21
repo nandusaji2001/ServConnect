@@ -3,16 +3,16 @@
     Layout = null;
     var currentUser = ViewBag.CurrentUser as ServConnect.Models.Users;
     var otherUser = ViewBag.OtherUser as ServConnect.Models.Users;
+    var profile = ViewBag.Profile as ServConnect.Models.Community.CommunityProfile;
 }
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="@(profile?.Theme ?? "light")">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat with @otherUser?.FullName - Community</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="/css/community.css">
-    <script src="/js/community-translations.js"></script>
 </head>
 <body>
     <!-- Navigation Sidebar (Hidden on mobile) -->
@@ -54,6 +54,12 @@
                     <a href="/community/profile" class="nav-link">
                         <i class="fas fa-user"></i>
                         <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/Home/Dashboard" class="nav-link" style="color: #10B981;">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Return to Dashboard</span>
                     </a>
                 </li>
             </ul>

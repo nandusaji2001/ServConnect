@@ -7,7 +7,7 @@ namespace ServConnect.Services
         Task<Item> CreateAsync(Item item);
         Task<Item?> GetByIdAsync(string id);
         Task<List<Item>> GetByOwnerAsync(Guid ownerId);
-        Task<List<Item>> GetAllAsync(bool includeInactive = false);
+        Task<List<Item>> GetAllAsync(bool includeInactive = false, string? district = null);
         Task<bool> UpdateAsync(Item item);
         Task<bool> DeleteAsync(string id);
 

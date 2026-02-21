@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ServConnect.Models;
 
 namespace ServConnect.ViewModels
 {
@@ -24,6 +25,10 @@ namespace ServConnect.ViewModels
         [StringLength(200, MinimumLength = 10, ErrorMessage = "Address must be 10–200 characters")]
         [Display(Name = "Complete Address")]
         public string? Address { get; set; }
+
+        [Required(ErrorMessage = "District is required")]
+        [Display(Name = "District")]
+        public string? District { get; set; }
 
         [Display(Name = "Profile Image")]
         public IFormFile? Image { get; set; }

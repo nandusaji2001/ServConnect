@@ -11,9 +11,16 @@ import numpy as np
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import warnings
 warnings.filterwarnings('ignore')
+
+# Indian Standard Time (UTC+5:30)
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def get_ist_now():
+    """Get current datetime in IST"""
+    return datetime.now(IST)
 
 app = Flask(__name__)
 CORS(app)
@@ -112,15 +119,12 @@ TASK_CATEGORIES = {
         'name': 'Place to Visit',
         'icon': 'fa-map-marker-alt',
         'color': '#6366F1',
-        'place_types': ['park', 'cafe', 'restaurant', 'hindu_temple', 'church', 'mosque', 'museum', 'library', 'tourist_attraction', 'spa', 'gym', 'bakery', 'book_store'],
+        'place_types': ['park', 'cafe', 'restaurant', 'religious_place', 'library', 'tourist_attraction', 'spa', 'gym', 'bakery', 'book_store'],
         'descriptions': {
             'park': 'Spend time in nature to reduce stress and improve mood',
             'cafe': 'Enjoy a relaxing drink in a cozy atmosphere',
             'restaurant': 'Treat yourself to a nice meal - you deserve it',
-            'hindu_temple': 'Find peace and serenity at a temple',
-            'church': 'Connect with your spiritual side for inner peace',
-            'mosque': 'Find tranquility and reflection at a mosque',
-            'museum': 'Engage your mind with art and culture',
+            'religious_place': 'Visit a place of worship for peace and spiritual connection',
             'library': 'Find a quiet space for reading and reflection',
             'tourist_attraction': 'Explore something new and exciting nearby',
             'spa': 'Pamper yourself with relaxation and self-care',
@@ -141,6 +145,126 @@ DAILY_AFFIRMATIONS = [
     "Every day brings new opportunities for joy.",
     "You have overcome challenges before. You can do it again.",
 ]
+
+# Maintenance affirmations for healthy users
+MAINTENANCE_AFFIRMATIONS = [
+    "Your mind is clear and your spirit is strong.",
+    "You are creating a beautiful life with healthy choices.",
+    "Every healthy choice you make strengthens your well-being.",
+    "You are in tune with your mind, body, and spirit.",
+    "Your positive mindset attracts positive experiences.",
+    "You are growing stronger and more resilient each day.",
+    "Balance and harmony flow naturally into your life.",
+]
+
+# Maintenance tasks for non-depressed users (lighter, wellness-focused)
+MAINTENANCE_TASKS = {
+    'mindfulness': {
+        'name': 'Mindfulness',
+        'icon': 'fa-brain',
+        'color': '#8B5CF6',
+        'tasks': [
+            {'title': 'Morning gratitude practice', 'description': 'Start your day by listing 3 things you are grateful for', 'duration': '5 mins'},
+            {'title': 'Mindful eating', 'description': 'Eat one meal today with full attention - no screens', 'duration': '20 mins'},
+            {'title': 'Nature observation', 'description': 'Spend 10 minutes observing nature around you', 'duration': '10 mins'},
+            {'title': 'Digital detox hour', 'description': 'Take a 1-hour break from all screens', 'duration': '1 hour'},
+        ]
+    },
+    'physical_wellness': {
+        'name': 'Physical Wellness',
+        'icon': 'fa-dumbbell',
+        'color': '#10B981',
+        'tasks': [
+            {'title': 'Stretching routine', 'description': 'Do a full body stretch routine', 'duration': '15 mins'},
+            {'title': 'Hydration check', 'description': 'Drink 8 glasses of water today and track it', 'duration': 'All day'},
+            {'title': 'Walking meditation', 'description': 'Take a mindful walk, focusing on each step', 'duration': '20 mins'},
+            {'title': 'Yoga session', 'description': 'Practice yoga or gentle stretches', 'duration': '30 mins'},
+        ]
+    },
+    'social_connection': {
+        'name': 'Social Connection',
+        'icon': 'fa-users',
+        'color': '#F59E0B',
+        'tasks': [
+            {'title': 'Call a friend or family', 'description': "Reach out to someone you haven't talked to recently", 'duration': '15 mins'},
+            {'title': 'Appreciate someone', 'description': 'Express genuine appreciation to someone today', 'duration': '5 mins'},
+            {'title': 'Quality time', 'description': 'Spend quality time with loved ones - no distractions', 'duration': '1 hour'},
+            {'title': 'Random act of kindness', 'description': 'Do something kind for someone without expecting anything', 'duration': '10 mins'},
+        ]
+    },
+    'personal_growth': {
+        'name': 'Personal Growth',
+        'icon': 'fa-seedling',
+        'color': '#6366F1',
+        'tasks': [
+            {'title': 'Read or learn something new', 'description': 'Read a book or learn something new today', 'duration': '30 mins'},
+            {'title': 'Journal reflection', 'description': 'Write about your goals and progress', 'duration': '15 mins'},
+            {'title': 'Skill practice', 'description': 'Spend time practicing a skill you want to improve', 'duration': '30 mins'},
+            {'title': 'Plan your week', 'description': 'Review and plan your upcoming week mindfully', 'duration': '20 mins'},
+        ]
+    },
+    'relaxation': {
+        'name': 'Relaxation',
+        'icon': 'fa-spa',
+        'color': '#EC4899',
+        'tasks': [
+            {'title': 'Listen to calming music', 'description': 'Relax with soothing music or nature sounds', 'duration': '20 mins'},
+            {'title': 'Take a power nap', 'description': 'Rest for 20 minutes to recharge', 'duration': '20 mins'},
+            {'title': 'Self-care ritual', 'description': 'Do something that makes you feel pampered', 'duration': '30 mins'},
+            {'title': 'Evening wind-down', 'description': 'Create a calming bedtime routine', 'duration': '30 mins'},
+        ]
+    }
+}
+
+def generate_maintenance_tasks():
+    """Generate 7 days of maintenance wellness tasks for healthy users (no place visits)"""
+    
+    tasks = []
+    categories = list(MAINTENANCE_TASKS.keys())
+    
+    for day in range(7):
+        day_date = get_ist_now() + timedelta(days=day)
+        day_weekday = day_date.strftime('%A')
+        day_tasks = []
+        
+        # Shuffle for variety
+        random.shuffle(categories)
+        
+        # 2-3 lighter tasks per day
+        num_tasks = 3
+        selected_categories = categories[:num_tasks]
+        
+        for i, category in enumerate(selected_categories):
+            cat_data = MAINTENANCE_TASKS[category]
+            selected_task = random.choice(cat_data['tasks'])
+            
+            task = {
+                'id': f"day{day+1}_task{i+1}",
+                'day': day + 1,
+                'date': day_date.strftime('%Y-%m-%d'),
+                'dayName': day_weekday,
+                'category': category,
+                'categoryName': cat_data['name'],
+                'icon': cat_data['icon'],
+                'color': cat_data['color'],
+                'title': selected_task['title'],
+                'description': selected_task['description'],
+                'duration': selected_task['duration'],
+                'requiresLocation': False,
+                'isCompleted': False,
+                'completedAt': None
+            }
+            day_tasks.append(task)
+        
+        tasks.append({
+            'day': day + 1,
+            'date': day_date.strftime('%Y-%m-%d'),
+            'dayName': day_weekday,
+            'affirmation': MAINTENANCE_AFFIRMATIONS[day % len(MAINTENANCE_AFFIRMATIONS)],
+            'tasks': day_tasks
+        })
+    
+    return tasks
 
 def load_model():
     """Load the trained model"""
@@ -213,19 +337,29 @@ def generate_weekly_tasks(severity_score, user_location):
     """Generate 7 days of personalized wellness tasks"""
     
     tasks = []
-    categories = list(TASK_CATEGORIES.keys())
+    non_place_categories = [cat for cat in TASK_CATEGORIES.keys() if cat != 'place_visit']
     
     for day in range(7):
-        # Day 1 starts TODAY (day=0 means +0 days = today)
-        day_date = datetime.utcnow() + timedelta(days=day)
+        # Day 1 starts TODAY using IST
+        day_date = get_ist_now() + timedelta(days=day)
+        day_weekday = day_date.strftime('%A')  # Get weekday name
         day_tasks = []
         
-        # Shuffle categories for variety
-        random.shuffle(categories)
+        # Determine if place visit should be included (only Tue, Thu, Sat)
+        include_place_visit = day_weekday in ['Tuesday', 'Thursday', 'Saturday']
         
-        # Select 3-4 tasks per day from different categories
+        # Shuffle non-place categories for variety
+        random.shuffle(non_place_categories)
+        
+        # Select 3-4 tasks per day
         num_tasks = 4 if severity_score > 0.6 else 3
-        selected_categories = categories[:num_tasks]
+        
+        # Build category list for this day
+        if include_place_visit:
+            # Include place_visit as first task on Tue/Thu/Sat
+            selected_categories = ['place_visit'] + non_place_categories[:num_tasks-1]
+        else:
+            selected_categories = non_place_categories[:num_tasks]
         
         for i, category in enumerate(selected_categories):
             cat_data = TASK_CATEGORIES[category]
@@ -233,16 +367,23 @@ def generate_weekly_tasks(severity_score, user_location):
             if category == 'place_visit':
                 # Generate place visit task
                 place_type = random.choice(cat_data['place_types'])
+                
+                # Special handling for religious places to show all options
+                if place_type == 'religious_place':
+                    place_title = "temple, church, or mosque"
+                else:
+                    place_title = place_type.replace('_', ' ')
+                
                 task = {
                     'id': f"day{day+1}_task{i+1}",
                     'day': day + 1,
                     'date': day_date.strftime('%Y-%m-%d'),
-                    'dayName': day_date.strftime('%A'),
+                    'dayName': day_weekday,
                     'category': category,
                     'categoryName': cat_data['name'],
                     'icon': cat_data['icon'],
                     'color': cat_data['color'],
-                    'title': f"Visit a nearby {place_type.replace('_', ' ')}",
+                    'title': f"Visit a nearby {place_title}",
                     'description': cat_data['descriptions'].get(place_type, 'Explore a new place nearby'),
                     'duration': '1 hour',
                     'placeType': place_type,
@@ -257,7 +398,7 @@ def generate_weekly_tasks(severity_score, user_location):
                     'id': f"day{day+1}_task{i+1}",
                     'day': day + 1,
                     'date': day_date.strftime('%Y-%m-%d'),
-                    'dayName': day_date.strftime('%A'),
+                    'dayName': day_weekday,
                     'category': category,
                     'categoryName': cat_data['name'],
                     'icon': cat_data['icon'],
@@ -275,7 +416,7 @@ def generate_weekly_tasks(severity_score, user_location):
         tasks.append({
             'day': day + 1,
             'date': day_date.strftime('%Y-%m-%d'),
-            'dayName': day_date.strftime('%A'),
+            'dayName': day_weekday,
             'affirmation': DAILY_AFFIRMATIONS[day % len(DAILY_AFFIRMATIONS)],
             'tasks': day_tasks
         })
@@ -348,8 +489,8 @@ def predict_depression():
             wellness_plan = generate_weekly_tasks(depression_probability, user_location)
             
             response['wellnessPlan'] = {
-                'startDate': datetime.utcnow().strftime('%Y-%m-%d'),
-                'endDate': (datetime.utcnow() + timedelta(days=7)).strftime('%Y-%m-%d'),
+                'startDate': get_ist_now().strftime('%Y-%m-%d'),
+                'endDate': (get_ist_now() + timedelta(days=7)).strftime('%Y-%m-%d'),
                 'days': wellness_plan,
                 'totalTasks': sum(len(day['tasks']) for day in wellness_plan),
                 'recommendations': [
@@ -362,7 +503,24 @@ def predict_depression():
             }
             response['message'] = "Based on your responses, we recommend following our 7-day wellness plan to help improve your mental well-being."
         else:
-            response['message'] = "Your responses indicate a healthy mental state. Keep up the good habits!"
+            # Generate maintenance wellness plan for healthy users
+            maintenance_plan = generate_maintenance_tasks()
+            
+            response['wellnessPlan'] = {
+                'startDate': get_ist_now().strftime('%Y-%m-%d'),
+                'endDate': (get_ist_now() + timedelta(days=7)).strftime('%Y-%m-%d'),
+                'days': maintenance_plan,
+                'totalTasks': sum(len(day['tasks']) for day in maintenance_plan),
+                'planType': 'maintenance',
+                'recommendations': [
+                    "Continue maintaining your healthy routines",
+                    "Stay connected with friends and family",
+                    "Practice regular exercise and mindfulness",
+                    "Get adequate sleep and nutrition",
+                    "Take time for activities that bring you joy"
+                ]
+            }
+            response['message'] = "Great news! Your mental health appears to be in a good state. We've prepared a maintenance wellness plan to help you stay healthy."
             response['tips'] = [
                 "Continue maintaining your healthy routines",
                 "Stay connected with friends and family",

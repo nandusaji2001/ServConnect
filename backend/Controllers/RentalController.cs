@@ -139,15 +139,21 @@ namespace ServConnect.Controllers
                     amenitiesList = amenities.Split(',').Select(a => a.Trim()).ToList();
                 }
 
-                // Get current user ID to exclude their own properties
+                // Get current user details for filtering
                 string? excludeOwnerId = null;
+                string? userDistrict = null;
                 if (User.Identity?.IsAuthenticated == true)
                 {
-                    excludeOwnerId = _userManager.GetUserId(User);
+                    var me = await _userManager.GetUserAsync(User);
+                    if (me != null)
+                    {
+                        excludeOwnerId = me.Id.ToString();
+                        userDistrict = me.District;
+                    }
                 }
 
-                var properties = await _rentalService.SearchAsync(q, houseType, furnishing, city, minRent, maxRent, amenitiesList, skip, take, excludeOwnerId);
-                var total = await _rentalService.GetTotalCountAsync(excludeOwnerId);
+                var properties = await _rentalService.SearchAsync(q, houseType, furnishing, city, minRent, maxRent, amenitiesList, skip, take, excludeOwnerId, userDistrict);
+                var total = await _rentalService.GetTotalCountAsync(excludeOwnerId, userDistrict);
 
                 return Ok(new { properties, total });
             }
@@ -308,6 +314,7 @@ namespace ServConnect.Controllers
                     City = dto.City,
                     Area = dto.Area,
                     Pincode = dto.Pincode,
+                    District = user.District, // Set district from user's profile
                     Latitude = dto.Latitude,
                     Longitude = dto.Longitude,
                     Furnishing = dto.Furnishing,

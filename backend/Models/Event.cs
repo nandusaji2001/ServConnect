@@ -22,6 +22,9 @@ namespace ServConnect.Models
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         
+        // District for location-based filtering (Kerala Districts)
+        public string District { get; set; } = KeralaDistricts.Idukki;
+        
         // Capacity & Tickets
         public int Capacity { get; set; }
         public int TicketsSold { get; set; } = 0;

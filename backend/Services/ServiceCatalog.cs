@@ -100,6 +100,7 @@ namespace ServConnect.Services
                 ProviderEmail = provider?.Email ?? "",
                 ProviderPhone = provider?.PhoneNumber ?? "",
                 ProviderAddress = provider?.Address ?? "",
+                District = provider?.District ?? KeralaDistricts.Idukki, // Set district from provider's profile
                 IsActive = false, // Services start inactive until payment is made
                 IsPaid = false,   // Payment required for new services
                 CreatedAt = DateTime.UtcNow,
@@ -109,19 +110,26 @@ namespace ServConnect.Services
             return link;
         }
 
-        public async Task<List<ProviderService>> GetProviderLinksBySlugAsync(string slug)
+        public async Task<List<ProviderService>> GetProviderLinksBySlugAsync(string slug, string? district = null)
         {
             // Only show services that are active, paid, and not expired
             var now = DateTime.UtcNow;
-            var filter = Builders<ProviderService>.Filter.And(
-                Builders<ProviderService>.Filter.Eq(x => x.ServiceSlug, slug),
-                Builders<ProviderService>.Filter.Eq(x => x.IsActive, true),
-                Builders<ProviderService>.Filter.Eq(x => x.IsPaid, true),
-                Builders<ProviderService>.Filter.Or(
-                    Builders<ProviderService>.Filter.Eq(x => x.PublicationEndDate, null),
-                    Builders<ProviderService>.Filter.Gt(x => x.PublicationEndDate, now)
+            var filterBuilder = Builders<ProviderService>.Filter;
+            var filter = filterBuilder.And(
+                filterBuilder.Eq(x => x.ServiceSlug, slug),
+                filterBuilder.Eq(x => x.IsActive, true),
+                filterBuilder.Eq(x => x.IsPaid, true),
+                filterBuilder.Or(
+                    filterBuilder.Eq(x => x.PublicationEndDate, null),
+                    filterBuilder.Gt(x => x.PublicationEndDate, now)
                 )
             );
+            
+            // Filter by district if specified
+            if (!string.IsNullOrEmpty(district))
+            {
+                filter = filterBuilder.And(filter, filterBuilder.Eq(x => x.District, district));
+            }
             
             var providerServices = await _providerLinks.Find(filter).ToListAsync();
             

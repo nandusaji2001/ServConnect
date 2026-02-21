@@ -1,0 +1,670 @@
+@{
+    ViewData["Title"] = "My Routes - TransitConnect";
+    var contributedRoutes = ViewBag.ContributedRoutes as List<ServConnect.Models.TransportRoute> ?? new List<ServConnect.Models.TransportRoute>();
+    var savedRoutes = ViewBag.SavedRoutes as List<ServConnect.Models.SavedRoute> ?? new List<ServConnect.Models.SavedRoute>();
+}
+
+<style>
+    :root {
+        --primary: #0EA5E9;
+        --primary-dark: #0284C7;
+        --success: #10B981;
+        --danger: #EF4444;
+        --warning: #F59E0B;
+        --bg-light: #f0f9ff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border-color: #e2e8f0;
+        --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .my-routes-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 20px 80px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        color: var(--text-primary);
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+        box-shadow: var(--shadow-card);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+
+    .back-btn:hover {
+        transform: translateX(-5px);
+        color: var(--primary);
+        border-color: var(--primary);
+        text-decoration: none;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+
+    .page-header p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--shadow-card);
+        text-align: center;
+    }
+
+    .stat-card i {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+
+    .stat-card .value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+
+    .stat-card .label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    /* Tabs */
+    .tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--bg-light);
+        padding: 6px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 14px 24px;
+        background: transparent;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .tab-btn.active {
+        background: white;
+        color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .tab-btn:hover:not(.active) {
+        color: var(--text-primary);
+    }
+
+    /* Tab Panels */
+    .tab-panel {
+        display: none;
+    }
+
+    .tab-panel.active {
+        display: block;
+    }
+
+    /* Section Header */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: var(--primary);
+    }
+
+    .add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .add-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Routes Grid */
+    .routes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .route-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+        transition: all 0.3s ease;
+    }
+
+    .route-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    .route-card-header {
+        padding: 20px;
+        background: linear-gradient(135deg, var(--bg-light) 0%, #e0f2fe 100%);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .transport-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: white;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-badge.active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-badge.removed {
+        background: #fee2e2;
+        color: #991B1B;
+    }
+
+    .status-badge.review {
+        background: #fef3c7;
+        color: #92400E;
+    }
+
+    .route-card-body {
+        padding: 20px;
+    }
+
+    .route-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+
+    .route-path {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .route-path i {
+        color: var(--primary);
+    }
+
+    .route-stats {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9rem;
+    }
+
+    .stat-item.upvotes {
+        color: var(--success);
+    }
+
+    .stat-item.downvotes {
+        color: var(--danger);
+    }
+
+    .stat-item.score {
+        color: var(--primary);
+    }
+
+    .route-actions {
+        display: flex;
+        gap: 8px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .action-btn.view {
+        background: var(--bg-light);
+        color: var(--primary);
+    }
+
+    .action-btn.view:hover {
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn.edit {
+        background: #fef3c7;
+        color: #D97706;
+    }
+
+    .action-btn.edit:hover {
+        background: #F59E0B;
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn.delete {
+        background: #fee2e2;
+        color: #DC2626;
+        border: none;
+        cursor: pointer;
+    }
+
+    .action-btn.delete:hover {
+        background: #EF4444;
+        color: white;
+    }
+
+    /* Saved Route Card */
+    .saved-label {
+        display: inline-block;
+        padding: 4px 10px;
+        background: #fef3c7;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #92400E;
+        margin-bottom: 8px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--shadow-card);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--primary);
+        opacity: 0.3;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        font-size: 1.3rem;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+    }
+
+    @@media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .routes-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tabs {
+            flex-direction: column;
+        }
+
+        .section-header {
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="my-routes-container">
+    <a href="@Url.Action("Index")" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to All Routes
+    </a>
+
+    <div class="page-header">
+        <h1><i class="fas fa-user-circle"></i> My Routes</h1>
+        <p>Manage your contributed routes and saved favorites</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class="fas fa-share-alt"></i>
+            <div class="value">@contributedRoutes.Count</div>
+            <div class="label">Routes Contributed</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-bookmark"></i>
+            <div class="value">@savedRoutes.Count</div>
+            <div class="label">Saved Routes</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-thumbs-up"></i>
+            <div class="value">@contributedRoutes.Sum(r => r.Upvotes)</div>
+            <div class="label">Total Upvotes</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-chart-line"></i>
+            <div class="value">@contributedRoutes.Sum(r => r.Score)</div>
+            <div class="label">Total Score</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('contributed')">
+            <i class="fas fa-share-alt"></i> Contributed (@contributedRoutes.Count)
+        </button>
+        <button class="tab-btn" onclick="showTab('saved')">
+            <i class="fas fa-bookmark"></i> Saved (@savedRoutes.Count)
+        </button>
+    </div>
+
+    <!-- Contributed Routes Tab -->
+    <div id="contributed-panel" class="tab-panel active">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-share-alt"></i> Routes You've Contributed
+            </h2>
+            <a href="@Url.Action("Add")" class="add-btn">
+                <i class="fas fa-plus"></i> Add New Route
+            </a>
+        </div>
+
+        @if (contributedRoutes.Count == 0)
+        {
+            <div class="empty-state">
+                <i class="fas fa-route"></i>
+                <h3>No routes contributed yet</h3>
+                <p>Help the community by sharing transportation information you know!</p>
+                <a href="@Url.Action("Add")" class="add-btn">
+                    <i class="fas fa-plus"></i> Add Your First Route
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="routes-grid">
+                @foreach (var route in contributedRoutes)
+                {
+                    var icon = route.TransportType switch
+                    {
+                        "Bus" => "fas fa-bus",
+                        "Metro" => "fas fa-subway",
+                        "Train" => "fas fa-train",
+                        "Auto" => "fas fa-taxi",
+                        "Ferry" => "fas fa-ship",
+                        "Shuttle" => "fas fa-shuttle-van",
+                        _ => "fas fa-bus"
+                    };
+
+                    var statusClass = route.Status switch
+                    {
+                        "Active" => "active",
+                        "Removed" => "removed",
+                        "UnderReview" => "review",
+                        _ => "active"
+                    };
+
+                    <div class="route-card">
+                        <div class="route-card-header">
+                            <span class="transport-badge">
+                                <i class="@icon"></i> @route.TransportType
+                            </span>
+                            <span class="status-badge @statusClass">@route.Status</span>
+                        </div>
+                        <div class="route-card-body">
+                            <h3 class="route-name">@route.TransportName</h3>
+                            <div class="route-path">
+                                <span>@route.StartLocation</span>
+                                <i class="fas fa-arrow-right"></i>
+                                <span>@route.EndLocation</span>
+                            </div>
+                            <div class="route-stats">
+                                <span class="stat-item upvotes">
+                                    <i class="fas fa-thumbs-up"></i> @route.Upvotes
+                                </span>
+                                <span class="stat-item downvotes">
+                                    <i class="fas fa-thumbs-down"></i> @route.Downvotes
+                                </span>
+                                <span class="stat-item score">
+                                    <i class="fas fa-star"></i> @route.Score score
+                                </span>
+                            </div>
+                            <div class="route-actions">
+                                <a href="@Url.Action("Details", new { id = route.Id })" class="action-btn view">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                @if (route.Status == "Active")
+                                {
+                                    <a href="@Url.Action("Edit", new { id = route.Id })" class="action-btn edit">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                }
+                                <form method="post" action="@Url.Action("Delete", new { id = route.Id })" style="flex: 1;" 
+                                      onsubmit="return confirm('Are you sure you want to delete this route?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="action-btn delete" style="width: 100%;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Saved Routes Tab -->
+    <div id="saved-panel" class="tab-panel">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-bookmark"></i> Your Saved Routes
+            </h2>
+        </div>
+
+        @if (savedRoutes.Count == 0)
+        {
+            <div class="empty-state">
+                <i class="fas fa-bookmark"></i>
+                <h3>No saved routes</h3>
+                <p>Save routes you use frequently for quick access!</p>
+                <a href="@Url.Action("Index")" class="add-btn">
+                    <i class="fas fa-search"></i> Browse Routes
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="routes-grid">
+                @foreach (var saved in savedRoutes)
+                {
+                    if (saved.Route == null) continue;
+
+                    var route = saved.Route;
+                    var icon = route.TransportType switch
+                    {
+                        "Bus" => "fas fa-bus",
+                        "Metro" => "fas fa-subway",
+                        "Train" => "fas fa-train",
+                        "Auto" => "fas fa-taxi",
+                        "Ferry" => "fas fa-ship",
+                        "Shuttle" => "fas fa-shuttle-van",
+                        _ => "fas fa-bus"
+                    };
+
+                    <div class="route-card">
+                        <div class="route-card-header">
+                            <span class="transport-badge">
+                                <i class="@icon"></i> @route.TransportType
+                            </span>
+                            <span class="status-badge active">
+                                <i class="fas fa-check"></i> @route.ReliabilityPercentage% reliable
+                            </span>
+                        </div>
+                        <div class="route-card-body">
+                            @if (!string.IsNullOrEmpty(saved.CustomLabel))
+                            {
+                                <span class="saved-label">@saved.CustomLabel</span>
+                            }
+                            <h3 class="route-name">@route.TransportName</h3>
+                            <div class="route-path">
+                                <span>@route.StartLocation</span>
+                                <i class="fas fa-arrow-right"></i>
+                                <span>@route.EndLocation</span>
+                            </div>
+                            <div class="route-stats">
+                                <span class="stat-item">
+                                    <i class="fas fa-clock"></i> @route.DepartureTime
+                                </span>
+                                @if (!string.IsNullOrEmpty(route.Duration))
+                                {
+                                    <span class="stat-item">
+                                        <i class="fas fa-hourglass-half"></i> @route.Duration
+                                    </span>
+                                }
+                            </div>
+                            <div class="route-actions">
+                                <a href="@Url.Action("Details", new { id = route.Id })" class="action-btn view">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                <button class="action-btn delete" onclick="removeSavedRoute('@saved.Id')">
+                                    <i class="fas fa-bookmark-slash"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function showTab(tabName) {
+        // Hide all panels
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.remove('active');
+        });
+        
+        // Deactivate all tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected panel
+        document.getElementById(tabName + '-panel').classList.add('active');
+        
+        // Activate selected tab
+        event.target.classList.add('active');
+    }
+
+    async function removeSavedRoute(savedRouteId) {
+        if (!confirm('Remove this route from saved?')) return;
+        
+        try {
+            const response = await fetch(`/TransitConnect/RemoveSavedRoute?savedRouteId=${savedRouteId}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>

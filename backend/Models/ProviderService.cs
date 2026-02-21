@@ -42,6 +42,9 @@ namespace ServConnect.Models
 
         public bool IsActive { get; set; } = true;
         
+        // District for location-based filtering
+        public string District { get; set; } = KeralaDistricts.Idukki;
+        
         // Publication and payment details
         public DateTime? PublicationStartDate { get; set; }
         public DateTime? PublicationEndDate { get; set; }

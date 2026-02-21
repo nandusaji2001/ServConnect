@@ -809,6 +809,17 @@
                 <div class="tile-title">Complaints</div>
                 <div class="tile-subtitle">View & resolve</div>
             </a>
+            
+            <form asp-controller="Admin" asp-action="MigrateDistrictData" method="post" style="display: contents;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="action-tile" onclick="return confirm('This will migrate all existing users and content (services, items, rentals, events, lost & found) to Idukki district. Continue?');">
+                    <div class="tile-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="tile-title">Migrate District</div>
+                    <div class="tile-subtitle">Set all to Idukki</div>
+                </button>
+            </form>
         </div>
     </div>
 

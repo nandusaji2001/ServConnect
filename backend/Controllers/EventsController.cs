@@ -43,11 +43,12 @@ namespace ServConnect.Controllers
 
             var filterBuilder = Builders<Event>.Filter;
             
-            // Base filter: published events, not ended, and NOT created by current user
+            // Base filter: published events, not ended, NOT created by current user, AND in user's district
             var filter = filterBuilder.And(
                 filterBuilder.Eq(e => e.Status, EventStatus.Published),
                 filterBuilder.Gte(e => e.EndDateTime, DateTime.UtcNow),
-                filterBuilder.Ne(e => e.OrganizerId, currentUser.Id.ToString()) // Exclude user's own events
+                filterBuilder.Ne(e => e.OrganizerId, currentUser.Id.ToString()), // Exclude user's own events
+                filterBuilder.Eq(e => e.District, currentUser.District) // Filter by user's district
             );
 
             if (!string.IsNullOrEmpty(category))
@@ -71,13 +72,14 @@ namespace ServConnect.Controllers
                 .Limit(20)
                 .ToListAsync();
 
-            // Featured events also exclude user's own events
+            // Featured events also exclude user's own events and filter by district
             var featuredEvents = await _eventsCollection
                 .Find(filterBuilder.And(
                     filterBuilder.Eq(e => e.Status, EventStatus.Published),
                     filterBuilder.Eq(e => e.IsFeatured, true),
                     filterBuilder.Gte(e => e.EndDateTime, DateTime.UtcNow),
-                    filterBuilder.Ne(e => e.OrganizerId, currentUser.Id.ToString()) // Exclude user's own events
+                    filterBuilder.Ne(e => e.OrganizerId, currentUser.Id.ToString()), // Exclude user's own events
+                    filterBuilder.Eq(e => e.District, currentUser.District) // Filter by user's district
                 ))
                 .SortBy(e => e.StartDateTime)
                 .Limit(6)
@@ -188,6 +190,7 @@ namespace ServConnect.Controllers
                 Address = model.Address,
                 Latitude = model.Latitude,
                 Longitude = model.Longitude,
+                District = currentUser.District, // Set district from user's profile
                 Capacity = model.Capacity,
                 IsFreeEvent = model.IsFreeEvent,
                 TicketPrice = model.IsFreeEvent ? 0 : model.TicketPrice,

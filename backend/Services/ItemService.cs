@@ -33,9 +33,17 @@ namespace ServConnect.Services
             return await _items.Find(i => i.OwnerId == ownerId).ToListAsync();
         }
 
-        public async Task<List<Item>> GetAllAsync(bool includeInactive = false)
+        public async Task<List<Item>> GetAllAsync(bool includeInactive = false, string? district = null)
         {
-            var filter = includeInactive ? Builders<Item>.Filter.Empty : Builders<Item>.Filter.Eq(i => i.IsActive, true);
+            var filterBuilder = Builders<Item>.Filter;
+            var filter = includeInactive ? filterBuilder.Empty : filterBuilder.Eq(i => i.IsActive, true);
+            
+            // Filter by district if specified
+            if (!string.IsNullOrEmpty(district))
+            {
+                filter = filterBuilder.And(filter, filterBuilder.Eq(i => i.District, district));
+            }
+            
             return await _items.Find(filter).SortByDescending(i => i.CreatedAt).ToListAsync();
         }
 

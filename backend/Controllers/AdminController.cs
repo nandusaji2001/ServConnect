@@ -924,5 +924,114 @@ namespace ServConnect.Controllers
             }
         }
 
+        // POST: Migrate all existing users and content to Idukki district
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MigrateDistrictData()
+        {
+            try
+            {
+                var config = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+                var conn = config["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017";
+                var dbName = config["MongoDB:DatabaseName"] ?? "ServConnectDb";
+                var client = new MongoDB.Driver.MongoClient(conn);
+                var db = client.GetDatabase(dbName);
+                
+                var updatedUsers = 0;
+                var updatedItems = 0;
+                var updatedServices = 0;
+                var updatedRentals = 0;
+                var updatedEvents = 0;
+                var updatedLostFound = 0;
+                var updatedLostReports = 0;
+                
+                // Migrate Users
+                var allUsers = _userManager.Users.ToList();
+                foreach (var user in allUsers)
+                {
+                    if (string.IsNullOrEmpty(user.District))
+                    {
+                        user.District = KeralaDistricts.Idukki;
+                        await _userManager.UpdateAsync(user);
+                        updatedUsers++;
+                    }
+                }
+                
+                // Migrate Items (vendor products)
+                var itemsCollection = db.GetCollection<MongoDB.Bson.BsonDocument>("Items");
+                var itemFilter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Or(
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("District", false),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", MongoDB.Bson.BsonNull.Value),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", "")
+                );
+                var itemUpdate = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("District", KeralaDistricts.Idukki);
+                var itemResult = await itemsCollection.UpdateManyAsync(itemFilter, itemUpdate);
+                updatedItems = (int)itemResult.ModifiedCount;
+                
+                // Migrate ProviderServices
+                var servicesCollection = db.GetCollection<MongoDB.Bson.BsonDocument>("ProviderServices");
+                var serviceFilter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Or(
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("District", false),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", MongoDB.Bson.BsonNull.Value),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", "")
+                );
+                var serviceUpdate = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("District", KeralaDistricts.Idukki);
+                var serviceResult = await servicesCollection.UpdateManyAsync(serviceFilter, serviceUpdate);
+                updatedServices = (int)serviceResult.ModifiedCount;
+                
+                // Migrate RentalProperties
+                var rentalsCollection = db.GetCollection<MongoDB.Bson.BsonDocument>("RentalProperties");
+                var rentalFilter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Or(
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("District", false),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", MongoDB.Bson.BsonNull.Value),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", "")
+                );
+                var rentalUpdate = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("District", KeralaDistricts.Idukki);
+                var rentalResult = await rentalsCollection.UpdateManyAsync(rentalFilter, rentalUpdate);
+                updatedRentals = (int)rentalResult.ModifiedCount;
+                
+                // Migrate Events
+                var eventsCollection = db.GetCollection<MongoDB.Bson.BsonDocument>("Events");
+                var eventFilter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Or(
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("District", false),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", MongoDB.Bson.BsonNull.Value),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", "")
+                );
+                var eventUpdate = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("District", KeralaDistricts.Idukki);
+                var eventResult = await eventsCollection.UpdateManyAsync(eventFilter, eventUpdate);
+                updatedEvents = (int)eventResult.ModifiedCount;
+                
+                // Migrate LostFoundItems
+                var lostFoundCollection = db.GetCollection<MongoDB.Bson.BsonDocument>("LostFoundItems");
+                var lostFoundFilter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Or(
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("District", false),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", MongoDB.Bson.BsonNull.Value),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", "")
+                );
+                var lostFoundUpdate = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("District", KeralaDistricts.Idukki);
+                var lostFoundResult = await lostFoundCollection.UpdateManyAsync(lostFoundFilter, lostFoundUpdate);
+                updatedLostFound = (int)lostFoundResult.ModifiedCount;
+                
+                // Migrate LostItemReports
+                var lostReportsCollection = db.GetCollection<MongoDB.Bson.BsonDocument>("LostItemReports");
+                var lostReportFilter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Or(
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("District", false),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", MongoDB.Bson.BsonNull.Value),
+                    MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("District", "")
+                );
+                var lostReportUpdate = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("District", KeralaDistricts.Idukki);
+                var lostReportResult = await lostReportsCollection.UpdateManyAsync(lostReportFilter, lostReportUpdate);
+                updatedLostReports = (int)lostReportResult.ModifiedCount;
+                
+                TempData["SuccessMessage"] = $"Migration complete! Updated: {updatedUsers} users, {updatedItems} items, {updatedServices} services, {updatedRentals} rentals, {updatedEvents} events, {updatedLostFound + updatedLostReports} lost & found entries to Idukki district.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Migration failed: {ex.Message}";
+            }
+            
+            return RedirectToAction("Dashboard");
+        }
+
     }
 }

@@ -7,9 +7,9 @@ namespace ServConnect.Services
     public interface IRentalPropertyService
     {
         Task<RentalProperty> CreateAsync(RentalProperty property);
-        Task<List<RentalProperty>> GetAllAvailableAsync(int skip = 0, int take = 20);
+        Task<List<RentalProperty>> GetAllAvailableAsync(int skip = 0, int take = 20, string? district = null);
         Task<List<RentalProperty>> SearchAsync(string? query, HouseType? houseType, FurnishingType? furnishing, 
-            string? city, decimal? minRent, decimal? maxRent, List<string>? amenities, int skip = 0, int take = 20, string? excludeOwnerId = null);
+            string? city, decimal? minRent, decimal? maxRent, List<string>? amenities, int skip = 0, int take = 20, string? excludeOwnerId = null, string? district = null);
         Task<RentalProperty?> GetByIdAsync(string id);
         Task<RentalProperty?> GetByPropertyIdAsync(string propertyId);
         Task<List<RentalProperty>> GetByOwnerAsync(string ownerId);
@@ -17,7 +17,7 @@ namespace ServConnect.Services
         Task<bool> DeleteAsync(string id);
         Task<bool> TogglePauseAsync(string id);
         Task<bool> IncrementViewCountAsync(string id);
-        Task<long> GetTotalCountAsync(string? excludeOwnerId = null);
+        Task<long> GetTotalCountAsync(string? excludeOwnerId = null, string? district = null);
         Task<string> GeneratePropertyIdAsync();
         
         // Inquiry methods
@@ -65,10 +65,19 @@ namespace ServConnect.Services
             return property;
         }
 
-        public async Task<List<RentalProperty>> GetAllAvailableAsync(int skip = 0, int take = 20)
+        public async Task<List<RentalProperty>> GetAllAvailableAsync(int skip = 0, int take = 20, string? district = null)
         {
+            var builder = Builders<RentalProperty>.Filter;
+            var filter = builder.Eq(p => p.IsAvailable, true) & builder.Eq(p => p.IsPaused, false);
+            
+            // Filter by district if specified
+            if (!string.IsNullOrEmpty(district))
+            {
+                filter &= builder.Eq(p => p.District, district);
+            }
+            
             return await _properties
-                .Find(p => p.IsAvailable && !p.IsPaused)
+                .Find(filter)
                 .SortByDescending(p => p.CreatedAt)
                 .Skip(skip)
                 .Limit(take)
@@ -76,10 +85,16 @@ namespace ServConnect.Services
         }
 
         public async Task<List<RentalProperty>> SearchAsync(string? query, HouseType? houseType, FurnishingType? furnishing,
-            string? city, decimal? minRent, decimal? maxRent, List<string>? amenities, int skip = 0, int take = 20, string? excludeOwnerId = null)
+            string? city, decimal? minRent, decimal? maxRent, List<string>? amenities, int skip = 0, int take = 20, string? excludeOwnerId = null, string? district = null)
         {
             var builder = Builders<RentalProperty>.Filter;
             var filter = builder.Eq(p => p.IsAvailable, true) & builder.Eq(p => p.IsPaused, false);
+
+            // Filter by district if specified
+            if (!string.IsNullOrEmpty(district))
+            {
+                filter &= builder.Eq(p => p.District, district);
+            }
 
             // Exclude owner's own properties from public listing
             if (!string.IsNullOrEmpty(excludeOwnerId))
@@ -187,10 +202,16 @@ namespace ServConnect.Services
             return result.ModifiedCount > 0;
         }
 
-        public async Task<long> GetTotalCountAsync(string? excludeOwnerId = null)
+        public async Task<long> GetTotalCountAsync(string? excludeOwnerId = null, string? district = null)
         {
             var builder = Builders<RentalProperty>.Filter;
             var filter = builder.Eq(p => p.IsAvailable, true) & builder.Eq(p => p.IsPaused, false);
+            
+            // Filter by district if specified
+            if (!string.IsNullOrEmpty(district))
+            {
+                filter &= builder.Eq(p => p.District, district);
+            }
             
             if (!string.IsNullOrEmpty(excludeOwnerId))
             {

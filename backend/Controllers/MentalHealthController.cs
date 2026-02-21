@@ -174,9 +174,9 @@ namespace ServConnect.Controllers
                 var deactivateAllUpdate = Builders<WellnessPlan>.Update.Set(w => w.IsCompleted, true);
                 await _wellnessPlanCollection.UpdateManyAsync(deactivateAllFilter, deactivateAllUpdate);
 
-                // If depressed, create wellness plan
+                // Create wellness plan (for both depressed and non-depressed users)
                 string? wellnessPlanId = null;
-                if (predictionResult.IsDepressed && predictionResult.WellnessPlan != null)
+                if (predictionResult.WellnessPlan != null)
                 {
                     var wellnessPlan = new WellnessPlan
                     {
@@ -188,6 +188,7 @@ namespace ServConnect.Controllers
                         CompletedTasks = 0,
                         ProgressPercentage = 0,
                         IsCompleted = false,
+                        PlanType = predictionResult.IsDepressed ? "recovery" : "maintenance",
                         Recommendations = predictionResult.WellnessPlan.Recommendations,
                         Days = predictionResult.WellnessPlan.Days.Select(d => new WellnessDay
                         {
@@ -228,10 +229,17 @@ namespace ServConnect.Controllers
                     await _wellnessPlanCollection.UpdateOneAsync(w => w.Id == wellnessPlanId, reactivateUpdate);
 
                     // Send notification
+                    var notificationTitle = predictionResult.IsDepressed 
+                        ? "Mental Wellness Plan Created" 
+                        : "Wellness Maintenance Plan Created";
+                    var notificationMessage = predictionResult.IsDepressed
+                        ? "Your personalized 7-day wellness plan is ready! Start your journey to better mental health today."
+                        : "Great news! Your 7-day wellness maintenance plan is ready to help you stay healthy.";
+                    
                     await _notificationService.CreateNotificationAsync(
                         currentUser.Id.ToString(),
-                        "Mental Wellness Plan Created",
-                        "Your personalized 7-day wellness plan is ready! Start your journey to better mental health today.",
+                        notificationTitle,
+                        notificationMessage,
                         NotificationType.General,
                         null,
                         "/MentalHealth/WellnessPlan"
@@ -292,8 +300,10 @@ namespace ServConnect.Controllers
                 return RedirectToAction("Assessment");
             }
 
-            // Calculate current day
-            var currentDay = (DateTime.UtcNow.Date - plan.StartDate.Date).Days + 1;
+            // Calculate current day using IST (UTC+5:30)
+            var istOffset = TimeSpan.FromHours(5.5);
+            var istNow = DateTime.UtcNow.Add(istOffset).Date;
+            var currentDay = (istNow - plan.StartDate.Date).Days + 1;
             ViewBag.CurrentDay = Math.Min(Math.Max(currentDay, 1), 7);
 
             // Update progress

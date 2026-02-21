@@ -134,6 +134,9 @@ namespace ServConnect.Models
         [BsonElement("isCompleted")]
         public bool IsCompleted { get; set; }
 
+        [BsonElement("planType")]
+        public string PlanType { get; set; } = "recovery"; // "recovery" for depressed, "maintenance" for healthy
+
         [BsonElement("recommendations")]
         public List<string> Recommendations { get; set; } = new();
 

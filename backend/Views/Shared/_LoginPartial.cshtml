@@ -85,8 +85,7 @@
                     }
                     else
                     {
-                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> @Localizer["Profile"]</a></li>
-                        <li><a class="dropdown-item" asp-controller="Account" asp-action="ProfileUpdate"><i class="bi bi-pencil-square"></i> Update Details</a></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="ProfileUpdate"><i class="bi bi-person"></i> @Localizer["Profile"]</a></li>
                         @if (currentUser == null || !currentUser.IsGuardian)
                         {
                             <li><a class="dropdown-item" asp-controller="ElderCare" asp-action="Confirm"><i class="bi bi-heart-pulse"></i> Enable Elder Care Mode</a></li>
