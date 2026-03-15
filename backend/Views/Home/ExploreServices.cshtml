@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Explore Services - ServConnect";
+    ViewData["Title"] = Localizer["Page.Title"].Value;
 }
 
 <style>
@@ -504,12 +504,12 @@
 
 <div class="explore-container">
     <a href="/" class="back-btn">
-        <i class="fas fa-arrow-left"></i> Back to Home
+        <i class="fas fa-arrow-left"></i> @Localizer["BackToHome"]
     </a>
 
     <div class="explore-header">
-        <h1>Explore All Services</h1>
-        <p>Discover amazing services from trusted providers in your area. Find exactly what you need!</p>
+        <h1>@Localizer["Header.Title"]</h1>
+        <p>@Localizer["Header.Desc"]</p>
     </div>
 
     <!-- Feature Cards Grid -->
@@ -522,8 +522,8 @@
                     <i class="fas fa-search-location"></i>
                 </div>
                 <div class="featured-content">
-                    <h3>Search Local Services</h3>
-                    <p>Find local businesses and services near you - restaurants, shops, doctors, healthcare and more</p>
+                    <h3>@Localizer["LocalDirectory.Title"]</h3>
+                    <p>@Localizer["LocalDirectory.Desc"]</p>
                 </div>
                 <div class="featured-arrow">
                     <i class="fas fa-arrow-right"></i>
@@ -537,8 +537,8 @@
                     <i class="fas fa-search-location"></i>
                 </div>
                 <div class="featured-content">
-                    <h3>Search Local Services</h3>
-                    <p>Find local businesses and services near you - restaurants, shops, doctors, healthcare and more</p>
+                    <h3>@Localizer["LocalDirectory.Title"]</h3>
+                    <p>@Localizer["LocalDirectory.Desc"]</p>
                 </div>
                 <div class="featured-arrow">
                     <i class="fas fa-arrow-right"></i>
@@ -554,15 +554,15 @@
                 </div>
             </div>
             <div class="card-body-content">
-                <h3>House Rentals</h3>
-                <p>Find your perfect home! Browse 1BHK, 2BHK, PG rooms & more with verified listings</p>
+                <h3>@Localizer["Rentals.Title"]</h3>
+                <p>@Localizer["Rentals.Desc"]</p>
                 <div class="feature-tags">
-                    <span class="feature-tag"><i class="fas fa-check-circle"></i> Verified</span>
-                    <span class="feature-tag"><i class="fas fa-phone"></i> Direct Contact</span>
-                    <span class="feature-tag"><i class="fas fa-map-marker-alt"></i> Map View</span>
+                    <span class="feature-tag"><i class="fas fa-check-circle"></i> @Localizer["Rentals.Tag.Verified"]</span>
+                    <span class="feature-tag"><i class="fas fa-phone"></i> @Localizer["Rentals.Tag.DirectContact"]</span>
+                    <span class="feature-tag"><i class="fas fa-map-marker-alt"></i> @Localizer["Rentals.Tag.MapView"]</span>
                 </div>
                 <div class="card-action">
-                    <span class="card-action-text">Explore Properties</span>
+                    <span class="card-action-text">@Localizer["Rentals.Action"]</span>
                     <div class="card-action-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -578,15 +578,15 @@
                 </div>
             </div>
             <div class="card-body-content">
-                <h3>Local Events</h3>
-                <p>Discover & create local events! Music, sports, community gatherings & more</p>
+                <h3>@Localizer["Events.Title"]</h3>
+                <p>@Localizer["Events.Desc"]</p>
                 <div class="feature-tags">
-                    <span class="feature-tag"><i class="fas fa-plus-circle"></i> Create Events</span>
-                    <span class="feature-tag"><i class="fas fa-ticket-alt"></i> Book Tickets</span>
-                    <span class="feature-tag"><i class="fas fa-calendar"></i> Calendar</span>
+                    <span class="feature-tag"><i class="fas fa-plus-circle"></i> @Localizer["Events.Tag.Create"]</span>
+                    <span class="feature-tag"><i class="fas fa-ticket-alt"></i> @Localizer["Events.Tag.Tickets"]</span>
+                    <span class="feature-tag"><i class="fas fa-calendar"></i> @Localizer["Events.Tag.Calendar"]</span>
                 </div>
                 <div class="card-action">
-                    <span class="card-action-text">Browse Events</span>
+                    <span class="card-action-text">@Localizer["Events.Action"]</span>
                     <div class="card-action-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -602,15 +602,15 @@
                 </div>
             </div>
             <div class="card-body-content">
-                <h3>Community</h3>
-                <p>Connect with your neighbors! Share updates, find local recommendations & build connections</p>
+                <h3>@Localizer["Community.Title"]</h3>
+                <p>@Localizer["Community.Desc"]</p>
                 <div class="feature-tags">
-                    <span class="feature-tag"><i class="fas fa-newspaper"></i> Updates</span>
-                    <span class="feature-tag"><i class="fas fa-comments"></i> Messaging</span>
-                    <span class="feature-tag"><i class="fas fa-share-alt"></i> Posts</span>
+                    <span class="feature-tag"><i class="fas fa-newspaper"></i> @Localizer["Community.Tag.Updates"]</span>
+                    <span class="feature-tag"><i class="fas fa-comments"></i> @Localizer["Community.Tag.Messaging"]</span>
+                    <span class="feature-tag"><i class="fas fa-share-alt"></i> @Localizer["Community.Tag.Posts"]</span>
                 </div>
                 <div class="card-action">
-                    <span class="card-action-text">Join Community</span>
+                    <span class="card-action-text">@Localizer["Community.Action"]</span>
                     <div class="card-action-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -626,15 +626,15 @@
                 </div>
             </div>
             <div class="card-body-content">
-                <h3>Lost & Found</h3>
-                <p>Lost something? Found an item? Help reunite lost items with their owners</p>
+                <h3>@Localizer["LostFound.Title"]</h3>
+                <p>@Localizer["LostFound.Desc"]</p>
                 <div class="feature-tags">
-                    <span class="feature-tag"><i class="fas fa-flag"></i> Report Items</span>
-                    <span class="feature-tag"><i class="fas fa-hand-holding"></i> Claim</span>
-                    <span class="feature-tag"><i class="fas fa-shield-alt"></i> Verified</span>
+                    <span class="feature-tag"><i class="fas fa-flag"></i> @Localizer["LostFound.Tag.Report"]</span>
+                    <span class="feature-tag"><i class="fas fa-hand-holding"></i> @Localizer["LostFound.Tag.Claim"]</span>
+                    <span class="feature-tag"><i class="fas fa-shield-alt"></i> @Localizer["LostFound.Tag.Verified"]</span>
                 </div>
                 <div class="card-action">
-                    <span class="card-action-text">View Items</span>
+                    <span class="card-action-text">@Localizer["LostFound.Action"]</span>
                     <div class="card-action-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -650,15 +650,15 @@
                 </div>
             </div>
             <div class="card-body-content">
-                <h3>Mental Health & Wellbeing</h3>
-                <p>Take care of your mind! Access resources, counseling support & wellness tools</p>
+                <h3>@Localizer["MentalHealth.Title"]</h3>
+                <p>@Localizer["MentalHealth.Desc"]</p>
                 <div class="feature-tags">
-                    <span class="feature-tag"><i class="fas fa-spa"></i> Wellness</span>
-                    <span class="feature-tag"><i class="fas fa-hands-helping"></i> Support</span>
-                    <span class="feature-tag"><i class="fas fa-book-medical"></i> Resources</span>
+                    <span class="feature-tag"><i class="fas fa-spa"></i> @Localizer["MentalHealth.Tag.Wellness"]</span>
+                    <span class="feature-tag"><i class="fas fa-hands-helping"></i> @Localizer["MentalHealth.Tag.Support"]</span>
+                    <span class="feature-tag"><i class="fas fa-book-medical"></i> @Localizer["MentalHealth.Tag.Resources"]</span>
                 </div>
                 <div class="card-action">
-                    <span class="card-action-text">Explore</span>
+                    <span class="card-action-text">@Localizer["MentalHealth.Action"]</span>
                     <div class="card-action-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -674,15 +674,15 @@
                 </div>
             </div>
             <div class="card-body-content">
-                <h3>Daily Essentials</h3>
-                <p>Subscribe to daily essentials like Milk, Newspaper, and Gas. Never run out!</p>
+                <h3>@Localizer["DailyEssentials.Title"]</h3>
+                <p>@Localizer["DailyEssentials.Desc"]</p>
                 <div class="feature-tags">
-                    <span class="feature-tag"><i class="fas fa-glass-whiskey"></i> Milk</span>
-                    <span class="feature-tag"><i class="fas fa-newspaper"></i> Newspaper</span>
-                    <span class="feature-tag"><i class="fas fa-fire"></i> Gas</span>
+                    <span class="feature-tag"><i class="fas fa-glass-whiskey"></i> @Localizer["DailyEssentials.Tag.Milk"]</span>
+                    <span class="feature-tag"><i class="fas fa-newspaper"></i> @Localizer["DailyEssentials.Tag.Newspaper"]</span>
+                    <span class="feature-tag"><i class="fas fa-fire"></i> @Localizer["DailyEssentials.Tag.Gas"]</span>
                 </div>
                 <div class="card-action">
-                    <span class="card-action-text">Subscribe Now</span>
+                    <span class="card-action-text">@Localizer["DailyEssentials.Action"]</span>
                     <div class="card-action-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -698,15 +698,15 @@
                 </div>
             </div>
             <div class="card-body-content">
-                <h3>TransitConnect</h3>
-                <p>Community-powered bus timings & transport updates. Share routes, vote on accuracy!</p>
+                <h3>@Localizer["TransitConnect.Title"]</h3>
+                <p>@Localizer["TransitConnect.Desc"]</p>
                 <div class="feature-tags">
-                    <span class="feature-tag"><i class="fas fa-clock"></i> Bus Timings</span>
-                    <span class="feature-tag"><i class="fas fa-route"></i> Routes</span>
-                    <span class="feature-tag"><i class="fas fa-thumbs-up"></i> Voting</span>
+                    <span class="feature-tag"><i class="fas fa-clock"></i> @Localizer["TransitConnect.Tag.BusTimings"]</span>
+                    <span class="feature-tag"><i class="fas fa-route"></i> @Localizer["TransitConnect.Tag.Routes"]</span>
+                    <span class="feature-tag"><i class="fas fa-thumbs-up"></i> @Localizer["TransitConnect.Tag.Voting"]</span>
                 </div>
                 <div class="card-action">
-                    <span class="card-action-text">Find Routes</span>
+                    <span class="card-action-text">@Localizer["TransitConnect.Action"]</span>
                     <div class="card-action-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>

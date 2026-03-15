@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <data name="Page.Title" xml:space="preserve"><value>Explore Services - ServConnect</value></data>
+  <data name="BackToHome" xml:space="preserve"><value>Back to Home</value></data>
+  <data name="Header.Title" xml:space="preserve"><value>Explore All Services</value></data>
+  <data name="Header.Desc" xml:space="preserve"><value>Discover amazing services from trusted providers in your area. Find exactly what you need!</value></data>
+  <data name="LocalDirectory.Title" xml:space="preserve"><value>Search Local Services</value></data>
+  <data name="LocalDirectory.Desc" xml:space="preserve"><value>Find local businesses and services near you - restaurants, shops, doctors, healthcare and more</value></data>
+  <data name="Rentals.Title" xml:space="preserve"><value>House Rentals</value></data>
+  <data name="Rentals.Desc" xml:space="preserve"><value>Find your perfect home! Browse 1BHK, 2BHK, PG rooms &amp; more with verified listings</value></data>
+  <data name="Rentals.Tag.Verified" xml:space="preserve"><value>Verified</value></data>
+  <data name="Rentals.Tag.DirectContact" xml:space="preserve"><value>Direct Contact</value></data>
+  <data name="Rentals.Tag.MapView" xml:space="preserve"><value>Map View</value></data>
+  <data name="Rentals.Action" xml:space="preserve"><value>Explore Properties</value></data>
+  <data name="Events.Title" xml:space="preserve"><value>Local Events</value></data>
+  <data name="Events.Desc" xml:space="preserve"><value>Discover &amp; create local events! Music, sports, community gatherings &amp; more</value></data>
+  <data name="Events.Tag.Create" xml:space="preserve"><value>Create Events</value></data>
+  <data name="Events.Tag.Tickets" xml:space="preserve"><value>Book Tickets</value></data>
+  <data name="Events.Tag.Calendar" xml:space="preserve"><value>Calendar</value></data>
+  <data name="Events.Action" xml:space="preserve"><value>Browse Events</value></data>
+  <data name="Community.Title" xml:space="preserve"><value>Community</value></data>
+  <data name="Community.Desc" xml:space="preserve"><value>Connect with your neighbors! Share updates, find local recommendations &amp; build connections</value></data>
+  <data name="Community.Tag.Updates" xml:space="preserve"><value>Updates</value></data>
+  <data name="Community.Tag.Messaging" xml:space="preserve"><value>Messaging</value></data>
+  <data name="Community.Tag.Posts" xml:space="preserve"><value>Posts</value></data>
+  <data name="Community.Action" xml:space="preserve"><value>Join Community</value></data>
+  <data name="LostFound.Title" xml:space="preserve"><value>Lost &amp; Found</value></data>
+  <data name="LostFound.Desc" xml:space="preserve"><value>Lost something? Found an item? Help reunite lost items with their owners</value></data>
+  <data name="LostFound.Tag.Report" xml:space="preserve"><value>Report Items</value></data>
+  <data name="LostFound.Tag.Claim" xml:space="preserve"><value>Claim</value></data>
+  <data name="LostFound.Tag.Verified" xml:space="preserve"><value>Verified</value></data>
+  <data name="LostFound.Action" xml:space="preserve"><value>View Items</value></data>
+  <data name="MentalHealth.Title" xml:space="preserve"><value>Mental Health &amp; Wellbeing</value></data>
+  <data name="MentalHealth.Desc" xml:space="preserve"><value>Take care of your mind! Access resources, counseling support &amp; wellness tools</value></data>
+  <data name="MentalHealth.Tag.Wellness" xml:space="preserve"><value>Wellness</value></data>
+  <data name="MentalHealth.Tag.Support" xml:space="preserve"><value>Support</value></data>
+  <data name="MentalHealth.Tag.Resources" xml:space="preserve"><value>Resources</value></data>
+  <data name="MentalHealth.Action" xml:space="preserve"><value>Explore</value></data>
+  <data name="DailyEssentials.Title" xml:space="preserve"><value>Daily Essentials</value></data>
+  <data name="DailyEssentials.Desc" xml:space="preserve"><value>Subscribe to daily essentials like Milk, Newspaper, and Gas. Never run out!</value></data>
+  <data name="DailyEssentials.Tag.Milk" xml:space="preserve"><value>Milk</value></data>
+  <data name="DailyEssentials.Tag.Newspaper" xml:space="preserve"><value>Newspaper</value></data>
+  <data name="DailyEssentials.Tag.Gas" xml:space="preserve"><value>Gas</value></data>
+  <data name="DailyEssentials.Action" xml:space="preserve"><value>Subscribe Now</value></data>
+  <data name="TransitConnect.Title" xml:space="preserve"><value>TransitConnect</value></data>
+  <data name="TransitConnect.Desc" xml:space="preserve"><value>Community-powered bus timings &amp; transport updates. Share routes, vote on accuracy!</value></data>
+  <data name="TransitConnect.Tag.BusTimings" xml:space="preserve"><value>Bus Timings</value></data>
+  <data name="TransitConnect.Tag.Routes" xml:space="preserve"><value>Routes</value></data>
+  <data name="TransitConnect.Tag.Voting" xml:space="preserve"><value>Voting</value></data>
+  <data name="TransitConnect.Action" xml:space="preserve"><value>Find Routes</value></data>
+</root>

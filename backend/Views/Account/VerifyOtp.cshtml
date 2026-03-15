@@ -1,0 +1,465 @@
+@using ServConnect.ViewModels;
+@model VerifyOtpViewModel;
+
+@{
+    ViewData["Title"] = "Verify OTP";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow-x: hidden;
+    }
+
+    body {
+        background: url('/images/login_register_bg.png') center/cover no-repeat;
+        font-family: 'Avenir', sans-serif;
+    }
+
+    .verify-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 2rem;
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    .verify-card {
+        background: rgba(255, 255, 255, 0.55);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        max-width: 440px;
+        width: 100%;
+        padding: 48px;
+        margin: 20px 0;
+        backdrop-filter: blur(5px);
+    }
+
+    .brand-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 32px;
+    }
+
+    .brand-logo {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+    }
+
+    .brand-name {
+        font-family: 'Fraunces', serif;
+        font-size: 24px;
+        font-weight: 300;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .verify-title {
+        font-family: 'Fraunces', serif;
+        font-size: 28px;
+        font-weight: 300;
+        color: #1a1a1a;
+        text-align: center;
+        margin-bottom: 8px;
+    }
+
+    .verify-subtitle {
+        text-align: center;
+        color: #6b7280;
+        font-size: 15px;
+        margin-bottom: 32px;
+        font-weight: 300;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 300;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 300;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #22863a;
+        box-shadow: 0 0 0 3px rgba(34, 134, 58, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #9ca3af;
+    }
+
+    .form-group input[readonly] {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .otp-input {
+        letter-spacing: 8px;
+        text-align: center;
+        font-size: 24px !important;
+        font-weight: 500 !important;
+    }
+
+    .otp-helper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+    }
+
+    .otp-helper small {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .resend-btn {
+        background: none;
+        border: none;
+        color: #22863a;
+        font-size: 13px;
+        cursor: pointer;
+        padding: 0;
+        font-weight: 400;
+    }
+
+    .resend-btn:hover {
+        text-decoration: underline;
+    }
+
+    .resend-btn:disabled {
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 300;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .back-link {
+        text-align: center;
+        margin-top: 24px;
+        font-size: 14px;
+        font-weight: 300;
+        color: #6b7280;
+    }
+
+    .back-link a {
+        color: #22863a;
+        text-decoration: none;
+        font-weight: 400;
+    }
+
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+
+    .back-home-btn {
+        display: block;
+        text-align: center;
+        margin-top: 16px;
+        padding: 12px;
+        color: #6b7280;
+        text-decoration: none;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 300;
+        transition: all 0.3s ease;
+    }
+
+    .back-home-btn:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+        color: #374151;
+    }
+
+    .text-danger {
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .alert-danger {
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .info-box {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 24px;
+    }
+
+    .info-box p {
+        margin: 0;
+        font-size: 14px;
+        color: #166534;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-box i {
+        font-size: 18px;
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .step-number.active {
+        background: #22863a;
+        color: white;
+    }
+
+    .step-number.completed {
+        background: #22863a;
+        color: white;
+    }
+
+    .step-number.inactive {
+        background: #e5e7eb;
+        color: #9ca3af;
+    }
+
+    .step-label {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .step-label.active {
+        color: #22863a;
+        font-weight: 500;
+    }
+
+    .step-connector {
+        width: 40px;
+        height: 2px;
+        background: #e5e7eb;
+    }
+
+    @@media (max-width: 768px) {
+        .verify-card {
+            padding: 32px 24px;
+        }
+        .step-connector {
+            width: 20px;
+        }
+    }
+</style>
+
+<div class="verify-container">
+    <div class="verify-card">
+        <!-- Brand Header -->
+        <div class="brand-header">
+            <img src="~/images/logo.png" alt="ServConnect Logo" class="brand-logo" />
+            <h1 class="brand-name">ServConnect</h1>
+        </div>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step">
+                <div class="step-number completed"><i class="bi bi-check"></i></div>
+                <span class="step-label">Email</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-number active">2</div>
+                <span class="step-label active">Verify OTP</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-number inactive">3</div>
+                <span class="step-label">New Password</span>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <h2 class="verify-title">Verify Your Email</h2>
+        <p class="verify-subtitle">Enter the 6-digit code sent to your email</p>
+
+        @* Success Message *@
+        @{ var successMsg = TempData["SuccessMessage"] as string; }
+        @if (!string.IsNullOrWhiteSpace(successMsg))
+        {
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> @successMsg
+            </div>
+        }
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <p><i class="bi bi-clock"></i> OTP is valid for 10 minutes</p>
+        </div>
+
+        <!-- Form -->
+        <form asp-action="VerifyOtp" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Email">Email Address</label>
+                <input asp-for="Email" readonly />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Otp">OTP Code</label>
+                <input asp-for="Otp" class="otp-input" placeholder="000000" maxlength="6" autocomplete="off" />
+                <span asp-validation-for="Otp" class="text-danger"></span>
+                <div class="otp-helper">
+                    <small>Check your email inbox</small>
+                    <button type="button" id="resendOtpBtn" class="resend-btn">Resend OTP</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="bi bi-shield-check"></i> Verify OTP
+            </button>
+        </form>
+
+        <!-- Request New OTP Link -->
+        <div class="back-link">
+            Didn't receive the code? <a asp-controller="Account" asp-action="ForgotPassword">Try again</a>
+        </div>
+
+        <!-- Back to Login -->
+        <a asp-controller="Account" asp-action="Login" class="back-home-btn">
+            <i class="bi bi-arrow-left"></i> Back to Login
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <script>
+        // Resend OTP functionality
+        document.getElementById('resendOtpBtn').addEventListener('click', function() {
+            const email = document.querySelector('input[name="Email"]').value;
+            const btn = this;
+            
+            if (!email) {
+                alert('Email address is required');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            fetch('@Url.Action("ResendOtp", "Account")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: 'email=' + encodeURIComponent(email)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('New OTP has been sent to your email');
+                } else {
+                    alert(data.message || 'Failed to send OTP');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while sending OTP');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Resend OTP';
+            });
+        });
+        
+        // Auto-format OTP input (numbers only)
+        document.querySelector('input[name="Otp"]').addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '').substring(0, 6);
+        });
+
+        // Auto-focus OTP input
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('input[name="Otp"]').focus();
+        });
+    </script>
+}

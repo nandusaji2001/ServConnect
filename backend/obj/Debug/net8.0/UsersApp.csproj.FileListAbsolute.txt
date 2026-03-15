@@ -557,3 +557,5 @@ C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\refint\UsersApp.dll
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\UsersApp.pdb
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\UsersApp.genruntimeconfig.cache
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\ref\UsersApp.dll
+C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\UsersApp.Resources.Views.Home.ExploreServices.resources
+C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\UsersApp.Resources.Views.Home.ExploreServices.ml-IN.resources

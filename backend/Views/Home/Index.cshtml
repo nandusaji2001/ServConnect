@@ -5,12 +5,28 @@
 }
 
 <style>
-    /* Override navbar for Index page - transparent overlay on hero */
+    /* Full Page Background Image */
+    body, html {
+        margin: 0;
+        padding: 0;
+        background-image: url('/images/bg_image.png') !important;
+        background-size: cover !important;
+        background-position: center top !important;
+        background-attachment: scroll !important;
+        background-repeat: no-repeat !important;
+    }
+
+    .page-wrapper {
+        position: relative;
+        min-height: 100vh;
+    }
+
+    /* Override navbar for Index page - transparent overlay */
     header .app-navbar,
     .app-navbar,
     nav.app-navbar,
     .navbar.app-navbar {
-        position: absolute !important;
+        position: fixed !important;
         top: 0;
         left: 0;
         right: 0;
@@ -29,96 +45,65 @@
         opacity: 0 !important;
     }
     
-    /* Add subtle text shadow for better readability on video */
+    /* Add subtle text shadow for better readability on background */
     .app-navbar .nav-link,
     .app-navbar .navbar-brand {
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        color: #fff !important;
     }
     
-    /* Navbar background on scroll */
+    /* Navbar stays transparent always */
     .app-navbar.scrolled,
     nav.app-navbar.scrolled,
     .navbar.app-navbar.scrolled {
-        background: linear-gradient(135deg, rgba(6, 62, 28, 0.95) 0%, rgba(22, 88, 48, 0.95) 100%) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        box-shadow: none !important;
     }
     
     .app-navbar.scrolled::before,
     nav.app-navbar.scrolled::before {
-        display: block !important;
-        opacity: 1 !important;
+        display: none !important;
+        opacity: 0 !important;
     }
 
-    /* CSS Variables for Light Theme */
+    /* CSS Variables for Theme */
     :root {
         --primary: #10B981;
         --primary-dark: #059669;
         --primary-light: #34D399;
         --accent: #3B82F6;
-        --bg-light: #ffffff;
-        --bg-section: #f8fafc;
-        --bg-card: #ffffff;
-        --bg-card-hover: #f9fafb;
+        --bg-light: transparent;
+        --bg-section: rgba(255, 255, 255, 0.1);
+        --bg-card: rgba(255, 255, 255, 0.85);
+        --bg-card-hover: rgba(255, 255, 255, 0.95);
         --text-primary: #1f2937;
-        --text-secondary: #6b7280;
-        --border-color: #e5e7eb;
+        --text-secondary: #4b5563;
+        --text-light: #ffffff;
+        --border-color: rgba(255, 255, 255, 0.3);
         --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
-        --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.15);
+        --glass-bg: rgba(255, 255, 255, 0.15);
+        --glass-border: rgba(255, 255, 255, 0.25);
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.15);
+        --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.2);
         --shadow-glow: 0 10px 40px rgba(16, 185, 129, 0.3);
     }
 
-    body, html {
-        margin: 0;
-        padding: 0;
-        background: var(--bg-light) !important;
-    }
-
-    /* Hero Section with 3D Model */
+    /* Hero Section with Background Image */
     .hero-section {
         position: relative;
         color: white;
         padding: 0;
         text-align: center;
         margin: 0;
-        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        background: transparent;
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
         width: 100%;
-    }
-
-    /* Video Background Container */
-    #hero-video-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 1;
-        overflow: hidden;
-    }
-
-    #hero-video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    /* Subtle gradient overlay */
-    .hero-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 40%, transparent 70%);
-        z-index: 2;
-        pointer-events: none;
     }
 
     .hero-section > .container-fluid { 
@@ -157,19 +142,13 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        color: var(--primary);
+        color: #fff;
         font-size: 0.9rem;
         font-weight: 600;
         letter-spacing: 0.5px;
         margin-bottom: 16px;
         animation: fadeInDown 0.8s ease-out 0.2s both;
-        text-shadow: 
-            -1px -1px 0 #fff,
-            1px -1px 0 #fff,
-            -1px 1px 0 #fff,
-            1px 1px 0 #fff,
-            0 0 20px rgba(255, 255, 255, 1),
-            0 0 40px rgba(255, 255, 255, 0.8);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .hero-subtitle i {
@@ -183,18 +162,9 @@
         letter-spacing: -0.03em;
         margin-bottom: 20px;
         line-height: 1.1;
-        color: var(--text-primary);
+        color: #fff;
         animation: fadeInUp 0.8s ease-out 0.3s both;
-        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
-        paint-order: stroke fill;
-        text-shadow: 
-            -2px -2px 0 #fff,
-            2px -2px 0 #fff,
-            -2px 2px 0 #fff,
-            2px 2px 0 #fff,
-            0 0 30px rgba(255, 255, 255, 1),
-            0 0 60px rgba(255, 255, 255, 0.9),
-            0 4px 8px rgba(0, 0, 0, 0.15);
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .hero-title .highlight-badge {
@@ -202,10 +172,8 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        -webkit-text-stroke: 2px #fff;
-        paint-order: stroke fill;
         text-shadow: none;
-        filter: none;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
     }
 
     .hero-section h1 {
@@ -214,18 +182,9 @@
         letter-spacing: -0.03em;
         margin-bottom: 20px;
         line-height: 1.1;
-        color: var(--text-primary);
+        color: #fff;
         animation: fadeInUp 0.8s ease-out 0.3s both;
-        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
-        paint-order: stroke fill;
-        text-shadow: 
-            -2px -2px 0 #fff,
-            2px -2px 0 #fff,
-            -2px 2px 0 #fff,
-            2px 2px 0 #fff,
-            0 0 30px rgba(255, 255, 255, 1),
-            0 0 60px rgba(255, 255, 255, 0.9),
-            0 4px 8px rgba(0, 0, 0, 0.15);
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .hero-section h1 .highlight-text {
@@ -240,28 +199,56 @@
         margin-bottom: 32px;
         font-weight: 500;
         line-height: 1.7;
-        color: var(--text-secondary);
+        color: rgba(255, 255, 255, 0.9);
         max-width: 500px;
         margin-left: auto;
         margin-right: auto;
         animation: fadeInUp 0.8s ease-out 0.4s both;
-        text-shadow: 
-            -1px -1px 0 #fff,
-            1px -1px 0 #fff,
-            -1px 1px 0 #fff,
-            1px 1px 0 #fff,
-            0 0 20px rgba(255, 255, 255, 1),
-            0 0 40px rgba(255, 255, 255, 0.8);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Service Category Pills */
+    .service-pills {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+        animation: fadeInUp 0.8s ease-out 0.5s both;
+    }
+
+    .service-pill {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 30px;
+        padding: 10px 20px;
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .service-pill:hover {
+        background: rgba(255, 255, 255, 0.35);
+        transform: translateY(-2px);
+        color: #fff;
+        text-decoration: none;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .service-pill i {
+        font-size: 1rem;
     }
 
     /* Hero Stats - Minimal Inline */
     .hero-stats {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 32px;
-        margin-top: 40px;
-        animation: fadeInUp 0.8s ease-out 0.6s both;
+        display: none;
     }
 
     .hero-stat-item {
@@ -273,28 +260,15 @@
     .hero-stat-number {
         font-size: 1.75rem;
         font-weight: 800;
-        color: var(--primary);
-        -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.5);
-        paint-order: stroke fill;
-        text-shadow: 
-            -1px -1px 0 #fff,
-            1px -1px 0 #fff,
-            -1px 1px 0 #fff,
-            1px 1px 0 #fff,
-            0 0 20px rgba(255, 255, 255, 1),
-            0 0 40px rgba(16, 185, 129, 0.5);
+        color: #fff;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .hero-stat-label {
         font-size: 0.85rem;
-        color: var(--text-secondary);
+        color: rgba(255, 255, 255, 0.8);
         font-weight: 500;
-        text-shadow: 
-            -1px -1px 0 #fff,
-            1px -1px 0 #fff,
-            -1px 1px 0 #fff,
-            1px 1px 0 #fff,
-            0 0 15px rgba(255, 255, 255, 1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .hero-stat-divider {
@@ -310,22 +284,22 @@
     }
 
     .search-wrap {
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.5);
         border-radius: 60px;
         padding: 6px 6px 6px 20px;
         display: grid;
         grid-template-columns: 120px 1fr 48px;
         gap: 4px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         align-items: center;
         transition: all 0.3s ease;
     }
 
     .search-wrap:focus-within {
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-        border-color: rgba(16, 185, 129, 0.3);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        border-color: rgba(16, 185, 129, 0.5);
     }
 
     .search-select { 
@@ -418,10 +392,10 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Cards Section - Light Theme */
+    /* Cards Section - Glassmorphic Theme */
     .cards-section {
         padding: 80px 0;
-        background: var(--bg-section);
+        background: transparent;
         position: relative;
     }
 
@@ -432,11 +406,12 @@
 
     .section-title h2 {
         font-size: 2.5rem;
-        color: var(--text-primary);
+        color: #fff;
         margin-bottom: 20px;
         font-weight: 800;
         position: relative;
         display: inline-block;
+        text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
 
     .section-title h2::after {
@@ -453,12 +428,13 @@
 
     .section-title p {
         font-size: 1.1rem;
-        color: var(--text-secondary);
+        color: rgba(255, 255, 255, 0.9);
         font-weight: 400;
         margin-top: 24px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
-    /* Modern Action Cards - Light Theme */
+    /* Modern Action Cards - Glassmorphic Theme */
     .action-cards-grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
@@ -467,8 +443,9 @@
     }
 
     .action-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 20px;
         padding: 28px 24px;
         text-decoration: none;
@@ -481,7 +458,7 @@
         gap: 16px;
         position: relative;
         overflow: hidden;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
 
     .action-card::before {
@@ -502,9 +479,9 @@
 
     .action-card:hover {
         transform: translateY(-6px);
-        background: var(--bg-card-hover);
+        background: rgba(255, 255, 255, 0.95);
         border-color: var(--primary);
-        box-shadow: var(--shadow-lg);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
         color: var(--text-primary);
         text-decoration: none;
     }
@@ -553,10 +530,12 @@
         color: var(--primary);
     }
 
-    /* Advertisement Container - Light Theme */
+    /* Advertisement Container - Transparent Theme */
     .ad-section {
         padding: 30px 50px;
-        background: var(--bg-light);
+        background: transparent;
+        border-top: none;
+        border-bottom: none;
     }
 
     .ad-container {
@@ -564,18 +543,23 @@
         justify-content: center;
         align-items: center;
         width: 100%;
+        background: transparent;
+        border-radius: 16px;
+        padding: 15px;
+        box-shadow: none;
     }
 
-    /* Features Section - Light Theme */
+    /* Features Section - Glassmorphic Theme */
     .features-section {
         padding: 100px 0;
-        background: linear-gradient(180deg, var(--bg-section) 0%, var(--bg-light) 100%);
+        background: transparent;
         position: relative;
     }
 
     .feature-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         padding: 48px 36px;
         border-radius: 24px;
         text-align: center;
@@ -584,7 +568,7 @@
         height: 100%;
         position: relative;
         overflow: hidden;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
 
     .feature-card::before {
@@ -605,9 +589,9 @@
 
     .feature-card:hover {
         transform: translateY(-12px);
-        background: var(--bg-card-hover);
+        background: rgba(255, 255, 255, 0.95);
         border-color: var(--primary);
-        box-shadow: var(--shadow-lg);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
     }
 
     .feature-icon {
@@ -643,15 +627,16 @@
         font-size: 1rem;
     }
 
-    /* Services Section - Light Theme */
+    /* Services Section - Glassmorphic Theme */
     .services-section {
         padding: 100px 0;
-        background: var(--bg-light);
+        background: transparent;
     }
 
     .service-category {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 24px;
         padding: 44px 32px;
         text-align: center;
@@ -660,7 +645,7 @@
         cursor: pointer;
         position: relative;
         overflow: hidden;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         height: 320px;
         display: flex;
         flex-direction: column;
@@ -680,8 +665,8 @@
 
     .service-category:hover {
         transform: translateY(-12px) scale(1.02);
-        background: var(--bg-card-hover);
-        box-shadow: var(--shadow-lg);
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
     }
 
     .service-category.home-services::before { background: linear-gradient(90deg, #10B981, #34D399); }
@@ -743,28 +728,29 @@
         transform: translateY(-2px);
     }
 
-    /* Stats Section - Light Theme */
+    /* Stats Section - Glassmorphic Theme */
     .stats-section {
         padding: 100px 0;
-        background: linear-gradient(180deg, var(--bg-section) 0%, var(--bg-light) 100%);
+        background: transparent;
     }
 
     .stat-item {
         text-align: center;
         margin-bottom: 30px;
         padding: 30px;
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 20px;
         transition: all 0.4s ease;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
 
     .stat-item:hover {
         transform: translateY(-8px);
-        background: var(--bg-card-hover);
+        background: rgba(255, 255, 255, 0.95);
         border-color: var(--primary);
-        box-shadow: var(--shadow-lg);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
     }
 
     .stat-number {
@@ -785,9 +771,10 @@
         font-weight: 600;
     }
 
-    /* CTA Section - Light Theme */
+    /* CTA Section - Glassmorphic Theme */
     .cta-section {
-        background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+        background: rgba(6, 78, 59, 0.85);
+        backdrop-filter: blur(10px);
         color: white;
         padding: 100px 0;
         text-align: center;
@@ -858,23 +845,29 @@
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     }
 
-    /* Hero Results - Light Theme */
-    .hero-results { margin-top:16px; }
+    /* Hero Results - Glassmorphic Theme */
+    .hero-results { 
+        margin-top: 16px; 
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
     .service-card { 
-        border: 1px solid var(--border-color); 
+        border: 1px solid rgba(255, 255, 255, 0.3); 
         border-radius: 12px; 
         padding: 12px 16px; 
-        background: var(--bg-card); 
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
         margin-bottom: 10px; 
         display: flex; 
         justify-content: space-between; 
         align-items: center;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
     .service-title { font-weight: 600; color: var(--text-primary); }
     .service-meta { font-size: .9rem; color: var(--text-secondary); }
 
-    /* Responsive Design - Minimal Theme */
+    /* Responsive Design - Glassmorphic Theme */
     @@media (max-width: 991px) {
         .hero-title,
         .hero-section h1 {
@@ -888,6 +881,10 @@
         .action-cards-grid {
             grid-template-columns: repeat(3, 1fr);
         }
+
+        .service-pills {
+            gap: 8px;
+        }
     }
 
     @@media (max-width: 768px) {
@@ -898,10 +895,6 @@
 
         .hero-description {
             font-size: 1rem;
-        }
-
-        .hero-overlay {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.5) 50%, transparent 80%);
         }
 
         .action-cards-grid {
@@ -923,6 +916,15 @@
 
         .hero-stat-label {
             font-size: 0.75rem;
+        }
+
+        .service-pills {
+            gap: 8px;
+        }
+
+        .service-pill {
+            padding: 8px 14px;
+            font-size: 0.85rem;
         }
     }
 
@@ -978,32 +980,29 @@
             grid-template-columns: 1fr;
             gap: 12px;
         }
+
+        .service-pills {
+            gap: 6px;
+        }
+
+        .service-pill {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
     }
 </style>
 
+<!-- Page Wrapper with Background Image -->
+<div class="page-wrapper">
+
 <!-- Hero Section -->
 <div class="hero-section">
-    <!-- Video Background Container -->
-    <div id="hero-video-container">
-        <video id="hero-video" autoplay muted loop playsinline>
-            <source src="/smart_city.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-    </div>
-    
-    <!-- Gradient overlay for text readability -->
-    <div class="hero-overlay"></div>
-    
     <div class="container-fluid">
         <div class="row min-vh-100 mx-0 justify-content-center align-items-center">
             <div class="col-12 text-center">
                 <!-- Minimal Hero Content -->
                 <div class="hero-content">
-                    <span class="hero-subtitle">
-                        <i class="bi bi-geo-alt-fill"></i> Your Local Service Marketplace
-                    </span>
                     <h1 class="hero-title">Find the Perfect<br><span class="highlight-badge">Service</span> Near You</h1>
-                    <p class="hero-description">Connect with trusted professionals in your area. Fast, reliable, and hassle-free.</p>
 
                     <div class="search-container">
                         <div class="search-wrap">
@@ -1025,20 +1024,21 @@
                             <button class="search-btn" id="searchBtn"><i class="bi bi-search"></i></button>
                         </div>
                     </div>
-                    
-                    <div class="hero-stats">
-                        <div class="hero-stat-item">
-                            <span class="hero-stat-number">@(ViewBag.ServiceProviders > 0 ? ViewBag.ServiceProviders.ToString() + "+" : "0")</span>
-                            <span class="hero-stat-label">Providers</span>
-                        </div>
-                        <div class="hero-stat-item">
-                            <span class="hero-stat-number">@(ViewBag.CompletedServices > 0 ? ViewBag.CompletedServices.ToString("N0") + "+" : "0")</span>
-                            <span class="hero-stat-label">Services</span>
-                        </div>
-                        <div class="hero-stat-item">
-                            <span class="hero-stat-number">@(ViewBag.TotalUsers > 0 ? ViewBag.TotalUsers.ToString("N0") + "+" : "0")</span>
-                            <span class="hero-stat-label">Users</span>
-                        </div>
+
+                    <!-- Service Category Pills -->
+                    <div class="service-pills">
+                        <a href="/Services/Browse?category=plumber" class="service-pill">
+                            <i class="fas fa-wrench"></i> Plumber
+                        </a>
+                        <a href="/Services/Browse?category=electrician" class="service-pill">
+                            <i class="fas fa-bolt"></i> Electrician
+                        </a>
+                        <a href="/Services/Browse?category=cleaning" class="service-pill">
+                            <i class="fas fa-broom"></i> Cleaning
+                        </a>
+                        <a href="/Services/Browse?category=carpenter" class="service-pill">
+                            <i class="fas fa-hammer"></i> Carpenter
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1046,9 +1046,52 @@
     </div>
 </div>
 
-<!-- Cards Section -->
+<!-- Why Choose Us Section with Feature Cards -->
+<div class="features-section reveal section-stagger">
+    <div class="container-fluid">
+        <div class="section-title">
+            <h2>Why Choose Us</h2>
+            <p>Experience the best service platform</p>
+        </div>
+        
+        <!-- Feature Cards -->
+        <div class="row">
+            <div class="col-md-4 stagger-item">
+                <div class="feature-card card-hover">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Trusted Providers</h3>
+                    <p>All service providers are verified and rated by real customers to ensure quality and reliability.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 stagger-item">
+                <div class="feature-card card-hover">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Quick Booking</h3>
+                    <p>Book services instantly with our easy-to-use platform. Get confirmed appointments in minutes.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 stagger-item">
+                <div class="feature-card card-hover">
+                    <div class="feature-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h3>Best Prices</h3>
+                    <p>Compare prices from multiple providers and choose the best deal that fits your budget.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cards Section (Quick Actions) -->
 <div class="cards-section reveal section-stagger">
-    <div class="container-fluid px-0">
+    <div class="container-fluid px-4">
         <div class="section-title">
             <h2>Quick Actions</h2>
             <p>Access all features at a glance</p>
@@ -1058,8 +1101,8 @@
             <a href="/Home/News" class="action-card news-card stagger-item">
                 <i class="fas fa-newspaper"></i>
                 <div class="card-content">
-                    <div class="fw-bold">Top News</div>
-                    <small>Stay updated with your city</small>
+                    <div class="fw-bold">@Localizer["CTA.TopNews.Title"]</div>
+                    <small>@Localizer["CTA.TopNews.Desc"]</small>
                 </div>
             </a>
             
@@ -1109,8 +1152,8 @@
             <a href="/Home/ExploreServices" class="action-card explore-card stagger-item">
                 <i class="fas fa-compass"></i>
                 <div class="card-content">
-                    <div class="fw-bold">Explore More Services</div>
-                    <small>Discover all available services</small>
+                    <div class="fw-bold">@Localizer["CTA.ExploreMore.Title"]</div>
+                    <small>@Localizer["CTA.ExploreMore.Desc"]</small>
                 </div>
             </a>
         </div>
@@ -1121,48 +1164,6 @@
 <div class="ad-section">
     <div class="ad-container">
         @await Component.InvokeAsync("HeroAdvertisement")
-    </div>
-</div>
-
-<!-- Features Section -->
-<div class="features-section reveal section-stagger">
-    <div class="container-fluid">
-        <div class="section-title">
-            <h2>Why Choose Us</h2>
-            <p>Experience the best service platform</p>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-4 stagger-item">
-                <div class="feature-card card-hover">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3>Trusted Providers</h3>
-                    <p>All service providers are verified and rated by real customers to ensure quality and reliability.</p>
-                </div>
-            </div>
-            
-            <div class="col-md-4 stagger-item">
-                <div class="feature-card card-hover">
-                    <div class="feature-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <h3>Quick Booking</h3>
-                    <p>Book services instantly with our easy-to-use platform. Get confirmed appointments in minutes.</p>
-                </div>
-            </div>
-            
-            <div class="col-md-4 stagger-item">
-                <div class="feature-card card-hover">
-                    <div class="feature-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <h3>Best Prices</h3>
-                    <p>Compare prices from multiple providers and choose the best deal that fits your budget.</p>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -1311,14 +1312,14 @@
     </div>
 </div>
 
-<!-- CTA Section -->
+<!-- CTA Section (Ready to Get Started) -->
 <div class="cta-section">
     <div class="container-fluid">
         <h2>Ready to Get Started?</h2>
         <p>Join thousands of satisfied customers and service providers</p>
         
         <div class="cta-buttons">
-            @if (User.Identity.IsAuthenticated)
+            @if (User.Identity?.IsAuthenticated ?? false)
             {
                 <a href="/Advertisements/Submit" class="cta-btn">
                     <i class="fas fa-bullhorn"></i>
@@ -1359,6 +1360,8 @@
         </div>
     </div>
 </div>
+
+</div> <!-- End Page Wrapper -->
 
 <script type="module">
 

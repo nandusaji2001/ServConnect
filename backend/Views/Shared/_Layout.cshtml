@@ -206,13 +206,14 @@
             </div>
         </nav>
     </header>
-    <div class="container-fluid flex-fill px-0" style="overflow: hidden;">
-        <main role="main" class="pb-3" style="overflow-y: auto; max-height: 100%; margin-top: 0; padding: 0;">
+    <div class="container-fluid flex-fill px-0 d-flex flex-column" style="overflow: hidden;">
+        <main role="main" class="pb-3 flex-grow-1" style="overflow-y: auto; margin-top: 0; padding: 0;">
             @RenderBody()
         </main>
+        <div class="mt-auto">
+            @await Component.InvokeAsync("AdvertisementBanner")
+        </div>
     </div>
-
-    @await Component.InvokeAsync("AdvertisementBanner")
 
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

@@ -20,6 +20,7 @@ namespace ServConnect.Controllers
     private readonly IOtpService _otpService;
     private readonly IFirebaseAuthService _firebaseAuthService;
     private readonly IIdVerificationService _idVerificationService;
+    private readonly IEmailService _emailService;
 
     public AccountController(
         UserManager<Users> userManager,
@@ -31,7 +32,8 @@ namespace ServConnect.Controllers
         ISmsService smsService,
         IOtpService otpService,
         IFirebaseAuthService firebaseAuthService,
-        IIdVerificationService idVerificationService)
+        IIdVerificationService idVerificationService,
+        IEmailService emailService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -43,6 +45,7 @@ namespace ServConnect.Controllers
         _otpService = otpService;
         _firebaseAuthService = firebaseAuthService;
         _idVerificationService = idVerificationService;
+        _emailService = emailService;
     }
 
     #region Registration
@@ -765,21 +768,28 @@ namespace ServConnect.Controllers
             return View(model);
         }
 
-        // Format the input phone number to match the stored format
-        var formattedInputNumber = FormatPhoneNumber(model.PhoneNumber);
-        _logger.LogInformation("Looking for user with phone number: {InputNumber} (formatted: {FormattedNumber})", 
-            model.PhoneNumber, formattedInputNumber);
+        // Find user by email
+        _logger.LogInformation("Looking for user with email: {Email}", model.Email);
         
-        var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == formattedInputNumber);
+        var user = await _userManager.FindByEmailAsync(model.Email);
         if (user == null)
         {
-            _logger.LogWarning("No user found with phone number: {FormattedNumber}", formattedInputNumber);
-            // Don't reveal that the user does not exist
-            TempData["SuccessMessage"] = "If a user with this phone number exists, an OTP has been sent.";
-            return RedirectToAction("ResetPassword");
+            _logger.LogWarning("No user found with email: {Email}", model.Email);
+            // Reveal that the user does not exist
+            ModelState.AddModelError(string.Empty, "No account found with this email address. Please check your email or register a new account.");
+            return View(model);
         }
         
-        _logger.LogInformation("Found user: {UserId} with phone number: {PhoneNumber}", user.Id, user.PhoneNumber);
+        _logger.LogInformation("Found user: {UserId} with email: {Email}", user.Id, user.Email);
+
+        // Check daily password reset limit
+        if (user.LastPasswordResetTime.HasValue && 
+            DateTime.UtcNow.Subtract(user.LastPasswordResetTime.Value).TotalHours < 24)
+        {
+            var hoursRemaining = 24 - DateTime.UtcNow.Subtract(user.LastPasswordResetTime.Value).TotalHours;
+            ModelState.AddModelError(string.Empty, $"You can only reset your password once every 24 hours. Please try again in {Math.Ceiling(hoursRemaining)} hour(s).");
+            return View(model);
+        }
 
         // Check if user has requested OTP recently (rate limiting)
         if (user.LastOtpRequestTime.HasValue && 
@@ -793,11 +803,13 @@ namespace ServConnect.Controllers
         var otp = _otpService.GenerateOtp();
         var expiryTime = _otpService.GetOtpExpiryTime();
 
-        // Update user with OTP details
+        // Update user with OTP details (clear any previous verification token)
         user.PasswordResetOtp = otp;
         user.OtpExpiryTime = expiryTime;
         user.OtpAttempts = 0;
         user.LastOtpRequestTime = DateTime.UtcNow;
+        user.OtpVerificationToken = null;
+        user.OtpVerificationTokenExpiry = null;
 
         var updateResult = await _userManager.UpdateAsync(user);
         if (!updateResult.Succeeded)
@@ -810,32 +822,147 @@ namespace ServConnect.Controllers
         _logger.LogInformation("OTP stored in database for user {UserId}: {Otp}, Expiry: {ExpiryTime}", 
             user.Id, otp, expiryTime);
 
-        // Send OTP via SMS
-        _logger.LogInformation("Attempting to send OTP to phone number: {PhoneNumber}", model.PhoneNumber);
+        // Send OTP via Email
+        _logger.LogInformation("Attempting to send OTP to email: {Email}", model.Email);
         
-        // Format phone number for SMS
-        var formattedPhoneNumber = FormatPhoneNumber(model.PhoneNumber);
-        _logger.LogInformation("Formatted phone number for SMS: {FormattedPhoneNumber}", formattedPhoneNumber);
-        
-        var smsResult = await _smsService.SendOtpAsync(formattedPhoneNumber, otp);
-        if (!smsResult)
+        try
         {
-            _logger.LogError("Failed to send OTP SMS to {PhoneNumber} (formatted: {FormattedPhoneNumber})", model.PhoneNumber, formattedPhoneNumber);
-            ModelState.AddModelError(string.Empty, "Failed to send OTP. Please try again.");
+            var subject = "ServConnect - Password Reset OTP";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; padding: 20px;'>
+                    <div style='max-width: 500px; margin: 0 auto; background: #f9f9f9; padding: 30px; border-radius: 10px;'>
+                        <h2 style='color: #22863a; text-align: center;'>Password Reset Request</h2>
+                        <p>Hello,</p>
+                        <p>You have requested to reset your password. Please use the following OTP code:</p>
+                        <div style='background: #22863a; color: white; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 8px; letter-spacing: 8px; margin: 20px 0;'>
+                            {otp}
+                        </div>
+                        <p><strong>This OTP is valid for 10 minutes.</strong></p>
+                        <p>If you did not request this password reset, please ignore this email.</p>
+                        <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;' />
+                        <p style='color: #666; font-size: 12px; text-align: center;'>This is an automated message from ServConnect. Please do not reply.</p>
+                    </div>
+                </body>
+                </html>";
+            
+            await _emailService.SendEmailAsync(model.Email, subject, body);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send OTP email to {Email}", model.Email);
+            ModelState.AddModelError(string.Empty, "Failed to send OTP email. Please try again.");
             return View(model);
         }
 
-        TempData["SuccessMessage"] = "OTP has been sent to your phone number.";
-        return RedirectToAction("ResetPassword", new { phoneNumber = model.PhoneNumber });
+        TempData["SuccessMessage"] = "OTP has been sent to your email address.";
+        return RedirectToAction("VerifyOtp", new { email = model.Email });
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult ResetPassword(string phoneNumber = "")
+    public IActionResult VerifyOtp(string email = "")
     {
+        var model = new VerifyOtpViewModel
+        {
+            Email = email
+        };
+        return View(model);
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> VerifyOtp(VerifyOtpViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            _logger.LogWarning("User not found with email: {Email}", model.Email);
+            ModelState.AddModelError(string.Empty, "No account found with this email address.");
+            return View(model);
+        }
+
+        // Check daily password reset limit
+        if (user.LastPasswordResetTime.HasValue && 
+            DateTime.UtcNow.Subtract(user.LastPasswordResetTime.Value).TotalHours < 24)
+        {
+            var hoursRemaining = 24 - DateTime.UtcNow.Subtract(user.LastPasswordResetTime.Value).TotalHours;
+            ModelState.AddModelError(string.Empty, $"You can only reset your password once every 24 hours. Please try again in {Math.Ceiling(hoursRemaining)} hour(s).");
+            return View(model);
+        }
+
+        // Check OTP attempts (max 3 attempts)
+        if (user.OtpAttempts >= 3)
+        {
+            ModelState.AddModelError(string.Empty, "Too many failed attempts. Please request a new OTP.");
+            return View(model);
+        }
+
+        // Validate OTP from database
+        bool isOtpValid = _otpService.ValidateOtp(model.Otp, user.PasswordResetOtp, user.OtpExpiryTime);
+        
+        if (!isOtpValid)
+        {
+            user.OtpAttempts++;
+            await _userManager.UpdateAsync(user);
+            
+            var remainingAttempts = 3 - user.OtpAttempts;
+            if (remainingAttempts > 0)
+            {
+                ModelState.AddModelError(string.Empty, $"Invalid or expired OTP. {remainingAttempts} attempts remaining.");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Too many failed attempts. Please request a new OTP.");
+            }
+            
+            _logger.LogWarning("OTP validation failed for user {UserId}. Provided: {ProvidedOtp}, Stored: {StoredOtp}, Expiry: {ExpiryTime}", 
+                user.Id, model.Otp, user.PasswordResetOtp, user.OtpExpiryTime);
+            
+            return View(model);
+        }
+
+        // OTP is valid - generate verification token and clear OTP (so it can't be reused)
+        var verificationToken = Guid.NewGuid().ToString("N");
+        user.OtpVerificationToken = verificationToken;
+        user.OtpVerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15); // Token valid for 15 minutes
+        user.PasswordResetOtp = null; // Clear OTP so it cannot be reused
+        user.OtpExpiryTime = null;
+        user.OtpAttempts = 0;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            ModelState.AddModelError(string.Empty, "Failed to verify OTP. Please try again.");
+            return View(model);
+        }
+
+        _logger.LogInformation("OTP verified for user {UserId}. Verification token generated.", user.Id);
+
+        TempData["SuccessMessage"] = "OTP verified successfully. Please set your new password.";
+        return RedirectToAction("ResetPassword", new { email = model.Email, token = verificationToken });
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPassword(string email = "", string token = "")
+    {
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+        {
+            TempData["ErrorMessage"] = "Invalid password reset link. Please request a new OTP.";
+            return RedirectToAction("ForgotPassword");
+        }
+
         var model = new ResetPasswordViewModel
         {
-            PhoneNumber = phoneNumber
+            Email = email,
+            VerificationToken = token
         };
         return View(model);
     }
@@ -850,64 +977,47 @@ namespace ServConnect.Controllers
             return View(model);
         }
 
-        var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
+        var user = await _userManager.FindByEmailAsync(model.Email);
         if (user == null)
         {
-            // Try with formatted phone number as fallback
-            var formattedPhoneNumber = FormatPhoneNumber(model.PhoneNumber);
-            user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == formattedPhoneNumber);
-            
-            if (user == null)
-            {
-                _logger.LogWarning("User not found with phone number: {PhoneNumber} or formatted: {FormattedPhoneNumber}", 
-                    model.PhoneNumber, formattedPhoneNumber);
-                ModelState.AddModelError(string.Empty, "Invalid phone number or OTP.");
-                return View(model);
-            }
-        }
-        
-        _logger.LogInformation("Found user {UserId} with phone number: {PhoneNumber} for OTP verification", 
-            user.Id, user.PhoneNumber);
-
-        // Check OTP attempts (max 3 attempts)
-        if (user.OtpAttempts >= 3)
-        {
-            ModelState.AddModelError(string.Empty, "Too many failed attempts. Please request a new OTP.");
+            _logger.LogWarning("User not found with email: {Email}", model.Email);
+            ModelState.AddModelError(string.Empty, "No account found with this email address.");
             return View(model);
         }
 
-        // Validate OTP - try database first, then Fast2SMS cache as fallback
-        bool isOtpValid = _otpService.ValidateOtp(model.Otp, user.PasswordResetOtp, user.OtpExpiryTime);
-        
-        // If database OTP validation fails, try Fast2SMS cache (for simulation mode)
-        if (!isOtpValid && _smsService is Fast2SmsOtpService fast2SmsService)
+        // Validate verification token
+        if (string.IsNullOrEmpty(user.OtpVerificationToken) || 
+            user.OtpVerificationToken != model.VerificationToken)
         {
-            var formattedPhoneNumber = FormatPhoneNumber(model.PhoneNumber);
-            isOtpValid = fast2SmsService.VerifyOtp(formattedPhoneNumber, model.Otp);
-            _logger.LogInformation("Tried Fast2SMS cache validation for {PhoneNumber}: {IsValid}", formattedPhoneNumber, isOtpValid);
+            _logger.LogWarning("Invalid verification token for user {UserId}", user.Id);
+            ModelState.AddModelError(string.Empty, "Invalid or expired verification session. Please request a new OTP.");
+            return View(model);
         }
-        
-        if (!isOtpValid)
+
+        // Check token expiry
+        if (!user.OtpVerificationTokenExpiry.HasValue || 
+            DateTime.UtcNow > user.OtpVerificationTokenExpiry.Value)
         {
-            user.OtpAttempts++;
+            _logger.LogWarning("Verification token expired for user {UserId}", user.Id);
+            // Clear expired token
+            user.OtpVerificationToken = null;
+            user.OtpVerificationTokenExpiry = null;
             await _userManager.UpdateAsync(user);
             
-            var remainingAttempts = 3 - user.OtpAttempts;
-            if (remainingAttempts > 0)
-            {
-                ModelState.AddModelError(string.Empty, $"Invalid OTP. {remainingAttempts} attempts remaining.");
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Too many failed attempts. Please request a new OTP.");
-            }
-            
-            // Debug logging
-            _logger.LogWarning("OTP validation failed for user {UserId}. Provided: {ProvidedOtp}, Stored: {StoredOtp}, Expiry: {ExpiryTime}", 
-                user.Id, model.Otp, user.PasswordResetOtp, user.OtpExpiryTime);
-            
+            ModelState.AddModelError(string.Empty, "Your verification session has expired. Please request a new OTP.");
             return View(model);
         }
+
+        // Check daily password reset limit
+        if (user.LastPasswordResetTime.HasValue && 
+            DateTime.UtcNow.Subtract(user.LastPasswordResetTime.Value).TotalHours < 24)
+        {
+            var hoursRemaining = 24 - DateTime.UtcNow.Subtract(user.LastPasswordResetTime.Value).TotalHours;
+            ModelState.AddModelError(string.Empty, $"You can only reset your password once every 24 hours. Please try again in {Math.Ceiling(hoursRemaining)} hour(s).");
+            return View(model);
+        }
+
+        _logger.LogInformation("Valid verification token for user {UserId}. Proceeding with password reset.", user.Id);
 
         // Reset password
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -915,12 +1025,17 @@ namespace ServConnect.Controllers
 
         if (result.Succeeded)
         {
-            // Clear OTP data
+            // Clear all OTP/verification data and set last password reset time
             user.PasswordResetOtp = null;
             user.OtpExpiryTime = null;
             user.OtpAttempts = 0;
             user.LastOtpRequestTime = null;
+            user.OtpVerificationToken = null;
+            user.OtpVerificationTokenExpiry = null;
+            user.LastPasswordResetTime = DateTime.UtcNow; // Track for daily limit
             await _userManager.UpdateAsync(user);
+
+            _logger.LogInformation("Password reset successful for user {UserId}", user.Id);
 
             TempData["SuccessMessage"] = "Password has been reset successfully. Please login with your new password.";
             return RedirectToAction("Login");
@@ -937,23 +1052,28 @@ namespace ServConnect.Controllers
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ResendOtp(string phoneNumber)
+    public async Task<IActionResult> ResendOtp(string email)
     {
-        if (string.IsNullOrEmpty(phoneNumber))
+        if (string.IsNullOrEmpty(email))
         {
-            return Json(new { success = false, message = "Phone number is required." });
+            return Json(new { success = false, message = "Email address is required." });
         }
 
-        // Format the input phone number to match the stored format
-        var formattedInputNumber = FormatPhoneNumber(phoneNumber);
-        _logger.LogInformation("Looking for user to resend OTP: {InputNumber} (formatted: {FormattedNumber})", 
-            phoneNumber, formattedInputNumber);
+        _logger.LogInformation("Looking for user to resend OTP: {Email}", email);
         
-        var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == formattedInputNumber);
+        var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
-            _logger.LogWarning("No user found for resend OTP with phone number: {FormattedNumber}", formattedInputNumber);
-            return Json(new { success = false, message = "User not found." });
+            _logger.LogWarning("No user found for resend OTP with email: {Email}", email);
+            return Json(new { success = false, message = "No account found with this email address." });
+        }
+
+        // Check daily password reset limit
+        if (user.LastPasswordResetTime.HasValue && 
+            DateTime.UtcNow.Subtract(user.LastPasswordResetTime.Value).TotalHours < 24)
+        {
+            var hoursRemaining = 24 - DateTime.UtcNow.Subtract(user.LastPasswordResetTime.Value).TotalHours;
+            return Json(new { success = false, message = $"You can only reset your password once every 24 hours. Please try again in {Math.Ceiling(hoursRemaining)} hour(s)." });
         }
 
         // Check rate limiting
@@ -967,11 +1087,13 @@ namespace ServConnect.Controllers
         var otp = _otpService.GenerateOtp();
         var expiryTime = _otpService.GetOtpExpiryTime();
 
-        // Update user
+        // Update user (clear any previous verification token since we're starting fresh)
         user.PasswordResetOtp = otp;
         user.OtpExpiryTime = expiryTime;
         user.OtpAttempts = 0;
         user.LastOtpRequestTime = DateTime.UtcNow;
+        user.OtpVerificationToken = null;
+        user.OtpVerificationTokenExpiry = null;
 
         var updateResult = await _userManager.UpdateAsync(user);
         if (!updateResult.Succeeded)
@@ -979,21 +1101,39 @@ namespace ServConnect.Controllers
             return Json(new { success = false, message = "Failed to generate OTP." });
         }
 
-        // Send OTP
-        _logger.LogInformation("Attempting to resend OTP to phone number: {PhoneNumber}", phoneNumber);
+        // Send OTP via Email
+        _logger.LogInformation("Attempting to resend OTP to email: {Email}", email);
         
-        // Format phone number for SMS
-        var formattedPhoneNumber = FormatPhoneNumber(phoneNumber);
-        _logger.LogInformation("Formatted phone number for SMS: {FormattedPhoneNumber}", formattedPhoneNumber);
-        
-        var smsResult = await _smsService.SendOtpAsync(formattedPhoneNumber, otp);
-        if (!smsResult)
+        try
         {
-            _logger.LogError("Failed to resend OTP SMS to {PhoneNumber} (formatted: {FormattedPhoneNumber})", phoneNumber, formattedPhoneNumber);
-            return Json(new { success = false, message = "Failed to send OTP." });
+            var subject = "ServConnect - Password Reset OTP";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; padding: 20px;'>
+                    <div style='max-width: 500px; margin: 0 auto; background: #f9f9f9; padding: 30px; border-radius: 10px;'>
+                        <h2 style='color: #22863a; text-align: center;'>Password Reset Request</h2>
+                        <p>Hello,</p>
+                        <p>You have requested a new OTP code. Please use the following code:</p>
+                        <div style='background: #22863a; color: white; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 8px; letter-spacing: 8px; margin: 20px 0;'>
+                            {otp}
+                        </div>
+                        <p><strong>This OTP is valid for 10 minutes.</strong></p>
+                        <p>If you did not request this, please ignore this email.</p>
+                        <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;' />
+                        <p style='color: #666; font-size: 12px; text-align: center;'>This is an automated message from ServConnect. Please do not reply.</p>
+                    </div>
+                </body>
+                </html>";
+            
+            await _emailService.SendEmailAsync(email, subject, body);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to resend OTP email to {Email}", email);
+            return Json(new { success = false, message = "Failed to send OTP email." });
         }
 
-        return Json(new { success = true, message = "New OTP has been sent." });
+        return Json(new { success = true, message = "New OTP has been sent to your email." });
     }
 
     [HttpGet]

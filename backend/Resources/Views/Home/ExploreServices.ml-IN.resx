@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <data name="Page.Title" xml:space="preserve"><value>സേവനങ്ങൾ പര്യവേക്ഷണം ചെയ്യുക - ServConnect</value></data>
+  <data name="BackToHome" xml:space="preserve"><value>ഹോമിലേക്ക് മടങ്ങുക</value></data>
+  <data name="Header.Title" xml:space="preserve"><value>എല്ലാ സേവനങ്ങളും പര്യവേക്ഷണം ചെയ്യുക</value></data>
+  <data name="Header.Desc" xml:space="preserve"><value>നിങ്ങളുടെ പ്രദേശത്തെ വിശ്വസനീയ പ്രൊവൈഡർമാരിൽ നിന്ന് അത്ഭുതകരമായ സേവനങ്ങൾ കണ്ടെത്തുക. നിങ്ങൾക്ക് ആവശ്യമുള്ളത് കണ്ടെത്തുക!</value></data>
+  <data name="LocalDirectory.Title" xml:space="preserve"><value>ലോക്കൽ സേവനങ്ങൾ തിരയുക</value></data>
+  <data name="LocalDirectory.Desc" xml:space="preserve"><value>നിങ്ങളുടെ അടുത്തുള്ള ലോക്കൽ ബിസിനസുകളും സേവനങ്ങളും കണ്ടെത്തുക - റെസ്റ്റോറന്റുകൾ, കടകൾ, ഡോക്ടർമാർ, ആരോഗ്യ സേവനങ്ങൾ എന്നിവയും മറ്റും</value></data>
+  <data name="Rentals.Title" xml:space="preserve"><value>വീട് വാടക</value></data>
+  <data name="Rentals.Desc" xml:space="preserve"><value>നിങ്ങളുടെ അനുയോജ്യമായ വീട് കണ്ടെത്തുക! 1BHK, 2BHK, PG റൂമുകൾ എന്നിവ പരിശോധിച്ച ലിസ്റ്റിംഗുകളോടെ ബ്രൗസ് ചെയ്യുക</value></data>
+  <data name="Rentals.Tag.Verified" xml:space="preserve"><value>പരിശോധിച്ചത്</value></data>
+  <data name="Rentals.Tag.DirectContact" xml:space="preserve"><value>നേരിട്ട് ബന്ധപ്പെടുക</value></data>
+  <data name="Rentals.Tag.MapView" xml:space="preserve"><value>മാപ്പ് വ്യൂ</value></data>
+  <data name="Rentals.Action" xml:space="preserve"><value>പ്രോപ്പർട്ടികൾ കാണുക</value></data>
+  <data name="Events.Title" xml:space="preserve"><value>ലോക്കൽ ഇവന്റുകൾ</value></data>
+  <data name="Events.Desc" xml:space="preserve"><value>ലോക്കൽ ഇവന്റുകൾ കണ്ടെത്തുകയും സൃഷ്ടിക്കുകയും ചെയ്യുക! സംഗീതം, കായികം, കമ്മ്യൂണിറ്റി ഒത്തുചേരലുകൾ എന്നിവയും മറ്റും</value></data>
+  <data name="Events.Tag.Create" xml:space="preserve"><value>ഇവന്റുകൾ സൃഷ്ടിക്കുക</value></data>
+  <data name="Events.Tag.Tickets" xml:space="preserve"><value>ടിക്കറ്റുകൾ ബുക്ക് ചെയ്യുക</value></data>
+  <data name="Events.Tag.Calendar" xml:space="preserve"><value>കലണ്ടർ</value></data>
+  <data name="Events.Action" xml:space="preserve"><value>ഇവന്റുകൾ ബ്രൗസ് ചെയ്യുക</value></data>
+  <data name="Community.Title" xml:space="preserve"><value>കമ്മ്യൂണിറ്റി</value></data>
+  <data name="Community.Desc" xml:space="preserve"><value>നിങ്ങളുടെ അയൽവാസികളുമായി ബന്ധപ്പെടുക! അപ്‌ഡേറ്റുകൾ പങ്കിടുക, ലോക്കൽ ശുപാർശകൾ കണ്ടെത്തുക, കണക്ഷനുകൾ നിർമ്മിക്കുക</value></data>
+  <data name="Community.Tag.Updates" xml:space="preserve"><value>അപ്‌ഡേറ്റുകൾ</value></data>
+  <data name="Community.Tag.Messaging" xml:space="preserve"><value>സന്ദേശമയയ്ക്കൽ</value></data>
+  <data name="Community.Tag.Posts" xml:space="preserve"><value>പോസ്റ്റുകൾ</value></data>
+  <data name="Community.Action" xml:space="preserve"><value>കമ്മ്യൂണിറ്റിയിൽ ചേരുക</value></data>
+  <data name="LostFound.Title" xml:space="preserve"><value>നഷ്ടപ്പെട്ടതും കണ്ടെത്തിയതും</value></data>
+  <data name="LostFound.Desc" xml:space="preserve"><value>എന്തെങ്കിലും നഷ്‌ടപ്പെട്ടോ? ഒരു ഐറ്റം കണ്ടെത്തിയോ? നഷ്‌ടപ്പെട്ട ഐറ്റങ്ങളെ അവയുടെ ഉടമകളുമായി ഒന്നിപ്പിക്കാൻ സഹായിക്കുക</value></data>
+  <data name="LostFound.Tag.Report" xml:space="preserve"><value>ഐറ്റങ്ങൾ റിപ്പോർട്ട് ചെയ്യുക</value></data>
+  <data name="LostFound.Tag.Claim" xml:space="preserve"><value>ക്ലെയിം</value></data>
+  <data name="LostFound.Tag.Verified" xml:space="preserve"><value>പരിശോധിച്ചത്</value></data>
+  <data name="LostFound.Action" xml:space="preserve"><value>ഐറ്റങ്ങൾ കാണുക</value></data>
+  <data name="MentalHealth.Title" xml:space="preserve"><value>മാനസികാരോഗ്യവും ക്ഷേമവും</value></data>
+  <data name="MentalHealth.Desc" xml:space="preserve"><value>നിങ്ങളുടെ മനസ്സിനെ പരിചരിക്കുക! റിസോഴ്‌സുകൾ, കൗൺസലിംഗ് സപ്പോർട്ട്, വെൽനസ് ടൂളുകൾ എന്നിവ ആക്‌സസ് ചെയ്യുക</value></data>
+  <data name="MentalHealth.Tag.Wellness" xml:space="preserve"><value>വെൽനസ്</value></data>
+  <data name="MentalHealth.Tag.Support" xml:space="preserve"><value>സപ്പോർട്ട്</value></data>
+  <data name="MentalHealth.Tag.Resources" xml:space="preserve"><value>റിസോഴ്‌സുകൾ</value></data>
+  <data name="MentalHealth.Action" xml:space="preserve"><value>പര്യവേക്ഷണം ചെയ്യുക</value></data>
+  <data name="DailyEssentials.Title" xml:space="preserve"><value>ദൈനംദിന ആവശ്യങ്ങൾ</value></data>
+  <data name="DailyEssentials.Desc" xml:space="preserve"><value>പാൽ, പത്രം, ഗ്യാസ് തുടങ്ങിയ ദൈനംദിന ആവശ്യങ്ങൾക്ക് സബ്‌സ്‌ക്രൈബ് ചെയ്യുക. ഒരിക്കലും തീർന്നു പോകില്ല!</value></data>
+  <data name="DailyEssentials.Tag.Milk" xml:space="preserve"><value>പാൽ</value></data>
+  <data name="DailyEssentials.Tag.Newspaper" xml:space="preserve"><value>പത്രം</value></data>
+  <data name="DailyEssentials.Tag.Gas" xml:space="preserve"><value>ഗ്യാസ്</value></data>
+  <data name="DailyEssentials.Action" xml:space="preserve"><value>ഇപ്പോൾ സബ്‌സ്‌ക്രൈബ് ചെയ്യുക</value></data>
+  <data name="TransitConnect.Title" xml:space="preserve"><value>ട്രാൻസിറ്റ് കണക്ട്</value></data>
+  <data name="TransitConnect.Desc" xml:space="preserve"><value>കമ്മ്യൂണിറ്റി അധിഷ്ഠിത ബസ് സമയവും ഗതാഗത അപ്‌ഡേറ്റുകളും. റൂട്ടുകൾ പങ്കിടുക, കൃത്യതയ്ക്ക് വോട്ട് ചെയ്യുക!</value></data>
+  <data name="TransitConnect.Tag.BusTimings" xml:space="preserve"><value>ബസ് സമയം</value></data>
+  <data name="TransitConnect.Tag.Routes" xml:space="preserve"><value>റൂട്ടുകൾ</value></data>
+  <data name="TransitConnect.Tag.Voting" xml:space="preserve"><value>വോട്ടിംഗ്</value></data>
+  <data name="TransitConnect.Action" xml:space="preserve"><value>റൂട്ടുകൾ കണ്ടെത്തുക</value></data>
+</root>

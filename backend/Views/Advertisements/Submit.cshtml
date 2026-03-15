@@ -30,8 +30,8 @@
                         <input type="radio" name="adType" value="1" id="heroBanner" class="d-none">
                         <label for="heroBanner" class="ad-type-label">
                             <div class="ad-type-preview">
-                                <div class="ad-preview-box" style="width: 200px; height: 21px; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6c757d;">
-                                    1920 x 200 px
+                                <div class="ad-preview-box" style="width: 200px; height: 31px; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6c757d;">
+                                    1920 x 300 px
                                 </div>
                             </div>
                             <h6 class="mt-2 mb-1">Hero Banner Advertisement</h6>
@@ -559,7 +559,7 @@
 
     function getAdDimensions() {
         if (currentAdType === 1) { // Hero Banner
-            return { width: 1920, height: 200 };
+            return { width: 1920, height: 300 };
         } else { // Bottom Page
             return { width: 728, height: 90 };
         }

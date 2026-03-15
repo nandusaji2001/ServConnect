@@ -19,4 +19,8 @@
   <data name="CTA.DailyEssentials.Title" xml:space="preserve"><value>Daily Essentials</value></data>
   <data name="CTA.DailyEssentials.Desc" xml:space="preserve"><value>Regular deliveries</value></data>
   <data name="Msg.NoResults" xml:space="preserve"><value>No results found.</value></data>
+  <data name="CTA.TopNews.Title" xml:space="preserve"><value>Top News</value></data>
+  <data name="CTA.TopNews.Desc" xml:space="preserve"><value>Stay updated with your city</value></data>
+  <data name="CTA.ExploreMore.Title" xml:space="preserve"><value>Explore More Services</value></data>
+  <data name="CTA.ExploreMore.Desc" xml:space="preserve"><value>Discover all available services</value></data>
 </root>

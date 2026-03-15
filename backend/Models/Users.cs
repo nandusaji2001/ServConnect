@@ -64,6 +64,9 @@ namespace ServConnect.Models
         public DateTime? OtpExpiryTime { get; set; }
         public int OtpAttempts { get; set; } = 0;
         public DateTime? LastOtpRequestTime { get; set; }
+        public string? OtpVerificationToken { get; set; } // Token generated after OTP is verified
+        public DateTime? OtpVerificationTokenExpiry { get; set; } // Token expiry (15 minutes)
+        public DateTime? LastPasswordResetTime { get; set; } // Track last password reset for daily limit
 
         // User Type Identification
         public bool IsElder { get; set; } = false;

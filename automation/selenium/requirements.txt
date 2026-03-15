@@ -1,0 +1,4 @@
+pytest==8.3.5
+pytest-html==4.1.1
+selenium==4.29.0
+Set-Location "c:\Darklord\MCA_2024\S3\ServConnect\automation\selenium"; .\run_selenium_tests.ps1 :Command
