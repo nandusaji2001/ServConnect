@@ -74,6 +74,7 @@ namespace ServConnect.Models
 
         // User Preferences
         public string FontSizePreference { get; set; } = "normal";
+        public string PreferredRouteMode { get; set; } = "fastest";
 
         // Role-specific properties
         public string? LicenseNumber { get; set; } // For ServiceProviders

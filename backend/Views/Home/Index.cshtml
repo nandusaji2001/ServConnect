@@ -120,6 +120,10 @@
     .hero-section .search-select,
     .hero-section .search-input,
     .hero-section .search-btn,
+    .hero-section .search-container,
+    .hero-section .hero-results,
+    .hero-section .service-card,
+    .hero-section .hero-results *,
     .hero-section a,
     .hero-section button {
         pointer-events: auto;
@@ -280,6 +284,8 @@
         max-width: 520px;
         margin: 0 auto;
         position: relative;
+        z-index: 20;
+        isolation: isolate;
         animation: fadeInUp 0.8s ease-out 0.5s both;
     }
 
@@ -845,27 +851,117 @@
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     }
 
-    /* Hero Results - Glassmorphic Theme */
-    .hero-results { 
-        margin-top: 16px; 
-        max-height: 300px;
+    /* Hero Results Dropdown */
+    .hero-results {
+        display: none;
+        position: absolute;
+        top: calc(100% + 12px);
+        left: 0;
+        right: 0;
+        max-height: 340px;
         overflow-y: auto;
-        padding-right: 8px;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        border-radius: 18px;
+        background: rgba(248, 250, 252, 0.95);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22);
+        z-index: 35;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
     }
-    .service-card { 
-        border: 1px solid rgba(255, 255, 255, 0.3); 
-        border-radius: 12px; 
-        padding: 12px 16px; 
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        margin-bottom: 10px; 
-        display: flex; 
-        justify-content: space-between; 
+
+    .search-container.has-results .hero-results {
+        display: block;
+        animation: heroResultsReveal 0.2s ease-out;
+    }
+
+    .hero-results-empty {
+        display: flex;
         align-items: center;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        gap: 8px;
+        padding: 14px 12px;
+        color: #475569;
+        font-weight: 500;
     }
-    .service-title { font-weight: 600; color: var(--text-primary); }
-    .service-meta { font-size: .9rem; color: var(--text-secondary); }
+
+    .hero-results::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .hero-results::-webkit-scrollbar-thumb {
+        background: rgba(15, 23, 42, 0.22);
+        border-radius: 10px;
+    }
+
+    .hero-results::-webkit-scrollbar-track {
+        background: rgba(148, 163, 184, 0.15);
+        border-radius: 10px;
+    }
+
+    .service-card {
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.95);
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .service-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .service-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(16, 185, 129, 0.35);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+    }
+
+    .service-title {
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .service-meta {
+        font-size: 0.85rem;
+        color: #475569;
+        margin-top: 2px;
+    }
+
+    .hero-rating-row {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .hero-rating-row .btn {
+        min-width: 30px;
+        padding: 2px 7px;
+        line-height: 1.2;
+    }
+
+    .service-card .btn-outline-success {
+        white-space: nowrap;
+        margin-top: 2px;
+    }
+
+    @@keyframes heroResultsReveal {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
     /* Responsive Design - Glassmorphic Theme */
     @@media (max-width: 991px) {
@@ -932,6 +1028,17 @@
         .hero-title,
         .hero-section h1 {
             font-size: 1.8rem;
+        }
+
+        .hero-results {
+            top: calc(100% + 8px);
+            max-height: 280px;
+            border-radius: 14px;
+            padding: 8px;
+        }
+
+        .service-card {
+            padding: 10px 12px;
         }
 
         .search-wrap {
@@ -1365,6 +1472,41 @@
 
 <script type="module">
 
+    function getHeroResultsContainer() {
+        var searchContainer = document.querySelector('.search-container');
+        if (!searchContainer) return null;
+
+        var container = document.getElementById('heroResults');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'heroResults';
+            container.className = 'hero-results';
+            container.setAttribute('aria-live', 'polite');
+            searchContainer.appendChild(container);
+
+            // Keep wheel scrolling in dropdown instead of bubbling to page scroll.
+            container.addEventListener('wheel', function(e) {
+                e.stopPropagation();
+            }, { passive: true });
+        }
+
+        return container;
+    }
+
+    function openHeroResults() {
+        var searchContainer = document.querySelector('.search-container');
+        if (searchContainer) {
+            searchContainer.classList.add('has-results');
+        }
+    }
+
+    function closeHeroResults() {
+        var searchContainer = document.querySelector('.search-container');
+        if (searchContainer) {
+            searchContainer.classList.remove('has-results');
+        }
+    }
+
     // ============================================
     // Hero Search Functionality
     // ============================================
@@ -1378,29 +1520,29 @@
         fetch(url)
             .then(function(res) { return res.json(); })
             .then(function(list) {
-                var containerId = 'heroResults';
-                var container = document.getElementById(containerId);
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = containerId;
-                    container.className = 'hero-results';
-                    document.querySelector('.search-container').appendChild(container);
-                }
+                var container = getHeroResultsContainer();
+                if (!container) return;
+
                 if (!Array.isArray(list) || list.length === 0) {
-                    container.innerHTML = '<div style="color: var(--text-secondary);" class="mt-3">No results found.</div>';
+                    container.innerHTML = '<div class="hero-results-empty"><i class="fas fa-search"></i> No services found for this location.</div>';
+                    container.scrollTop = 0;
+                    openHeroResults();
                     return;
                 }
+
                 list.sort(function(a, b) { return (b.rating || 0) - (a.rating || 0); });
                 container.innerHTML = list.map(function(s) {
                     var stars = (s.rating || 0) > 0 ? '<span class="badge bg-warning text-dark ms-2"><i class="fas fa-star"></i> ' + Number(s.rating).toFixed(1) + (s.ratingCount ? ' (' + s.ratingCount + ')' : '') + '</span>' : '';
                     var addr = s.address ? '<div class="service-meta">' + s.address + '</div>' : '';
                     var mapHref = s.mapUrl ? s.mapUrl : '/local/services/' + s.id + '/map';
-                    var rate = '<div class="mt-2"><span class="me-2">Rate:</span>' + 
+                    var rate = '<div class="hero-rating-row"><span class="me-1">Rate:</span>' + 
                         [1, 2, 3, 4, 5].map(function(n) {
                             return '<button class="btn btn-sm ' + (n <= Math.round(s.rating) ? 'btn-warning' : 'btn-outline-secondary') + ' me-1" onclick="rateService(\'' + s.id + '\', ' + n + ')">' + n + '</button>';
                         }).join('') + '</div>';
                     return '<div class="service-card"><div><div class="service-title">' + s.name + ' ' + stars + '</div><div class="service-meta">' + (s.categoryName || '') + '</div>' + addr + rate + '</div><a class="btn btn-sm btn-outline-success" target="_blank" href="' + mapHref + '"><i class="fas fa-map-marker-alt"></i> Map</a></div>';
                 }).join('');
+                container.scrollTop = 0;
+                openHeroResults();
             })
             .catch(function() {
                 alert('Failed to load results');
@@ -1548,6 +1690,27 @@
                     runHeroSearch();
                 }
             });
+
+            searchInput.addEventListener('focus', function() {
+                var container = document.getElementById('heroResults');
+                if (container && container.innerHTML.trim() !== '') {
+                    openHeroResults();
+                }
+            });
         }
+
+        document.addEventListener('click', function(e) {
+            var searchContainer = document.querySelector('.search-container');
+            if (!searchContainer) return;
+            if (!searchContainer.contains(e.target)) {
+                closeHeroResults();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeHeroResults();
+            }
+        });
     });
 </script>

@@ -360,7 +360,6 @@ C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\ML\venv\Lib\site-pa
 C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\ML\venv\Lib\site-packages\setuptools\config\setuptools.schema.json
 C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\ML\venv\Lib\site-packages\torch\_dynamo\graph_break_registry.json
 C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\UsersApp.staticwebassets.runtime.json
-C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\UsersApp.exe
 C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\UsersApp.deps.json
 C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\UsersApp.runtimeconfig.json
 C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\UsersApp.dll
@@ -559,3 +558,4 @@ C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\UsersApp.genruntime
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\ref\UsersApp.dll
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\UsersApp.Resources.Views.Home.ExploreServices.resources
 C:\Darklord\MCA_2024\S3\ServConnect\backend\obj\Debug\net8.0\UsersApp.Resources.Views.Home.ExploreServices.ml-IN.resources
+C:\Darklord\MCA_2024\S3\ServConnect\backend\bin\Debug\net8.0\UsersApp.exe

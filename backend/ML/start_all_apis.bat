@@ -7,6 +7,7 @@ echo   - Content Moderation API (Port 5050)
 echo   - Elder Wellness API (Port 5002)
 echo   - Item Matching API (Port 5003)
 echo   - ID Verification API (Port 5004)
+echo   - Depression Prediction API (Port 5007)
 echo.
 echo ================================================
 
@@ -41,6 +42,11 @@ if not exist "models\wellness_models.pkl" (
     python train_wellness_model.py
 )
 
+if not exist "models\depression_model.pkl" (
+    echo Training Depression model...
+    python train_depression_model.py
+)
+
 echo.
 echo ================================================
 echo   Starting all APIs in separate windows...
@@ -58,6 +64,9 @@ start "Item Matching API - Port 5003" cmd /k "cd /d "%~dp0" && call venv\Scripts
 timeout /t 2 /nobreak > nul
 
 start "ID Verification API - Port 5004" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python id_verification_api.py"
+timeout /t 2 /nobreak > nul
+
+start "Depression Prediction API - Port 5007" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python depression_prediction_api.py"
 
 echo.
 echo ================================================
@@ -68,6 +77,7 @@ echo   Content Moderation API: http://localhost:5050
 echo   Elder Wellness API:     http://localhost:5002
 echo   Item Matching API:      http://localhost:5003
 echo   ID Verification API:    http://localhost:5004
+echo   Depression API:         http://localhost:5007
 echo.
 echo   Each API is running in its own window.
 echo   Close this window or press any key to exit.

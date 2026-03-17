@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@100;300&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/avenir" rel="stylesheet">
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/site.css?v=HI_3ykWFOOiYf8mlGr5Qbav5cJ38457LNH2Glk0XD-Y" />
+    <link rel="stylesheet" href="/css/theme.css?v=R-5_iFq7BI01JHff89lugN4NJjkhWcJb0OqCZ_IJ1sI" />
+    <link rel="stylesheet" href="/css/account.css?v=639092092141415719&amp;v=DJ3HDc1Z_xl8hdmYMQ4sHIfHsnqjTOj9ekLijz-gAaI" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body style="margin: 0; padding: 0;">
+
+    <div>
+        
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow-x: hidden;
+    }
+
+    body {
+        background: url('/images/login_register_bg.png') center/cover no-repeat;
+        font-family: 'Avenir', sans-serif;
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 2rem;
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    .login-card {
+        background: rgba(255, 255, 255, 0.55);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        max-width: 440px;
+        width: 100%;
+        padding: 48px;
+        margin: 20px 0;
+        backdrop-filter: blur(5px);
+    }
+
+    .brand-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 32px;
+    }
+
+    .brand-logo {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+    }
+
+    .brand-name {
+        font-family: 'Fraunces', serif;
+        font-size: 24px;
+        font-weight: 300;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .login-title {
+        font-family: 'Fraunces', serif;
+        font-size: 28px;
+        font-weight: 300;
+        color: #1a1a1a;
+        text-align: center;
+        margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+        text-align: center;
+        color: #6b7280;
+        font-size: 15px;
+        margin-bottom: 32px;
+        font-weight: 300;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 300;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 300;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #22863a;
+        box-shadow: 0 0 0 3px rgba(34, 134, 58, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #9ca3af;
+    }
+
+    .password-input-wrapper {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+    }
+
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        font-size: 14px;
+        font-weight: 300;
+    }
+
+    .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .remember-me input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .forgot-password {
+        color: #22863a;
+        text-decoration: none;
+    }
+
+    .forgot-password:hover {
+        text-decoration: underline;
+    }
+
+    .btn-signin {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 300;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-signin:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .signup-link {
+        text-align: center;
+        margin-top: 24px;
+        font-size: 14px;
+        font-weight: 300;
+        color: #6b7280;
+    }
+
+    .signup-link a {
+        color: #22863a;
+        text-decoration: none;
+        font-weight: 400;
+    }
+
+    .signup-link a:hover {
+        text-decoration: underline;
+    }
+
+    .divider {
+        text-align: center;
+        margin: 24px 0;
+        position: relative;
+    }
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .divider span {
+        background: white;
+        padding: 0 16px;
+        position: relative;
+        color: #9ca3af;
+        font-size: 13px;
+        font-weight: 300;
+    }
+
+    .social-buttons {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .btn-social {
+        width: 100%;
+        padding: 12px;
+        border: 1.5px solid #e5e7eb;
+        background: white;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 300;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-social:hover {
+        border-color: #d1d5db;
+        background: #f9fafb;
+    }
+
+    .terms-notice {
+        text-align: center;
+        margin-top: 24px;
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 300;
+    }
+
+    .terms-notice a {
+        color: #22863a;
+        text-decoration: none;
+    }
+
+    .terms-notice a:hover {
+        text-decoration: underline;
+    }
+
+    .back-home-btn {
+        display: block;
+        text-align: center;
+        margin-top: 24px;
+        padding: 12px;
+        color: #6b7280;
+        text-decoration: none;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 300;
+        transition: all 0.3s ease;
+    }
+
+    .back-home-btn:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+        color: #374151;
+    }
+
+    .text-danger {
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .alert-danger {
+        background: #fee;
+        color: #c00;
+        border: 1px solid #fcc;
+    }
+
+    @media (max-width: 768px) {
+        .login-card {
+            padding: 32px 24px;
+        }
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <!-- Brand Header -->
+        <div class="brand-header">
+            <img src="/images/logo.png" alt="ServConnect Logo" class="brand-logo" />
+            <h1 class="brand-name">ServConnect</h1>
+        </div>
+
+        <!-- Title -->
+        <h2 class="login-title">Welcome Back</h2>
+        <p class="login-subtitle">Sign in to your account to continue</p>
+
+
+        <!-- Login Form -->
+        <form method="post" action="/Account/Login">
+            
+            
+
+            <div class="form-group">
+                <label for="Email">Email Address</label>
+                <input placeholder="you@example.com" type="email" data-val="true" data-val-email="The Email field is not a valid e-mail address." data-val-required="Email is required." id="Email" name="Email" value="" />
+                <span class="text-danger field-validation-valid" data-valmsg-for="Email" data-valmsg-replace="true"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Password">Password</label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="loginPassword" placeholder="••••••••" data-val="true" data-val-required="Password is required." name="Password" />
+                    <button type="button" class="password-toggle" onclick="toggleLoginPassword()">
+                        <i class="bi bi-eye" id="loginPassword-icon"></i>
+                    </button>
+                </div>
+                <span class="text-danger field-validation-valid" data-valmsg-for="Password" data-valmsg-replace="true"></span>
+            </div>
+
+            <div class="form-options">
+                <a class="forgot-password" href="/Account/ForgotPassword">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-signin">Sign In</button>
+        <input name="__RequestVerificationToken" type="hidden" value="CfDJ8J4oanhoZCBMkSLyyZPGNNkhi7VS2XwVS8x43RG0UmpzIYopu_-IuqVK7k9-bn1HeMCXc0xmEx59nqRQPEUiY2RbdFt55N5sMAIKwcmbedZJapr20SJ5tTdA-Be4LPFSOGaojJXJj0ntGOCpWNPd-gQ" /></form>
+
+        <!-- Sign Up Link -->
+        <div class="signup-link">
+            Don't have an account? <a href="/Account/Register">Sign up</a>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+            <span>Or continue with</span>
+        </div>
+
+        <!-- Social Login Buttons (No Apple) -->
+        <div class="social-buttons">
+            <button type="button" id="googleSignInBtn" class="btn-social">
+                <i class="bi bi-google"></i>
+                Google
+            </button>
+        </div>
+
+        <!-- Terms Notice -->
+        <div class="terms-notice">
+            By signing in, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+        </div>
+
+        <!-- Back to Home -->
+        <a class="back-home-btn" href="/">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+
+    </div>
+
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/site.js?v=y_Ngd8W21UpuCUhEqGbUKDEqFnNfTjAfb24GhJJGUyM"></script>
+    
+    <script src="/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/js/firebase-auth.js"></script>
+
+    <script>
+        // Password toggle functionality
+        function toggleLoginPassword() {
+            const input = document.getElementById('loginPassword');
+            const icon = document.getElementById('loginPassword-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+
+        // Google Sign-in
+        document.addEventListener('DOMContentLoaded', function () {
+            const googleSignInBtn = document.getElementById('googleSignInBtn');
+            const returnUrl = '';
+
+            googleSignInBtn.addEventListener('click', async function () {
+                try {
+                    this.disabled = true;
+                    this.innerHTML = '<i class="bi bi-hourglass-split"></i> Signing in...';
+
+                    const result = await window.FirebaseAuth.signInWithGoogle();
+
+                    if (result.success) {
+                        const serverResult = await window.FirebaseAuth.loginWithServer(result.idToken, returnUrl);
+
+                        if (serverResult.success) {
+                            setTimeout(() => {
+                                window.location.replace(serverResult.redirectUrl || '/');
+                            }, 500);
+                        } else if (serverResult.requiresRegistration) {
+                            sessionStorage.setItem('firebaseUserData', JSON.stringify({
+                                email: serverResult.email,
+                                name: serverResult.name,
+                                idToken: result.idToken
+                            }));
+                            window.location.href = '/Account/Register?firebase=true';
+                        } else {
+                            alert('Login failed: ' + serverResult.message);
+                        }
+                    } else {
+                        alert('Google sign-in failed: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('An error occurred during sign-in: ' + error.message);
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="bi bi-google"></i> Google';
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
