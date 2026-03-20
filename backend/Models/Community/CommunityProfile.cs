@@ -34,8 +34,29 @@ namespace ServConnect.Models.Community
         public string PreferredLanguage { get; set; } = "en";
         public string Theme { get; set; } = "light"; // light/dark
 
+        // Account confirmation
+        public bool HasConfirmedCommunityAccount { get; set; } = false;
+
+        // Moderation & Bans
+        public int ViolationCount { get; set; } = 0; // Total violations
+        public int CurrentViolationStreak { get; set; } = 0; // Violations since last ban
+        public bool IsBanned { get; set; } = false;
+        public DateTime? BanExpiresAt { get; set; }
+        public string? BanReason { get; set; }
+        public int BanLevel { get; set; } = 0; // 0=none, 1=7days, 2=30days, 3=permanent
+        public List<BanHistory> BanHistory { get; set; } = new();
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastActiveAt { get; set; }
+    }
+
+    public class BanHistory
+    {
+        public DateTime BannedAt { get; set; }
+        public DateTime? UnbannedAt { get; set; }
+        public int DurationDays { get; set; }
+        public string Reason { get; set; } = string.Empty;
+        public int ViolationCount { get; set; }
     }
 }

@@ -11,6 +11,7 @@ namespace ServConnect.Controllers
     {
         private readonly ICommunityService _community;
         private readonly IContentModerationService _contentModeration;
+        private readonly IEnhancedContentModerationService? _enhancedModeration;
         private readonly UserManager<Users> _userManager;
         private readonly IWebHostEnvironment _env;
 
@@ -18,15 +19,31 @@ namespace ServConnect.Controllers
             ICommunityService community, 
             IContentModerationService contentModeration,
             UserManager<Users> userManager, 
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            IEnhancedContentModerationService? enhancedModeration = null)
         {
             _community = community;
             _contentModeration = contentModeration;
+            _enhancedModeration = enhancedModeration;
             _userManager = userManager;
             _env = env;
         }
 
         #region Views
+
+        // Helper method to check ban status and redirect if banned
+        private async Task<IActionResult?> CheckBanStatusAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return null;
+
+            var isBanned = await _community.IsUserBannedAsync(user.Id);
+            if (isBanned)
+            {
+                return RedirectToAction("Banned");
+            }
+            return null;
+        }
 
         [HttpGet("/community")]
         [Authorize]
@@ -35,6 +52,10 @@ namespace ServConnect.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
 
+            // Check if user is banned
+            var banCheck = await CheckBanStatusAsync();
+            if (banCheck != null) return banCheck;
+
             // Run all DB queries in parallel instead of sequentially
             var profileTask = _community.GetProfileAsync(user.Id);
             var unreadMessagesTask = _community.GetUnreadMessagesCountAsync(user.Id);
@@ -42,10 +63,13 @@ namespace ServConnect.Controllers
 
             await Task.WhenAll(profileTask, unreadMessagesTask, unreadNotificationsTask);
 
+            var profile = await profileTask;
+            
             ViewBag.CurrentUser = user;
-            ViewBag.Profile = await profileTask;
+            ViewBag.Profile = profile;
             ViewBag.UnreadMessages = await unreadMessagesTask;
             ViewBag.UnreadNotifications = await unreadNotificationsTask;
+            ViewBag.NeedsConfirmation = profile == null || !profile.HasConfirmedCommunityAccount;
 
             return View();
         }
@@ -56,6 +80,17 @@ namespace ServConnect.Controllers
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToAction("Login", "Account");
+
+            // Check if user is banned
+            var banCheck = await CheckBanStatusAsync();
+            if (banCheck != null) return banCheck;
+
+            // Check if user has confirmed community account
+            var currentUserProfile = await _community.GetProfileAsync(currentUser.Id);
+            if (currentUserProfile == null || !currentUserProfile.HasConfirmedCommunityAccount)
+            {
+                return RedirectToAction("Index");
+            }
 
             Users? targetUser;
             if (string.IsNullOrEmpty(userId))
@@ -101,8 +136,18 @@ namespace ServConnect.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
 
+            // Check if user is banned
+            var banCheck = await CheckBanStatusAsync();
+            if (banCheck != null) return banCheck;
+
+            var profile = await _community.GetProfileAsync(user.Id);
+            if (profile == null || !profile.HasConfirmedCommunityAccount)
+            {
+                return RedirectToAction("Index");
+            }
+
             ViewBag.CurrentUser = user;
-            ViewBag.Profile = await _community.GetProfileAsync(user.Id);
+            ViewBag.Profile = profile;
             ViewBag.Conversations = await _community.GetUserConversationsAsync(user.Id);
 
             return View();
@@ -114,6 +159,16 @@ namespace ServConnect.Controllers
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToAction("Login", "Account");
+
+            // Check if user is banned
+            var banCheck = await CheckBanStatusAsync();
+            if (banCheck != null) return banCheck;
+
+            var profile = await _community.GetProfileAsync(currentUser.Id);
+            if (profile == null || !profile.HasConfirmedCommunityAccount)
+            {
+                return RedirectToAction("Index");
+            }
 
             var otherUser = await _userManager.FindByIdAsync(userId);
             if (otherUser == null) return NotFound();
@@ -129,7 +184,7 @@ namespace ServConnect.Controllers
 
             ViewBag.CurrentUser = currentUser;
             ViewBag.OtherUser = otherUser;
-            ViewBag.Profile = await _community.GetProfileAsync(currentUser.Id);
+            ViewBag.Profile = profile;
 
             return View();
         }
@@ -141,8 +196,18 @@ namespace ServConnect.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
 
+            // Check if user is banned
+            var banCheck = await CheckBanStatusAsync();
+            if (banCheck != null) return banCheck;
+
+            var profile = await _community.GetProfileAsync(user.Id);
+            if (profile == null || !profile.HasConfirmedCommunityAccount)
+            {
+                return RedirectToAction("Index");
+            }
+
             ViewBag.CurrentUser = user;
-            ViewBag.Profile = await _community.GetProfileAsync(user.Id);
+            ViewBag.Profile = profile;
             ViewBag.Notifications = await _community.GetUserNotificationsAsync(user.Id, 0, 50);
 
             return View();
@@ -153,7 +218,20 @@ namespace ServConnect.Controllers
         public async Task<IActionResult> Search([FromQuery] string? q = null)
         {
             var user = await _userManager.GetUserAsync(User);
-            ViewBag.Profile = user != null ? await _community.GetProfileAsync(user.Id) : null;
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            // Check if user is banned
+            var banCheck = await CheckBanStatusAsync();
+            if (banCheck != null) return banCheck;
+
+            var profile = await _community.GetProfileAsync(user.Id);
+            if (profile == null || !profile.HasConfirmedCommunityAccount)
+            {
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.CurrentUser = user;
+            ViewBag.Profile = profile;
             ViewBag.Query = q;
             return View();
         }
@@ -165,10 +243,59 @@ namespace ServConnect.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
 
+            // Check if user is banned
+            var banCheck = await CheckBanStatusAsync();
+            if (banCheck != null) return banCheck;
+
+            var profile = await _community.GetProfileAsync(user.Id);
+            if (profile == null || !profile.HasConfirmedCommunityAccount)
+            {
+                return RedirectToAction("Index");
+            }
+
             ViewBag.CurrentUser = user;
-            ViewBag.Profile = await _community.GetProfileAsync(user.Id);
+            ViewBag.Profile = profile;
             ViewBag.BlockedUsers = await _community.GetBlockedUsersAsync(user.Id);
 
+            return View();
+        }
+
+        [HttpGet("/community/banned")]
+        [Authorize]
+        public async Task<IActionResult> Banned()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var profile = await _community.GetProfileByUserIdAsync(user.Id);
+            
+            // If not banned, redirect to community
+            if (!profile.IsBanned)
+            {
+                return RedirectToAction("Index");
+            }
+
+            return View(profile);
+        }
+
+        [HttpGet("/community/appeal")]
+        [Authorize]
+        public async Task<IActionResult> Appeal()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var profile = await _community.GetProfileByUserIdAsync(user.Id);
+            
+            // If not banned, redirect to community
+            if (!profile.IsBanned)
+            {
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Profile = profile;
+            ViewBag.UserEmail = user.Email;
+            
             return View();
         }
 
@@ -257,6 +384,17 @@ namespace ServConnect.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
+            // Check if user is banned
+            if (await _community.IsUserBannedAsync(user.Id))
+            {
+                var profile = await _community.GetProfileByUserIdAsync(user.Id);
+                var banMessage = profile.BanExpiresAt.HasValue
+                    ? $"Your community account is banned until {profile.BanExpiresAt.Value:MMM dd, yyyy}. Reason: {profile.BanReason}"
+                    : $"Your community account is permanently banned. Reason: {profile.BanReason}";
+                
+                return BadRequest(new { error = banMessage, isBanned = true, canAppeal = true });
+            }
+
             // Parse hashtags from JSON string
             var hashtags = new List<string>();
             if (!string.IsNullOrEmpty(request.Hashtags) && request.Hashtags != "[]")
@@ -292,24 +430,127 @@ namespace ServConnect.Controllers
                 return BadRequest(new { error = "Your post contains inappropriate content." });
             }
 
-            // ML-based harmful content detection
+            // ML-based harmful content detection (with OCR for images)
             Console.WriteLine($"[CreatePost] Checking ML moderation for: '{request.Caption}'");
-            var mlResult = await _contentModeration.AnalyzeContentAsync(request.Caption);
-            Console.WriteLine($"[CreatePost] ML Result - IsHarmful: {mlResult.IsHarmful}, Confidence: {mlResult.Confidence}");
             
-            if (mlResult.IsHarmful)
+            ContentModerationResult mlResult;
+            
+            // If enhanced moderation is available and there are images, use it
+            if (_enhancedModeration != null && media != null && media.Any())
             {
-                Console.WriteLine($"[CreatePost] BLOCKED - Harmful content detected!");
-                // Send notification to user about the violation
-                await _community.SendHarmfulContentNotificationAsync(
-                    user.Id, 
-                    "post", 
-                    $"Harmful content detected with {mlResult.Confidence:P0} confidence"
+                Console.WriteLine($"[CreatePost] Using enhanced moderation with OCR for {media.Count} image(s)");
+                
+                // Convert images to byte arrays
+                var imageBytes = new List<byte[]>();
+                foreach (var file in media)
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        await file.CopyToAsync(ms);
+                        imageBytes.Add(ms.ToArray());
+                    }
+                }
+                
+                // Analyze caption + extracted text from images
+                var enhancedResult = await _enhancedModeration.AnalyzeContentWithImageAsync(
+                    request.Caption, 
+                    imageBytes
                 );
-                return BadRequest(new { 
-                    error = "Your post was flagged as potentially harmful and cannot be published.",
-                    confidence = mlResult.Confidence
-                });
+                
+                Console.WriteLine($"[CreatePost] Enhanced ML Result - IsHarmful: {enhancedResult.IsHarmful}, Confidence: {enhancedResult.Confidence}");
+                Console.WriteLine($"[CreatePost] Extracted texts from images: {string.Join(", ", enhancedResult.ExtractedTexts)}");
+                Console.WriteLine($"[CreatePost] Combined text analyzed: '{enhancedResult.CombinedText}'");
+                
+                if (enhancedResult.IsHarmful)
+                {
+                    Console.WriteLine($"[CreatePost] BLOCKED - {enhancedResult.Reason}");
+                    
+                    // Record violation and check for ban
+                    var banResult = await _community.RecordViolationAsync(
+                        user.Id,
+                        enhancedResult.CombinedText,
+                        "post",
+                        enhancedResult.Confidence,
+                        enhancedResult.Reason
+                    );
+
+                    if (banResult.WasBanned)
+                    {
+                        var banMsg = banResult.IsPermanent
+                            ? "Your account has been permanently banned due to repeated violations."
+                            : $"Your account has been banned for {banResult.BanDuration} days due to repeated violations.";
+                        
+                        return BadRequest(new { 
+                            error = $"Your post was flagged as harmful. {banMsg}",
+                            isBanned = true,
+                            banDuration = banResult.BanDuration,
+                            isPermanent = banResult.IsPermanent,
+                            canAppeal = true
+                        });
+                    }
+                    
+                    return BadRequest(new { 
+                        error = $"Your post was flagged as potentially harmful. {enhancedResult.Reason}",
+                        confidence = enhancedResult.Confidence,
+                        reason = enhancedResult.Reason,
+                        violationCount = banResult.ViolationCount,
+                        warningMessage = banResult.CurrentStreak >= 3 
+                            ? $"Warning: {5 - banResult.CurrentStreak} more violations will result in a ban."
+                            : null
+                    });
+                }
+                
+                // Convert to standard result for compatibility
+                mlResult = new ContentModerationResult
+                {
+                    IsHarmful = enhancedResult.IsHarmful,
+                    Confidence = enhancedResult.Confidence
+                };
+            }
+            else
+            {
+                // Fallback to caption-only moderation
+                Console.WriteLine($"[CreatePost] Using standard moderation (caption only)");
+                mlResult = await _contentModeration.AnalyzeContentAsync(request.Caption);
+                Console.WriteLine($"[CreatePost] ML Result - IsHarmful: {mlResult.IsHarmful}, Confidence: {mlResult.Confidence}");
+                
+                if (mlResult.IsHarmful)
+                {
+                    Console.WriteLine($"[CreatePost] BLOCKED - Harmful content detected!");
+                    
+                    // Record violation and check for ban
+                    var banResult = await _community.RecordViolationAsync(
+                        user.Id,
+                        request.Caption,
+                        "post",
+                        mlResult.Confidence,
+                        "Harmful content detected in caption"
+                    );
+
+                    if (banResult.WasBanned)
+                    {
+                        var banMsg = banResult.IsPermanent
+                            ? "Your account has been permanently banned due to repeated violations."
+                            : $"Your account has been banned for {banResult.BanDuration} days due to repeated violations.";
+                        
+                        return BadRequest(new { 
+                            error = $"Your post was flagged as harmful. {banMsg}",
+                            isBanned = true,
+                            banDuration = banResult.BanDuration,
+                            isPermanent = banResult.IsPermanent,
+                            canAppeal = true
+                        });
+                    }
+                    
+                    return BadRequest(new { 
+                        error = "Your post was flagged as potentially harmful and cannot be published.",
+                        confidence = mlResult.Confidence,
+                        violationCount = banResult.ViolationCount,
+                        warningMessage = banResult.CurrentStreak >= 3 
+                            ? $"Warning: {5 - banResult.CurrentStreak} more violations will result in a ban."
+                            : null
+                    });
+                }
             }
 
             var post = new CommunityPost
@@ -488,6 +729,12 @@ namespace ServConnect.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
+            // Check if user is banned
+            if (await _community.IsUserBannedAsync(user.Id))
+            {
+                return StatusCode(403, new { error = "Your community account is banned. You cannot post comments." });
+            }
+
             // Debug logging
             Console.WriteLine($"[CreateComment] Content: '{request.Content}'");
 
@@ -511,15 +758,30 @@ namespace ServConnect.Controllers
             if (mlResult.IsHarmful)
             {
                 Console.WriteLine($"[CreateComment] BLOCKED - Harmful content detected!");
-                // Send notification to user about the violation
-                await _community.SendHarmfulContentNotificationAsync(
-                    user.Id, 
-                    "comment", 
+                
+                // Record violation and check for ban
+                var banResult = await _community.RecordViolationAsync(
+                    user.Id,
+                    request.Content,
+                    "comment",
+                    mlResult.Confidence,
                     $"Harmful content detected with {mlResult.Confidence:P0} confidence"
                 );
+
+                if (banResult.WasBanned)
+                {
+                    return StatusCode(403, new { 
+                        error = $"Your account has been banned due to multiple violations. Ban level: {banResult.BanLevel}",
+                        banned = true,
+                        banLevel = banResult.BanLevel,
+                        banDuration = banResult.BanDuration
+                    });
+                }
+
                 return BadRequest(new { 
                     error = "Your comment was flagged as potentially harmful and cannot be published.",
-                    confidence = mlResult.Confidence
+                    confidence = mlResult.Confidence,
+                    violationCount = banResult.ViolationCount
                 });
             }
 
@@ -765,6 +1027,43 @@ namespace ServConnect.Controllers
             return Ok(profile);
         }
 
+        [HttpPost("/api/community/profile/confirm")]
+        [Authorize]
+        public async Task<IActionResult> ConfirmCommunityAccount()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var existingProfile = await _community.GetProfileAsync(user.Id);
+            var profile = existingProfile ?? new CommunityProfile 
+            { 
+                UserId = user.Id,
+                Username = user.UserName
+            };
+
+            profile.HasConfirmedCommunityAccount = true;
+            await _community.CreateOrUpdateProfileAsync(profile);
+            
+            return Ok(new { message = "Community account confirmed successfully", profile });
+        }
+
+        [HttpDelete("/api/community/profile")]
+        [Authorize]
+        public async Task<IActionResult> DeleteCommunityAccount()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var profile = await _community.GetProfileAsync(user.Id);
+            if (profile != null)
+            {
+                profile.HasConfirmedCommunityAccount = false;
+                await _community.CreateOrUpdateProfileAsync(profile);
+            }
+            
+            return Ok(new { message = "Community account deactivated successfully" });
+        }
+
         [HttpPost("/api/community/profile/cover")]
         [Authorize]
         public async Task<IActionResult> UpdateCoverImage([FromForm] IFormFile image)
@@ -874,6 +1173,12 @@ namespace ServConnect.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
+
+            // Check if user is banned
+            if (await _community.IsUserBannedAsync(user.Id))
+            {
+                return StatusCode(403, new { error = "Your community account is banned. You cannot send messages." });
+            }
 
             if (!Guid.TryParse(userId, out var receiverId)) return BadRequest();
 
@@ -1220,5 +1525,84 @@ namespace ServConnect.Controllers
         }
 
         #endregion
+
+        #region Ban System
+
+        [HttpGet("/api/community/ban-status")]
+        [Authorize]
+        public async Task<IActionResult> GetBanStatus()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var profile = await _community.GetProfileByUserIdAsync(user.Id);
+            
+            return Ok(new
+            {
+                isBanned = profile.IsBanned,
+                banReason = profile.BanReason,
+                banExpiresAt = profile.BanExpiresAt,
+                banLevel = profile.BanLevel,
+                violationCount = profile.ViolationCount,
+                currentStreak = profile.CurrentViolationStreak,
+                canAppeal = profile.IsBanned
+            });
+        }
+
+        [HttpPost("/api/community/appeal")]
+        [Authorize]
+        public async Task<IActionResult> SubmitBanAppeal([FromBody] BanAppealRequest request)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var profile = await _community.GetProfileByUserIdAsync(user.Id);
+            if (!profile.IsBanned)
+            {
+                return BadRequest(new { error = "Your account is not banned." });
+            }
+
+            var appeal = await _community.SubmitBanAppealAsync(
+                user.Id,
+                request.Email,
+                request.Phone,
+                request.Issue
+            );
+
+            return Ok(new
+            {
+                message = "Your appeal has been submitted successfully. An admin will review it soon.",
+                appealId = appeal.Id,
+                submittedAt = appeal.SubmittedAt
+            });
+        }
+
+        [HttpGet("/api/community/my-violations")]
+        [Authorize]
+        public async Task<IActionResult> GetMyViolations()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var flaggedContent = await _community.GetUserFlaggedContentAsync(user.Id);
+            var profile = await _community.GetProfileByUserIdAsync(user.Id);
+
+            return Ok(new
+            {
+                violations = flaggedContent,
+                totalCount = profile.ViolationCount,
+                currentStreak = profile.CurrentViolationStreak,
+                banHistory = profile.BanHistory
+            });
+        }
+
+        #endregion
+    }
+
+    public class BanAppealRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Issue { get; set; } = string.Empty;
     }
 }

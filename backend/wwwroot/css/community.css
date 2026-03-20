@@ -612,6 +612,54 @@ input, textarea, select { font: inherit; }
 .modal-body { padding: 20px; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--border-color); }
 
+/* Community Account Confirmation Modal */
+#confirmAccountModal .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+}
+
+#confirmAccountModal .modal-content {
+    max-width: 550px;
+    animation: slideIn 0.3s ease-out;
+}
+
+#confirmAccountModal .modal-header h2 {
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#confirmAccountModal .modal-body ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+#confirmAccountModal .modal-body ul li {
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+#confirmAccountModal .modal-body ul li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Create Post Modal */
 .post-author-info { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .visibility-select {

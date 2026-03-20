@@ -30,9 +30,34 @@ namespace ServConnect.Controllers
             _env = env;
         }
 
-        // GET: Browse all available items (filtered by user's district)
+        // GET: Browse all lost item reports (filtered by user's district) - DEFAULT PAGE
         [AllowAnonymous]
         public async Task<IActionResult> Index(string? category = null)
+        {
+            // Get user's district for filtering
+            string? userDistrict = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var me = await _userManager.GetUserAsync(User);
+                if (me != null)
+                {
+                    userDistrict = me.District;
+                }
+            }
+            
+            var reports = await _lostFoundService.GetAllLostReportsAsync(category, LostItemStatus.Active, userDistrict);
+            var vm = new LostItemsListViewModel
+            {
+                Reports = reports,
+                CategoryFilter = category,
+                TotalCount = reports.Count
+            };
+            return View(vm);
+        }
+
+        // GET: Browse all available found items (filtered by user's district)
+        [AllowAnonymous]
+        public async Task<IActionResult> FoundItems(string? category = null)
         {
             // Get user's district for filtering
             string? userDistrict = null;

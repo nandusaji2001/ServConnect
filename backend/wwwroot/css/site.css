@@ -241,3 +241,77 @@ main.pb-3 {
   flex-shrink: 0;         /* Prevent shrinking */
   backdrop-filter: blur(10px);
 }
+
+/* ---- Lang
+uage Toggle Switch ---- */
+.language-toggle-wrapper {
+  display: inline-flex;
+  background: #e5e7eb;
+  border-radius: 20px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.language-toggle-btn {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: #6b7280;
+  background: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  min-width: 45px;
+}
+
+.language-toggle-btn:hover {
+  color: #374151;
+  text-decoration: none;
+}
+
+.language-toggle-btn.active {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+/* Language toggle for navbar (for anonymous users) */
+.language-toggle-wrapper-nav {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 3px;
+  gap: 2px;
+  backdrop-filter: blur(10px);
+}
+
+.language-toggle-btn-nav {
+  padding: 5px 14px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.8);
+  background: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  min-width: 48px;
+}
+
+.language-toggle-btn-nav:hover {
+  color: white;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.language-toggle-btn-nav.active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #10b981;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+}

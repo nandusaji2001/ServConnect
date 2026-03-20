@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using ServConnect.Models;
+using ServConnect.Models.Community;
 using ServConnect.Services;
 using System.Drawing;
 
@@ -17,13 +18,12 @@ namespace ServConnect.Controllers
         private readonly IItemService _itemService;
         private readonly IAdvertisementService _adService;
         private readonly IWebHostEnvironment _env;
-
         private readonly IComplaintService _complaintService;
-
         private readonly IAdvertisementRequestService _adReqService;
-
         private readonly IServiceCatalog _serviceCatalog;
         private readonly IRevenueService _revenueService;
+        private readonly ICommunityService _community;
+        private readonly IEmailService _emailService;
 
         public AdminController(
             UserManager<Users> userManager,
@@ -34,7 +34,9 @@ namespace ServConnect.Controllers
             IComplaintService complaintService,
             IAdvertisementRequestService adReqService,
             IServiceCatalog serviceCatalog,
-            IRevenueService revenueService)
+            IRevenueService revenueService,
+            ICommunityService community,
+            IEmailService emailService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -45,6 +47,8 @@ namespace ServConnect.Controllers
             _adReqService = adReqService;
             _serviceCatalog = serviceCatalog;
             _revenueService = revenueService;
+            _community = community;
+            _emailService = emailService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -79,6 +83,22 @@ namespace ServConnect.Controllers
                 ViewBag.PendingUsersCount = pendingUsers.Count;
             }
             catch { ViewBag.PendingUsersCount = 0; }
+
+            // Community moderation counts
+            try
+            {
+                var pendingAppeals = await _community.GetAllBanAppealsAsync(ServConnect.Models.Community.AppealStatus.Pending);
+                ViewBag.PendingAppeals = pendingAppeals?.Count() ?? 0;
+                
+                var allFlagged = await _community.GetAllFlaggedContentAsync(0, 1000);
+                var todayFlagged = allFlagged.Where(f => f.FlaggedAt.Date == DateTime.UtcNow.Date).ToList();
+                ViewBag.TodayFlaggedCount = todayFlagged.Count;
+            }
+            catch 
+            { 
+                ViewBag.PendingAppeals = 0;
+                ViewBag.TodayFlaggedCount = 0;
+            }
 
             // Revenue analytics
             try
@@ -1033,5 +1053,149 @@ namespace ServConnect.Controllers
             return RedirectToAction("Dashboard");
         }
 
+        #region Community Moderation
+
+        [HttpGet]
+        public async Task<IActionResult> FlaggedContent(int page = 1)
+        {
+            var skip = (page - 1) * 50;
+            var flaggedContent = await _community.GetAllFlaggedContentAsync(skip, 50);
+            
+            ViewBag.CurrentPage = page;
+            return View(flaggedContent);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> BanAppeals(string status = "all")
+        {
+            ServConnect.Models.Community.AppealStatus? filterStatus = status.ToLower() switch
+            {
+                "pending" => ServConnect.Models.Community.AppealStatus.Pending,
+                "approved" => ServConnect.Models.Community.AppealStatus.Approved,
+                "rejected" => ServConnect.Models.Community.AppealStatus.Rejected,
+                _ => null
+            };
+
+            var appeals = await _community.GetAllBanAppealsAsync(filterStatus);
+            ViewBag.CurrentStatus = status;
+            return View(appeals);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AppealDetails(string id)
+        {
+            var appeal = await _community.GetBanAppealByIdAsync(id);
+            if (appeal == null) return NotFound();
+
+            var flaggedContent = await _community.GetUserFlaggedContentAsync(appeal.UserId);
+            var profile = await _community.GetProfileByUserIdAsync(appeal.UserId);
+
+            ViewBag.FlaggedContent = flaggedContent;
+            ViewBag.Profile = profile;
+            
+            return View(appeal);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ApproveAppeal(string id, string response)
+        {
+            var adminUser = await _userManager.GetUserAsync(User);
+            var appeal = await _community.GetBanAppealByIdAsync(id);
+            
+            if (appeal == null)
+            {
+                TempData["ErrorMessage"] = "Appeal not found.";
+                return RedirectToAction("BanAppeals");
+            }
+
+            var success = await _community.ApproveBanAppealAsync(id, adminUser.UserName, response);
+            
+            if (success)
+            {
+                // Send email notification
+                await SendAppealApprovedEmailAsync(appeal.UserEmail, appeal.Username, response);
+                TempData["SuccessMessage"] = "Appeal approved and user unbanned successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to approve appeal.";
+            }
+
+            return RedirectToAction("BanAppeals");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RejectAppeal(string id, string response)
+        {
+            var adminUser = await _userManager.GetUserAsync(User);
+            var appeal = await _community.GetBanAppealByIdAsync(id);
+            
+            if (appeal == null)
+            {
+                TempData["ErrorMessage"] = "Appeal not found.";
+                return RedirectToAction("BanAppeals");
+            }
+
+            var success = await _community.RejectBanAppealAsync(id, adminUser.UserName, response);
+            
+            if (success)
+            {
+                // Send email notification
+                await SendAppealRejectedEmailAsync(appeal.UserEmail, appeal.Username, response);
+                TempData["SuccessMessage"] = "Appeal rejected successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to reject appeal.";
+            }
+
+            return RedirectToAction("BanAppeals");
+        }
+
+        private async Task SendAppealApprovedEmailAsync(string email, string username, string response)
+        {
+            try
+            {
+                var subject = "Your Community Ban Appeal Has Been Approved";
+                var body = $@"
+                    <h2>Appeal Approved</h2>
+                    <p>Dear {username},</p>
+                    <p>Your ban appeal has been reviewed and approved. Your community account has been unlocked.</p>
+                    <p><strong>Admin Response:</strong> {response}</p>
+                    <p>Please ensure you follow our community guidelines going forward.</p>
+                    <p>Best regards,<br>ServConnect Team</p>
+                ";
+
+                await _emailService.SendEmailAsync(email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send appeal approved email: {ex.Message}");
+            }
+        }
+
+        private async Task SendAppealRejectedEmailAsync(string email, string username, string response)
+        {
+            try
+            {
+                var subject = "Your Community Ban Appeal Has Been Reviewed";
+                var body = $@"
+                    <h2>Appeal Decision</h2>
+                    <p>Dear {username},</p>
+                    <p>Your ban appeal has been reviewed. Unfortunately, we cannot lift your ban at this time.</p>
+                    <p><strong>Admin Response:</strong> {response}</p>
+                    <p>If you have further questions, please contact support.</p>
+                    <p>Best regards,<br>ServConnect Team</p>
+                ";
+
+                await _emailService.SendEmailAsync(email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send appeal rejected email: {ex.Message}");
+            }
+        }
+
+        #endregion
     }
 }

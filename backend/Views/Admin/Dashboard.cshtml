@@ -810,6 +810,18 @@
                 <div class="tile-subtitle">View & resolve</div>
             </a>
             
+            <a class="action-tile" asp-controller="Admin" asp-action="BanAppeals">
+                <div class="tile-icon">
+                    <i class="fas fa-gavel"></i>
+                    @if (ViewBag.PendingAppeals > 0)
+                    {
+                        <div class="notification-badge">@ViewBag.PendingAppeals</div>
+                    }
+                </div>
+                <div class="tile-title">Ban Appeals</div>
+                <div class="tile-subtitle">Review requests</div>
+            </a>
+            
             <form asp-controller="Admin" asp-action="MigrateDistrictData" method="post" style="display: contents;">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="action-tile" onclick="return confirm('This will migrate all existing users and content (services, items, rentals, events, lost & found) to Idukki district. Continue?');">
@@ -877,6 +889,42 @@
                     <li><a asp-controller="Admin" asp-action="Revenue"><i class="fas fa-rupee-sign"></i> Revenue Reports</a></li>
                     <li><a asp-controller="Admin" asp-action="Complaints"><i class="fas fa-envelope"></i> Complaints</a></li>
                     <li><a href="#"><i class="fas fa-download"></i> Export Data</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="management-card">
+            <div class="management-header" style="background: var(--danger-gradient);">
+                <h3>
+                    <i class="fas fa-shield-alt"></i> Community Moderation
+                    @if (ViewBag.PendingAppeals > 0)
+                    {
+                        <span class="notification-badge" style="position: relative; top: 0; right: 0; margin-left: 10px;">@ViewBag.PendingAppeals</span>
+                    }
+                </h3>
+            </div>
+            <div class="management-body">
+                <ul class="management-list">
+                    <li>
+                        <a asp-controller="Admin" asp-action="FlaggedContent">
+                            <i class="fas fa-flag"></i> Flagged Content
+                            @if (ViewBag.TodayFlaggedCount > 0)
+                            {
+                                <span class="badge bg-danger ms-2">@ViewBag.TodayFlaggedCount new</span>
+                            }
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Admin" asp-action="BanAppeals">
+                            <i class="fas fa-gavel"></i> Ban Appeals
+                            @if (ViewBag.PendingAppeals > 0)
+                            {
+                                <span class="badge bg-warning text-dark ms-2">@ViewBag.PendingAppeals pending</span>
+                            }
+                        </a>
+                    </li>
+                    <li><a asp-controller="Admin" asp-action="BanAppeals" asp-route-status="approved"><i class="fas fa-check-circle"></i> Approved Appeals</a></li>
+                    <li><a asp-controller="Admin" asp-action="BanAppeals" asp-route-status="rejected"><i class="fas fa-times-circle"></i> Rejected Appeals</a></li>
                 </ul>
             </div>
         </div>

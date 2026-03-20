@@ -73,31 +73,30 @@ namespace ServConnect.Services
             {
                 var requestBody = new
                 {
-                    text = text,
-                    threshold = _threshold
+                    text = text
                 };
 
                 var json = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/predict", content);
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/analyze/content", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseJson = await response.Content.ReadAsStringAsync();
                     _logger.LogInformation("ML API Response: {Response}", responseJson);
                     
-                    var result = JsonSerializer.Deserialize<ModerationApiResponse>(responseJson, 
+                    var result = JsonSerializer.Deserialize<IntelligentModerationApiResponse>(responseJson, 
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                    _logger.LogInformation("Parsed result - IsHarmful: {IsHarmful}, Confidence: {Confidence}", 
-                        result?.IsHarmful, result?.Confidence);
+                    _logger.LogInformation("Parsed result - IsHarmful: {IsHarmful}, FinalRiskScore: {Score}, Recommendation: {Rec}", 
+                        result?.IsHarmful, result?.FinalRiskScore, result?.Recommendation);
 
                     return new ContentModerationResult
                     {
                         IsHarmful = result?.IsHarmful ?? false,
-                        Confidence = result?.Confidence ?? 0,
-                        Threshold = result?.Threshold ?? _threshold,
+                        Confidence = result?.FinalRiskScore ?? 0,
+                        Threshold = _threshold,
                         OriginalText = text
                     };
                 }
@@ -226,6 +225,39 @@ namespace ServConnect.Services
             
             [System.Text.Json.Serialization.JsonPropertyName("threshold")]
             public double Threshold { get; set; }
+        }
+
+        private class IntelligentModerationApiResponse
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("text_toxicity_score")]
+            public double TextToxicityScore { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("image_risk_score")]
+            public double ImageRiskScore { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("ocr_text")]
+            public string? OcrText { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("ocr_toxicity_score")]
+            public double OcrToxicityScore { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("user_trust_score")]
+            public double UserTrustScore { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("post_risk_score")]
+            public double PostRiskScore { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("final_risk_score")]
+            public double FinalRiskScore { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("is_harmful")]
+            public bool IsHarmful { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("recommendation")]
+            public string? Recommendation { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("reason")]
+            public string? Reason { get; set; }
         }
 
         private class BatchModerationApiResponse

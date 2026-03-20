@@ -8,3 +8,10 @@ torch>=2.0.0
 easyocr>=1.7.0
 Pillow>=10.0.0
 xgboost>=2.0.0
+transformers>=4.30.0
+torch-geometric>=2.3.0
+requests>=2.31.0
+
+# For intelligent moderation system
+torch-scatter>=2.1.0
+torch-sparse>=0.6.0

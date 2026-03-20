@@ -1,0 +1,699 @@
+@using ServConnect.Models.Community
+@model ServConnect.Models.Community.BanAppeal
+
+@{
+    ViewData["Title"] = "Appeal Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var flaggedContent = ViewBag.FlaggedContent as List<ServConnect.Models.Community.FlaggedContent>;
+    var profile = ViewBag.Profile as ServConnect.Models.Community.CommunityProfile;
+}
+
+<style>
+    :root {
+        --admin-primary: #3b82f6;
+        --admin-warning: #fbbf24;
+        --admin-success: #10B981;
+        --admin-danger: #dc2626;
+        --bg-light: #ffffff;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    body {
+        background: linear-gradient(180deg, #f9fafb 0%, #ffffff 100%);
+    }
+
+    .admin-container {
+        padding: 30px 20px 80px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Compact Header */
+    .page-header {
+        background: white;
+        border-radius: 16px;
+        padding: 24px 32px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-card);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        animation: fadeInDown 0.5s ease-out;
+    }
+
+    .page-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h1 i {
+        color: var(--admin-primary);
+    }
+
+    .back-btn-modern {
+        padding: 10px 20px;
+        background: #f3f4f6;
+        color: var(--text-primary);
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-btn-modern:hover {
+        background: #e5e7eb;
+        transform: translateX(-3px);
+        text-decoration: none;
+        color: var(--text-primary);
+    }
+
+    /* Content Grid */
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 24px;
+        animation: fadeInUp 0.5s ease-out 0.1s both;
+    }
+
+    /* Card Styles */
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: var(--shadow-card);
+        margin-bottom: 24px;
+    }
+
+    .card-header-modern {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #f3f4f6;
+    }
+
+    .card-header-modern h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-header-modern.warning h2 i { color: var(--admin-warning); }
+    .card-header-modern.info h2 i { color: var(--admin-primary); }
+    .card-header-modern.success h2 i { color: var(--admin-success); }
+    .card-header-modern.danger h2 i { color: var(--admin-danger); }
+
+    /* Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .info-item-modern {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .info-label-modern {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value-modern {
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .badge-modern {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-danger-modern {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+    }
+
+    /* Appeal Content */
+    .appeal-section {
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+
+    .section-text {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 10px;
+        border-left: 3px solid var(--admin-primary);
+    }
+
+    /* Status Alert */
+    .status-alert-modern {
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+    }
+
+    .status-alert-modern.success {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        border-left: 4px solid var(--admin-success);
+    }
+
+    .status-alert-modern.danger {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-left: 4px solid var(--admin-danger);
+    }
+
+    .status-alert-modern h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-alert-modern.success h3 { color: #065f46; }
+    .status-alert-modern.danger h3 { color: #991b1b; }
+
+    .status-alert-modern p {
+        margin: 8px 0;
+        color: inherit;
+    }
+
+    /* Review Form */
+    .review-form {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: var(--shadow-card);
+    }
+
+    .form-group-modern {
+        margin-bottom: 20px;
+    }
+
+    .form-label-modern {
+        display: block;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .form-textarea-modern {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+        resize: vertical;
+        min-height: 120px;
+        font-family: inherit;
+    }
+
+    .form-textarea-modern:focus {
+        outline: none;
+        border-color: var(--admin-primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-modern {
+        padding: 14px 28px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-success-modern {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-success-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-danger-modern {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    .btn-danger-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+    }
+
+    .form-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 24px 0;
+    }
+
+    /* Sidebar */
+    .sidebar-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow-card);
+        margin-bottom: 24px;
+    }
+
+    .sidebar-card h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Timeline */
+    .timeline-item {
+        padding: 16px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .timeline-item:last-child {
+        border-bottom: none;
+    }
+
+    .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .timeline-date {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .timeline-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+    }
+
+    .timeline-info {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+
+    /* Flagged Content */
+    .flagged-scroll {
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .flagged-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .flagged-scroll::-webkit-scrollbar-track {
+        background: #f3f4f6;
+        border-radius: 10px;
+    }
+
+    .flagged-scroll::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+    .flagged-item {
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        border-left: 3px solid var(--admin-danger);
+    }
+
+    .flagged-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .content-type-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        color: #1e40af;
+    }
+
+    .flagged-date {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    .flagged-content {
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        line-height: 1.5;
+    }
+
+    .toxicity-bar {
+        height: 20px;
+        background: #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 6px;
+    }
+
+    .toxicity-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .flagged-reason {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    /* Empty State */
+    .empty-state-small {
+        text-align: center;
+        padding: 30px 20px;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-small i {
+        font-size: 2rem;
+        color: #d1d5db;
+        margin-bottom: 10px;
+    }
+
+    /* Animations */
+    @@keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .admin-container {
+            padding: 20px 16px 60px;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .info-card, .review-form, .sidebar-card {
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="admin-container">
+    <!-- Compact Header -->
+    <div class="page-header">
+        <h1><i class="fas fa-gavel"></i> Ban Appeal Review</h1>
+        <a asp-action="BanAppeals" class="back-btn-modern">
+            <i class="fas fa-arrow-left"></i> Back to Appeals
+        </a>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="details-grid">
+        <!-- Main Content -->
+        <div>
+            <!-- User Information -->
+            <div class="info-card">
+                <div class="card-header-modern warning">
+                    <h2><i class="fas fa-user"></i> User Information</h2>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item-modern">
+                        <div class="info-label-modern">Username</div>
+                        <div class="info-value-modern">@Model.Username</div>
+                    </div>
+                    <div class="info-item-modern">
+                        <div class="info-label-modern">Email</div>
+                        <div class="info-value-modern">@Model.UserEmail</div>
+                    </div>
+                    <div class="info-item-modern">
+                        <div class="info-label-modern">Phone</div>
+                        <div class="info-value-modern">@(string.IsNullOrEmpty(Model.ContactPhone) ? "Not provided" : Model.ContactPhone)</div>
+                    </div>
+                    <div class="info-item-modern">
+                        <div class="info-label-modern">Ban Level</div>
+                        <div class="info-value-modern">
+                            <span class="badge-modern badge-danger-modern">Level @Model.BanLevel</span>
+                        </div>
+                    </div>
+                    <div class="info-item-modern">
+                        <div class="info-label-modern">Total Violations</div>
+                        <div class="info-value-modern">@profile.ViolationCount</div>
+                    </div>
+                    <div class="info-item-modern">
+                        <div class="info-label-modern">Ban Expires</div>
+                        <div class="info-value-modern">@(Model.BanExpiresAt == DateTime.MaxValue ? "Permanent" : Model.BanExpiresAt.ToString("MMM dd, yyyy"))</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appeal Details -->
+            <div class="info-card">
+                <div class="card-header-modern info">
+                    <h2><i class="fas fa-comment-dots"></i> Appeal Details</h2>
+                </div>
+                
+                <div class="appeal-section">
+                    <div class="section-title">Ban Reason</div>
+                    <div class="section-text">@Model.BanReason</div>
+                </div>
+
+                <div class="appeal-section">
+                    <div class="section-title">User's Explanation</div>
+                    <div class="section-text">@Model.Issue</div>
+                </div>
+
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                    <i class="fas fa-clock"></i> Submitted on @Model.SubmittedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                </div>
+            </div>
+
+            <!-- Status or Review Form -->
+            @if (Model.Status != AppealStatus.Pending)
+            {
+                <div class="status-alert-modern @(Model.Status == AppealStatus.Approved ? "success" : "danger")">
+                    <h3>
+                        <i class="fas fa-@(Model.Status == AppealStatus.Approved ? "check-circle" : "times-circle")"></i>
+                        Appeal @Model.Status
+                    </h3>
+                    <p><strong>Reviewed by:</strong> @Model.ReviewedBy</p>
+                    <p><strong>Response:</strong> @Model.AdminResponse</p>
+                    <p style="margin: 0; font-size: 0.85rem; opacity: 0.8;">
+                        <i class="fas fa-clock"></i> Reviewed on @Model.ReviewedAt?.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div class="review-form">
+                    <div class="card-header-modern success">
+                        <h2><i class="fas fa-edit"></i> Review Appeal</h2>
+                    </div>
+
+                    <form id="approveForm" asp-action="ApproveAppeal" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="form-group-modern">
+                            <label class="form-label-modern">Response to User (Approval)</label>
+                            <textarea name="response" class="form-textarea-modern" required 
+                                placeholder="Explain why you're approving this appeal and any conditions..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-modern btn-success-modern">
+                            <i class="fas fa-check"></i> Approve & Unban User
+                        </button>
+                    </form>
+
+                    <div class="form-divider"></div>
+
+                    <form id="rejectForm" asp-action="RejectAppeal" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="form-group-modern">
+                            <label class="form-label-modern">Reason for Rejection</label>
+                            <textarea name="response" class="form-textarea-modern" required 
+                                placeholder="Explain why you're rejecting this appeal..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-modern btn-danger-modern">
+                            <i class="fas fa-times"></i> Reject Appeal
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Ban History -->
+            <div class="sidebar-card">
+                <h3><i class="fas fa-history"></i> Ban History</h3>
+                @if (profile.BanHistory.Any())
+                {
+                    @foreach (var ban in profile.BanHistory.OrderByDescending(b => b.BannedAt))
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-header">
+                                <span class="timeline-date">@ban.BannedAt.ToString("MMM dd, yyyy")</span>
+                                <span class="timeline-badge">@(ban.DurationDays == -1 ? "Permanent" : $"{ban.DurationDays} days")</span>
+                            </div>
+                            <div class="timeline-info">@ban.ViolationCount violations</div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state-small">
+                        <i class="fas fa-inbox"></i>
+                        <p>No previous bans</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Flagged Content -->
+            <div class="sidebar-card">
+                <h3><i class="fas fa-flag"></i> Flagged Content (@flaggedContent.Count)</h3>
+                <div class="flagged-scroll">
+                    @if (flaggedContent.Any())
+                    {
+                        @foreach (var item in flaggedContent.OrderByDescending(f => f.FlaggedAt))
+                        {
+                            <div class="flagged-item">
+                                <div class="flagged-header">
+                                    <span class="content-type-badge">@item.ContentType</span>
+                                    <span class="flagged-date">@item.FlaggedAt.ToString("MMM dd")</span>
+                                </div>
+                                <div class="flagged-content">
+                                    @(item.Content.Length > 100 ? item.Content.Substring(0, 100) + "..." : item.Content)
+                                </div>
+                                <div class="toxicity-bar">
+                                    <div class="toxicity-fill" style="width: @((item.ToxicityScore * 100).ToString("F0"))%">
+                                        @((item.ToxicityScore * 100).ToString("F0"))%
+                                    </div>
+                                </div>
+                                <div class="flagged-reason">@item.Reason</div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state-small">
+                            <i class="fas fa-inbox"></i>
+                            <p>No flagged content</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('approveForm')?.addEventListener('submit', function(e) {
+        if (!confirm('Are you sure you want to approve this appeal and unban the user?')) {
+            e.preventDefault();
+        }
+    });
+
+    document.getElementById('rejectForm')?.addEventListener('submit', function(e) {
+        if (!confirm('Are you sure you want to reject this appeal?')) {
+            e.preventDefault();
+        }
+    });
+</script>
+}

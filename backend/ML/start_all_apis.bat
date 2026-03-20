@@ -3,11 +3,13 @@ echo ================================================
 echo   Starting All ML APIs
 echo ================================================
 echo.
-echo   - Content Moderation API (Port 5050)
+echo   - Content Moderation API (Port 5050) [Legacy]
+echo   - Intelligent Moderation API (Port 5051) [NEW: BERT+CLIP+GNN]
 echo   - Elder Wellness API (Port 5002)
-echo   - Item Matching API (Port 5003)
+echo   - Multimodal Item Matching API (Port 5003) [CLIP+GNN]
 echo   - ID Verification API (Port 5004)
 echo   - Depression Prediction API (Port 5007)
+echo   - OCR Text Extraction API (Port 5008) [NEW: EasyOCR]
 echo.
 echo ================================================
 
@@ -27,6 +29,7 @@ echo Installing dependencies...
 pip install -r requirements.txt -q
 pip install sentence-transformers -q
 pip install easyocr Pillow -q
+pip install transformers torch-geometric -q
 
 REM Check and train models if needed
 echo.
@@ -54,30 +57,48 @@ echo ================================================
 echo.
 
 REM Start each API in a new window
-start "Content Moderation API - Port 5050" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python content_moderation_api.py"
+start "Content Moderation API - Port 5050 [Legacy]" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python content_moderation_api.py"
+timeout /t 2 /nobreak > nul
+
+start "Intelligent Moderation API - Port 5051 [BERT+CLIP+GNN]" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python intelligent_moderation_api.py"
 timeout /t 2 /nobreak > nul
 
 start "Elder Wellness API - Port 5002" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python elder_wellness_api.py"
 timeout /t 2 /nobreak > nul
 
-start "Item Matching API - Port 5003" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python item_matching_api.py"
+start "Multimodal Item Matching API - Port 5003" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python multimodal_item_matching_api.py"
 timeout /t 2 /nobreak > nul
 
 start "ID Verification API - Port 5004" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python id_verification_api.py"
 timeout /t 2 /nobreak > nul
 
 start "Depression Prediction API - Port 5007" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python depression_prediction_api.py"
+timeout /t 2 /nobreak > nul
+
+start "OCR Text Extraction API - Port 5008 [EasyOCR]" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python ocr_text_extraction_api.py"
 
 echo.
 echo ================================================
 echo   All APIs started!
 echo ================================================
 echo.
-echo   Content Moderation API: http://localhost:5050
-echo   Elder Wellness API:     http://localhost:5002
-echo   Item Matching API:      http://localhost:5003
-echo   ID Verification API:    http://localhost:5004
-echo   Depression API:         http://localhost:5007
+echo   Content Moderation API (Legacy): http://localhost:5050
+echo   Intelligent Moderation API (NEW): http://localhost:5051
+echo   Elder Wellness API:              http://localhost:5002
+echo   Multimodal Matching API:         http://localhost:5003 [CLIP+GNN]
+echo   ID Verification API:             http://localhost:5004
+echo   Depression API:                  http://localhost:5007
+echo   OCR Text Extraction API (NEW):   http://localhost:5008
+echo.
+echo   NEW: Enhanced Content Moderation:
+echo        - OCR extracts text from images
+echo        - Analyzes caption + image text together
+echo        - Detects harmful content in images
+echo.
+echo   NEW: Intelligent Moderation combines:
+echo        - Text Analysis (BERT/TF-IDF)
+echo        - Image Analysis (CLIP)
+echo        - User Trust Scoring (GNN)
 echo.
 echo   Each API is running in its own window.
 echo   Close this window or press any key to exit.

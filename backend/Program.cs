@@ -162,6 +162,8 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
 // Content moderation service for ML-based harmful content detection
 builder.Services.AddSingleton<IContentModerationService, ContentModerationService>();
+// Enhanced content moderation with OCR for image text extraction
+builder.Services.AddSingleton<IEnhancedContentModerationService, EnhancedContentModerationService>();
 // ID Verification service for OCR-based ID card name matching
 builder.Services.AddSingleton<IIdVerificationService, IdVerificationService>();
 // Revenue service for analytics and ML predictions

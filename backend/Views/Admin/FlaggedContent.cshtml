@@ -1,0 +1,128 @@
+@model List<ServConnect.Models.Community.FlaggedContent>
+
+@{
+    ViewData["Title"] = "Flagged Content";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-flag text-danger"></i> Flagged Content</h2>
+                <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            <p class="text-muted">Review all content that was blocked by the moderation system</p>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No flagged content found.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Type</th>
+                                <th>Content</th>
+                                <th>Toxicity</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <small>@item.FlaggedAt.ToString("MMM dd, yyyy")</small><br>
+                                        <small class="text-muted">@item.FlaggedAt.ToString("hh:mm tt")</small>
+                                    </td>
+                                    <td>
+                                        <strong>@item.Username</strong><br>
+                                        <small class="text-muted">@item.UserEmail</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@(item.ContentType == "post" ? "primary" : "info")">
+                                            @item.ContentType
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="max-width: 300px;">
+                                            <p class="mb-1">@(item.Content.Length > 100 ? item.Content.Substring(0, 100) + "..." : item.Content)</p>
+                                            @if (item.MediaUrls.Any())
+                                            {
+                                                <small class="text-muted">
+                                                    <i class="fas fa-image"></i> @item.MediaUrls.Count image(s)
+                                                </small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar @(item.ToxicityScore >= 0.7 ? "bg-danger" : item.ToxicityScore >= 0.5 ? "bg-warning" : "bg-success")" 
+                                                 role="progressbar" 
+                                                 style="width: @((item.ToxicityScore * 100).ToString("F0"))%">
+                                                @((item.ToxicityScore * 100).ToString("F0"))%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small>@item.Reason</small>
+                                    </td>
+                                    <td>
+                                        @if (item.ReviewedByAdmin)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i> Reviewed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock"></i> Pending
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <nav>
+                <ul class="pagination">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="FlaggedContent" asp-route-page="@(ViewBag.CurrentPage - 1)">Previous</a>
+                        </li>
+                    }
+                    <li class="page-item active">
+                        <span class="page-link">Page @ViewBag.CurrentPage</span>
+                    </li>
+                    @if (Model.Count >= 50)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="FlaggedContent" asp-route-page="@(ViewBag.CurrentPage + 1)">Next</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

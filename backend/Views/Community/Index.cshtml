@@ -339,6 +339,39 @@
         </div>
     </div>
 
+    <!-- Community Account Confirmation Modal -->
+    <div class="modal show" id="confirmAccountModal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-users"></i> Welcome to ServConnect Community</h2>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; font-size: 1rem; line-height: 1.6;">
+                    By proceeding, you will create an account on the ServConnect Community platform. 
+                    This will allow you to:
+                </p>
+                <ul style="margin: 1rem 0; padding-left: 1.5rem; line-height: 1.8;">
+                    <li>Create and share posts with the community</li>
+                    <li>Connect with other users</li>
+                    <li>Send and receive messages</li>
+                    <li>Participate in discussions</li>
+                </ul>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    <i class="fas fa-info-circle"></i> You can delete your community account later from the settings page.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="cancelCommunityAccount()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="confirmCommunityAccount()">
+                    <i class="fas fa-check"></i> Proceed
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Post Modal -->
     <div class="modal" id="editPostModal">
         <div class="modal-overlay" onclick="closeEditPostModal()"></div>
@@ -425,6 +458,9 @@
             profileImage: '@(user?.ProfileImageUrl ?? "/images/default-avatar.png")'
         };
 
+        // Check if confirmation is needed
+        const needsConfirmation = @(ViewBag.NeedsConfirmation?.ToString().ToLower() ?? "false");
+
         // Pagination
         let currentPage = 0;
         const pageSize = 20;
@@ -437,8 +473,12 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            loadFeed();
-            loadSuggestedUsers();
+            if (needsConfirmation) {
+                showConfirmAccountModal();
+            } else {
+                loadFeed();
+                loadSuggestedUsers();
+            }
             setupEventListeners();
             setupMediaUpload();
             setupInfiniteScroll();
@@ -1329,6 +1369,47 @@
 
         function closePostDetailModal() {
             document.getElementById('postDetailModal').classList.remove('show');
+        }
+
+        // Community Account Confirmation Modal
+        function showConfirmAccountModal() {
+            const modal = document.getElementById('confirmAccountModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeConfirmAccountModal() {
+            const modal = document.getElementById('confirmAccountModal');
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        async function confirmCommunityAccount() {
+            try {
+                const response = await fetch('/api/community/profile/confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    closeConfirmAccountModal();
+                    showToast('Welcome to the community!', 'success');
+                    // Load the feed now that account is confirmed
+                    loadFeed();
+                    loadSuggestedUsers();
+                } else {
+                    showToast('Failed to create community account', 'error');
+                }
+            } catch (error) {
+                console.error('Error confirming account:', error);
+                showToast('Failed to create community account', 'error');
+            }
+        }
+
+        function cancelCommunityAccount() {
+            if (confirm('Are you sure? You will be redirected back to the dashboard.')) {
+                window.location.href = '/Home/Dashboard';
+            }
         }
 
         // Post menu

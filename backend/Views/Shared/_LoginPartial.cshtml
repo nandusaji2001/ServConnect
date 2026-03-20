@@ -95,23 +95,22 @@
                     @* Guardian menu - show for all users who may be guardians *@
                     <li><a class="dropdown-item" asp-controller="Guardian" asp-action="Dashboard"><i class="bi bi-shield-check"></i> Guardian Requests</a></li>
                     <li><hr class="dropdown-divider" /></li>
-                    @* Language toggle *@
-                    @if (!string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase))
-                    {
-                        <li>
-                            <a class="dropdown-item" asp-controller="Language" asp-action="Set" asp-route-culture="ml-IN" asp-route-returnUrl="@returnUrl">
-                                <i class="bi bi-translate"></i> മലയാളത്തിലേക്ക് മാറ്റുക
-                            </a>
-                        </li>
-                    }
-                    else
-                    {
-                        <li>
-                            <a class="dropdown-item" asp-controller="Language" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
-                                <i class="bi bi-translate"></i> Switch to English
-                            </a>
-                        </li>
-                    }
+                    @* Language toggle switch *@
+                    <li class="px-3 py-2">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <small class="text-muted"><i class="bi bi-translate me-1"></i>Language</small>
+                            <div class="language-toggle-wrapper">
+                                <a asp-controller="Language" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnUrl" 
+                                   class="language-toggle-btn @(!string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                                    ENG
+                                </a>
+                                <a asp-controller="Language" asp-action="Set" asp-route-culture="ml-IN" asp-route-returnUrl="@returnUrl" 
+                                   class="language-toggle-btn @(string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                                    MAL
+                                </a>
+                            </div>
+                        </div>
+                    </li>
                     <li><hr class="dropdown-divider" /></li>
                     <li>
                         <form class="form-inline px-3" asp-controller="Account" asp-action="Logout" method="post">
@@ -125,22 +124,20 @@
     else
     {
         @* Language toggle for anonymous users *@
-        @if (!string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase))
-        {
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="Language" asp-action="Set" asp-route-culture="ml-IN" asp-route-returnUrl="@returnUrl">
-                    <i class="bi bi-translate"></i> മലയാളത്തിലേക്ക് മാറ്റുക
+        <li class="nav-item d-flex align-items-center me-2">
+            <div class="language-toggle-wrapper-nav">
+                <a asp-controller="Language" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnUrl" 
+                   class="language-toggle-btn-nav @(!string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase) ? "active" : "")"
+                   title="Switch to English">
+                    ENG
                 </a>
-            </li>
-        }
-        else
-        {
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="Language" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
-                    <i class="bi bi-translate"></i> Switch to English
+                <a asp-controller="Language" asp-action="Set" asp-route-culture="ml-IN" asp-route-returnUrl="@returnUrl" 
+                   class="language-toggle-btn-nav @(string.Equals(currentCulture, "ml-IN", System.StringComparison.OrdinalIgnoreCase) ? "active" : "")"
+                   title="മലയാളത്തിലേക്ക് മാറ്റുക">
+                    MAL
                 </a>
-            </li>
-        }
+            </div>
+        </li>
         <li class="nav-item">
             <a class="nav-link" asp-controller="Account" asp-action="Register">
                 <i class="bi bi-person-plus"></i> @Localizer["Register"]

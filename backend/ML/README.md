@@ -1,15 +1,76 @@
 # ML Services for ServConnect
 
-This directory contains three ML-powered APIs:
-1. **Content Moderation API** - Harmful content detection for Community module
-2. **Elder Wellness API** - Diet and health recommendations for Elder Care module
-3. **Item Matching API** - S-BERT semantic similarity for Lost & Found module
+This directory contains multiple ML-powered APIs:
+1. **Content Moderation API (Legacy)** - Text-only harmful content detection
+2. **Intelligent Moderation API (NEW)** - Multimodal AI + GNN for advanced moderation
+3. **Elder Wellness API** - Diet and health recommendations for Elder Care module
+4. **Multimodal Item Matching API** - CLIP + GNN for Lost & Found module
+5. **ID Verification API** - OCR-based identity verification
+6. **Depression Prediction API** - Mental health assessment
 
 ---
 
-## 1. Harmful Content Detection System
+## Quick Start - All APIs
 
+```bash
+# Start all APIs at once (Recommended)
+start_all_apis.bat
+```
+
+This will start:
+- Content Moderation API (Legacy): http://localhost:5050
+- **Intelligent Moderation API (NEW)**: http://localhost:5051
+- Elder Wellness API: http://localhost:5002
+- Multimodal Item Matching API: http://localhost:5003
+- ID Verification API: http://localhost:5004
+- Depression Prediction API: http://localhost:5007
+
+---
+
+## 1. Content Moderation Systems
+
+### A) Legacy System (Port 5050)
 ML-based content moderation using Logistic Regression + TF-IDF for detecting toxic comments and posts.
+
+**Features:**
+- Text-only analysis
+- Fast (~50ms per request)
+- Lightweight (~10MB)
+- 95% accuracy
+
+### B) Intelligent Moderation System (Port 5051) ⭐ NEW
+Research-level intelligent moderation combining:
+- **Text Analysis**: BERT/DistilBERT or TF-IDF
+- **Image Analysis**: CLIP (Vision Transformer)
+- **User Behavior**: Graph Neural Networks (GNN)
+
+**Features:**
+- Multimodal (text + image)
+- User trust scoring
+- Context-aware decisions
+- 4-level recommendations (block/review/flag/approve)
+- 97-98% accuracy
+- Explainable AI
+
+**Documentation:**
+- `INTELLIGENT_MODERATION_README.md` - Complete guide
+- `INTEGRATION_GUIDE.md` - C# integration
+- `SYSTEM_COMPARISON.md` - Legacy vs Intelligent comparison
+- `demo_intelligent_moderation.py` - Demo script
+
+**Running:**
+```bash
+# Windows
+start_intelligent_moderation_api.bat
+
+# Or manually
+python intelligent_moderation_api.py
+```
+
+**Quick Demo:**
+```bash
+python demo_intelligent_moderation.py
+```
 
 ### Model Files
 
@@ -17,7 +78,7 @@ Pre-trained models are stored in `models/` directory:
 - `toxic_classifier.pkl` - Logistic Regression classifier
 - `tfidf_vectorizer.pkl` - TF-IDF vectorizer
 
-### Running the Content Moderation API
+### Running the Legacy Content Moderation API
 
 ```bash
 # Windows

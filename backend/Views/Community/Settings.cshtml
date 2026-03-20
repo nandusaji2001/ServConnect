@@ -366,14 +366,22 @@
                         <h3>Danger Zone</h3>
                         <p>These actions are irreversible. Please proceed with caution.</p>
                         
-                        <button class="btn btn-outline btn-danger" onclick="deactivateAccount()">
+                        <button class="btn btn-outline btn-danger" onclick="deleteCommunityAccount()">
+                            <i class="fas fa-user-times"></i>
+                            Delete Community Account
+                        </button>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">
+                            This will remove your community profile, posts, and messages. You can create a new account later.
+                        </p>
+                        
+                        <button class="btn btn-outline btn-danger" onclick="deactivateAccount()" style="margin-top: 1rem;">
                             <i class="fas fa-user-slash"></i>
-                            Deactivate Account
+                            Deactivate Main Account
                         </button>
                         
                         <button class="btn btn-danger" onclick="deleteAccount()">
                             <i class="fas fa-trash"></i>
-                            Delete Account
+                            Delete Main Account
                         </button>
                     </div>
                 </section>
@@ -564,6 +572,28 @@
         }
 
         // Account actions
+        async function deleteCommunityAccount() {
+            if (!confirm('Are you sure you want to delete your community account? This will remove your profile, posts, and messages. You can create a new account later.')) return;
+            
+            try {
+                const response = await fetch('/api/community/profile', { 
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    showToast('Community account deleted successfully', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/Home/Dashboard';
+                    }, 2000);
+                } else {
+                    showToast('Failed to delete community account', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete community account', 'error');
+            }
+        }
+
         function deactivateAccount() {
             if (!confirm('Are you sure you want to deactivate your account? You can reactivate it later by logging in again.')) return;
             

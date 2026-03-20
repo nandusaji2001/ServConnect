@@ -88,5 +88,18 @@ namespace ServConnect.Services
         Task<bool> CanUserCommentAsync(Guid userId);
         Task<bool> CanUserMessageAsync(Guid userId);
         Task RecordUserActionAsync(Guid userId, string actionType);
+
+        // Ban System
+        Task<bool> IsUserBannedAsync(Guid userId);
+        Task<BanResult> RecordViolationAsync(Guid userId, string content, string contentType, double toxicityScore, string reason, List<string> mediaUrls = null);
+        Task SaveFlaggedContentAsync(FlaggedContent flagged);
+        Task<List<FlaggedContent>> GetUserFlaggedContentAsync(Guid userId);
+        Task<List<FlaggedContent>> GetAllFlaggedContentAsync(int skip = 0, int limit = 50);
+        Task<BanAppeal> SubmitBanAppealAsync(Guid userId, string email, string phone, string issue);
+        Task<List<BanAppeal>> GetAllBanAppealsAsync(AppealStatus? status = null);
+        Task<BanAppeal> GetBanAppealByIdAsync(string appealId);
+        Task<bool> ApproveBanAppealAsync(string appealId, string adminUsername, string response);
+        Task<bool> RejectBanAppealAsync(string appealId, string adminUsername, string response);
+        Task<CommunityProfile> GetProfileByUserIdAsync(Guid userId);
     }
 }

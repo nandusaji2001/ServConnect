@@ -1,4 +1,4 @@
-@model ServConnect.ViewModels.LostFoundListViewModel
+@model ServConnect.ViewModels.LostItemsListViewModel
 @{
     ViewData["Title"] = "Lost & Found";
 }
@@ -28,7 +28,7 @@
     }
 
     .lf-container {
-        padding: 40px 15px;
+        padding: 20px 15px;
         max-width: 1600px;
         margin: 0 auto;
     }
@@ -37,7 +37,7 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 12px 24px;
+        padding: 10px 20px;
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(12px);
         color: var(--text-primary);
@@ -47,7 +47,7 @@
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-color);
         transition: all 0.3s ease;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
     }
 
     .back-btn:hover {
@@ -58,131 +58,114 @@
         text-decoration: none;
     }
 
-    .lf-header {
-        text-align: center;
-        margin-bottom: 40px;
-        animation: fadeInDown 0.8s ease-out;
+    .lf-nav-filter-combined {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        padding: 20px 24px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-sm);
     }
 
-    .lf-header h1 {
-        font-size: 3rem;
-        font-weight: 800;
-        background: var(--gradient-primary);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 16px;
-    }
-
-    .lf-header p {
-        font-size: 1.15rem;
-        color: var(--text-secondary);
-        max-width: 600px;
-        margin: 0 auto;
-        line-height: 1.8;
-    }
-
-    .action-buttons {
+    .lf-nav-header {
         display: flex;
-        justify-content: center;
-        gap: 16px;
-        margin-bottom: 40px;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid var(--border-color);
         flex-wrap: wrap;
-        animation: fadeInUp 0.8s ease-out 0.2s both;
+        gap: 16px;
     }
 
-    .action-btn {
-        display: inline-flex;
+    .lf-nav-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
         align-items: center;
         gap: 10px;
-        padding: 16px 32px;
-        border-radius: 50px;
-        font-weight: 600;
-        font-size: 1rem;
-        text-decoration: none;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .action-btn.primary {
+    .lf-nav-links {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .nav-link-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .nav-link-btn.active {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .nav-link-btn.inactive {
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--text-secondary);
+        border-color: var(--border-color);
+    }
+
+    .nav-link-btn.inactive:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    .nav-link-btn.primary-action {
         background: var(--gradient-primary);
         color: white;
         box-shadow: var(--shadow-sm);
     }
 
-    .action-btn.primary:hover {
-        transform: translateY(-3px);
+    .nav-link-btn.primary-action:hover {
+        transform: translateY(-2px);
         box-shadow: var(--shadow-glow);
         text-decoration: none;
-        color: white;
-    }
-
-    .action-btn.secondary {
-        background: rgba(255, 255, 255, 0.95);
-        color: var(--primary);
-        border: 2px solid var(--primary);
-    }
-
-    .action-btn.secondary:hover {
-        background: var(--primary);
-        color: white;
-        transform: translateY(-3px);
-        text-decoration: none;
-    }
-
-    .stats-row {
-        display: flex;
-        justify-content: center;
-        gap: 40px;
-        margin-bottom: 40px;
-        animation: fadeInUp 0.8s ease-out 0.3s both;
-    }
-
-    .stat-item {
-        text-align: center;
-        padding: 20px 30px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 16px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .stat-item .number {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: var(--primary);
-    }
-
-    .stat-item .label {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        margin-top: 4px;
     }
 
     .filter-section {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(12px);
-        padding: 20px 30px;
-        border-radius: 20px;
-        margin-bottom: 30px;
-        box-shadow: var(--shadow-sm);
-        animation: fadeInUp 0.8s ease-out 0.4s both;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
     }
 
-    .filter-section h6 {
+    .filter-label {
         font-weight: 600;
         color: var(--text-primary);
-        margin-bottom: 16px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
     }
 
     .filter-pills {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
+        flex: 1;
     }
 
     .filter-pill {
-        padding: 10px 20px;
+        padding: 8px 16px;
         border-radius: 50px;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         font-weight: 500;
         text-decoration: none;
         transition: all 0.3s ease;
@@ -192,9 +175,9 @@
     }
 
     .filter-pill:hover, .filter-pill.active {
-        background: var(--gradient-primary);
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
         color: white;
-        border-color: var(--primary);
+        border-color: #EF4444;
         text-decoration: none;
         transform: translateY(-2px);
     }
@@ -203,7 +186,6 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 24px;
-        animation: fadeInUp 0.8s ease-out 0.5s both;
     }
 
     .item-card {
@@ -223,7 +205,7 @@
         left: 0;
         width: 4px;
         height: 100%;
-        background: var(--gradient-primary);
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
         transform: scaleY(0);
         transition: transform 0.3s ease;
     }
@@ -235,13 +217,13 @@
     .item-card:hover {
         transform: translateY(-8px);
         background: var(--bg-card-hover);
-        border-color: var(--primary);
+        border-color: #EF4444;
         box-shadow: var(--shadow-lg);
     }
 
     .item-image {
         height: 200px;
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -262,7 +244,7 @@
 
     .item-image .placeholder-icon {
         font-size: 4rem;
-        color: var(--primary);
+        color: #EF4444;
         opacity: 0.3;
     }
 
@@ -285,17 +267,14 @@
         font-weight: 600;
     }
 
-    .badge-condition {
+    .badge-status {
         padding: 6px 14px;
         border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 600;
         color: white;
+        background: #EF4444;
     }
-
-    .badge-condition.good { background: var(--primary); }
-    .badge-condition.damaged { background: #EF4444; }
-    .badge-condition.used { background: #F59E0B; }
 
     .item-content {
         padding: 24px;
@@ -331,13 +310,13 @@
     }
 
     .item-meta i {
-        color: var(--primary);
+        color: #EF4444;
         width: 20px;
     }
 
     .item-btn {
         width: 100%;
-        background: var(--gradient-primary);
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
         border: none;
         padding: 14px;
         border-radius: 12px;
@@ -356,7 +335,7 @@
 
     .item-btn:hover {
         transform: translateY(-2px);
-        box-shadow: var(--shadow-glow);
+        box-shadow: 0 10px 40px rgba(239, 68, 68, 0.3);
         color: white;
         text-decoration: none;
     }
@@ -369,7 +348,7 @@
 
     .empty-state i {
         font-size: 5rem;
-        color: var(--primary);
+        color: #EF4444;
         opacity: 0.3;
         margin-bottom: 24px;
     }
@@ -386,65 +365,6 @@
         margin: 0 auto 24px;
     }
 
-    .dashboard-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 24px;
-        margin-top: 60px;
-        animation: fadeInUp 0.8s ease-out 0.6s both;
-    }
-
-    .dashboard-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(12px);
-        border-radius: 20px;
-        padding: 32px;
-        text-align: center;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
-    }
-
-    .dashboard-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-md);
-        border-color: var(--primary);
-    }
-
-    .dashboard-card i {
-        font-size: 3rem;
-        color: var(--primary);
-        margin-bottom: 16px;
-    }
-
-    .dashboard-card h5 {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 8px;
-    }
-
-    .dashboard-card p {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        margin-bottom: 20px;
-    }
-
-    .dashboard-card .btn {
-        background: var(--gradient-primary);
-        border: none;
-        padding: 12px 28px;
-        border-radius: 50px;
-        color: white;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .dashboard-card .btn:hover {
-        transform: scale(1.05);
-        box-shadow: var(--shadow-glow);
-    }
-
     .alert {
         border-radius: 16px;
         border: none;
@@ -456,21 +376,29 @@
         color: var(--primary-dark);
     }
 
-    @@keyframes fadeInDown {
-        from { opacity: 0; transform: translateY(-30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @@keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
     @@media (max-width: 768px) {
-        .lf-header h1 { font-size: 2.2rem; }
-        .action-buttons { flex-direction: column; align-items: center; }
-        .stats-row { flex-direction: column; gap: 16px; }
-        .items-grid { grid-template-columns: 1fr; }
+        .lf-nav-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .lf-nav-links {
+            width: 100%;
+            flex-direction: column;
+        }
+        .nav-link-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .filter-section {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .filter-pills {
+            width: 100%;
+        }
+        .items-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -478,11 +406,6 @@
     <a href="/Home/ExploreServices" class="back-btn">
         <i class="fas fa-arrow-left"></i> Back to Services
     </a>
-
-    <div class="lf-header">
-        <h1><i class="fas fa-search me-3"></i>Lost & Found</h1>
-        <p>Help reunite lost items with their owners. Report found items or claim your lost belongings.</p>
-    </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
@@ -492,100 +415,100 @@
         </div>
     }
 
-    <div class="action-buttons">
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <a asp-action="ReportFound" class="action-btn primary">
-                <i class="fas fa-plus-circle"></i> Report Found Item
-            </a>
-            <a asp-action="LostItems" class="action-btn secondary">
-                <i class="fas fa-exclamation-triangle"></i> Browse Lost Items
-            </a>
-            <a asp-action="MyFoundItems" class="action-btn secondary">
-                <i class="fas fa-box"></i> My Found Items
-            </a>
-            <a asp-action="MyClaims" class="action-btn secondary">
-                <i class="fas fa-hand-paper"></i> My Claims
-            </a>
-        }
-        else
-        {
-            <a href="/Account/Login?returnUrl=/LostAndFound/ReportFound" class="action-btn primary">
-                <i class="fas fa-plus-circle"></i> Report Found Item
-            </a>
-            <a asp-action="LostItems" class="action-btn secondary">
-                <i class="fas fa-exclamation-triangle"></i> Browse Lost Items
-            </a>
-        }
-    </div>
-
-    <div class="stats-row">
-        <div class="stat-item">
-            <div class="number">@Model.TotalCount</div>
-            <div class="label">Available Items</div>
-        </div>
-    </div>
-
-    <div class="filter-section">
-        <h6><i class="fas fa-filter me-2"></i>Filter by Category</h6>
-        <div class="filter-pills">
-            <a href="@Url.Action("Index")" class="filter-pill @(string.IsNullOrEmpty(Model.CategoryFilter) ? "active" : "")">
-                All Items
-            </a>
-            @foreach (var cat in ServConnect.Models.LostFoundItemCategory.All)
-            {
-                <a href="@Url.Action("Index", new { category = cat })" 
-                   class="filter-pill @(Model.CategoryFilter == cat ? "active" : "")">
-                    @cat
+    <div class="lf-nav-filter-combined">
+        <div class="lf-nav-header">
+            <div class="lf-nav-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Lost & Found
+            </div>
+            <div class="lf-nav-links">
+                <a asp-action="Index" class="nav-link-btn active">
+                    <i class="fas fa-exclamation-triangle"></i> Lost Items
                 </a>
-            }
+                <a asp-action="FoundItems" class="nav-link-btn inactive">
+                    <i class="fas fa-search"></i> Found Items
+                </a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-action="MyLostItems" class="nav-link-btn inactive">
+                        <i class="fas fa-list"></i> My Lost Items
+                    </a>
+                    <a asp-action="MyFoundItems" class="nav-link-btn inactive">
+                        <i class="fas fa-box"></i> My Found Items
+                    </a>
+                    <a asp-action="MyClaims" class="nav-link-btn inactive">
+                        <i class="fas fa-hand-paper"></i> My Claims
+                    </a>
+                    <a asp-action="ReportLost" class="nav-link-btn primary-action">
+                        <i class="fas fa-plus-circle"></i> Report Lost
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-label">
+                <i class="fas fa-filter"></i> Category:
+            </div>
+            <div class="filter-pills">
+                <a href="@Url.Action("Index")" class="filter-pill @(string.IsNullOrEmpty(Model.CategoryFilter) ? "active" : "")">
+                    All Items
+                </a>
+                @foreach (var cat in ServConnect.Models.LostFoundItemCategory.All)
+                {
+                    <a href="@Url.Action("Index", new { category = cat })" 
+                       class="filter-pill @(Model.CategoryFilter == cat ? "active" : "")">
+                        @cat
+                    </a>
+                }
+            </div>
         </div>
     </div>
 
     <div class="items-grid">
-        @if (Model.Items.Count == 0)
+        @if (Model.Reports.Count == 0)
         {
             <div class="empty-state">
                 <i class="fas fa-inbox"></i>
-                <h3>No items found</h3>
-                <p>Be the first to report a found item and help someone find their lost belongings!</p>
+                <h3>No lost items reported</h3>
+                <p>No one has reported any lost items yet. If you've lost something, report it here!</p>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a asp-action="ReportFound" class="action-btn primary">
-                        <i class="fas fa-plus-circle"></i> Report Found Item
+                    <a asp-action="ReportLost" class="nav-link-btn primary-action">
+                        <i class="fas fa-plus-circle"></i> Report Lost Item
                     </a>
                 }
             </div>
         }
         else
         {
-            @foreach (var item in Model.Items)
+            @foreach (var report in Model.Reports)
             {
                 <div class="item-card">
                     <div class="item-image">
-                        @if (item.Images.Count > 0)
+                        @if (report.Images.Count > 0)
                         {
-                            <img src="@item.Images[0]" alt="@item.Title">
+                            <img src="@report.Images[0]" alt="@report.Title">
                         }
                         else
                         {
                             <i class="fas fa-image placeholder-icon"></i>
                         }
                         <div class="item-badges">
-                            <span class="badge-category">@item.Category</span>
-                            <span class="badge-condition @item.Condition.ToLower()">@item.Condition</span>
+                            <span class="badge-category">@report.Category</span>
+                            <span class="badge-status">LOST</span>
                         </div>
                     </div>
                     <div class="item-content">
-                        <h3 class="item-title">@item.Title</h3>
+                        <h3 class="item-title">@report.Title</h3>
                         <p class="item-description">
-                            @(item.Description.Length > 100 ? item.Description.Substring(0, 100) + "..." : item.Description)
+                            @(report.Description.Length > 100 ? report.Description.Substring(0, 100) + "..." : report.Description)
                         </p>
                         <div class="item-meta">
-                            <div><i class="fas fa-map-marker-alt"></i> @item.FoundLocation</div>
-                            <div><i class="fas fa-calendar"></i> Found: @item.FoundDate.ToString("MMM dd, yyyy")</div>
+                            <div><i class="fas fa-map-marker-alt"></i> @report.LostLocation</div>
+                            <div><i class="fas fa-calendar"></i> Lost: @report.LostDate.ToString("MMM dd, yyyy")</div>
                         </div>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="item-btn">
+                        <a asp-action="LostItemDetails" asp-route-id="@report.Id" class="item-btn">
                             <i class="fas fa-eye"></i> View Details
                         </a>
                     </div>
@@ -593,28 +516,4 @@
             }
         }
     </div>
-
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-        <div class="dashboard-cards">
-            <div class="dashboard-card">
-                <i class="fas fa-box-open"></i>
-                <h5>My Found Items</h5>
-                <p>Manage items you've reported as found and review pending claims</p>
-                <a asp-action="MyFoundItems" class="btn">View Items</a>
-            </div>
-            <div class="dashboard-card">
-                <i class="fas fa-clipboard-check"></i>
-                <h5>My Claims</h5>
-                <p>Track the status of your item claims and verification progress</p>
-                <a asp-action="MyClaims" class="btn">View Claims</a>
-            </div>
-            <div class="dashboard-card">
-                <i class="fas fa-exclamation-triangle" style="color: #EF4444;"></i>
-                <h5>My Lost Items</h5>
-                <p>Track items you've reported as lost and see if anyone found them</p>
-                <a asp-action="MyLostItems" class="btn">View Lost Items</a>
-            </div>
-        </div>
-    }
 </div>

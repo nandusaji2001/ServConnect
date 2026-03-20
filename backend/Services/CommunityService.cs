@@ -20,6 +20,8 @@ namespace ServConnect.Services
         private readonly IMongoCollection<CommunityProfile> _profiles;
         private readonly IMongoCollection<BannedKeyword> _bannedKeywords;
         private readonly IMongoCollection<UserAction> _userActions;
+        private readonly IMongoCollection<FlaggedContent> _flaggedContent;
+        private readonly IMongoCollection<BanAppeal> _banAppeals;
 
         // Rate limiting configuration
         private const int MaxPostsPerHour = 10;
@@ -46,6 +48,8 @@ namespace ServConnect.Services
             _profiles = db.GetCollection<CommunityProfile>("CommunityProfiles");
             _bannedKeywords = db.GetCollection<BannedKeyword>("BannedKeywords");
             _userActions = db.GetCollection<UserAction>("UserActions");
+            _flaggedContent = db.GetCollection<FlaggedContent>("FlaggedContent");
+            _banAppeals = db.GetCollection<BanAppeal>("BanAppeals");
 
             // Create indexes for performance
             CreateIndexesAsync().Wait();
@@ -557,6 +561,22 @@ namespace ServConnect.Services
         public async Task<CommunityProfile?> GetProfileAsync(Guid userId)
         {
             return await _profiles.Find(p => p.UserId == userId).FirstOrDefaultAsync();
+        }
+
+        private async Task<CommunityProfile> GetOrCreateProfileAsync(Guid userId)
+        {
+            var profile = await _profiles.Find(p => p.UserId == userId).FirstOrDefaultAsync();
+            if (profile == null)
+            {
+                profile = new CommunityProfile
+                {
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _profiles.InsertOneAsync(profile);
+            }
+            return profile;
         }
 
         public async Task<CommunityProfile> CreateOrUpdateProfileAsync(CommunityProfile profile)
@@ -1182,16 +1202,9 @@ namespace ServConnect.Services
 
         public async Task SendHarmfulContentNotificationAsync(Guid userId, string contentType, string reason)
         {
-            var notification = new CommunityNotification
-            {
-                UserId = userId,
-                Type = CommunityNotificationType.SystemAlert,
-                Message = $"Your {contentType} was removed because it violated our community guidelines. Reason: {reason}",
-                ActorName = "Community Safety",
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await CreateNotificationAsync(notification);
+            // Notification removed - users will only see error message when posting
+            // Violations are tracked in RecordViolationAsync instead
+            await Task.CompletedTask;
         }
 
         #endregion
@@ -1242,14 +1255,237 @@ namespace ServConnect.Services
         }
 
         #endregion
+
+        #region Ban System
+
+        public async Task<bool> IsUserBannedAsync(Guid userId)
+        {
+            var profile = await GetOrCreateProfileAsync(userId);
+            
+            if (!profile.IsBanned)
+                return false;
+
+            // Check if ban has expired
+            if (profile.BanExpiresAt.HasValue && profile.BanExpiresAt.Value <= DateTime.UtcNow)
+            {
+                // Unban user
+                var update = Builders<CommunityProfile>.Update
+                    .Set(p => p.IsBanned, false)
+                    .Set(p => p.BanExpiresAt, null)
+                    .Set(p => p.BanReason, null)
+                    .Set(p => p.CurrentViolationStreak, 0)
+                    .Set(p => p.UpdatedAt, DateTime.UtcNow);
+
+                await _profiles.UpdateOneAsync(p => p.UserId == userId, update);
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task<BanResult> RecordViolationAsync(Guid userId, string content, string contentType, 
+            double toxicityScore, string reason, List<string> mediaUrls = null)
+        {
+            var profile = await GetOrCreateProfileAsync(userId);
+            
+            // Save flagged content
+            var flagged = new FlaggedContent
+            {
+                UserId = userId,
+                Username = profile.Username ?? "Unknown",
+                UserEmail = "", // Will be filled by controller
+                ContentType = contentType,
+                Content = content,
+                MediaUrls = mediaUrls ?? new List<string>(),
+                ToxicityScore = toxicityScore,
+                FinalRiskScore = toxicityScore,
+                Reason = reason,
+                FlaggedAt = DateTime.UtcNow
+            };
+
+            await _flaggedContent.InsertOneAsync(flagged);
+
+            // Increment violation counts
+            profile.ViolationCount++;
+            profile.CurrentViolationStreak++;
+
+            var result = new BanResult
+            {
+                WasBanned = false,
+                ViolationCount = profile.ViolationCount,
+                CurrentStreak = profile.CurrentViolationStreak
+            };
+
+            // Check if user should be banned
+            if (profile.CurrentViolationStreak >= 5)
+            {
+                profile.IsBanned = true;
+                profile.BanLevel++;
+                result.WasBanned = true;
+                result.BanLevel = profile.BanLevel;
+
+                // Determine ban duration based on level
+                switch (profile.BanLevel)
+                {
+                    case 1:
+                        profile.BanExpiresAt = DateTime.UtcNow.AddDays(7);
+                        profile.BanReason = "Multiple violations of community guidelines (7-day ban)";
+                        result.BanDuration = 7;
+                        break;
+                    case 2:
+                        profile.BanExpiresAt = DateTime.UtcNow.AddDays(30);
+                        profile.BanReason = "Repeated violations of community guidelines (30-day ban)";
+                        result.BanDuration = 30;
+                        break;
+                    default: // Level 3+
+                        profile.BanExpiresAt = null; // Permanent
+                        profile.BanReason = "Severe and repeated violations of community guidelines (Permanent ban)";
+                        result.BanDuration = -1; // Permanent
+                        result.IsPermanent = true;
+                        break;
+                }
+
+                // Add to ban history
+                profile.BanHistory.Add(new BanHistory
+                {
+                    BannedAt = DateTime.UtcNow,
+                    DurationDays = result.BanDuration,
+                    Reason = profile.BanReason,
+                    ViolationCount = profile.CurrentViolationStreak
+                });
+
+                // Reset streak
+                profile.CurrentViolationStreak = 0;
+            }
+
+            profile.UpdatedAt = DateTime.UtcNow;
+
+            // Update profile
+            await _profiles.ReplaceOneAsync(p => p.UserId == userId, profile);
+
+            return result;
+        }
+
+        public async Task SaveFlaggedContentAsync(FlaggedContent flagged)
+        {
+            await _flaggedContent.InsertOneAsync(flagged);
+        }
+
+        public async Task<List<FlaggedContent>> GetUserFlaggedContentAsync(Guid userId)
+        {
+            return await _flaggedContent.Find(f => f.UserId == userId)
+                .SortByDescending(f => f.FlaggedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<FlaggedContent>> GetAllFlaggedContentAsync(int skip = 0, int limit = 50)
+        {
+            return await _flaggedContent.Find(_ => true)
+                .SortByDescending(f => f.FlaggedAt)
+                .Skip(skip)
+                .Limit(limit)
+                .ToListAsync();
+        }
+
+        public async Task<BanAppeal> SubmitBanAppealAsync(Guid userId, string email, string phone, string issue)
+        {
+            var profile = await GetOrCreateProfileAsync(userId);
+
+            var appeal = new BanAppeal
+            {
+                UserId = userId,
+                Username = profile.Username ?? "Unknown",
+                UserEmail = email,
+                ContactPhone = phone,
+                Issue = issue,
+                BanLevel = profile.BanLevel,
+                BanExpiresAt = profile.BanExpiresAt ?? DateTime.MaxValue,
+                BanReason = profile.BanReason ?? "Unknown",
+                Status = AppealStatus.Pending,
+                SubmittedAt = DateTime.UtcNow
+            };
+
+            await _banAppeals.InsertOneAsync(appeal);
+            return appeal;
+        }
+
+        public async Task<List<BanAppeal>> GetAllBanAppealsAsync(AppealStatus? status = null)
+        {
+            var filter = status.HasValue 
+                ? Builders<BanAppeal>.Filter.Eq(a => a.Status, status.Value)
+                : Builders<BanAppeal>.Filter.Empty;
+
+            return await _banAppeals.Find(filter)
+                .SortByDescending(a => a.SubmittedAt)
+                .ToListAsync();
+        }
+
+        public async Task<BanAppeal> GetBanAppealByIdAsync(string appealId)
+        {
+            return await _banAppeals.Find(a => a.Id == appealId).FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> ApproveBanAppealAsync(string appealId, string adminUsername, string response)
+        {
+            var appeal = await GetBanAppealByIdAsync(appealId);
+            if (appeal == null) return false;
+
+            // Unban the user
+            var update = Builders<CommunityProfile>.Update
+                .Set(p => p.IsBanned, false)
+                .Set(p => p.BanExpiresAt, null)
+                .Set(p => p.BanReason, null)
+                .Set(p => p.CurrentViolationStreak, 0)
+                .Set(p => p.UpdatedAt, DateTime.UtcNow);
+
+            await _profiles.UpdateOneAsync(p => p.UserId == appeal.UserId, update);
+
+            // Update appeal status
+            var appealUpdate = Builders<BanAppeal>.Update
+                .Set(a => a.Status, AppealStatus.Approved)
+                .Set(a => a.ReviewedAt, DateTime.UtcNow)
+                .Set(a => a.ReviewedBy, adminUsername)
+                .Set(a => a.AdminResponse, response);
+
+            await _banAppeals.UpdateOneAsync(a => a.Id == appealId, appealUpdate);
+
+            return true;
+        }
+
+        public async Task<bool> RejectBanAppealAsync(string appealId, string adminUsername, string response)
+        {
+            var appealUpdate = Builders<BanAppeal>.Update
+                .Set(a => a.Status, AppealStatus.Rejected)
+                .Set(a => a.ReviewedAt, DateTime.UtcNow)
+                .Set(a => a.ReviewedBy, adminUsername)
+                .Set(a => a.AdminResponse, response);
+
+            var result = await _banAppeals.UpdateOneAsync(a => a.Id == appealId, appealUpdate);
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<CommunityProfile> GetProfileByUserIdAsync(Guid userId)
+        {
+            return await GetOrCreateProfileAsync(userId);
+        }
+
+        #endregion
     }
 
-    // Helper class for rate limiting
+    public class BanResult
+    {
+        public bool WasBanned { get; set; }
+        public int ViolationCount { get; set; }
+        public int CurrentStreak { get; set; }
+        public int BanLevel { get; set; }
+        public int BanDuration { get; set; } // Days, -1 for permanent
+        public bool IsPermanent { get; set; }
+    }
+
     public class UserAction
     {
-        public MongoDB.Bson.ObjectId Id { get; set; }
         public Guid UserId { get; set; }
         public string ActionType { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -16,7 +16,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Configuration
-DATA_PATH = 'Data/train.csv'
+DATA_PATH = 'Data/hate_detection.csv'
 MODEL_PATH = 'models/toxic_classifier.pkl'
 VECTORIZER_PATH = 'models/tfidf_vectorizer.pkl'
 
@@ -45,11 +45,10 @@ def load_and_prepare_data():
     
     # Clean the text
     print("Cleaning text...")
-    df['clean_text'] = df['comment_text'].apply(clean_text)
+    df['clean_text'] = df['Content'].apply(clean_text)
     
-    # Create binary toxic label (1 if any toxic category is 1)
-    toxic_columns = ['toxic', 'severe_toxic', 'obscene', 'threat', 'insult', 'identity_hate']
-    df['is_harmful'] = df[toxic_columns].max(axis=1)
+    # Use the Label column directly (1 = harmful, 0 = safe)
+    df['is_harmful'] = df['Label']
     
     print(f"\nClass distribution:")
     print(df['is_harmful'].value_counts())
