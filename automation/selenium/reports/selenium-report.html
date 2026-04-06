@@ -3,58 +3,166 @@
   <head>
     <meta charset="utf-8"/>
     <title id="head-title">selenium-report.html</title>
-      <style type="text/css">body {
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 12px;
-  /* do not increase min-width as some may use split screens */
+      <style type="text/css">:root {
+  --primary-color: #4f46e5;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
   min-width: 800px;
-  color: #999;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
 }
 
 h1 {
-  font-size: 24px;
-  color: black;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+h1::before {
+  content: '🧪';
+  font-size: 36px;
 }
 
 h2 {
-  font-size: 16px;
-  color: black;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 24px 0 16px 0;
 }
 
 p {
-  color: black;
+  color: var(--text-secondary);
+  margin: 8px 0;
 }
 
 a {
-  color: #999;
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: #3730a3;
+  text-decoration: underline;
 }
 
 table {
   border-collapse: collapse;
+  width: 100%;
 }
 
 /******************************
  * SUMMARY INFORMATION
  ******************************/
+#environment-header {
+  background: var(--bg-secondary);
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin: 24px 0 16px 0;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid var(--border-color);
+}
+
+#environment-header:hover {
+  background: var(--bg-tertiary);
+  box-shadow: var(--shadow-sm);
+}
+
+#environment-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#environment-header h2::before {
+  content: '▼';
+  font-size: 12px;
+  transition: transform 0.3s;
+}
+
+#environment-header.collapsed h2::before {
+  transform: rotate(-90deg);
+}
+
+#environment {
+  background: var(--bg-primary);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
 #environment td {
-  padding: 5px;
-  border: 1px solid #e6e6e6;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
   vertical-align: top;
 }
-#environment tr:nth-child(odd) {
-  background-color: #f6f6f6;
+
+#environment td:first-child {
+  font-weight: 600;
+  color: var(--text-primary);
+  width: 200px;
+  background: var(--bg-secondary);
 }
+
+#environment tr:last-child td {
+  border-bottom: none;
+}
+
 #environment ul {
   margin: 0;
-  padding: 0 20px;
+  padding: 0 0 0 20px;
+  color: var(--text-secondary);
 }
 
 /******************************
- * TEST RESULT COLORS
+ * TEST RESULT COLORS & BADGES
  ******************************/
 span.passed,
 .passed .col-result {
-  color: green;
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.passed .col-result::before {
+  content: '✓ ';
+  font-weight: bold;
 }
 
 span.skipped,
@@ -63,7 +171,14 @@ span.rerun,
 .skipped .col-result,
 .xfailed .col-result,
 .rerun .col-result {
-  color: orange;
+  color: var(--warning-color);
+  font-weight: 600;
+}
+
+.skipped .col-result::before,
+.xfailed .col-result::before,
+.rerun .col-result::before {
+  content: '⊘ ';
 }
 
 span.error,
@@ -72,7 +187,14 @@ span.xpassed,
 .error .col-result,
 .failed .col-result,
 .xpassed .col-result {
-  color: red;
+  color: var(--error-color);
+  font-weight: 600;
+}
+
+.failed .col-result::before,
+.error .col-result::before {
+  content: '✗ ';
+  font-weight: bold;
 }
 
 .col-links__extra {
@@ -91,66 +213,152 @@ span.xpassed,
  * 1. Table Layout
  *------------------*/
 #results-table {
-  border: 1px solid #e6e6e6;
-  color: #999;
-  font-size: 12px;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 14px;
   width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-top: 24px;
 }
+
 #results-table th,
 #results-table td {
-  padding: 5px;
-  border: 1px solid #e6e6e6;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
   text-align: left;
 }
+
 #results-table th {
-  font-weight: bold;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+  color: white;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+#results-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+#results-table tbody tr:hover {
+  background-color: var(--bg-secondary);
 }
 
 /*------------------
  * 2. Extra
  *------------------*/
+.extra {
+  background: var(--bg-secondary);
+  padding: 20px !important;
+}
+
+.extraHTML details {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.extraHTML summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.extraHTML summary:hover {
+  background-color: var(--bg-secondary);
+}
+
+.extraHTML table {
+  margin-top: 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.extraHTML th {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  padding: 10px !important;
+}
+
+.extraHTML td {
+  padding: 10px !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.extraHTML tr:nth-child(even) {
+  background-color: var(--bg-secondary);
+}
+
 .logwrapper {
   max-height: 230px;
-  overflow-y: scroll;
-  background-color: #e6e6e6;
+  overflow-y: auto;
+  background-color: #1e293b;
+  border-radius: 8px;
+  margin-top: 12px;
 }
+
 .logwrapper.expanded {
   max-height: none;
 }
+
 .logwrapper.expanded .logexpander:after {
-  content: "collapse [-]";
+  content: "Collapse ▲";
 }
+
 .logwrapper .logexpander {
   z-index: 1;
   position: sticky;
   top: 10px;
   width: max-content;
-  border: 1px solid;
-  border-radius: 3px;
-  padding: 5px 7px;
-  margin: 10px 0 10px calc(100% - 80px);
+  border: 1px solid #475569;
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin: 10px 0 10px calc(100% - 100px);
   cursor: pointer;
-  background-color: #e6e6e6;
+  background-color: #334155;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
 }
+
 .logwrapper .logexpander:after {
-  content: "expand [+]";
+  content: "Expand ▼";
 }
+
 .logwrapper .logexpander:hover {
-  color: #000;
-  border-color: #000;
+  background-color: #475569;
+  border-color: #64748b;
 }
+
 .logwrapper .log {
   min-height: 40px;
   position: relative;
   top: -50px;
   height: calc(100% + 50px);
-  border: 1px solid #e6e6e6;
-  color: black;
+  border: 1px solid #334155;
+  color: #e2e8f0;
   display: block;
-  font-family: "Courier New", Courier, monospace;
-  padding: 5px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  padding: 16px;
   padding-right: 80px;
   white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 div.media {
@@ -202,40 +410,70 @@ div.media {
   align-items: center;
 }
 
+.collapsible {
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.collapsible.passed {
+  border-left-color: var(--success-color);
+}
+
+.collapsible.failed,
+.collapsible.error {
+  border-left-color: var(--error-color);
+}
+
+.collapsible.skipped,
+.collapsible.xfailed {
+  border-left-color: var(--warning-color);
+}
+
 .collapsible td:not(.col-links) {
   cursor: pointer;
 }
+
 .collapsible td:not(.col-links):hover::after {
-  color: #bbb;
+  color: var(--text-secondary);
   font-style: italic;
   cursor: pointer;
+  font-size: 12px;
+  margin-left: 8px;
 }
 
 .col-result {
-  width: 130px;
+  width: 140px;
+  font-size: 14px;
 }
+
 .col-result:hover::after {
-  content: " (hide details)";
+  content: " (hide)";
 }
 
 .col-result.collapsed:hover::after {
-  content: " (show details)";
+  content: " (show)";
+}
+
+.col-result.collapsed {
+  opacity: 0.7;
 }
 
 #environment-header h2:hover::after {
-  content: " (hide details)";
-  color: #bbb;
+  content: " (click to hide)";
+  color: var(--text-secondary);
   font-style: italic;
   cursor: pointer;
   font-size: 12px;
+  font-weight: normal;
 }
 
 #environment-header.collapsed h2:hover::after {
-  content: " (show details)";
-  color: #bbb;
+  content: " (click to show)";
+  color: var(--text-secondary);
   font-style: italic;
   cursor: pointer;
   font-size: 12px;
+  font-weight: normal;
 }
 
 /*------------------
@@ -243,93 +481,172 @@ div.media {
  *------------------*/
 .sortable {
   cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
 }
+
+.sortable:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .sortable.desc:after {
-  content: " ";
-  position: relative;
-  left: 5px;
-  bottom: -12.5px;
-  border: 10px solid #4caf50;
-  border-bottom: 0;
-  border-left-color: transparent;
-  border-right-color: transparent;
+  content: " ↓";
+  font-size: 14px;
+  margin-left: 6px;
 }
+
 .sortable.asc:after {
-  content: " ";
-  position: relative;
-  left: 5px;
-  bottom: 12.5px;
-  border: 10px solid #4caf50;
-  border-top: 0;
-  border-left-color: transparent;
-  border-right-color: transparent;
+  content: " ↑";
+  font-size: 14px;
+  margin-left: 6px;
 }
 
 .hidden, .summary__reload__button.hidden {
   display: none;
 }
 
-.summary__data {
-  flex: 0 0 550px;
+.extras-row {
+  background: var(--bg-secondary) !important;
 }
+
+.extras-row td {
+  padding: 0 !important;
+}
+
+.col-duration {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.col-testId {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.summary {
+  background: var(--bg-secondary);
+  padding: 24px;
+  border-radius: 8px;
+  margin: 24px 0;
+  border: 1px solid var(--border-color);
+}
+
+.summary__data h2 {
+  margin-top: 0;
+}
+
+.summary__data .run-count {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: white;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border-left: 4px solid var(--primary-color);
+  margin: 16px 0;
+}
+
+.summary__data .filter {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
 .summary__reload {
   flex: 1 1;
   display: flex;
   justify-content: center;
+  margin: 16px 0;
 }
+
 .summary__reload__button {
   flex: 0 0 300px;
   display: flex;
   color: white;
-  font-weight: bold;
-  background-color: #4caf50;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
   text-align: center;
   justify-content: center;
   align-items: center;
-  border-radius: 3px;
+  border-radius: 8px;
   cursor: pointer;
+  padding: 12px 24px;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s;
 }
+
 .summary__reload__button:hover {
-  background-color: #46a049;
-}
-.summary__spacer {
-  flex: 0 0 550px;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .controls {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 .filters,
 .collapse {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
+
+.filters input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary-color);
+}
+
+.filters span {
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
 .filters button,
 .collapse button {
-  color: #999;
-  border: none;
-  background: none;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  background: white;
   cursor: pointer;
-  text-decoration: underline;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
 }
+
 .filters button:hover,
 .collapse button:hover {
-  color: #ccc;
+  background: var(--primary-color);
+  color: white;
 }
 
 .filter__label {
   margin-right: 10px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
       </style>
     
   </head>
   <body>
-    <h1 id="title">selenium-report.html</h1>
-    <p>Report generated on 15-Mar-2026 at 19:04:25 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a>
-        v4.1.1</p>
+    <div class="container">
+    <h1 id="title">Selenium Test Report</h1>
+    <p>Report generated on 15-Mar-2026 at 19:04:25 by <a href="https://pypi.python.org/pypi/pytest-html" target="_blank">pytest-html</a> v4.1.1</p>
     <div id="environment-header">
       <h2>Environment</h2>
     </div>
@@ -427,6 +744,7 @@ div.media {
         </tr>
       </thead>
     </table>
+    </div>
   </body>
   <footer>
     <div id="data-container" data-jsonblob="{&#34;environment&#34;: {&#34;Python&#34;: &#34;3.13.5&#34;, &#34;Platform&#34;: &#34;Windows-11-10.0.26200-SP0&#34;, &#34;Packages&#34;: {&#34;pytest&#34;: &#34;8.3.5&#34;, &#34;pluggy&#34;: &#34;1.6.0&#34;}, &#34;Plugins&#34;: {&#34;html&#34;: &#34;4.1.1&#34;, &#34;metadata&#34;: &#34;3.1.1&#34;}}, &#34;tests&#34;: {&#34;test_user_journeys.py::test_house_rentals_user_flow&#34;: [{&#34;extras&#34;: [{&#34;name&#34;: null, &#34;format_type&#34;: &#34;html&#34;, &#34;content&#34;: &#34;&lt;details open&gt;&lt;summary&gt;&lt;strong&gt;Detailed Step Log (14 steps)&lt;/strong&gt;&lt;/summary&gt;&lt;table style=&#39;border-collapse:collapse;margin-top:8px;font-size:13px;&#39;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;#&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Time&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Action&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Details&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;1&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:20&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open login page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/Account/Login&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:21&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login email&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;email=user@example.com&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;3&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:21&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login password&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;password=Test@123&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;4&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:23&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Click sign-in button&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;5&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:23&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Login redirect completed&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;current_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;6&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:23&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Authentication complete&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;landing_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;7&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:23&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open House Rentals page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/Rental&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;8&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:24&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Verify Rentals heading&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;heading=House Rentals&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;9&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:24&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter Rentals search query&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;searchInput=Kattappana&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;10&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:24&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Submit Rentals search&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;11&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:26&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Read Rentals result container&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;container_snippet=house\nfully furnished\nuppukandam\nhouse with 2 rooms\n2 beds\n1 baths\n1500 sqft\nwifi\nparking\nwater supply\n+1 more\n\u20b95,000\npe&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;12&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:26&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Rental cards available&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;count=2&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;13&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:27&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open first rental card&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;14&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:27&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Rental details page opened&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;current_url=https://localhost:7213/Rental/Details/6944ea5ce131dba6194bec3f&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/details&gt;&#34;, &#34;mime_type&#34;: null, &#34;extension&#34;: null}], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;test_user_journeys.py::test_house_rentals_user_flow&#34;, &#34;duration&#34;: &#34;00:00:10&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;test_user_journeys.py::test_house_rentals_user_flow&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:10&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;test_user_journeys.py::test_local_events_user_flow&#34;: [{&#34;extras&#34;: [{&#34;name&#34;: null, &#34;format_type&#34;: &#34;html&#34;, &#34;content&#34;: &#34;&lt;details open&gt;&lt;summary&gt;&lt;strong&gt;Detailed Step Log (11 steps)&lt;/strong&gt;&lt;/summary&gt;&lt;table style=&#39;border-collapse:collapse;margin-top:8px;font-size:13px;&#39;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;#&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Time&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Action&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Details&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;1&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:31&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open login page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/Account/Login&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:31&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login email&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;email=user@example.com&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;3&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:31&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login password&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;password=Test@123&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;4&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:31&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Click sign-in button&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;5&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:33&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Login redirect completed&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;current_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;6&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:33&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Authentication complete&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;landing_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;7&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:33&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open Local Events page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/Events&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;8&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:34&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Verify Events heading&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;heading=Local Events&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;9&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:34&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter Events search query&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;search=community&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;10&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:34&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Submit Events search&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;11&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:34&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Events empty state displayed&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;empty_state_text=No upcoming events\nBe the first to create an event!\nCreate Event&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/details&gt;&#34;, &#34;mime_type&#34;: null, &#34;extension&#34;: null}], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;test_user_journeys.py::test_local_events_user_flow&#34;, &#34;duration&#34;: &#34;00:00:07&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;test_user_journeys.py::test_local_events_user_flow&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:07&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;test_user_journeys.py::test_transit_connect_user_flow&#34;: [{&#34;extras&#34;: [{&#34;name&#34;: null, &#34;format_type&#34;: &#34;html&#34;, &#34;content&#34;: &#34;&lt;details open&gt;&lt;summary&gt;&lt;strong&gt;Detailed Step Log (13 steps)&lt;/strong&gt;&lt;/summary&gt;&lt;table style=&#39;border-collapse:collapse;margin-top:8px;font-size:13px;&#39;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;#&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Time&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Action&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Details&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;1&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:38&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open login page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/Account/Login&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:38&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login email&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;email=user@example.com&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;3&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:39&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login password&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;password=Test@123&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;4&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:39&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Click sign-in button&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;5&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:40&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Login redirect completed&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;current_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;6&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:40&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Authentication complete&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;landing_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;7&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:40&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open TransitConnect page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/TransitConnect&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;8&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:40&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Verify Transit heading&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;heading=TransitConnect&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;9&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:41&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter Transit route values&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;from=Kattappana, to=Kumily&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;10&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:41&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Submit Transit search&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;11&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:41&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Transit search navigation completed&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;current_url=https://localhost:7213/TransitConnect?from=Kattappana&amp;amp;to=Kumily&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;12&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:03:41&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Transit search URL after submit&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;current_url=https://localhost:7213/TransitConnect?from=Kattappana&amp;amp;to=Kumily&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;13&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:06&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Transit results not visible in wait window&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;page_title=Internal Server Error, body_snippet=An unhandled exception occurred while processing the request.\nExpressionNotSupportedException: Expression not supported: (r.Upvotes - r.Downvotes).\nMongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToFilterTr&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/details&gt;&#34;, &#34;mime_type&#34;: null, &#34;extension&#34;: null}], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;test_user_journeys.py::test_transit_connect_user_flow&#34;, &#34;duration&#34;: &#34;00:00:32&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;test_user_journeys.py::test_transit_connect_user_flow&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:32&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;test_user_journeys.py::test_community_user_flow&#34;: [{&#34;extras&#34;: [{&#34;name&#34;: null, &#34;format_type&#34;: &#34;html&#34;, &#34;content&#34;: &#34;&lt;details open&gt;&lt;summary&gt;&lt;strong&gt;Detailed Step Log (13 steps)&lt;/strong&gt;&lt;/summary&gt;&lt;table style=&#39;border-collapse:collapse;margin-top:8px;font-size:13px;&#39;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;#&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Time&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Action&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Details&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;1&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:10&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open login page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/Account/Login&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:11&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login email&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;email=user@example.com&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;3&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:11&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login password&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;password=Test@123&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;4&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:12&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Click sign-in button&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;5&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:12&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Login redirect completed&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;current_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;6&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:12&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Authentication complete&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;landing_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;7&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:12&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open Community page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/community&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;8&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:14&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Community shell loaded&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;sidebar=visible, postsFeed=visible&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;9&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:15&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Community feed loading spinner hidden&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;10&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:15&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Community feed state read&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;post_cards=0, empty_state_visible=True&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;11&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:15&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open Create Post modal&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;12&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:15&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter Community post caption&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;caption=Automation test draft post from Selenium&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;13&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:15&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Close Create Post modal without submit&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/details&gt;&#34;, &#34;mime_type&#34;: null, &#34;extension&#34;: null}], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;test_user_journeys.py::test_community_user_flow&#34;, &#34;duration&#34;: &#34;00:00:08&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;test_user_journeys.py::test_community_user_flow&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:08&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;test_user_journeys.py::test_news_user_flow&#34;: [{&#34;extras&#34;: [{&#34;name&#34;: null, &#34;format_type&#34;: &#34;html&#34;, &#34;content&#34;: &#34;&lt;details open&gt;&lt;summary&gt;&lt;strong&gt;Detailed Step Log (13 steps)&lt;/strong&gt;&lt;/summary&gt;&lt;table style=&#39;border-collapse:collapse;margin-top:8px;font-size:13px;&#39;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;#&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Time&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Action&lt;/th&gt;&lt;th style=&#39;padding:6px 10px;border:1px solid #ddd;background:#f6f8fa;&#39;&gt;Details&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;1&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:18&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open login page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/Account/Login&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:19&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login email&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;email=user@example.com&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;3&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:19&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter login password&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;password=Test@123&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;4&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:20&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Click sign-in button&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;5&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:20&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Login redirect completed&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;current_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;6&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:20&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Authentication complete&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;landing_url=https://localhost:7213/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;7&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:20&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Open News page&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;url=https://localhost:7213/Home/News&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;8&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:22&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;News heading visible&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;9&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:23&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Enter News location&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;newsLocationInput=Kattappana&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;10&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:23&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;Submit News search&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;11&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:23&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;News content rendering completed&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;12&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:23&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;News state summary&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;news_cards=1, news_errors=0, news_placeholders=0&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;13&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;2026-03-15 19:04:23&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;News titles extracted&lt;/td&gt;&lt;td style=&#39;padding:6px 10px;border:1px solid #ddd;&#39;&gt;title_count=1, first_title=Kerala Assembly polls 2026 | Roshy Augustine will contest from Idukki constituency, says Jose K. Mani&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/details&gt;&#34;, &#34;mime_type&#34;: null, &#34;extension&#34;: null}], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;test_user_journeys.py::test_news_user_flow&#34;, &#34;duration&#34;: &#34;00:00:08&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;test_user_journeys.py::test_news_user_flow&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:08&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}]}, &#34;renderCollapsed&#34;: [&#34;passed&#34;], &#34;initialSort&#34;: &#34;result&#34;, &#34;title&#34;: &#34;selenium-report.html&#34;}"></div>

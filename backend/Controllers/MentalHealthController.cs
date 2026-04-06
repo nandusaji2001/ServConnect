@@ -15,9 +15,16 @@ namespace ServConnect.Controllers
         private readonly IMongoCollection<DepressionAssessment> _assessmentCollection;
         private readonly IMongoCollection<WellnessPlan> _wellnessPlanCollection;
         private readonly IMongoCollection<MoodEntry> _moodEntryCollection;
+        private readonly IMongoCollection<RewardRedemption> _rewardRedemptionCollection;
         private readonly IDepressionPredictionService _predictionService;
         private readonly INotificationService _notificationService;
         private readonly ILogger<MentalHealthController> _logger;
+        private static readonly List<RewardItem> _rewardCatalog = new()
+        {
+            new RewardItem { Name = "Coffee Mug", StarsRequired = 1000, ImageUrl = "https://static.vecteezy.com/system/resources/thumbnails/029/942/867/small_2x/white-blank-coffee-mug-mockup-closeup-of-mug-in-sunshine-on-light-celebration-background-perfect-for-businesses-selling-mugs-overlay-quote-or-design-generative-ai-photo.jpg", Description = "A beautiful white coffee mug to brighten your mornings" },
+            new RewardItem { Name = "Indoor Plant", StarsRequired = 2000, ImageUrl = "https://www.thespruce.com/thmb/iNPuZWHq08PmiVXduzMcO2m1BmQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/grow-jade-plants-indoors-1902981-01-8f7707a296d3481585008307e61f5655.jpg", Description = "A lovely jade plant to bring nature into your space" },
+            new RewardItem { Name = "Atomic Habits by James Clear", StarsRequired = 3500, ImageUrl = "https://jamesclear.com/wp-content/uploads/2019/04/atomicHC-flat-1-e1556572683325.jpg", Description = "Transform your life with tiny changes that deliver remarkable results" }
+        };
 
         public MentalHealthController(
             UserManager<Users> userManager,
@@ -38,6 +45,7 @@ namespace ServConnect.Controllers
             _assessmentCollection = database.GetCollection<DepressionAssessment>("DepressionAssessments");
             _wellnessPlanCollection = database.GetCollection<WellnessPlan>("WellnessPlans");
             _moodEntryCollection = database.GetCollection<MoodEntry>("MoodEntries");
+            _rewardRedemptionCollection = database.GetCollection<RewardRedemption>("RewardRedemptions");
         }
 
         /// <summary>
@@ -344,6 +352,7 @@ namespace ServConnect.Controllers
 
                 // Find and update the task
                 var taskFound = false;
+                var starsEarned = 0;
                 foreach (var day in plan.Days)
                 {
                     var task = day.Tasks.FirstOrDefault(t => t.Id == request.TaskId);
@@ -353,6 +362,7 @@ namespace ServConnect.Controllers
                         task.CompletedAt = DateTime.UtcNow;
                         task.UserNotes = request.Notes;
                         task.Rating = request.Rating;
+                        starsEarned = task.StarsAwarded;
                         taskFound = true;
                         break;
                     }
@@ -371,6 +381,7 @@ namespace ServConnect.Controllers
 
                 // Update plan progress
                 plan.CompletedTasks = plan.Days.SelectMany(d => d.Tasks).Count(t => t.IsCompleted);
+                plan.TotalStarsEarned = plan.Days.SelectMany(d => d.Tasks).Where(t => t.IsCompleted).Sum(t => t.StarsAwarded);
                 plan.ProgressPercentage = plan.TotalTasks > 0 
                     ? Math.Round((double)plan.CompletedTasks / plan.TotalTasks * 100, 1) 
                     : 0;
@@ -399,7 +410,9 @@ namespace ServConnect.Controllers
                     completedTasks = plan.CompletedTasks,
                     totalTasks = plan.TotalTasks,
                     progressPercentage = plan.ProgressPercentage,
-                    isCompleted = plan.IsCompleted
+                    isCompleted = plan.IsCompleted,
+                    starsEarned = starsEarned,
+                    totalStars = plan.TotalStarsEarned
                 });
             }
             catch (Exception ex)
@@ -599,6 +612,170 @@ namespace ServConnect.Controllers
         {
             return View();
         }
+
+        /// <summary>
+        /// Get user's total stars
+        /// </summary>
+        [HttpGet]
+        [Route("MentalHealth/GetStars")]
+        public async Task<IActionResult> GetStars()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            try
+            {
+                // Calculate total stars earned from all wellness plans
+                var allPlans = await _wellnessPlanCollection
+                    .Find(w => w.UserId == currentUser.Id.ToString())
+                    .ToListAsync();
+
+                var totalEarned = allPlans.Sum(p => p.TotalStarsEarned);
+
+                // Calculate total stars spent on redemptions
+                var redemptions = await _rewardRedemptionCollection
+                    .Find(r => r.UserId == currentUser.Id.ToString())
+                    .ToListAsync();
+
+                var totalSpent = redemptions.Sum(r => r.StarsSpent);
+                var availableStars = totalEarned - totalSpent;
+
+                return Json(new
+                {
+                    success = true,
+                    totalEarned,
+                    totalSpent,
+                    availableStars
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching stars");
+                return Json(new { success = false, message = "An error occurred" });
+            }
+        }
+
+        /// <summary>
+        /// Rewards page
+        /// </summary>
+        [HttpGet]
+        [Route("MentalHealth/Rewards")]
+        public async Task<IActionResult> Rewards()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Calculate available stars
+            var allPlans = await _wellnessPlanCollection
+                .Find(w => w.UserId == currentUser.Id.ToString())
+                .ToListAsync();
+
+            var totalEarned = allPlans.Sum(p => p.TotalStarsEarned);
+
+            var redemptions = await _rewardRedemptionCollection
+                .Find(r => r.UserId == currentUser.Id.ToString())
+                .ToListAsync();
+
+            var totalSpent = redemptions.Sum(r => r.StarsSpent);
+            var availableStars = totalEarned - totalSpent;
+
+            ViewBag.AvailableStars = availableStars;
+            ViewBag.TotalEarned = totalEarned;
+            ViewBag.RewardCatalog = _rewardCatalog;
+            ViewBag.UserName = currentUser.FullName;
+            ViewBag.MyRedemptions = redemptions.OrderByDescending(r => r.RedeemedAt).ToList();
+
+            return View();
+        }
+
+        /// <summary>
+        /// Redeem a reward
+        /// </summary>
+        [HttpPost]
+        [Route("MentalHealth/RedeemReward")]
+        public async Task<IActionResult> RedeemReward([FromBody] RedeemRewardRequest request)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            try
+            {
+                // Find the reward
+                var reward = _rewardCatalog.FirstOrDefault(r => r.Name == request.RewardName);
+                if (reward == null)
+                {
+                    return Json(new { success = false, message = "Reward not found" });
+                }
+
+                // Calculate available stars
+                var allPlans = await _wellnessPlanCollection
+                    .Find(w => w.UserId == currentUser.Id.ToString())
+                    .ToListAsync();
+
+                var totalEarned = allPlans.Sum(p => p.TotalStarsEarned);
+
+                var redemptions = await _rewardRedemptionCollection
+                    .Find(r => r.UserId == currentUser.Id.ToString())
+                    .ToListAsync();
+
+                var totalSpent = redemptions.Sum(r => r.StarsSpent);
+                var availableStars = totalEarned - totalSpent;
+
+                // Check if user has enough stars
+                if (availableStars < reward.StarsRequired)
+                {
+                    return Json(new { success = false, message = "Insufficient stars" });
+                }
+
+                // Create redemption record
+                var redemption = new RewardRedemption
+                {
+                    UserId = currentUser.Id.ToString(),
+                    UserName = currentUser.FullName,
+                    RewardName = reward.Name,
+                    StarsSpent = reward.StarsRequired,
+                    ImageUrl = reward.ImageUrl,
+                    RecipientName = request.RecipientName,
+                    Email = request.Email,
+                    Phone = request.Phone,
+                    Address = request.Address,
+                    Status = "Pending"
+                };
+
+                await _rewardRedemptionCollection.InsertOneAsync(redemption);
+
+                // Send notification
+                await _notificationService.CreateNotificationAsync(
+                    currentUser.Id.ToString(),
+                    "Reward Redeemed! 🎁",
+                    $"You've successfully redeemed {reward.Name} for {reward.StarsRequired} stars. We'll process your order soon!",
+                    NotificationType.General,
+                    null,
+                    "/MentalHealth/Rewards"
+                );
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Reward redeemed successfully!",
+                    remainingStars = availableStars - reward.StarsRequired
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error redeeming reward");
+                return Json(new { success = false, message = "An error occurred" });
+            }
+        }
     }
 
     // Request DTOs
@@ -623,5 +800,14 @@ namespace ServConnect.Controllers
         public int Mood { get; set; }
         public string? Notes { get; set; }
         public List<string>? Activities { get; set; }
+    }
+
+    public class RedeemRewardRequest
+    {
+        public string RewardName { get; set; } = string.Empty;
+        public string RecipientName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
     }
 }

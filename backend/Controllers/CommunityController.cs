@@ -15,6 +15,22 @@ namespace ServConnect.Controllers
         private readonly UserManager<Users> _userManager;
         private readonly IWebHostEnvironment _env;
 
+        private static double GetAdjustedModerationThreshold(CommunityProfile profile)
+        {
+            const double baseThreshold = 0.30;
+
+            // Higher content trust means stricter moderation.
+            var extraStrictness = Math.Max(0, profile.ContentTrustScore - 0.5) * 0.30;
+            var threshold = baseThreshold - extraStrictness;
+
+            return Math.Clamp(threshold, 0.15, baseThreshold);
+        }
+
+        private static bool ShouldBlockByTrustAwareThreshold(bool isHarmfulByModel, double confidence, double adjustedThreshold)
+        {
+            return isHarmfulByModel || confidence >= adjustedThreshold;
+        }
+
         public CommunityController(
             ICommunityService community, 
             IContentModerationService contentModeration,
@@ -383,6 +399,8 @@ namespace ServConnect.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
+            var userModerationProfile = await _community.GetProfileByUserIdAsync(user.Id);
+            var adjustedThreshold = GetAdjustedModerationThreshold(userModerationProfile);
 
             // Check if user is banned
             if (await _community.IsUserBannedAsync(user.Id))
@@ -454,16 +472,22 @@ namespace ServConnect.Controllers
                 // Analyze caption + extracted text from images
                 var enhancedResult = await _enhancedModeration.AnalyzeContentWithImageAsync(
                     request.Caption, 
-                    imageBytes
+                    imageBytes,
+                    user.Id.ToString()
                 );
                 
                 Console.WriteLine($"[CreatePost] Enhanced ML Result - IsHarmful: {enhancedResult.IsHarmful}, Confidence: {enhancedResult.Confidence}");
                 Console.WriteLine($"[CreatePost] Extracted texts from images: {string.Join(", ", enhancedResult.ExtractedTexts)}");
                 Console.WriteLine($"[CreatePost] Combined text analyzed: '{enhancedResult.CombinedText}'");
                 
-                if (enhancedResult.IsHarmful)
+                var shouldBlockEnhanced = ShouldBlockByTrustAwareThreshold(
+                    enhancedResult.IsHarmful,
+                    enhancedResult.Confidence,
+                    adjustedThreshold);
+
+                if (shouldBlockEnhanced)
                 {
-                    Console.WriteLine($"[CreatePost] BLOCKED - {enhancedResult.Reason}");
+                    Console.WriteLine($"[CreatePost] BLOCKED - {enhancedResult.Reason} (threshold: {adjustedThreshold:F2})");
                     
                     // Record violation and check for ban
                     var banResult = await _community.RecordViolationAsync(
@@ -511,12 +535,17 @@ namespace ServConnect.Controllers
             {
                 // Fallback to caption-only moderation
                 Console.WriteLine($"[CreatePost] Using standard moderation (caption only)");
-                mlResult = await _contentModeration.AnalyzeContentAsync(request.Caption);
+                mlResult = await _contentModeration.AnalyzeContentAsync(request.Caption, user.Id.ToString());
                 Console.WriteLine($"[CreatePost] ML Result - IsHarmful: {mlResult.IsHarmful}, Confidence: {mlResult.Confidence}");
                 
-                if (mlResult.IsHarmful)
+                var shouldBlockStandard = ShouldBlockByTrustAwareThreshold(
+                    mlResult.IsHarmful,
+                    mlResult.Confidence,
+                    adjustedThreshold);
+
+                if (shouldBlockStandard)
                 {
-                    Console.WriteLine($"[CreatePost] BLOCKED - Harmful content detected!");
+                    Console.WriteLine($"[CreatePost] BLOCKED - Harmful content detected! (threshold: {adjustedThreshold:F2})");
                     
                     // Record violation and check for ban
                     var banResult = await _community.RecordViolationAsync(
@@ -728,6 +757,8 @@ namespace ServConnect.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
+            var profile = await _community.GetProfileByUserIdAsync(user.Id);
+            var adjustedThreshold = GetAdjustedModerationThreshold(profile);
 
             // Check if user is banned
             if (await _community.IsUserBannedAsync(user.Id))
@@ -752,12 +783,17 @@ namespace ServConnect.Controllers
 
             // ML-based harmful content detection
             Console.WriteLine($"[CreateComment] Checking ML moderation for: '{request.Content}'");
-            var mlResult = await _contentModeration.AnalyzeContentAsync(request.Content);
+            var mlResult = await _contentModeration.AnalyzeContentAsync(request.Content, user.Id.ToString());
             Console.WriteLine($"[CreateComment] ML Result - IsHarmful: {mlResult.IsHarmful}, Confidence: {mlResult.Confidence}");
+
+            var shouldBlockComment = ShouldBlockByTrustAwareThreshold(
+                mlResult.IsHarmful,
+                mlResult.Confidence,
+                adjustedThreshold);
             
-            if (mlResult.IsHarmful)
+            if (shouldBlockComment)
             {
-                Console.WriteLine($"[CreateComment] BLOCKED - Harmful content detected!");
+                Console.WriteLine($"[CreateComment] BLOCKED - Harmful content detected! (threshold: {adjustedThreshold:F2})");
                 
                 // Record violation and check for ban
                 var banResult = await _community.RecordViolationAsync(

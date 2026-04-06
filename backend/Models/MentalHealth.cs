@@ -140,6 +140,9 @@ namespace ServConnect.Models
         [BsonElement("recommendations")]
         public List<string> Recommendations { get; set; } = new();
 
+        [BsonElement("totalStarsEarned")]
+        public int TotalStarsEarned { get; set; } = 0;
+
         [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -229,6 +232,9 @@ namespace ServConnect.Models
 
         [BsonElement("rating")]
         public int? Rating { get; set; }
+
+        [BsonElement("starsAwarded")]
+        public int StarsAwarded { get; set; } = 10; // Default 10 stars per task
     }
 
     /// <summary>

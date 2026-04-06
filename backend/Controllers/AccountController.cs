@@ -21,6 +21,7 @@ namespace ServConnect.Controllers
     private readonly IFirebaseAuthService _firebaseAuthService;
     private readonly IIdVerificationService _idVerificationService;
     private readonly IEmailService _emailService;
+    private readonly ICommunityService _communityService;
 
     public AccountController(
         UserManager<Users> userManager,
@@ -33,7 +34,8 @@ namespace ServConnect.Controllers
         IOtpService otpService,
         IFirebaseAuthService firebaseAuthService,
         IIdVerificationService idVerificationService,
-        IEmailService emailService)
+        IEmailService emailService,
+        ICommunityService communityService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -46,6 +48,21 @@ namespace ServConnect.Controllers
         _firebaseAuthService = firebaseAuthService;
         _idVerificationService = idVerificationService;
         _emailService = emailService;
+        _communityService = communityService;
+    }
+
+    private static double CalculateAdjustedModerationThreshold(double contentTrustScore)
+    {
+        const double baseThreshold = 0.30;
+        var extraStrictness = Math.Max(0, contentTrustScore - 0.5) * 0.30;
+        return Math.Clamp(baseThreshold - extraStrictness, 0.15, baseThreshold);
+    }
+
+    private static string GetTrustBand(double score)
+    {
+        if (score >= 0.70) return "high";
+        if (score >= 0.40) return "medium";
+        return "low";
     }
 
     #region Registration
@@ -686,6 +703,77 @@ namespace ServConnect.Controllers
 
         model.ExistingProfileImageUrl = user.ProfileImageUrl;
         return View(model);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> GetUserScores(string? userId = null)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null)
+        {
+            return Unauthorized(new { error = "User is not authenticated." });
+        }
+
+        var targetUser = currentUser;
+        if (!string.IsNullOrWhiteSpace(userId) && !string.Equals(userId, currentUser.Id.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
+            var isAdmin = await _userManager.IsInRoleAsync(currentUser, RoleTypes.Admin);
+            if (!isAdmin)
+            {
+                return Forbid();
+            }
+
+            var requestedUser = await _userManager.FindByIdAsync(userId);
+            if (requestedUser == null)
+            {
+                return NotFound(new { error = "Requested user was not found." });
+            }
+
+            targetUser = requestedUser;
+        }
+
+        var profile = await _communityService.GetProfileByUserIdAsync(targetUser.Id);
+        var adjustedThreshold = CalculateAdjustedModerationThreshold(profile.ContentTrustScore);
+
+        return Json(new
+        {
+            userId = targetUser.Id,
+            fullName = targetUser.FullName,
+            email = targetUser.Email,
+            idVerification = new
+            {
+                isIdVerified = targetUser.IsIdVerified,
+                isIdAutoApproved = targetUser.IsIdAutoApproved,
+                similarityScore = targetUser.IdVerificationScore,
+                verifiedAtUtc = targetUser.IdVerifiedAtUtc,
+                extractedName = targetUser.ExtractedNameFromId,
+                message = targetUser.IdVerificationMessage
+            },
+            trust = new
+            {
+                userTrustScore = profile.UserTrustScore,
+                userTrustBand = GetTrustBand(profile.UserTrustScore),
+                contentTrustScore = profile.ContentTrustScore,
+                contentTrustBand = GetTrustBand(profile.ContentTrustScore),
+                lastTrustScoreUpdate = profile.LastTrustScoreUpdate
+            },
+            moderation = new
+            {
+                adjustedThreshold,
+                baseThreshold = 0.30,
+                thresholdReduction = 0.30 - adjustedThreshold
+            },
+            violations = new
+            {
+                profile.ViolationCount,
+                profile.CurrentViolationStreak,
+                profile.BanLevel,
+                profile.IsBanned,
+                profile.BanReason,
+                profile.BanExpiresAt
+            }
+        });
     }
 
     [HttpGet]

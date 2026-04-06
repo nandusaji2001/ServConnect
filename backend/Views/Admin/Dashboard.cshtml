@@ -822,6 +822,14 @@
                 <div class="tile-subtitle">Review requests</div>
             </a>
             
+            <a class="action-tile" asp-controller="Admin" asp-action="RewardRedemptions">
+                <div class="tile-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <div class="tile-title">Reward Redemptions</div>
+                <div class="tile-subtitle">Mental health rewards</div>
+            </a>
+            
             <form asp-controller="Admin" asp-action="MigrateDistrictData" method="post" style="display: contents;">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="action-tile" onclick="return confirm('This will migrate all existing users and content (services, items, rentals, events, lost & found) to Idukki district. Continue?');">

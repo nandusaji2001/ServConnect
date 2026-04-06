@@ -312,6 +312,81 @@
         gap: 8px;
     }
 
+    .propagation-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .propagation-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        background: #f9fafb;
+    }
+
+    .propagation-input:focus {
+        outline: none;
+        border-color: var(--admin-primary);
+        background: #ffffff;
+    }
+
+    .btn-propagation {
+        width: 100%;
+        padding: 11px 14px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    .btn-propagation:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-propagation:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .propagation-status {
+        margin-top: 10px;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        display: none;
+    }
+
+    .propagation-status.success {
+        display: block;
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+    }
+
+    .propagation-status.error {
+        display: block;
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+
+    .propagation-status.info {
+        display: block;
+        background: #dbeafe;
+        color: #1e3a8a;
+        border: 1px solid #93c5fd;
+    }
+
     /* Timeline */
     .timeline-item {
         padding: 16px 0;
@@ -619,6 +694,33 @@
 
         <!-- Sidebar -->
         <div>
+            @if (profile?.IsBanned == true)
+            {
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-project-diagram"></i> Trust Propagation</h3>
+                    <p style="margin: 0 0 12px; color: var(--text-secondary); font-size: 0.9rem;">
+                        Re-run trust penalty propagation for this banned user without waiting for a new ban event.
+                    </p>
+
+                    <div class="propagation-controls">
+                        <div>
+                            <label class="info-label-modern" for="maxHopsInput">Max Hops</label>
+                            <input id="maxHopsInput" class="propagation-input" type="number" min="1" max="3" value="2" />
+                        </div>
+                        <div>
+                            <label class="info-label-modern" for="basePenaltyInput">Base Penalty</label>
+                            <input id="basePenaltyInput" class="propagation-input" type="number" min="0.01" max="0.50" step="0.01" value="0.15" />
+                        </div>
+                    </div>
+
+                    <button id="rerunPropagationBtn" class="btn-propagation" data-user-id="@Model.UserId">
+                        <i class="fas fa-sync-alt"></i> Re-run Propagation
+                    </button>
+
+                    <div id="propagationStatus" class="propagation-status"></div>
+                </div>
+            }
+
             <!-- Ban History -->
             <div class="sidebar-card">
                 <h3><i class="fas fa-history"></i> Ban History</h3>
@@ -693,6 +795,45 @@
     document.getElementById('rejectForm')?.addEventListener('submit', function(e) {
         if (!confirm('Are you sure you want to reject this appeal?')) {
             e.preventDefault();
+        }
+    });
+
+    const rerunBtn = document.getElementById('rerunPropagationBtn');
+    const propagationStatus = document.getElementById('propagationStatus');
+
+    function setPropagationStatus(type, message) {
+        if (!propagationStatus) return;
+        propagationStatus.className = `propagation-status ${type}`;
+        propagationStatus.textContent = message;
+    }
+
+    rerunBtn?.addEventListener('click', async function() {
+        const userId = rerunBtn.getAttribute('data-user-id');
+        const maxHops = document.getElementById('maxHopsInput')?.value || '2';
+        const basePenalty = document.getElementById('basePenaltyInput')?.value || '0.15';
+
+        rerunBtn.disabled = true;
+        setPropagationStatus('info', 'Running trust propagation...');
+
+        try {
+            const response = await fetch(`/api/admin/community/propagate-trust/${encodeURIComponent(userId)}?maxHops=${encodeURIComponent(maxHops)}&basePenalty=${encodeURIComponent(basePenalty)}`, {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const err = data?.error || 'Propagation failed.';
+                const details = data?.details ? ` (${data.details})` : '';
+                setPropagationStatus('error', `${err}${details}`);
+                return;
+            }
+
+            setPropagationStatus('success', `Propagation completed. Affected users: ${data.affectedUsers ?? 0}`);
+        } catch (error) {
+            setPropagationStatus('error', 'Failed to call propagation endpoint.');
+        } finally {
+            rerunBtn.disabled = false;
         }
     });
 </script>

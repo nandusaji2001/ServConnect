@@ -22,13 +22,18 @@ namespace ServConnect.Services
         private readonly IMongoCollection<UserAction> _userActions;
         private readonly IMongoCollection<FlaggedContent> _flaggedContent;
         private readonly IMongoCollection<BanAppeal> _banAppeals;
+        private readonly ITrustPropagationService? _trustPropagation;
+        private readonly ILogger<CommunityService>? _logger;
 
         // Rate limiting configuration
         private const int MaxPostsPerHour = 10;
         private const int MaxCommentsPerHour = 50;
         private const int MaxMessagesPerMinute = 30;
 
-        public CommunityService(IConfiguration config)
+        public CommunityService(
+            IConfiguration config,
+            ITrustPropagationService? trustPropagation = null,
+            ILogger<CommunityService>? logger = null)
         {
             var conn = config["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017";
             var dbName = config["MongoDB:DatabaseName"] ?? "ServConnectDb";
@@ -50,6 +55,8 @@ namespace ServConnect.Services
             _userActions = db.GetCollection<UserAction>("UserActions");
             _flaggedContent = db.GetCollection<FlaggedContent>("FlaggedContent");
             _banAppeals = db.GetCollection<BanAppeal>("BanAppeals");
+            _trustPropagation = trustPropagation;
+            _logger = logger;
 
             // Create indexes for performance
             CreateIndexesAsync().Wait();
@@ -1284,7 +1291,7 @@ namespace ServConnect.Services
         }
 
         public async Task<BanResult> RecordViolationAsync(Guid userId, string content, string contentType, 
-            double toxicityScore, string reason, List<string> mediaUrls = null)
+            double toxicityScore, string reason, List<string>? mediaUrls = null)
         {
             var profile = await GetOrCreateProfileAsync(userId);
             
@@ -1356,6 +1363,10 @@ namespace ServConnect.Services
 
                 // Reset streak
                 profile.CurrentViolationStreak = 0;
+                
+                // Trigger trust propagation for users connected to the banned account.
+                await PropagateTrustScorePenaltyAsync(userId);
+                result.ShouldPropagateTrustPenalty = true;
             }
 
             profile.UpdatedAt = DateTime.UtcNow;
@@ -1364,6 +1375,47 @@ namespace ServConnect.Services
             await _profiles.ReplaceOneAsync(p => p.UserId == userId, profile);
 
             return result;
+        }
+        
+        /// <summary>
+        /// Propagate trust score penalties to users connected to a banned user
+        /// This should be called after a user is banned
+        /// </summary>
+        public async Task PropagateTrustScorePenaltyAsync(Guid bannedUserId, int maxHops = 2, double basePenalty = 0.15)
+        {
+            try
+            {
+                if (_trustPropagation == null)
+                {
+                    _logger?.LogWarning(
+                        "Trust propagation service not configured. Skipping penalty propagation for banned user {BannedUserId}",
+                        bannedUserId);
+                    return;
+                }
+
+                var propagationResult = await _trustPropagation.PropagateBanPenaltyAsync(
+                    bannedUserId,
+                    maxHops,
+                    basePenalty);
+
+                if (!propagationResult.Success)
+                {
+                    _logger?.LogWarning(
+                        "Trust propagation completed with failure for user {BannedUserId}: {Error}",
+                        bannedUserId,
+                        propagationResult.ErrorMessage);
+                    return;
+                }
+
+                _logger?.LogInformation(
+                    "Trust propagation completed for banned user {BannedUserId}. Affected users: {AffectedCount}",
+                    bannedUserId,
+                    propagationResult.AffectedUserCount);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to propagate trust scores for banned user {BannedUserId}", bannedUserId);
+            }
         }
 
         public async Task SaveFlaggedContentAsync(FlaggedContent flagged)
@@ -1480,6 +1532,7 @@ namespace ServConnect.Services
         public int BanLevel { get; set; }
         public int BanDuration { get; set; } // Days, -1 for permanent
         public bool IsPermanent { get; set; }
+        public bool ShouldPropagateTrustPenalty { get; set; } = false;
     }
 
     public class UserAction

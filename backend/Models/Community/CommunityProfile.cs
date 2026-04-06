@@ -46,6 +46,11 @@ namespace ServConnect.Models.Community
         public int BanLevel { get; set; } = 0; // 0=none, 1=7days, 2=30days, 3=permanent
         public List<BanHistory> BanHistory { get; set; } = new();
 
+        // GNN Trust Scores (0-1, higher = more trustworthy)
+        public double UserTrustScore { get; set; } = 0.5; // Default neutral trust
+        public double ContentTrustScore { get; set; } = 0.5; // Content moderation strictness (lower = stricter)
+        public DateTime? LastTrustScoreUpdate { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastActiveAt { get; set; }

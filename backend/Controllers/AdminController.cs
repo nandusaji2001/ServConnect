@@ -7,6 +7,7 @@ using ServConnect.Models;
 using ServConnect.Models.Community;
 using ServConnect.Services;
 using System.Drawing;
+using MongoDB.Driver;
 
 namespace ServConnect.Controllers
 {
@@ -23,6 +24,9 @@ namespace ServConnect.Controllers
         private readonly IServiceCatalog _serviceCatalog;
         private readonly IRevenueService _revenueService;
         private readonly ICommunityService _community;
+        private readonly ITrustPropagationService? _trustPropagation;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<TrustPropagationService> _trustLogger;
         private readonly IEmailService _emailService;
 
         public AdminController(
@@ -36,7 +40,10 @@ namespace ServConnect.Controllers
             IServiceCatalog serviceCatalog,
             IRevenueService revenueService,
             ICommunityService community,
-            IEmailService emailService)
+            IEmailService emailService,
+            IConfiguration configuration,
+            ILogger<TrustPropagationService> trustLogger,
+            ITrustPropagationService? trustPropagation = null)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -48,7 +55,66 @@ namespace ServConnect.Controllers
             _serviceCatalog = serviceCatalog;
             _revenueService = revenueService;
             _community = community;
+            _trustPropagation = trustPropagation;
+            _configuration = configuration;
+            _trustLogger = trustLogger;
             _emailService = emailService;
+        }
+
+        [HttpPost]
+        [Route("api/admin/community/propagate-trust/{userId}")]
+        public async Task<IActionResult> RerunTrustPropagation(string userId, [FromQuery] int maxHops = 2, [FromQuery] double basePenalty = 0.15)
+        {
+            var trustService = _trustPropagation ?? new TrustPropagationService(_configuration, _trustLogger);
+
+            if (!Guid.TryParse(userId, out var parsedUserId))
+            {
+                return BadRequest(new { error = "Invalid user id format. Expected a Guid." });
+            }
+
+            maxHops = Math.Clamp(maxHops, 1, 3);
+            basePenalty = Math.Clamp(basePenalty, 0.01, 0.50);
+
+            var profile = await _community.GetProfileByUserIdAsync(parsedUserId);
+            if (profile == null)
+            {
+                return NotFound(new
+                {
+                    error = "Community profile not found for target user.",
+                    userId = parsedUserId
+                });
+            }
+
+            if (!profile.IsBanned)
+            {
+                return BadRequest(new
+                {
+                    error = "Target user is not currently banned. Manual propagation is intended for banned users.",
+                    userId = parsedUserId
+                });
+            }
+
+            var result = await trustService.PropagateBanPenaltyAsync(parsedUserId, maxHops, basePenalty);
+            if (!result.Success)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    error = "Trust propagation request failed.",
+                    details = result.ErrorMessage,
+                    userId = parsedUserId
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                userId = parsedUserId,
+                banned = profile.IsBanned,
+                maxHops,
+                basePenalty,
+                affectedUsers = result.AffectedUserCount,
+                summary = result.Summary
+            });
         }
 
         public async Task<IActionResult> Dashboard()
@@ -1197,5 +1263,77 @@ namespace ServConnect.Controllers
         }
 
         #endregion
+
+        #region Mental Health Rewards
+
+        /// <summary>
+        /// View all reward redemptions
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> RewardRedemptions()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            ViewBag.AdminName = currentUser?.FullName ?? "Admin";
+
+            try
+            {
+                var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+                var connectionString = configuration["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017";
+                var databaseName = configuration["MongoDB:DatabaseName"] ?? "ServConnectDb";
+                var client = new MongoDB.Driver.MongoClient(connectionString);
+                var database = client.GetDatabase(databaseName);
+                var redemptionCollection = database.GetCollection<RewardRedemption>("RewardRedemptions");
+
+                var redemptions = await redemptionCollection
+                    .Find(_ => true)
+                    .SortByDescending(r => r.RedeemedAt)
+                    .ToListAsync();
+
+                return View(redemptions);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching redemptions: {ex.Message}");
+                return View(new List<RewardRedemption>());
+            }
+        }
+
+        /// <summary>
+        /// Update redemption status
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> UpdateRedemptionStatus([FromBody] UpdateRedemptionStatusRequest request)
+        {
+            try
+            {
+                var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+                var connectionString = configuration["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017";
+                var databaseName = configuration["MongoDB:DatabaseName"] ?? "ServConnectDb";
+                var client = new MongoDB.Driver.MongoClient(connectionString);
+                var database = client.GetDatabase(databaseName);
+                var redemptionCollection = database.GetCollection<RewardRedemption>("RewardRedemptions");
+
+                var filter = MongoDB.Driver.Builders<RewardRedemption>.Filter.Eq(r => r.Id, request.RedemptionId);
+                var update = MongoDB.Driver.Builders<RewardRedemption>.Update
+                    .Set(r => r.Status, request.Status)
+                    .Set(r => r.UpdatedAt, DateTime.UtcNow);
+
+                await redemptionCollection.UpdateOneAsync(filter, update);
+
+                return Json(new { success = true, message = "Status updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+    }
+
+    public class UpdateRedemptionStatusRequest
+    {
+        public string RedemptionId { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
     }
 }

@@ -15,3 +15,8 @@ requests>=2.31.0
 # For intelligent moderation system
 torch-scatter>=2.1.0
 torch-sparse>=0.6.0
+
+# For trust propagation API
+fastapi>=0.100.0
+uvicorn>=0.23.0
+pydantic>=2.0.0

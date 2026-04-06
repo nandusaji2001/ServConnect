@@ -91,7 +91,7 @@ namespace ServConnect.Services
 
         // Ban System
         Task<bool> IsUserBannedAsync(Guid userId);
-        Task<BanResult> RecordViolationAsync(Guid userId, string content, string contentType, double toxicityScore, string reason, List<string> mediaUrls = null);
+        Task<BanResult> RecordViolationAsync(Guid userId, string content, string contentType, double toxicityScore, string reason, List<string>? mediaUrls = null);
         Task SaveFlaggedContentAsync(FlaggedContent flagged);
         Task<List<FlaggedContent>> GetUserFlaggedContentAsync(Guid userId);
         Task<List<FlaggedContent>> GetAllFlaggedContentAsync(int skip = 0, int limit = 50);

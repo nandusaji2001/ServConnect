@@ -10,6 +10,7 @@ echo   - Multimodal Item Matching API (Port 5003) [CLIP+GNN]
 echo   - ID Verification API (Port 5004)
 echo   - Depression Prediction API (Port 5007)
 echo   - OCR Text Extraction API (Port 5008) [NEW: EasyOCR]
+echo   - Trust Propagation API (Port 8006) [GNN Social Graph]
 echo.
 echo ================================================
 
@@ -76,6 +77,9 @@ start "Depression Prediction API - Port 5007" cmd /k "cd /d "%~dp0" && call venv
 timeout /t 2 /nobreak > nul
 
 start "OCR Text Extraction API - Port 5008 [EasyOCR]" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python ocr_text_extraction_api.py"
+timeout /t 2 /nobreak > nul
+
+start "Trust Propagation API - Port 8006 [GNN Social Graph]" cmd /k "cd /d "%~dp0" && call venv\Scripts\activate.bat && python trust_propagation_api.py"
 
 echo.
 echo ================================================
@@ -89,6 +93,7 @@ echo   Multimodal Matching API:         http://localhost:5003 [CLIP+GNN]
 echo   ID Verification API:             http://localhost:5004
 echo   Depression API:                  http://localhost:5007
 echo   OCR Text Extraction API (NEW):   http://localhost:5008
+echo   Trust Propagation API (NEW):     http://localhost:8006 [GNN]
 echo.
 echo   NEW: Enhanced Content Moderation:
 echo        - OCR extracts text from images
@@ -99,6 +104,11 @@ echo   NEW: Intelligent Moderation combines:
 echo        - Text Analysis (BERT/TF-IDF)
 echo        - Image Analysis (CLIP)
 echo        - User Trust Scoring (GNN)
+echo.
+echo   NEW: Trust Propagation System:
+echo        - Propagates penalties through social graph
+echo        - Affects followers of banned users
+echo        - Gradual trust recovery over time
 echo.
 echo   Each API is running in its own window.
 echo   Close this window or press any key to exit.

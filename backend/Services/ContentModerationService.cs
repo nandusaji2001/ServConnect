@@ -5,7 +5,7 @@ namespace ServConnect.Services
 {
     public interface IContentModerationService
     {
-        Task<ContentModerationResult> AnalyzeContentAsync(string text);
+        Task<ContentModerationResult> AnalyzeContentAsync(string text, string? userId = null);
         Task<List<ContentModerationResult>> AnalyzeContentBatchAsync(List<string> texts);
         bool IsServiceAvailable { get; }
     }
@@ -41,7 +41,7 @@ namespace ServConnect.Services
             };
         }
 
-        public async Task<ContentModerationResult> AnalyzeContentAsync(string text)
+        public async Task<ContentModerationResult> AnalyzeContentAsync(string text, string? userId = null)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -73,7 +73,8 @@ namespace ServConnect.Services
             {
                 var requestBody = new
                 {
-                    text = text
+                    text = text,
+                    user_id = userId
                 };
 
                 var json = JsonSerializer.Serialize(requestBody);

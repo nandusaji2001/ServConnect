@@ -5,7 +5,7 @@ namespace ServConnect.Services
 {
     public interface IEnhancedContentModerationService
     {
-        Task<EnhancedModerationResult> AnalyzeContentWithImageAsync(string caption, List<byte[]> images);
+        Task<EnhancedModerationResult> AnalyzeContentWithImageAsync(string caption, List<byte[]> images, string? userId = null);
         Task<string> ExtractTextFromImageAsync(byte[] imageData);
     }
 
@@ -79,7 +79,8 @@ namespace ServConnect.Services
 
         public async Task<EnhancedModerationResult> AnalyzeContentWithImageAsync(
             string caption, 
-            List<byte[]> images)
+            List<byte[]> images,
+            string? userId = null)
         {
             var result = new EnhancedModerationResult
             {
@@ -98,7 +99,8 @@ namespace ServConnect.Services
                 var requestBody = new
                 {
                     text = caption ?? string.Empty,
-                    image = imageBase64
+                    image = imageBase64,
+                    user_id = userId
                 };
 
                 var json = JsonSerializer.Serialize(requestBody);

@@ -483,6 +483,13 @@
             <div class="stat-label">Tasks Completed</div>
         </div>
         <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(255, 215, 0, 0.1); color: #FFD700;">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-value">⭐ @(activePlan?.TotalStarsEarned ?? 0)</div>
+            <div class="stat-label">Stars Earned</div>
+        </div>
+        <div class="stat-card">
             <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">
                 <i class="fas fa-smile"></i>
             </div>
@@ -519,6 +526,17 @@
             <p class="feature-desc">
                 Receive a personalized 7-day plan with activities like nature walks, 
                 mindfulness exercises, and local place recommendations.
+            </p>
+        </a>
+
+        <a href="@Url.Action("Rewards", "MentalHealth")" class="feature-card">
+            <div class="feature-icon" style="background: rgba(255, 215, 0, 0.1); color: #FFD700;">
+                <i class="fas fa-gift"></i>
+            </div>
+            <h3 class="feature-title">Rewards & Gifts</h3>
+            <p class="feature-desc">
+                Earn stars by completing wellness tasks and redeem them for amazing rewards 
+                like coffee mugs, plants, and books!
             </p>
         </a>
 

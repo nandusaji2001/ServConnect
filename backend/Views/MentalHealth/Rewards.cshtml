@@ -1,0 +1,434 @@
+@{
+    ViewData["Title"] = "Rewards";
+    var availableStars = ViewBag.AvailableStars ?? 0;
+    var totalEarned = ViewBag.TotalEarned ?? 0;
+    var rewardCatalog = ViewBag.RewardCatalog as List<ServConnect.Models.RewardItem> ?? new List<ServConnect.Models.RewardItem>();
+    var myRedemptions = ViewBag.MyRedemptions as List<ServConnect.Models.RewardRedemption> ?? new List<ServConnect.Models.RewardRedemption>();
+}
+
+<style>
+    .rewards-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .stars-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .stars-count {
+        font-size: 3rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .star-icon {
+        color: #ffd700;
+        font-size: 2rem;
+    }
+
+    .reward-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .reward-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        position: relative;
+    }
+
+    .reward-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    }
+
+    .reward-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+    }
+
+    .reward-content {
+        padding: 20px;
+    }
+
+    .reward-name {
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .reward-description {
+        color: #666;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+    }
+
+    .reward-stars {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .stars-required {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .redeem-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .redeem-btn.unlocked {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .redeem-btn.unlocked:hover {
+        transform: scale(1.05);
+    }
+
+    .redeem-btn.locked {
+        background: #e0e0e0;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    .lock-icon {
+        margin-right: 5px;
+    }
+
+    .redemption-history {
+        margin-top: 50px;
+    }
+
+    .history-title {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .history-table {
+        width: 100%;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .history-table th {
+        background: #667eea;
+        color: white;
+        padding: 15px;
+        text-align: left;
+    }
+
+    .history-table td {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-processing {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .status-shipped {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-delivered {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 30px;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #555;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .modal-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: #e0e0e0;
+        color: #666;
+    }
+
+    .close {
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        color: #aaa;
+        cursor: pointer;
+    }
+
+    .close:hover {
+        color: #000;
+    }
+</style>
+
+<div class="rewards-container">
+    <div class="stars-header">
+        <div class="star-icon">⭐</div>
+        <h1>Your Stars</h1>
+        <div class="stars-count">@availableStars</div>
+        <p>Total Earned: @totalEarned stars</p>
+    </div>
+
+    <h2 style="margin-bottom: 20px; color: #333;">Reward Catalog</h2>
+    <div class="reward-grid">
+        @foreach (var reward in rewardCatalog)
+        {
+            var canRedeem = availableStars >= reward.StarsRequired;
+            <div class="reward-card">
+                <img src="@reward.ImageUrl" alt="@reward.Name" class="reward-image" />
+                <div class="reward-content">
+                    <div class="reward-name">@reward.Name</div>
+                    <div class="reward-description">@reward.Description</div>
+                    <div class="reward-stars">
+                        <span class="stars-required">⭐ @reward.StarsRequired stars</span>
+                    </div>
+                    @if (canRedeem)
+                    {
+                        <button class="redeem-btn unlocked" onclick="openRedeemModal('@reward.Name', @reward.StarsRequired)">
+                            🎁 Redeem Now
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="redeem-btn locked" disabled>
+                            <span class="lock-icon">🔒</span> Locked
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (myRedemptions.Any())
+    {
+        <div class="redemption-history">
+            <h2 class="history-title">My Redemptions</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Reward</th>
+                        <th>Stars Spent</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var redemption in myRedemptions)
+                    {
+                        <tr>
+                            <td>@redemption.RewardName</td>
+                            <td>⭐ @redemption.StarsSpent</td>
+                            <td>@redemption.RedeemedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="status-badge status-@redemption.Status.ToLower()">
+                                    @redemption.Status
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Redemption Modal -->
+<div id="redeemModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeRedeemModal()">&times;</span>
+        <div class="modal-header">Redeem Your Reward</div>
+        <form id="redeemForm">
+            <input type="hidden" id="rewardName" />
+            <input type="hidden" id="starsRequired" />
+            
+            <div class="form-group">
+                <label>Recipient Name *</label>
+                <input type="text" id="recipientName" required />
+            </div>
+            
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="email" required />
+            </div>
+            
+            <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="tel" id="phone" required />
+            </div>
+            
+            <div class="form-group">
+                <label>Delivery Address *</label>
+                <textarea id="address" required></textarea>
+            </div>
+            
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn btn-cancel" onclick="closeRedeemModal()">Cancel</button>
+                <button type="submit" class="modal-btn btn-submit">Confirm Redemption</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openRedeemModal(rewardName, starsRequired) {
+        document.getElementById('rewardName').value = rewardName;
+        document.getElementById('starsRequired').value = starsRequired;
+        document.getElementById('redeemModal').style.display = 'block';
+    }
+
+    function closeRedeemModal() {
+        document.getElementById('redeemModal').style.display = 'none';
+        document.getElementById('redeemForm').reset();
+    }
+
+    document.getElementById('redeemForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const data = {
+            rewardName: document.getElementById('rewardName').value,
+            recipientName: document.getElementById('recipientName').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            address: document.getElementById('address').value
+        };
+
+        try {
+            const response = await fetch('/MentalHealth/RedeemReward', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('🎉 ' + result.message);
+                location.reload();
+            } else {
+                alert('❌ ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        }
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('redeemModal');
+        if (event.target == modal) {
+            closeRedeemModal();
+        }
+    }
+</script>

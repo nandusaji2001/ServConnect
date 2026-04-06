@@ -54,12 +54,81 @@
     .header-title {
         font-size: 2rem;
         font-weight: 800;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
     }
 
     .header-subtitle {
         opacity: 0.9;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+    }
+
+    /* Stars and Rewards Section */
+    .stars-rewards-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .stars-display {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.15);
+        padding: 10px 18px;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+    }
+
+    .stars-icon {
+        font-size: 1.8rem;
+        line-height: 1;
+    }
+
+    .stars-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .stars-count {
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .stars-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .rewards-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: var(--primary);
+        padding: 10px 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .rewards-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        color: var(--primary);
+    }
+
+    .rewards-btn i {
+        font-size: 1rem;
     }
 
     /* Progress Bar */
@@ -1087,6 +1156,25 @@
         .day-tabs {
             justify-content: flex-start;
         }
+
+        .stars-rewards-section {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .stars-display {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .rewards-btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+        }
     }
 </style>
 
@@ -1104,6 +1192,22 @@
                     <i class="fas fa-heart-pulse me-2"></i>@:Your 7-Day Wellness Journey
                 }
             </h1>
+            
+            <!-- Stars and Rewards Section -->
+            <div class="stars-rewards-section">
+                <div class="stars-display">
+                    <div class="stars-icon">⭐</div>
+                    <div class="stars-info">
+                        <div class="stars-count" id="totalStars">@Model.TotalStarsEarned</div>
+                        <div class="stars-label">Stars Earned</div>
+                    </div>
+                </div>
+                <a href="/MentalHealth/Rewards" class="rewards-btn">
+                    <i class="fas fa-gift"></i>
+                    <span>View Rewards</span>
+                </a>
+            </div>
+            
             <p class="header-subtitle">
                 @if (isMaintenancePlan)
                 {
@@ -1114,6 +1218,7 @@
                     @:Complete daily tasks to improve your mental wellbeing. You've got this! 💪
                 }
             </p>
+            
             <div class="progress-wrapper">
                 <div class="progress-info">
                     <div class="progress-label">Overall Progress</div>
@@ -1916,12 +2021,18 @@
                     document.getElementById('progressBar').style.width = data.progressPercentage + '%';
                     document.getElementById('progressPercent').textContent = data.progressPercentage + '%';
                     document.getElementById('completedCount').textContent = data.completedTasks;
+                    
+                    // Update stars
+                    if (data.totalStars !== undefined) {
+                        document.getElementById('totalStars').textContent = '⭐ ' + data.totalStars;
+                    }
 
                     // Close modal
                     bootstrap.Modal.getInstance(document.getElementById('completionModal')).hide();
 
-                    // Show success message
-                    showToast('Task completed! Keep up the great work! 🎉', 'success');
+                    // Show success message with stars
+                    const starsMessage = data.starsEarned ? ` You earned ${data.starsEarned} stars! ⭐` : '';
+                    showToast('Task completed! Keep up the great work! 🎉' + starsMessage, 'success');
 
                     // Check if all tasks completed
                     if (data.isCompleted) {

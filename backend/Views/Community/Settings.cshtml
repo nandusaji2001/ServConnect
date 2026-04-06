@@ -4,6 +4,7 @@
     var user = ViewBag.CurrentUser as ServConnect.Models.Users;
     var profile = ViewBag.Profile as ServConnect.Models.Community.CommunityProfile;
     var blockedUsers = ViewBag.BlockedUsers as List<ServConnect.Models.Community.UserBlock>;
+    var isAdmin = User.IsInRole("Admin");
 }
 <!DOCTYPE html>
 <html lang="en" data-theme="@(profile?.Theme ?? "light")">
@@ -350,6 +351,86 @@
                 <!-- Account Section -->
                 <section class="settings-section" id="account-section">
                     <h2 class="section-title">Account Settings</h2>
+
+                    <div class="account-info" style="margin-bottom: 1rem;">
+                        <div class="info-item" style="display: block; width: 100%;">
+                            <label style="margin-bottom: 0.5rem; display: block;">Scores Overview</label>
+                            <p style="margin: 0; color: #666; font-size: 0.9rem;">Use this panel to compare moderation strictness and trust outcomes.</p>
+                        </div>
+                    </div>
+
+                    @if (isAdmin)
+                    {
+                        <div class="account-info" style="margin-bottom: 1rem; align-items: end;">
+                            <div class="info-item" style="flex: 1; min-width: 250px;">
+                                <label for="compareUserIdInput">Compare By User ID</label>
+                                <input id="compareUserIdInput" type="text" placeholder="Enter user id (Guid)" style="width: 100%;" />
+                            </div>
+                            <div class="info-item" style="display: flex; gap: 0.5rem; align-items: end;">
+                                <button type="button" class="btn btn-outline" onclick="loadUserScores(document.getElementById('compareUserIdInput').value.trim())">
+                                    <i class="fas fa-search"></i>
+                                    Load User Scores
+                                </button>
+                                <button type="button" class="btn btn-outline" onclick="loadUserScores()">
+                                    <i class="fas fa-user"></i>
+                                    Reset To My Scores
+                                </button>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="account-info" id="scoresLoadingState" style="display: none; margin-bottom: 1rem;">
+                        <div class="info-item">
+                            <label>Status</label>
+                            <span>Loading scores...</span>
+                        </div>
+                    </div>
+
+                    <div class="account-info" id="scoresErrorState" style="display: none; margin-bottom: 1rem;">
+                        <div class="info-item">
+                            <label>Error</label>
+                            <span id="scoresErrorText">Unable to load scores.</span>
+                        </div>
+                    </div>
+
+                    <div id="scoresGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <div class="info-item">
+                            <label>Selected User</label>
+                            <span id="scoreFullName">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>User Trust Score</label>
+                            <span id="scoreUserTrust">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Content Trust Score</label>
+                            <span id="scoreContentTrust">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Adjusted Moderation Threshold</label>
+                            <span id="scoreThreshold">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>ID Verification Similarity</label>
+                            <span id="scoreIdVerification">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Violation Count</label>
+                            <span id="scoreViolations">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Violation Streak</label>
+                            <span id="scoreStreak">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Ban Status</label>
+                            <span id="scoreBanStatus">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Trust Last Updated</label>
+                            <span id="scoreLastTrustUpdate">-</span>
+                        </div>
+                    </div>
                     
                     <div class="account-info">
                         <div class="info-item">
@@ -425,6 +506,72 @@
             document.querySelectorAll('.settings-section').forEach(sec => {
                 sec.classList.toggle('active', sec.id === `${section}-section`);
             });
+
+            if (section === 'account') {
+                loadUserScores();
+            }
+        }
+
+        function formatPercent(value) {
+            if (typeof value !== 'number' || Number.isNaN(value)) return 'N/A';
+            return `${(value * 100).toFixed(1)}%`;
+        }
+
+        function formatThreshold(value) {
+            if (typeof value !== 'number' || Number.isNaN(value)) return 'N/A';
+            return value.toFixed(3);
+        }
+
+        function formatDate(value) {
+            if (!value) return 'N/A';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return 'N/A';
+            return date.toLocaleString();
+        }
+
+        function formatBand(band) {
+            if (!band) return 'N/A';
+            return `${band.charAt(0).toUpperCase()}${band.slice(1)}`;
+        }
+
+        function setScoreValue(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
+
+        async function loadUserScores(userId = '') {
+            const loading = document.getElementById('scoresLoadingState');
+            const error = document.getElementById('scoresErrorState');
+
+            if (loading) loading.style.display = 'flex';
+            if (error) error.style.display = 'none';
+
+            try {
+                const query = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+                const response = await fetch(`/Account/GetUserScores${query}`);
+                if (!response.ok) {
+                    throw new Error(response.status === 403 ? 'Not allowed to view this user scores.' : 'Failed to load scores.');
+                }
+
+                const data = await response.json();
+                setScoreValue('scoreFullName', `${data.fullName || 'Unknown'} (${data.email || 'No email'})`);
+                setScoreValue('scoreUserTrust', `${formatPercent(data.trust?.userTrustScore)} (${formatBand(data.trust?.userTrustBand)})`);
+                setScoreValue('scoreContentTrust', `${formatPercent(data.trust?.contentTrustScore)} (${formatBand(data.trust?.contentTrustBand)})`);
+                setScoreValue('scoreThreshold', formatThreshold(data.moderation?.adjustedThreshold));
+                setScoreValue('scoreIdVerification', formatPercent(data.idVerification?.similarityScore));
+                setScoreValue('scoreViolations', `${data.violations?.violationCount ?? 0}`);
+                setScoreValue('scoreStreak', `${data.violations?.currentViolationStreak ?? 0}`);
+                setScoreValue('scoreBanStatus', data.violations?.isBanned ? `Banned (Level ${data.violations?.banLevel ?? 0})` : `Not banned (Level ${data.violations?.banLevel ?? 0})`);
+                setScoreValue('scoreLastTrustUpdate', formatDate(data.trust?.lastTrustScoreUpdate));
+            } catch (err) {
+                const errorText = document.getElementById('scoresErrorText');
+                if (errorText) {
+                    errorText.textContent = err?.message || 'Unable to load scores.';
+                }
+                if (error) error.style.display = 'flex';
+            } finally {
+                if (loading) loading.style.display = 'none';
+            }
         }
 
         // Bio character counter
@@ -624,6 +771,12 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('account-section')?.classList.contains('active')) {
+                loadUserScores();
+            }
+        });
     </script>
 </body>
 </html>

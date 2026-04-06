@@ -1,0 +1,329 @@
+@model List<ServConnect.Models.RewardRedemption>
+@{
+    ViewData["Title"] = "Reward Redemptions";
+}
+
+<style>
+    .redemptions-container {
+        padding: 20px;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .stat-label {
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .redemptions-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .redemptions-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .redemptions-table th {
+        background: #667eea;
+        color: white;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .redemptions-table td {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .redemptions-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .reward-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .status-select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-processing {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .status-shipped {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-delivered {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .contact-info {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .contact-info div {
+        margin: 3px 0;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 50px;
+        color: #999;
+        font-size: 1.2rem;
+    }
+
+    .filter-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+</style>
+
+<div class="redemptions-container">
+    <div class="page-header">
+        <h1>🎁 Reward Redemptions</h1>
+        <p>Manage mental health reward redemptions</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">@Model.Count</div>
+            <div class="stat-label">Total Redemptions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@Model.Count(r => r.Status == "Pending")</div>
+            <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@Model.Count(r => r.Status == "Processing")</div>
+            <div class="stat-label">Processing</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@Model.Count(r => r.Status == "Shipped")</div>
+            <div class="stat-label">Shipped</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@Model.Count(r => r.Status == "Delivered")</div>
+            <div class="stat-label">Delivered</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@Model.Sum(r => r.StarsSpent)</div>
+            <div class="stat-label">Total Stars Redeemed</div>
+        </div>
+    </div>
+
+    <div class="filter-section">
+        <div class="filter-group">
+            <label>Filter by Status:</label>
+            <select id="statusFilter" onchange="filterTable()">
+                <option value="">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Processing">Processing</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+            </select>
+
+            <label style="margin-left: 20px;">Search:</label>
+            <input type="text" id="searchInput" placeholder="Search by name, email..." onkeyup="filterTable()" />
+        </div>
+    </div>
+
+    <div class="redemptions-table">
+        @if (Model.Any())
+        {
+            <table id="redemptionsTable">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Reward</th>
+                        <th>User</th>
+                        <th>Contact Info</th>
+                        <th>Address</th>
+                        <th>Stars</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var redemption in Model)
+                    {
+                        <tr data-status="@redemption.Status">
+                            <td>
+                                <img src="@redemption.ImageUrl" alt="@redemption.RewardName" class="reward-image" />
+                            </td>
+                            <td><strong>@redemption.RewardName</strong></td>
+                            <td>@redemption.UserName</td>
+                            <td>
+                                <div class="contact-info">
+                                    <div><strong>@redemption.RecipientName</strong></div>
+                                    <div>📧 @redemption.Email</div>
+                                    <div>📱 @redemption.Phone</div>
+                                </div>
+                            </td>
+                            <td>@redemption.Address</td>
+                            <td>⭐ @redemption.StarsSpent</td>
+                            <td>@redemption.RedeemedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="status-badge status-@redemption.Status.ToLower()">
+                                    @redemption.Status
+                                </span>
+                            </td>
+                            <td>
+                                <select class="status-select" onchange="updateStatus('@redemption.Id', this.value)">
+                                    <option value="Pending" selected="@(redemption.Status == "Pending")">Pending</option>
+                                    <option value="Processing" selected="@(redemption.Status == "Processing")">Processing</option>
+                                    <option value="Shipped" selected="@(redemption.Status == "Shipped")">Shipped</option>
+                                    <option value="Delivered" selected="@(redemption.Status == "Delivered")">Delivered</option>
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="no-data">
+                <p>No reward redemptions yet</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    async function updateStatus(redemptionId, newStatus) {
+        try {
+            const response = await fetch('/Admin/UpdateRedemptionStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    redemptionId: redemptionId,
+                    status: newStatus
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update the status badge
+                const row = event.target.closest('tr');
+                const badge = row.querySelector('.status-badge');
+                badge.className = 'status-badge status-' + newStatus.toLowerCase();
+                badge.textContent = newStatus;
+                row.setAttribute('data-status', newStatus);
+                
+                alert('✅ Status updated successfully!');
+            } else {
+                alert('❌ Failed to update status: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ An error occurred while updating status');
+        }
+    }
+
+    function filterTable() {
+        const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+        const searchInput = document.getElementById('searchInput').value.toLowerCase();
+        const table = document.getElementById('redemptionsTable');
+        const rows = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const status = row.getAttribute('data-status').toLowerCase();
+            const text = row.textContent.toLowerCase();
+
+            const statusMatch = !statusFilter || status === statusFilter;
+            const searchMatch = !searchInput || text.includes(searchInput);
+
+            row.style.display = (statusMatch && searchMatch) ? '' : 'none';
+        }
+    }
+</script>

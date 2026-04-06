@@ -186,6 +186,8 @@ builder.Services.AddSingleton<IItemMatchingService, ItemMatchingService>();
 builder.Services.AddScoped<IGasSubscriptionService, GasSubscriptionService>();
 // TransitConnect service for community transport updates
 builder.Services.AddScoped<ITransportUpdateService, TransportUpdateService>();
+// Chatbot service for user assistance and navigation (Enhanced version with 40+ specific responses)
+builder.Services.AddSingleton<IChatbotService, ChatbotService>();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();
